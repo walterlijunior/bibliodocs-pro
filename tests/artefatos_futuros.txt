@@ -1,0 +1,11 @@
+# Arquivos citados na documentacao que ainda nao existem porque serao criados pelo Claude Code
+# durante as etapas do PROMPT_EXECUCAO.md. Os validadores aceitam referencias a estes caminhos.
+# Ao criar um deles, remova-o desta lista.
+docs/relatorios/ETAPA1_INVENTARIO.md
+docs/relatorios/ETAPA2_AUDITORIA.md
+docs/relatorios/ETAPA6_VALIDACAO.md
+docs/relatorios/ESTUDO_VISUAL_TABELAS.md
+docs/GUIA_VISUAL.md
+docs/INSTALACAO_APP.md
+# Arquivo pessoal criado pelo proprio Claude Code na maquina do usuario (nunca vai no kit):
+.claude/settings.local.json

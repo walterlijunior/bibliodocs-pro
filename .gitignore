@@ -1,0 +1,35 @@
+# Área de trabalho de análise (recriável a partir de materiais/)
+analise/*
+!analise/LEIA-ME.md
+
+# Configuração pessoal do Claude Code (não compartilhar)
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Segredos
+.env
+.env.*
+*.pem
+*.key
+
+# Dependências e artefatos de build do aplicativo
+node_modules/
+app/node_modules/
+dist/
+build/
+out/
+app/dist/
+app/release/
+target/
+*.log
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Sistema operacional / editores
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+~$*

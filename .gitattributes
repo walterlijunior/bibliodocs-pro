@@ -1,0 +1,3 @@
+# Originais: preservar byte a byte (sem conversão de fim de linha), para que o SHA-256 do
+# inventário continue válido após qualquer checkout.
+materiais/** -text -diff
