@@ -5,8 +5,16 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 1 — Inventário: `docs/relatorios/ETAPA1_INVENTARIO.md`; repositório git (commit inicial `acc4f73`);
+  `.gitattributes` (`materiais/** -text -diff`) para preservar os originais byte a byte apesar de `core.autocrlf`.
+
+### Alterado
+- `docs/INVENTARIO_DE_MATERIAIS.md`: caminhos completos, tamanhos, formato conferido e SHA-256 dos 14 itens
+  (10 checksums novos), agora verificados por `validar-kit.ps1` e `test_estrutura_kit.py`.
+
 ### A fazer
-- Etapa 1 — Inventário (primeira execução de `/iniciar-projeto`).
+- Etapa 2 — Auditoria do sistema existente.
 
 ## [kit-1.1.0] — 2026-10-12
 
