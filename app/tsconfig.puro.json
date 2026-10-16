@@ -1,0 +1,9 @@
+{
+  "//": "Domínio e aplicação: TypeScript puro, sem DOM, sem Node, sem Electron (ADR-0005, regras 1 e 3).",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src/dominio/**/*.ts", "src/aplicacao/**/*.ts"]
+}

@@ -1,0 +1,19 @@
+{
+  "//": "Processo principal, preload, módulos que rodam no Node e arquivos de configuração e testes.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": [
+    "electron.vite.config.mts",
+    "vitest.config.mts",
+    "src/principal/**/*.ts",
+    "src/preload/**/*.ts",
+    "src/persistencia/**/*.ts",
+    "src/integracoes/**/*.ts",
+    "src/exportacao/**/*.ts",
+    "src/importacao/**/*.ts",
+    "tests/**/*.ts"
+  ]
+}

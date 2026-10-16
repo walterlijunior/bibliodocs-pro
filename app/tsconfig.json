@@ -1,0 +1,9 @@
+{
+  "//": "Arquivo para o editor. A checagem real é `npm run typecheck`, que roda os três projetos.",
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.puro.json" },
+    { "path": "./tsconfig.web.json" }
+  ]
+}

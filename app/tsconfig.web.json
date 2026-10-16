@@ -1,0 +1,10 @@
+{
+  "//": "Renderer (Chromium com sandbox, sem Node).",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "jsx": "react-jsx"
+  },
+  "include": ["src/interface/**/*.ts", "src/interface/**/*.tsx"]
+}

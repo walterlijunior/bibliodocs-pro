@@ -6,6 +6,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T02 — endurecimento do runtime Electron (checklist C-2..C-9, C-15, C-21, C-22 parte 1):
+  protocolo `app://interface` com resolução segura de caminho; CSP de produção idêntica ao checklist (cabeçalho) e
+  CSP de desenvolvimento restrita à origem do Vite; bloqueio de navegação, janelas, webview, permissões e rede
+  (`data:` só imagem, `blob:` só imagem/xhr); `abrirLinkExterno` (https de lista fixa, com confirmação); corretor
+  desligado; DevTools só fora do pacote; instância única; logs só com `protocolo//host`. Módulos em
+  `app/src/principal/seguranca/`; 140 novos casos de teste (156 no total); `docs/relatorios/M1_RELATORIO_MARCO.md`
+  com o registro do `revisor-seguranca`.
+
+- Etapa 5, M1-T01 — esqueleto do aplicativo em `app/`: `package.json` com versões exatas (electron 44.7.2,
+  electron-vite 6.0.0, vite 8.3.4, react 19.3.1, typescript 7.0.2, vitest 5.0.5), `.npmrc` (`save-exact`),
+  configuração electron-vite (principal, preload, interface), tsconfigs estritos (node/puro/web), pastas de `app/src/`
+  do ADR-0005 com `index.ts` de marcação, `app/perfis/uft-2022/`, teste de estrutura (16 casos) e `app/README.md`.
+
 - Etapa 1 — Inventário: `docs/relatorios/ETAPA1_INVENTARIO.md`; repositório git (commit inicial `acc4f73`);
   `.gitattributes` (`materiais/** -text -diff`) para preservar os originais byte a byte apesar de `core.autocrlf`.
 
@@ -26,6 +39,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   páginas, versões do `docx`, downgrade de formato).
 
 ### Alterado
+- Electron 44.7.2 → **44.8.0** (correções de segurança do Chromium 152.0.7977.167/.169 e V8; recomendação do
+  `revisor-seguranca`, autorizada pelo usuário). Lock e SHA-256 do binário conferidos.
+- `scripts/validar-kit.ps1` e `tests/test_estrutura_kit.py`: esperam `app/README.md` no lugar de `app/LEIA-ME.md`.
 - `docs/MATRIZ_DE_REQUISITOS_NORMATIVOS.md`: de semente (17 regras) para 312 regras RN-001..RN-312 com fonte,
   validação automática e status; coluna Observações; ordem dos elementos por tipo de trabalho; conflitos
   consolidados (20 aguardando o usuário, 7 resolvidos); pendências de fonte por norma. Semente revisada:
@@ -47,6 +63,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ### A fazer
 - Etapa 4 — Planejamento arquitetural.
+
+### Removido
+- `app/LEIA-ME.md` (substituído por `app/README.md`, conforme o M1-T01).
 
 ## [kit-1.1.0] — 2026-10-12
 

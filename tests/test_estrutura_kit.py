@@ -22,7 +22,7 @@ OBRIGATORIOS = [
     "templates/ADR.md", "templates/RELATORIO_TECNICO.md", "templates/RELATORIO_DE_TESTES.md",
     "scripts/validar-kit.ps1", "scripts/verificar-ambiente.ps1", "tests/artefatos_futuros.txt",
     "materiais/LEIA-ME.md", "materiais/modelos_uft/LEIA-ME.md", "materiais/referencias_visuais/LEIA-ME.md",
-    "analise/LEIA-ME.md", "app/LEIA-ME.md", "docs/REFERENCIA_DE_LAYOUT.md", "materiais/referencias_layout/LEIA-ME.md",
+    "analise/LEIA-ME.md", "app/README.md", "docs/REFERENCIA_DE_LAYOUT.md", "materiais/referencias_layout/LEIA-ME.md",
 ]
 AGENTES = [
     "arquiteto-software", "especialista-normas", "especialista-documento", "especialista-referencias",

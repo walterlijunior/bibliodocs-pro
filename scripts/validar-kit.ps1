@@ -52,7 +52,7 @@ $obrigatorios = @(
   'templates/ADR.md','templates/RELATORIO_TECNICO.md','templates/RELATORIO_DE_TESTES.md',
   'scripts/verificar-ambiente.ps1','tests/test_estrutura_kit.py','tests/artefatos_futuros.txt',
   'materiais/LEIA-ME.md','materiais/modelos_uft/LEIA-ME.md','materiais/referencias_visuais/LEIA-ME.md',
-  'analise/LEIA-ME.md','app/LEIA-ME.md','docs/REFERENCIA_DE_LAYOUT.md','materiais/referencias_layout/LEIA-ME.md'
+  'analise/LEIA-ME.md','app/README.md','docs/REFERENCIA_DE_LAYOUT.md','materiais/referencias_layout/LEIA-ME.md'
 )
 $faltando = @($obrigatorios | Where-Object { -not (Existe $_) })
 if ($faltando.Count -eq 0) { Ok "Arquivos obrigatorios presentes ($($obrigatorios.Count))" }

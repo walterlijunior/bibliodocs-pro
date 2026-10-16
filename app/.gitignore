@@ -1,0 +1,13 @@
+node_modules/
+out/
+dist/
+release/
+*.log
+
+# Segredos e certificados de assinatura (C-21, docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md)
+*.pfx
+*.p12
+*.spc
+.env
+.env.*
+!.env.example
