@@ -59,6 +59,31 @@ Uma mensagem de falha tem esta forma: `src/dominio/modelo/x.ts:2 — import 'ele
   As restrições que ele não expressa estão em `RESTRICOES_SO_NO_CODIGO`. O validador do app é o zod.
 - **Fixtures:** `tests/fixtures/projeto-v1/`.
 
+### Contêiner `.bdp` (M1-T05)
+
+- `empacotarProjeto(pacote)` valida tudo e gera o ZIP em memória:
+  - a ordem das entradas é `mimetype` (primeiro e sem compressão), `manifesto.json`, `documento.json`, a `miniatura.png`
+    opcional e as `midias/<sha256>.png|jpg`, gravadas sem recompressão;
+  - a data das entradas é fixa, então o mesmo conteúdo gera os mesmos bytes;
+  - antes de entregar, **relê o resultado com `lerProjeto`**: o app nunca grava um arquivo que ele mesmo recusaria.
+- `lerProjeto(bytes)` devolve `{ok, pacote, avisos}` ou `{ok:false, erros}`. Nunca grava nada em disco.
+  - O diretório central do ZIP é analisado por código próprio (`src/persistencia/conteiner/zip-leitura.ts`). Só é aceito
+    o ZIP que o app grava:
+    - sem ZIP64, criptografia, descritor de dados, comentário ou multivolume;
+    - entradas contíguas, sem lacuna nem sobreposição;
+    - cabeçalho local igual ao central.
+  - Antes de descomprimir, o leitor confere:
+    - a lista de nomes permitidos;
+    - os limites do ADR-0004 (1 GB por arquivo, 5.000 entradas, 2 MB para o manifesto, 64 MB por JSON ou mídia, 2 GB no total);
+    - a razão de compressão de até 200:1, conferida acima de 1 MB.
+  - A descompressão é **sob demanda e na ordem da validação**: `mimetype` → manifesto (para logo se for inválido) →
+    documento → só as mídias declaradas. Usa `node:zlib` com `maxOutputLength`, exige que o fluxo deflate termine no fim
+    dos dados e confere o CRC-32. Os bytes devolvidos são cópias, sem memória compartilhada com o arquivo.
+  - O `id` e o `tipoTrabalho` do manifesto têm de ser iguais aos do documento.
+  - Mídia com sha256, tamanho, CRC ou assinatura PNG/JPEG divergente é **descartada com aviso**, sem impedir a abertura.
+- O `fflate` só é usado para **escrever** (`zipSync`).
+- Os pacotes maliciosos dos testes são montados por `tests/apoio/zip-bruto.ts`.
+
 ## Estrutura
 
 ```text

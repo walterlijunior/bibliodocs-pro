@@ -249,3 +249,52 @@ Decisões técnicas da sessão principal ao implementar `app/src/dominio/esquema
 - **Fora do esquema:** referências a ids inexistentes ficam para o verificador (ADR-0005: "viram não conformidade, nunca exceção").
 - **Pendente para o M1-T05:** `id` e `tipoTrabalho` existem no manifesto e no documento. O contêiner define a regra de
   coerência entre os dois arquivos (iguais, ou o manifesto como cópia) e qual id nomeia a pasta de recuperação.
+
+## Adendo técnico — contêiner `.bdp` (M1-T05, 2026-10-16)
+Decisões técnicas da sessão principal, com as correções da revisão do `revisor-seguranca`. Não mudam o resultado visível.
+
+**Coerência entre os arquivos (achado M3 do M1-T04):**
+- `manifesto.id` e `manifesto.tipoTrabalho` têm de ser iguais aos do `documento.json`;
+- esse id único nomeia as pastas de recuperação e de backup (seção 4);
+- o manifesto é um índice que dá para ler sem processar o documento.
+
+**Leitura:**
+- O diretório central é analisado por código próprio. A hipótese da seção 1 não se confirmou: o `fflate` 0.8.3 não
+  protege sozinho [VERIFICADO], porque o `inflateSync` com saída fixa trunca em silêncio e o `unzipSync` confia nos
+  tamanhos declarados.
+- A descompressão usa `node:zlib` (`inflateRawSync` com `maxOutputLength` e `info.engine.bytesWritten`). O `fflate`
+  fica só na escrita (`zipSync`).
+- Só é aceito o ZIP que o app grava:
+  - sem ZIP64, criptografia, descritor de dados, comentário ou multivolume;
+  - entradas contíguas desde o byte 0 até o diretório central;
+  - cabeçalho local idêntico ao central;
+  - fluxo deflate que termina exatamente no fim dos dados;
+  - CRC-32 conferido.
+- Descompressão **sob demanda e na ordem da validação**: nomes → `mimetype` → manifesto (para logo se for inválido) →
+  documento → só as mídias declaradas. `bibliografia.json` e `ajustes.json` são recusados como "não suportados no v1" sem
+  serem descomprimidos.
+- Mídia com tamanho, CRC, sha256 ou assinatura divergente é descartada com aviso. Mídia não declarada é descartada sem
+  ser descomprimida.
+
+**Limites ajustados:**
+- `manifesto.json` ≤ **2 MB** (os 64 MB valem para o `documento.json`);
+- a razão ≤ 200:1 só é conferida acima de **1 MB** descomprimido. Abaixo disso uma bomba não causa dano, e um texto
+  pequeno e repetitivo do usuário pode passar da razão.
+
+**Escrita:**
+- `empacotarProjeto` relê o resultado com `lerProjeto` antes de devolvê-lo (achado A1, Alta).
+- Um documento acima de 1 MB e muito repetitivo (mais de 200:1) é **recusado ao salvar**, com mensagem, em vez de gerar
+  um arquivo que não abre. O M1-T06 precisa mostrar esse erro no visor e manter o documento em memória.
+- Mídias e miniatura são gravadas sem recompressão. A data das entradas é fixa (1980-01-01), então o mesmo conteúdo
+  gera os mesmos bytes.
+
+**Medição [VERIFICADO]** (3.000 parágrafos e 50 mídias de 500 KB, 25 MB):
+- empacotar com a releitura: cerca de 170 ms;
+- ler: cerca de 90 ms.
+
+Isso refuta, na parte em memória, a hipótese das "centenas de ms" (seção Consequências). A gravação em disco é medida no M1-T06.
+
+**Pendente (revisão):**
+- A leitura de arquivo vindo de fora roda no processo principal. A revisão recomenda isolá-la (`utilityProcess` ou
+  worker) antes de abrir arquivos pelo IPC → **M1-T08**.
+- O `fs.stat` antes de ler (seção 3, item 1) → **M1-T06**.

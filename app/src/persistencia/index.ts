@@ -5,6 +5,14 @@
  * - Roda só no processo principal (regra 6); pode usar node:fs.
  * - Pode importar dominio/ (tipos e esquemas). Não importa interface/ nem aplicacao/.
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Contêiner .bdp criado no M1-T05; salvamento atômico, recuperação e biblioteca vêm nas tarefas seguintes.
  */
-export {};
+export { LIMITES_CONTEINER, type LimitesConteiner } from './conteiner/limites';
+export {
+  empacotarProjeto,
+  lerProjeto,
+  type AvisoPacote,
+  type PacoteProjeto,
+  type ResultadoEmpacotamento,
+  type ResultadoLeituraProjeto,
+} from './conteiner/pacote';

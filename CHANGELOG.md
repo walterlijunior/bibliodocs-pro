@@ -6,6 +6,22 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T05: contêiner `.bdp` em memória (`app/src/persistencia/conteiner/`).
+  - `empacotarProjeto` valida tudo e relê o resultado antes de devolvê-lo. A saída é determinística, com `mimetype`
+    primeiro e sem compressão.
+  - `lerProjeto` analisa o diretório central do ZIP com código próprio e descomprime sob demanda com `node:zlib`. Recusa:
+    - nomes fora da lista e nomes repetidos;
+    - ZIP64, criptografia, descritor de dados e comentário;
+    - lacunas, sobreposição e lixo depois do fluxo deflate;
+    - CRC errado;
+    - quem passar dos limites do ADR-0004.
+
+    Também exige `id` e `tipoTrabalho` iguais entre o manifesto e o documento. Mídia divergente é descartada com aviso.
+  - Montador de ZIP malicioso para testes (`app/tests/apoio/zip-bruto.ts`).
+  - Total de 370 testes (60 novos); PER-07 a PER-11 na matriz de testes.
+  - Revisão do `revisor-seguranca`: achados A1 (Alta) e A2 a A5 corrigidos; A6 eliminado ao trocar o `Inflate` do
+    `fflate` pelo `node:zlib`. Adendo técnico no ADR-0004.
+  - Dependência nova: **`fflate` 0.8.3** (MIT, sem dependências; prevista no ADR-0004), usada só para escrever o ZIP.
 - Etapa 5, M1-T04: contratos e esquemas do formato de projeto v1.
   - Tipos mínimos do modelo (`app/src/dominio/modelo/tipos.ts`): `Documento`, `Secao`, `Bloco` (`paragrafo`, `quebraPagina`)
     e `Inline` (`texto` com marcas).

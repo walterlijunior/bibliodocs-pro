@@ -8,6 +8,7 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 | M1-T02 Endurecimento do runtime | CONCLUÍDA (Electron 44.8.0) | 2026-10-16 |
 | M1-T03 Infraestrutura de testes | CONCLUÍDA | 2026-10-16 |
 | M1-T04 Contratos e esquemas v1 | CONCLUÍDA | 2026-10-16 |
+| M1-T05 Contêiner `.bdp` | CONCLUÍDA | 2026-10-16 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -144,3 +145,46 @@ considerada fiel e sem `ajv`, profundidade, mensagens).
   - campo extra no tipo `Documento` → erro TS2344 no typecheck;
   - JSON Schema versionado alterado → teste de sincronia falha;
   - esquema zod alterado sem regenerar → teste de sincronia falha.
+
+## M1-T05 — Contêiner `.bdp`
+
+**Implementação:** sessão principal. **Revisão:** `revisor-seguranca` (somente leitura, com sondagens fora do repositório).
+
+**Arquivos:**
+- `app/src/persistencia/conteiner/{zip-leitura,pacote,limites,crc32}.ts` e `app/src/persistencia/index.ts`;
+- `app/tests/persistencia-conteiner.test.ts` e `app/tests/apoio/zip-bruto.ts`;
+- `app/tests/fixtures/projeto-v1/documento-valido.json` (id igual ao do manifesto);
+- `app/package.json` (`fflate` 0.8.3).
+
+**Decisões técnicas:** adendo do M1-T05 no ADR-0004:
+- coerência de id e tipo entre o manifesto e o documento;
+- parser próprio do diretório central e descompressão por `node:zlib`;
+- leitura sob demanda;
+- manifesto ≤ 2 MB e piso de 1 MB para a razão de compressão;
+- releitura no empacotamento.
+
+**Revisão do `revisor-seguranca`:** 1 Alta, 2 Médias e 3 Baixas. O revisor não conseguiu fazer `lerProjeto` lançar
+exceção em vez de devolver `{ok:false}`.
+
+| Achado | Tratamento |
+|---|---|
+| A1 (Alta): o app gravava um `.bdp` que ele mesmo recusa (razão de compressão) | Corrigido: piso de 1 MB para a razão e releitura com `lerProjeto` dentro de `empacotarProjeto` |
+| A2 (Média): tudo era descomprimido antes da validação (2,16 GB de RSS e 9 s com mídias não declaradas) | Corrigido: descompressão sob demanda, na ordem da validação; mídia não declarada e `bibliografia.json` nunca são descomprimidos |
+| A3 (Média): heap alto com manifesto de 63 MB; documento processado com o manifesto já inválido | Corrigido: manifesto ≤ 2 MB; retorno imediato no erro do manifesto |
+| A4 (Baixa): lixo depois do fluxo deflate; lacunas; descritor de dados | Corrigido: `info.engine.bytesWritten` igual ao tamanho comprimido; contiguidade desde o byte 0 até o diretório central; flag 8 recusada |
+| A5 (Baixa): `Buffer.slice` devolvia vista do arquivo | Corrigido: cópia explícita (também da saída do zlib, que usa um pool compartilhado) |
+| A6 (Baixa, hipótese): buffer interno do `Inflate` do `fflate` | Eliminado: a leitura usa `node:zlib` com `maxOutputLength` |
+| Isolar a leitura num `utilityProcess` ou worker | Pendente → M1-T08 (abertura de arquivos pelo IPC) |
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar` → typecheck OK, 9 arquivos, **370/370**, `found 0 vulnerabilities`.
+- Mutação: 10 checagens desligadas uma a uma, todas detectadas:
+  - `maxOutputLength`, sobra do deflate, contiguidade, lacuna final, CRC, razão;
+  - cópia do zlib, cópia do método 0, releitura no empacotar, leitura sob demanda.
+
+  Duas mutações sobreviveram na primeira rodada (lacuna final e cópia do zlib), e os testes correspondentes foram acrescentados.
+- Medição (3.000 parágrafos e 50 mídias de 500 KB, 25 MB): empacotar com a releitura leva cerca de 170 ms; ler leva cerca de 90 ms.
+
+**Limitações:**
+- Ainda não há leitura de arquivo em disco nem `fs.stat` (M1-T06).
+- A leitura roda no processo que a chamar, e o isolamento fica para o M1-T08.
