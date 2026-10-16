@@ -24,6 +24,7 @@ mostra o nome do aplicativo.
 | `npm run typecheck` | `tsc --noEmit` nos três projetos TypeScript (node, puro e web) |
 | `npm test` | `vitest run` (testes em `tests/`) |
 | `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --omit=dev --audit-level=high`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
+| `npm run esquemas:gerar` | Regrava o JSON Schema de `esquemas/projeto-v1/` a partir dos esquemas zod. Rode depois de mudar `src/dominio/esquemas/projeto-v1.ts`; o `verificar` falha enquanto o arquivo versionado estiver diferente |
 | `npm run verificar:tudo` | Por enquanto, `verificar` + `build`. As camadas E2E (Playwright, M1-T13), OOXML e LibreOffice (M3) entram aqui quando existirem |
 
 O instalador (`release/`) entra num marco posterior.
@@ -45,6 +46,19 @@ porque não dá para verificá-lo.
 
 Uma mensagem de falha tem esta forma: `src/dominio/modelo/x.ts:2 — import 'electron' — ADR-0005 regra 1: domínio não usa plataforma: 'electron'`.
 
+### Formato de projeto v1 (M1-T04)
+
+- **Fonte da verdade:** esquemas zod em `src/dominio/esquemas/projeto-v1.ts`. Os objetos são estritos (campo
+  desconhecido é recusado) e toda string e lista tem limite (`limites.ts`). Os tipos do modelo ficam em
+  `src/dominio/modelo/tipos.ts`, e um teste de tipos exige que `z.infer` do esquema seja igual a `Documento`.
+- **Validação:** `validarDocumentoV1(json)` e `validarManifestoV1(json)` devolvem `{ok, valor}` ou `{ok:false, erros}`,
+  com caminho e mensagem em pt-BR (ex.: `documento.corpo[0].subsecoes[0]: campo não permitido: "numero"`).
+  Antes do zod, uma checagem iterativa recusa aninhamento JSON acima de 144 níveis; depois dele, a árvore de seções
+  é limitada a 64 níveis.
+- **JSON Schema** (draft 2020-12): `esquemas/projeto-v1/{documento,manifesto}.schema.json`, gerado por `z.toJSONSchema`.
+  As restrições que ele não expressa estão em `RESTRICOES_SO_NO_CODIGO`. O validador do app é o zod.
+- **Fixtures:** `tests/fixtures/projeto-v1/`.
+
 ## Estrutura
 
 ```text
@@ -55,6 +69,7 @@ app/
 ├─ tsconfig.node.json         principal, preload, persistencia, integracoes, exportacao, importacao, testes
 ├─ tsconfig.puro.json         dominio e aplicacao: sem DOM e sem Node (ADR-0005, regras 1 e 3)
 ├─ tsconfig.web.json          interface (renderer, DOM, JSX)
+├─ esquemas/projeto-v1/       JSON Schema gerado do formato .bdp v1 (versionado)
 ├─ perfis/uft-2022/           perfil normativo em dados (JSON, a partir do M3)
 ├─ src/
 │  ├─ principal/              processo principal do Electron (janela, menus, protocolo, IPC)

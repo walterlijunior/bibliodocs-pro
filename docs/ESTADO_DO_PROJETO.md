@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T03 concluído (infraestrutura de testes).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T03 concluídos; próximo T04).
+**Última atualização:** 2026-10-16 — M1-T04 concluído (contratos e esquemas v1).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T04 concluídos; próximo T05).
 
 ## Etapas
 
@@ -15,14 +15,14 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T04** (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T05** (contêiner `.bdp` com `fflate`) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
 com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
@@ -35,6 +35,16 @@ com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Formato v1 (M1-T04):
+  - Esquemas zod em `app/src/dominio/esquemas/projeto-v1.ts` (fonte da verdade).
+  - Depois de mudar um esquema, rode `npm run esquemas:gerar`; o `verificar` falha se o JSON Schema versionado divergir.
+  - Tipo novo no modelo exige a variante equivalente no esquema: o teste de tipos (`expectTypeOf`) quebra o typecheck.
+  - O v1 recebe acréscimos sem subir `versaoFormato` até a 1.ª distribuição (adendo do ADR-0004).
+  - **Para o M1-T05:**
+    - definir a coerência de `id`/`tipoTrabalho` entre o manifesto e o documento, e qual id nomeia a pasta de recuperação;
+    - testar o caminho bytes → `JSON.parse` → validar;
+    - usar `MIMETYPE_PROJETO` e `LIMITES_V1.midias`.
+  - Para o M1-T09/M2: função de texto plano de `Inline[]`, para o índice da biblioteca e para nomes de arquivo.
 - Testes (M1-T03): `npm run verificar` é o comando do dia a dia (precisa de rede por causa do `npm audit`). O teste de fronteiras é
   a única barreira da regra 1 do ADR-0005 (o `tsconfig.puro.json` não bloqueia `electron`). Interpretações das regras estão no
   adendo do ADR-0005. Pasta nova em `src/` precisa entrar no mapa do analisador (`app/tests/apoio/analisador-fontes.ts`),
@@ -85,3 +95,4 @@ com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T01) | Esqueleto `app/` pelo `arquiteto-software`: electron 44.7.2, electron-vite 6.0.0, vite 8.3.4, react 19.3.1, typescript 7.0.2, vitest 5.0.5 (versões exatas); 14 módulos do ADR-0005 com `index.ts` de marcação; janela "BiblioDocs Pro" com contextIsolation/sandbox. Reexecutado pela sessão principal: typecheck OK, 16/16 testes, build OK; validador do kit ajustado para `app/README.md` (0 falhas). `npm audit`: 0 vulnerabilidades. Sem commit (aguarda autorização). |
 | 2026-10-16 | 5 (M1-T02) | Endurecimento do runtime pelo `arquiteto-software` (C-2..C-9, C-15, C-21, C-22 parte 1; protocolo `app://interface`, CSP de produção no cabeçalho e CSP de dev separada, filtros de navegação/rede/link externo em funções puras). `revisor-seguranca`: todos CONFORMES, 1 Média (E2E → T13) e 6 Baixas; B-1, B-2, B-4, B-6 corrigidos pela sessão principal, B-3 adiado, B-5 aceito. Revisor recomendou Electron 44.8.0; usuário autorizou → trocado (integridade do lock e SHA-256 do zip conferidos com o `SHASUMS256.txt`; `npm audit signatures` 95/95; `npm audit` 0). Reexecutado no 44.8.0: typecheck OK, 156/156 testes, build OK, preview sem erro. Commit autorizado pelo usuário (M1-T01 + M1-T02). |
 | 2026-10-16 | 5 (M1-T03) | Infraestrutura de testes pelo `engenheiro-qualidade`: `npm run verificar` (typecheck + vitest + audit) e `verificar:tudo` (+ build); analisador de imports sem dependência nova; teste de fronteiras do ADR-0005 (regras 1–6) e varreduras (HTML, rede, `openExternal`, lockfile). A sessão principal acrescentou a proibição `aplicacao` → `persistencia`/`integracoes`/`preload` e registrou as interpretações como adendo do ADR-0005. Reexecutado: verificar 258/258, 0 vulnerabilidades; arquivo violador → EXIT=1; build OK. Grupos ARQ e SEG na matriz de testes. Commit autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T04) | Contratos e esquemas v1 pela sessão principal: tipos mínimos do modelo; esquemas zod estritos (`zod` 4.6.7, dependência local informada) de `documento.json`/`manifesto.json`; validação pt-BR com limites de profundidade (iterativa); JSON Schema 2020-12 gerado e versionado em `app/esquemas/projeto-v1/` (exportação do zod considerada fiel, sem `ajv`). Revisão do `especialista-documento`: M1/M2/B4/B5 corrigidos (XML 1.0, marcas, ids únicos), M3 → T05. Adendo técnico no ADR-0004. Verificar 310/310, 0 vulnerabilidades; build OK; kit 0 falhas. Sem commit (aguarda autorização). |

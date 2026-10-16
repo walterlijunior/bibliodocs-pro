@@ -5,6 +5,18 @@
  * - Base do domínio: não importa nenhum outro submódulo (regra 2).
  * - Sem números armazenados e sem HTML.
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Tipos mínimos do formato v1 criados no M1-T04; operações de árvore vêm no M2.
  */
-export {};
+export type {
+  Bloco,
+  BlocoParagrafo,
+  BlocoQuebraPagina,
+  Documento,
+  Id,
+  Inline,
+  InlineTexto,
+  MarcaTexto,
+  Metadados,
+  Secao,
+  TipoTrabalhoId,
+} from './tipos';

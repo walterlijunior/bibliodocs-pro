@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bibliodocs:esquemas:projeto-v1:documento",
+  "title": "BiblioDocs Pro — documento.json (formato v1)",
+  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (seções e blocos); sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$"
+    },
+    "tipoTrabalho": {
+      "type": "string",
+      "enum": [
+        "generico"
+      ]
+    },
+    "metadados": {
+      "type": "object",
+      "properties": {
+        "titulo": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "const": "texto"
+                  },
+                  "texto": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  },
+                  "marcas": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "italico",
+                        "negrito",
+                        "sobrescrito",
+                        "subscrito"
+                      ]
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "texto"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "subtitulo": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "const": "texto"
+                  },
+                  "texto": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  },
+                  "marcas": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "italico",
+                        "negrito",
+                        "sobrescrito",
+                        "subscrito"
+                      ]
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "texto"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "titulo"
+      ],
+      "additionalProperties": false
+    },
+    "corpo": {
+      "maxItems": 1000,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Secao"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "tipoTrabalho",
+    "metadados",
+    "corpo"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Secao": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "titulo": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "const": "texto"
+                  },
+                  "texto": {
+                    "type": "string",
+                    "maxLength": 100000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  },
+                  "marcas": {
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "italico",
+                        "negrito",
+                        "sobrescrito",
+                        "subscrito"
+                      ]
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "texto"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "blocos": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "const": "paragrafo"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{8,64}$"
+                  },
+                  "conteudo": {
+                    "maxItems": 10000,
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "tipo": {
+                              "type": "string",
+                              "const": "texto"
+                            },
+                            "texto": {
+                              "type": "string",
+                              "maxLength": 100000,
+                              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                            },
+                            "marcas": {
+                              "maxItems": 4,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "italico",
+                                  "negrito",
+                                  "sobrescrito",
+                                  "subscrito"
+                                ]
+                              },
+                              "uniqueItems": true
+                            }
+                          },
+                          "required": [
+                            "tipo",
+                            "texto"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "id",
+                  "conteudo"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "const": "quebraPagina"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{8,64}$"
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "id"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "subsecoes": {
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Secao"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "titulo",
+        "blocos",
+        "subsecoes"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

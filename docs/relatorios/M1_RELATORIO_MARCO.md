@@ -7,6 +7,7 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 | M1-T01 Esqueleto `app/` | CONCLUÍDA | 2026-10-16 |
 | M1-T02 Endurecimento do runtime | CONCLUÍDA (Electron 44.8.0) | 2026-10-16 |
 | M1-T03 Infraestrutura de testes | CONCLUÍDA | 2026-10-16 |
+| M1-T04 Contratos e esquemas v1 | CONCLUÍDA | 2026-10-16 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -108,3 +109,38 @@ build OK; preview → 4 processos `electron.exe`, log só com "starting electron
 - O `npm audit` precisa de rede.
 
 **Pendente:** inventário de licenças (C-19/RNF-15) e `npm audit signatures` dentro do `verificar` (C-18; hoje é rodado manualmente).
+
+## M1-T04 — Contratos e esquemas v1
+
+**Implementação:** sessão principal. **Revisão do modelo:** `especialista-documento` (somente leitura).
+**Arquivos:**
+- `app/src/dominio/modelo/{tipos,index}.ts`;
+- `app/src/dominio/esquemas/{limites,projeto-v1,validar,json-schema,index}.ts`;
+- `app/esquemas/projeto-v1/{documento,manifesto}.schema.json`;
+- `app/tests/esquemas-{projeto-v1,json-schema}.test.ts` e `app/tests/fixtures/projeto-v1/`;
+- `app/package.json` (`zod` 4.6.7 e o script `esquemas:gerar`).
+
+**Decisões técnicas:** adendo do M1-T04 no ADR-0004 (camelCase, v1 aditivo até a 1.ª distribuição, exportação do zod
+considerada fiel e sem `ajv`, profundidade, mensagens).
+
+**Revisão do `especialista-documento`:** 3 achados médios e 5 baixos; nenhum bloqueia o M1-T05.
+- Corrigidos pela sessão principal:
+  - M1 — caracteres proibidos em XML 1.0;
+  - M2 — marcas repetidas ou sobrescrito+subscrito;
+  - B4 — ids repetidos;
+  - B5 — adendo do ADR inexistente.
+- Encaminhados:
+  - M3 — coerência de `id`/`tipoTrabalho` entre o manifesto e o documento → M1-T05;
+  - B7 — função de texto plano do título → M1-T09/M2;
+  - B8 — teste bytes → `JSON.parse` → validar → M1-T05.
+- Aceito: B6 — o código depende do texto `'No matching discriminator'` do zod. Se ele mudar, a mensagem cai no
+  locale pt-BR; o zod tem versão fixa.
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar` → typecheck OK, 8 arquivos, **310/310**, `found 0 vulnerabilities`.
+- `npm run build` → OK.
+- `scripts/validar-kit.ps1` → 0 falhas.
+- Experimentos negativos:
+  - campo extra no tipo `Documento` → erro TS2344 no typecheck;
+  - JSON Schema versionado alterado → teste de sincronia falha;
+  - esquema zod alterado sem regenerar → teste de sincronia falha.

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bibliodocs:esquemas:projeto-v1:manifesto",
+  "title": "BiblioDocs Pro — manifesto.json (formato v1)",
+  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (seções e blocos); sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
+  "type": "object",
+  "properties": {
+    "formato": {
+      "type": "string",
+      "const": "bibliodocs-projeto"
+    },
+    "versaoFormato": {
+      "type": "number",
+      "const": 1
+    },
+    "appVersao": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^\\d{1,5}\\.\\d{1,5}\\.\\d{1,5}(-[0-9A-Za-z.-]{1,32})?$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$"
+    },
+    "criadoEm": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "atualizadoEm": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "perfil": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "versao": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d{1,5}\\.\\d{1,5}\\.\\d{1,5}(-[0-9A-Za-z.-]{1,32})?$"
+        }
+      },
+      "required": [
+        "id",
+        "versao"
+      ],
+      "additionalProperties": false
+    },
+    "tipoTrabalho": {
+      "type": "string",
+      "enum": [
+        "generico"
+      ]
+    },
+    "midias": {
+      "maxItems": 4990,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caminho": {
+            "type": "string",
+            "pattern": "^midias\\/[0-9a-f]{64}\\.(png|jpg)$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 67108864
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "image/png",
+              "image/jpeg"
+            ]
+          }
+        },
+        "required": [
+          "caminho",
+          "sha256",
+          "bytes",
+          "tipo"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "formato",
+    "versaoFormato",
+    "appVersao",
+    "id",
+    "criadoEm",
+    "atualizadoEm",
+    "perfil",
+    "tipoTrabalho",
+    "midias"
+  ],
+  "additionalProperties": false
+}

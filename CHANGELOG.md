@@ -6,6 +6,20 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T04: contratos e esquemas do formato de projeto v1.
+  - Tipos mínimos do modelo (`app/src/dominio/modelo/tipos.ts`): `Documento`, `Secao`, `Bloco` (`paragrafo`, `quebraPagina`)
+    e `Inline` (`texto` com marcas).
+  - Esquemas zod estritos de `documento.json` e `manifesto.json`, com limites (`app/src/dominio/esquemas/`).
+  - Validação com caminho e mensagens em pt-BR. Recusa:
+    - aninhamento JSON patológico (verificado antes do zod) e mais de 64 níveis de seção;
+    - ids repetidos;
+    - caracteres proibidos em XML 1.0;
+    - marcas conflitantes;
+    - mídias com caminho, tipo ou sha256 incoerentes.
+  - JSON Schema draft 2020-12 gerado e versionado em `app/esquemas/projeto-v1/`; comando `npm run esquemas:gerar`.
+  - Fixtures em `app/tests/fixtures/projeto-v1/`. Total de 310 testes (52 novos); grupo PER na matriz de testes.
+  - Adendo técnico no ADR-0004.
+  - Dependência nova: **`zod` 4.6.7** (MIT, sem dependências; prevista no ADR-0004), só em `dominio/esquemas`.
 - Etapa 5, M1-T03: infraestrutura de testes.
   - Comandos `npm run verificar` (typecheck + Vitest + `npm audit --omit=dev --audit-level=high`) e `verificar:tudo` (+ build).
   - Analisador de imports sem dependência nova (`app/tests/apoio/`).

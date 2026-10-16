@@ -23,12 +23,25 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/arquitetura-*.test.t
 
 | ID | Caso | Fonte do esperado | Status |
 |---|---|---|---|
-| ARQ-01 | Nenhum import de `src/` viola as regras 1–6 de dependência (código real) | ADR-0005 §2 + adendo M1-T03 | PASSOU (2026-10-16; 258/258) |
+| ARQ-01 | Nenhum import de `src/` viola as regras 1–6 de dependência (código real) | ADR-0005 §2 + adendo M1-T03 | PASSOU (2026-10-16; 258/258; reexecutado no M1-T04 com zod em `dominio/esquemas`: 310/310) |
 | ARQ-02 | Casos negativos sintéticos: ao menos um por regra 1–6 é detectado | idem | PASSOU (2026-10-16) |
 | ARQ-03 | Arquivo violador real em `src/` faz `npm run verificar` falhar (`src/dominio/modelo/_violacao.ts` → `import 'electron'`) | ADR-0006, critério do M1 | PASSOU (2026-10-16; EXIT=1 com "ADR-0005 regra 1"; arquivo apagado) |
 | ARQ-04 | Sem `innerHTML`/`dangerouslySetInnerHTML`/`eval`/`new Function` e afins em `src/` | ADR-0005 regra 7; C-20 | PASSOU (2026-10-16) |
 | ARQ-05 | Sem import de rede nem `fetch`/`XMLHttpRequest`/`WebSocket`/`net.*` fora de `integracoes/revisao-texto`; `openExternal` só em `endurecimento.ts` | ADR-0005 regra 8; C-6, C-8 | PASSOU (2026-10-16) |
 | ARQ-06 | Lockfile ≥ v3 em sincronia com o `package.json`; sem `html2canvas`/`jspdf` | C-18, C-19 | PASSOU (2026-10-16) |
+
+## Grupo PER — formato e persistência (aplicativo, desde o M1-T04)
+
+Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`; fixtures em `app/tests/fixtures/projeto-v1/`.
+
+| ID | Caso | Fonte do esperado | Status |
+|---|---|---|---|
+| PER-01 | Fixtures v1 válidas (documento e manifesto) passam; ida e volta por JSON idêntica | ADR-0004 §2 | PASSOU (2026-10-16; 310/310) |
+| PER-02 | Campo extra (raiz e aninhado), tipo errado, campo ausente, tipo de bloco/enum desconhecido, id inválido, id repetido, texto acima do limite, caractere proibido em XML 1.0 (NUL, CR, VT, U+FFFF, surrogate isolado) e marcas repetidas ou sobrescrito+subscrito são recusados com caminho e mensagem pt-BR; nenhuma mensagem em inglês | ADR-0004 §2–3; plano M1-T04 | PASSOU (2026-10-16) |
+| PER-03 | 64 níveis de seção aceitos, 65 recusados; aninhamento JSON de 100.000 níveis recusado sem estouro de pilha | ADR-0004 §3 | PASSOU (2026-10-16) |
+| PER-04 | Manifesto: versão ≠ 1, data sem fuso, caminho de mídia com `..`, caminho incoerente com sha256/tipo, SVG, mídia repetida e acima de 64 MB são recusados | ADR-0004 §1–3 | PASSOU (2026-10-16) |
+| PER-05 | JSON Schema versionado = gerado do zod; objetos com `additionalProperties:false`; listas com `maxItems`; strings limitadas; `oneOf` com discriminador; `uniqueItems` nas marcas | ADR-0004 §2 | PASSOU (2026-10-16; mutações no arquivo e no esquema detectadas) |
+| PER-06 | `z.infer` do esquema = tipo `Documento` do modelo (verificado pelo typecheck) | ADR-0005 §3 | PASSOU (2026-10-16; campo extra no tipo → erro TS2344) |
 
 ## Grupo SEG — runtime (aplicativo, desde o M1-T02)
 

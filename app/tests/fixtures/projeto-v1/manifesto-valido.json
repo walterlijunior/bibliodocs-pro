@@ -1,0 +1,18 @@
+{
+  "formato": "bibliodocs-projeto",
+  "versaoFormato": 1,
+  "appVersao": "0.1.0",
+  "id": "prj_Exemplo01",
+  "criadoEm": "2026-10-16T09:00:00-03:00",
+  "atualizadoEm": "2026-10-16T10:30:00.123Z",
+  "perfil": { "id": "uft-2022", "versao": "1.0.0" },
+  "tipoTrabalho": "generico",
+  "midias": [
+    {
+      "caminho": "midias/9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08.png",
+      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "bytes": 2048,
+      "tipo": "image/png"
+    }
+  ]
+}

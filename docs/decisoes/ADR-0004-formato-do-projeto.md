@@ -221,3 +221,31 @@ E2E: matar o processo durante a edição e reabrir, oferecendo a recuperação (
 - Salvamento automático: opção (1) — grava no arquivo do usuário ~30 s após a última alteração, ao trocar de
   trabalho e ao fechar; Ctrl+S força o salvamento.
 - Importador do backup do `tcc-uft`: sem trabalhos antigos a migrar; fica para depois do M7 (RF-16).
+
+## Adendo técnico — esquemas v1 (M1-T04, 2026-10-16)
+Decisões técnicas da sessão principal ao implementar `app/src/dominio/esquemas/`. Não mudam o resultado visível do documento.
+- **Nomes em camelCase em todos os JSON**, inclusive no manifesto: `versaoFormato` e `appVersao` (o texto acima grafa
+  `versao_formato`). Um único estilo para o modelo (ADR-0005) e o pacote. `formato` = `"bibliodocs-projeto"`.
+- **v1 mínimo e aditivo até a 1.ª distribuição:** o v1 tem só `Inline` `texto`, blocos `paragrafo`/`quebraPagina`,
+  `metadados.titulo`/`subtitulo` (como `Inline[]`, para permitir itálico em nome científico) e `tipoTrabalho: "generico"`.
+  O M2 acrescenta variantes e campos **sem incrementar `versaoFormato`** enquanto não houver versão distribuída
+  (Etapa 7), porque ainda não existe arquivo de usuário em circulação. A partir da 1.ª distribuição valem as regras da
+  seção 2 (mudança que exige migração incrementa a versão).
+- **Exportação do zod considerada fiel** (a alternativa `ajv` da seção 2 não foi necessária): `z.toJSONSchema`
+  (draft 2020-12) gera `additionalProperties:false`, `maxLength`, `maxItems`, `pattern`, `enum`/`const`, `oneOf` com
+  discriminador e `$defs` recursiva (`Secao`). Diferenças conhecidas, listadas em `RESTRICOES_SO_NO_CODIGO` e na
+  `description` dos arquivos: profundidade (seções ≤ 64, aninhamento JSON ≤ 144), `maxLength` em UTF-16 × pontos de
+  código, coerência caminho/sha256/tipo da mídia e sha256 único. O validador oficial do app é o zod; o JSON Schema
+  serve para documentação e ferramentas externas. Um teste falha se o arquivo versionado divergir do gerado.
+- **Profundidade:** checagem iterativa do aninhamento JSON antes do zod (evita estouro de pilha com arquivo
+  malicioso) e da árvore de seções depois dele.
+- **Mensagens:** locale `ptBR` do zod com mensagens próprias para campo não permitido, campo ausente, tipo
+  desconhecido, id, data, caminho de mídia e versões; caminho legível (`documento.corpo[0].titulo`).
+- **Após a revisão do `especialista-documento`:**
+  - `texto` recusa caracteres que o XML 1.0 não admite: controles C0, exceto tabulação e quebra de linha (que vale
+    como quebra de linha manual dentro do parágrafo); `CR`; U+FFFE; U+FFFF; e surrogates isolados;
+  - `marcas` sem repetição e sem sobrescrito junto com subscrito, para que o exportador não precise decidir (ADR-0005);
+  - ids de seções e blocos **únicos** no documento, verificados na leitura.
+- **Fora do esquema:** referências a ids inexistentes ficam para o verificador (ADR-0005: "viram não conformidade, nunca exceção").
+- **Pendente para o M1-T05:** `id` e `tipoTrabalho` existem no manifesto e no documento. O contêiner define a regra de
+  coerência entre os dois arquivos (iguais, ou o manifesto como cópia) e qual id nomeia a pasta de recuperação.

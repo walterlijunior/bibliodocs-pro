@@ -4,6 +4,32 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Pode importar dominio/modelo; único lugar do domínio com zod (regras 1 e 2).
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Esquemas v1 e validação criados no M1-T04; migrações vêm no M1-T07.
  */
-export {};
+export { LIMITES_V1 } from './limites';
+export {
+  esquemaBloco,
+  esquemaDocumentoV1,
+  esquemaInline,
+  esquemaManifestoV1,
+  esquemaMidia,
+  esquemaSecao,
+  IDENTIFICADOR_FORMATO,
+  MIMETYPE_PROJETO,
+  PADRAO_ID,
+  PADRAO_TEXTO_XML,
+  RESTRICOES_SO_NO_CODIGO,
+  VERSAO_FORMATO_ATUAL,
+  type Manifesto,
+  type MidiaManifesto,
+} from './projeto-v1';
+export {
+  descreverErros,
+  formatarCaminho,
+  profundidadeJsonExcede,
+  validarDocumentoV1,
+  validarManifestoV1,
+  type ErroValidacao,
+  type ResultadoValidacao,
+} from './validar';
+export { gerarJsonSchemasV1, type ArquivoJsonSchema } from './json-schema';
