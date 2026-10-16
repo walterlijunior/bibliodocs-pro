@@ -1,0 +1,16 @@
+{
+  "id": "prj_Antigo0001",
+  "tipoTrabalho": "generico",
+  "metadados": {
+    "titulo": "Formato fictício v0",
+    "subtitulo": ""
+  },
+  "corpo": [
+    {
+      "id": "sec_Introducao",
+      "titulo": [{ "tipo": "texto", "texto": "Introdução" }],
+      "blocos": [{ "tipo": "paragrafo", "id": "par_000000001", "conteudo": [{ "tipo": "texto", "texto": "Texto." }] }],
+      "subsecoes": []
+    }
+  ]
+}

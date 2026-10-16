@@ -10,6 +10,7 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 | M1-T04 Contratos e esquemas v1 | CONCLUÍDA | 2026-10-16 |
 | M1-T05 Contêiner `.bdp` | CONCLUÍDA | 2026-10-16 |
 | M1-T06 Salvamento atômico | CONCLUÍDA | 2026-10-16 |
+| M1-T07 Migrações | CONCLUÍDA | 2026-10-16 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -244,3 +245,49 @@ exceção em vez de devolver `{ok:false}`.
 - A durabilidade depois de uma queda de energia não foi medida.
 - O visor (indicador de estado) é do M1-T11. Aqui só existe o resultado com código e mensagem.
 - Ainda não há IPC (M1-T08).
+
+## M1-T07 — Migrações
+
+**Implementação:** sessão principal (o plano indicava o `especialista-documento`, que ficou como revisor).
+**Revisão:** `especialista-documento` (somente leitura).
+
+**Arquivos:**
+- `app/src/dominio/esquemas/migracoes.ts` (novo, puro) e `index.ts`;
+- `app/src/persistencia/conteiner/pacote.ts`, `arquivo/projeto-em-disco.ts`, `arquivo/sistema-arquivos.ts` (`criarPasta`), `index.ts`;
+- `app/tests/persistencia-migracoes.test.ts`, `app/tests/apoio/migracao-ficticia.ts`, `app/tests/fixtures/migracoes/v0-para-v1/`;
+- ajustes de forma em `persistencia-conteiner.test.ts` e `persistencia-salvamento.test.ts`.
+
+**Decisões técnicas:** adendo do M1-T07 no ADR-0004 (forma da migração, versão futura, backup obrigatório).
+
+**Critérios de aceite:**
+- Cadeia aplicada na ordem: teste com registro fora de ordem e início no meio da cadeia [VERIFICADO].
+- Versão futura recusa a edição: resultado `ok: false` com `versaoFutura`; o pacote de leitura tem tipo próprio que
+  `salvarProjeto` não aceita [VERIFICADO].
+- Fixture por versão: `fixtures/projeto-v1/` e `fixtures/migracoes/v0-para-v1/`; teste exige as quatro fixtures para
+  cada migração registrada [VERIFICADO]. No v1 o registro de produção é vazio; v0 → v1 é fictícia e só existe nos testes.
+
+**Revisão do `especialista-documento`:** nenhum achado Alto; 2 Médios e 5 Baixos.
+
+| Achado | Tratamento |
+|---|---|
+| M1 (Média): versão futura com arquivo novo no ZIP (`estilos.json`, mídia `.svg`) era recusada pelo leitor do ZIP, sem `versaoFutura` | Corrigido: nomes possíveis de versão futura passam pelo ZIP com limite e sem descompressão; a recusa pelo nome vem depois do manifesto |
+| M2 (Média): o pacote de leitura de versão futura tinha tipo `PacoteProjeto` com versão 1 e podia ser salvo, rebaixando um v2 | Corrigido: `PacoteSomenteLeitura` com a versão original; recusado na compilação e na execução (`PACOTE_INVALIDO`) |
+| B1 (Baixa): backup podia substituir outro com o mesmo nome | Corrigido: sufixo `-2`, `-3`... |
+| B2 (Baixa): migração que devolve não-objeto fazia `migrarParaAtual` lançar | Corrigido: conferência dentro do `try` |
+| B3 (Baixa): versão antiga descomprimia o documento antes de recusas que não dependem dele | Corrigido: nome e cadeia (`motivoParaNaoMigrar`) antes do documento |
+| B4 (Baixa): nada garantia que a migração preservasse o id | Corrigido: troca de id recusada |
+| B5 (observação): pureza testada só na migração fictícia | Corrigido: teste de entrada congelada para toda migração registrada |
+| Lacuna: falha na troca do backup | Teste novo. Revelou que sobrava um temporário na pasta de backups; corrigido (apagado) |
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar:tudo`: typecheck OK, 11 arquivos, **443/443**, `found 0 vulnerabilities`, build OK.
+- `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+- Mutação (cópia de `app/` no scratchpad): 28 mutações. 27 foram detectadas. A que sobreviveu é equivalente:
+  tratar como nome livre um erro de `info` que não seja ENOENT não muda o resultado, porque o `gravarAtomico` repete
+  a conferência e falha. Na primeira rodada (antes das correções), "ignorar falha ao criar a pasta" também era
+  equivalente pelo mesmo motivo.
+
+**Limitações:**
+- Nenhuma migração real existe; a forma foi validada só com a fictícia.
+- A rotação de backups não existe ainda (M1-T12); os `*-formato-v<N>.bdp` não devem ser apagados por ela [HIPÓTESE de política].
+- `pastaBackups` só é passado pelo app a partir do M1-T08; a mensagem e a opção "abrir só para leitura" são do M1-T11.

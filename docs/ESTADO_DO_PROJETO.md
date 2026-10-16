@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T06 concluído (salvamento atômico).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T06 concluídos; próximo T07).
+**Última atualização:** 2026-10-16 — M1-T07 concluído (migrações).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T07 concluídos; próximo T08).
 
 ## Etapas
 
@@ -15,14 +15,14 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T07** (migrações) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T08** (IPC tipado) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
 com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
@@ -35,6 +35,20 @@ com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Migrações (M1-T07):
+  - API: `migrarParaAtual`/`motivoParaNaoMigrar` em `app/src/dominio/esquemas`; `abrirProjeto(caminho, { pastaBackups })`.
+  - Migração nova: registrar em `MIGRACOES_REGISTRADAS`, subir `VERSAO_FORMATO_ATUAL` e criar
+    `tests/fixtures/migracoes/v<N>-para-v<N+1>/` com `entrada-*`/`saida-*` (o teste exige). A migração deve ser pura e
+    manter o `id`.
+  - Nome novo de arquivo no pacote: incluir em `NOMES_V1` (`pacote.ts`) e na política do ZIP; senão é recusado.
+  - **Para o M1-T08:**
+    - passar `pastaBackups` = `%LOCALAPPDATA%\BiblioDocsPro\backups`;
+    - mandar ao renderizador `versaoFutura.versaoFormato` e o pacote de leitura, nunca o caminho completo do backup.
+  - **Para o M1-T11:**
+    - versão futura → mensagem e "abrir só para leitura" quando `leitura` não for `null`. O `PacoteSomenteLeitura` não
+      pode entrar no fluxo de salvamento: o tipo já impede, então não use `as`;
+    - avisar que o projeto foi atualizado e onde ficou a cópia.
+  - **Para o M1-T12:** a rotação de backups não apaga `*-formato-v<N>.bdp` [HIPÓTESE de política].
 - Salvamento (M1-T06):
   - API: `gravarAtomico`, `salvarProjeto` e `abrirProjeto` em `app/src/persistencia`. Nada lança exceção.
   - Em erro, o resultado traz `codigo` e `mensagem` pt-BR para o visor; `detalhe` é só para o registro técnico.
@@ -119,3 +133,4 @@ com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T04) | Contratos e esquemas v1 pela sessão principal: tipos mínimos do modelo; esquemas zod estritos (`zod` 4.6.7, dependência local informada) de `documento.json`/`manifesto.json`; validação pt-BR com limites de profundidade (iterativa); JSON Schema 2020-12 gerado e versionado em `app/esquemas/projeto-v1/` (exportação do zod considerada fiel, sem `ajv`). Revisão do `especialista-documento`: M1/M2/B4/B5 corrigidos (XML 1.0, marcas, ids únicos), M3 → T05. Adendo técnico no ADR-0004. Verificar 310/310, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `e3129cf` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T05) | Contêiner `.bdp` pela sessão principal (`fflate` 0.8.3, dependência local informada, só para escrever). Parser próprio do diretório central; descompressão sob demanda com `node:zlib` (`maxOutputLength`, sem sobra, CRC-32); lista de nomes; limites do ADR-0004; coerência manifesto × documento; mídia divergente descartada com aviso. `revisor-seguranca`: A1 (Alta) a A5 corrigidos, A6 eliminado, isolamento de processo → T08. 10 mutações detectadas. Medição: empacotar com releitura ~170 ms e ler ~90 ms (25 MB). Verificar 370/370, 0 vulnerabilidades. Commit autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T06) | Salvamento atômico pela sessão principal: temporário exclusivo com `fsync`; `.bak` por cópia (desvio do ADR registrado em adendo: o destino nunca some); troca por `rename`; tentativas EPERM/EBUSY/EACCES num orçamento único; fila por destino; `abrirProjeto` com limite conferido pelo caminho e pelo descritor. `revisor-seguranca`: 0 Alta, M6-01/M6-02 (Média) e 5 Baixas corrigidos, M6-03 → T12, M6-10/11 → T08. Bloqueio real medido (PowerShell): EPERM, 6 tentativas, ~1,64 s, original intacto. 25 MB: gravação 64–180 ms. 13/13 mutações detectadas. `verificar:tudo` 407/407, 0 vulnerabilidades, build OK. Commit autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T07) | Migrações pela sessão principal (retomado de sessão anterior com o código já escrito): cadeia pura `migrar_N_para_N+1`, registro de produção vazio, migração fictícia v0→v1 só nos testes com fixtures de entrada e saída; versão futura → `ok: false` com `PacoteSomenteLeitura`; backup obrigatório antes de migrar. `especialista-documento`: 0 Alta, M1/M2 (Média) e B1–B5 corrigidos; o teste novo da troca do backup revelou um temporário que sobrava, também corrigido. 27/28 mutações detectadas (1 equivalente). `verificar:tudo` 443/443, 0 vulnerabilidades, build OK; kit 0 falhas. Sem commit (aguarda autorização). |

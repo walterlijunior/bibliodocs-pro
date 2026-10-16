@@ -3,7 +3,7 @@
  * que os testes injetem falhas (EPERM, ENOSPC, queda entre passos) sem tocar no código de produção.
  */
 import { constants } from 'node:fs';
-import { chmod, copyFile, lstat, open, rename, unlink } from 'node:fs/promises';
+import { chmod, copyFile, lstat, mkdir, open, rename, unlink } from 'node:fs/promises';
 
 export interface ArquivoAberto {
   /** Tamanho atual pelo próprio descritor (não pelo caminho, que pode ter mudado). */
@@ -40,6 +40,8 @@ export interface SistemaArquivos {
   /** Tira o atributo somente leitura. */
   tornarGravavel(caminho: string): Promise<void>;
   apagar(caminho: string): Promise<void>;
+  /** Cria a pasta e as que faltarem acima dela; não falha se já existir. */
+  criarPasta(caminho: string): Promise<void>;
 }
 
 async function embrulhar(caminho: string, flags: string | number): Promise<ArquivoAberto> {
@@ -73,6 +75,7 @@ export const SISTEMA_ARQUIVOS_NODE: SistemaArquivos = {
   },
   tornarGravavel: (caminho) => chmod(caminho, 0o644),
   apagar: (caminho) => unlink(caminho),
+  criarPasta: async (caminho) => void (await mkdir(caminho, { recursive: true })),
 };
 
 /** Código de erro do Node (`EPERM`, `ENOENT`...) ou `undefined`. */

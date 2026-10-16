@@ -58,7 +58,7 @@ describe('ida e volta', () => {
   it('empacotar → ler devolve conteúdo idêntico, sem avisos', () => {
     const p = pacoteValido();
     const r = lerProjeto(bytesValidos(p));
-    expect(r).toEqual({ ok: true, pacote: p, avisos: [] });
+    expect(r).toEqual({ ok: true, pacote: p, avisos: [], migracao: [] });
   });
 
   it('o mesmo conteúdo gera os mesmos bytes (data fixa nas entradas)', () => {
@@ -77,7 +77,7 @@ describe('ida e volta', () => {
   it('o pacote montado à mão com a mesma estrutura também é lido (o leitor não depende do fflate para escrever)', () => {
     const p = pacoteValido();
     delete p.miniatura;
-    expect(lerProjeto(montarZip(entradasBrutas(p)))).toEqual({ ok: true, pacote: p, avisos: [] });
+    expect(lerProjeto(montarZip(entradasBrutas(p)))).toEqual({ ok: true, pacote: p, avisos: [], migracao: [] });
   });
 });
 
@@ -356,7 +356,7 @@ describe('correções da revisão de segurança do M1-T05', () => {
 
   it('A1: texto repetitivo abaixo do piso de 1 MB é salvo e relido', () => {
     const p = repetitivo(5);
-    expect(lerProjeto(bytesValidos(p))).toEqual({ ok: true, pacote: p, avisos: [] });
+    expect(lerProjeto(bytesValidos(p))).toEqual({ ok: true, pacote: p, avisos: [], migracao: [] });
   });
 
   it('A2: mídia não declarada não é descomprimida (dados inválidos viram só aviso)', () => {

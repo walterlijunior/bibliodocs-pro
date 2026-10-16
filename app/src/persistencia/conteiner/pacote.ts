@@ -9,12 +9,17 @@ import { createHash } from 'node:crypto';
 import { zipSync, type Zippable } from 'fflate';
 import type { Documento } from '../../dominio/modelo';
 import {
+  MIGRACOES_REGISTRADAS,
+  migrarParaAtual,
   MIMETYPE_PROJETO,
+  motivoParaNaoMigrar,
   validarDocumentoV1,
   validarManifestoV1,
   VERSAO_FORMATO_ATUAL,
+  versaoFormatoDeclarada,
   type ErroValidacao,
   type Manifesto,
+  type Migracao,
 } from '../../dominio/esquemas';
 import { LIMITES_CONTEINER, type LimitesConteiner } from './limites';
 import { lerZip, type EntradaZip } from './zip-leitura';
@@ -33,14 +38,52 @@ export interface AvisoPacote {
   mensagem: string;
 }
 
+/**
+ * Pacote de versão futura aberto só para leitura. O manifesto mantém a versão do arquivo (`number`, não o literal
+ * da versão atual): `salvarProjeto` não aceita este tipo na compilação e `empacotarProjeto` o recusa na execução,
+ * então um arquivo novo nunca é regravado no formato antigo (revisão do M1-T07, M2).
+ */
+export type PacoteSomenteLeitura = Omit<PacoteProjeto, 'manifesto'> & {
+  manifesto: Omit<Manifesto, 'versaoFormato'> & { versaoFormato: number };
+};
+
+/**
+ * Projeto gravado por uma versão mais nova do app (ADR-0004, seção 2; R33). Nunca é editável: a leitura vem num
+ * resultado `ok: false`, então nenhum caminho de edição ou de salvamento recebe esse pacote por engano.
+ */
+export interface VersaoFutura {
+  versaoFormato: number;
+  /**
+   * Conteúdo para abrir só para leitura, quando ele passa na validação da versão atual (lido como se fosse dela);
+   * `null` quando a versão nova usa algo que esta não conhece.
+   */
+  leitura: { pacote: PacoteSomenteLeitura; avisos: AvisoPacote[] } | null;
+}
+
 export type ResultadoLeituraProjeto =
-  | { ok: true; pacote: PacoteProjeto; avisos: AvisoPacote[] }
-  | { ok: false; erros: ErroValidacao[] };
+  | {
+      ok: true;
+      pacote: PacoteProjeto;
+      avisos: AvisoPacote[];
+      /** Versões percorridas pela migração (ex.: `[0, 1]`); vazio se o arquivo já estava na versão atual. */
+      migracao: number[];
+    }
+  | { ok: false; erros: ErroValidacao[]; versaoFutura?: VersaoFutura };
+
+type ResultadoMontagem = { ok: true; pacote: PacoteProjeto; avisos: AvisoPacote[] } | { ok: false; erros: ErroValidacao[] };
 
 export type ResultadoEmpacotamento = { ok: true; bytes: Uint8Array } | { ok: false; erros: ErroValidacao[] };
 
 const NOME_MIDIA = /^midias\/([0-9a-f]{64})\.(png|jpg)$/;
 const NAO_SUPORTADOS_V1 = new Set(['bibliografia.json', 'ajustes.json']);
+/**
+ * Nomes que uma versão futura do formato pode trazer (JSON novo na raiz, mídia de outro tipo). O leitor do ZIP os
+ * aceita com limite, mas nunca os descomprime: a recusa vem depois do manifesto, para que um arquivo de versão futura
+ * receba a mensagem de versão nova (revisão do M1-T07, M1).
+ */
+const JSON_DESCONHECIDO = /^[a-z0-9_-]+\.json$/;
+const MIDIA_DESCONHECIDA = /^midias\/[0-9a-f]{64}\.[a-z0-9]{1,8}$/;
+const NOMES_V1 = new Set(['mimetype', 'manifesto.json', 'documento.json', 'miniatura.png']);
 const ASSINATURA_PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const ASSINATURA_JPEG = [0xff, 0xd8, 0xff];
 /** Data fixa nas entradas: o mesmo conteúdo gera os mesmos bytes. */
@@ -117,8 +160,8 @@ function politicaNomes(limites: LimitesConteiner) {
   return (nome: string): number | null => {
     if (nome === 'mimetype') return MIMETYPE_PROJETO.length;
     if (nome === 'manifesto.json') return limites.bytesManifesto;
-    if (nome === 'documento.json' || NAO_SUPORTADOS_V1.has(nome)) return limites.bytesJson;
-    if (nome === 'miniatura.png' || NOME_MIDIA.test(nome)) return limites.bytesMidia;
+    if (nome === 'documento.json' || JSON_DESCONHECIDO.test(nome)) return limites.bytesJson;
+    if (nome === 'miniatura.png' || MIDIA_DESCONHECIDA.test(nome)) return limites.bytesMidia;
     return null;
   };
 }
@@ -137,18 +180,36 @@ function lerJson(entrada: EntradaZip | undefined, nome: string): Resultado<unkno
 }
 
 /**
- * Lê um `.bdp` em memória. Erro estrutural recusa o pacote; mídia divergente é descartada com aviso.
- * A descompressão segue a ordem da validação (revisão do M1-T05, A2/A3): nomes → mimetype → manifesto → documento →
- * só as mídias declaradas. Nada é descomprimido depois de um erro, nem o que vai ser descartado.
+ * Recusa pelo nome, sem descomprimir: conteúdo que o v1 conhece e não suporta, ou nome que o v1 não conhece.
+ * Roda depois do manifesto (para a mensagem de versão futura) e antes do documento.
  */
-export function lerProjeto(bytes: Uint8Array, limites: LimitesConteiner = LIMITES_CONTEINER): ResultadoLeituraProjeto {
+function recusaPorNome(entradas: readonly EntradaZip[]): { ok: false; erros: ErroValidacao[] } | null {
+  for (const { nome } of entradas) {
+    if (NAO_SUPORTADOS_V1.has(nome)) return { ok: false, erros: [{ caminho: nome, mensagem: 'conteúdo não suportado nesta versão do formato' }] };
+  }
+  for (const { nome } of entradas) {
+    if (!NOMES_V1.has(nome) && !NOME_MIDIA.test(nome)) return { ok: false, erros: [{ caminho: nome, mensagem: 'nome de entrada não permitido no pacote' }] };
+  }
+  return null;
+}
+
+/**
+ * Lê um `.bdp` em memória. Erro estrutural recusa o pacote; mídia divergente é descartada com aviso.
+ * A descompressão segue a ordem da validação (revisão do M1-T05, A2/A3): nomes → mimetype → manifesto → versão →
+ * recusas pelo nome e pela cadeia de migrações → documento → só as mídias declaradas. Nada é descomprimido depois de um erro, nem o que vai ser descartado.
+ *
+ * Versões do formato (M1-T07): versão antiga passa pela cadeia de migrações antes da validação (`migracao` diz o
+ * caminho; o backup obrigatório é de `abrirProjeto`); versão futura é recusada com `versaoFutura`.
+ */
+export function lerProjeto(
+  bytes: Uint8Array,
+  limites: LimitesConteiner = LIMITES_CONTEINER,
+  migracoes: readonly Migracao[] = MIGRACOES_REGISTRADAS,
+): ResultadoLeituraProjeto {
   const zip = lerZip(bytes, limites, politicaNomes(limites));
   if (!zip.ok) return zip;
   const porNome = new Map(zip.entradas.map((e) => [e.nome, e]));
 
-  for (const nome of NAO_SUPORTADOS_V1) {
-    if (porNome.has(nome)) return { ok: false, erros: [{ caminho: nome, mensagem: 'conteúdo não suportado nesta versão do formato' }] };
-  }
   const mimetype = porNome.get('mimetype');
   if (!mimetype || mimetype.deslocamento !== 0 || mimetype.metodo !== 0) {
     return { ok: false, erros: [{ caminho: 'mimetype', mensagem: 'o pacote deve começar pela entrada mimetype sem compressão' }] };
@@ -161,13 +222,49 @@ export function lerProjeto(bytes: Uint8Array, limites: LimitesConteiner = LIMITE
 
   const jm = lerJson(porNome.get('manifesto.json'), 'manifesto.json');
   if (!jm.ok) return jm;
-  const versao = (jm.valor as { versaoFormato?: unknown } | null)?.versaoFormato;
-  if (typeof versao === 'number' && versao > VERSAO_FORMATO_ATUAL) {
-    return { ok: false, erros: [{ caminho: 'manifesto.versaoFormato', mensagem: 'projeto criado por uma versão mais nova do BiblioDocs Pro' }] };
+  const versao = versaoFormatoDeclarada(jm.valor);
+  const lerDocumento = () => lerJson(porNome.get('documento.json'), 'documento.json');
+
+  if (versao !== null && versao > VERSAO_FORMATO_ATUAL) {
+    const comoAtual = { ...(jm.valor as object), versaoFormato: VERSAO_FORMATO_ATUAL };
+    const r = montarPacote(comoAtual, lerDocumento, porNome, zip.entradas);
+    const leitura = r.ok ? { pacote: { ...r.pacote, manifesto: { ...r.pacote.manifesto, versaoFormato: versao } }, avisos: r.avisos } : null;
+    return {
+      ok: false,
+      erros: [{ caminho: 'manifesto.versaoFormato', mensagem: 'projeto criado por uma versão mais nova do BiblioDocs Pro' }],
+      versaoFutura: { versaoFormato: versao, leitura },
+    };
   }
-  const rm = validarManifestoV1(jm.valor);
+  if (versao !== null && versao < VERSAO_FORMATO_ATUAL) {
+    // Formato antigo: o documento é lido antes de validar o manifesto, porque só se valida depois de migrar. As recusas
+    // que não dependem dele vêm antes, para não descomprimir à toa (revisão do M1-T07, B3).
+    const porNomeRecusa = recusaPorNome(zip.entradas);
+    if (porNomeRecusa) return porNomeRecusa;
+    const motivo = motivoParaNaoMigrar(versao, migracoes);
+    if (motivo) return { ok: false, erros: [{ caminho: 'manifesto.versaoFormato', mensagem: motivo }] };
+    const jd = lerDocumento();
+    if (!jd.ok) return jd;
+    const m = migrarParaAtual({ manifesto: jm.valor, documento: jd.valor }, migracoes);
+    if (!m.ok) return m;
+    const r = montarPacote(m.json.manifesto, () => ({ ok: true, valor: m.json.documento }), porNome, zip.entradas);
+    return r.ok ? { ...r, migracao: m.passos } : r;
+  }
+  const r = montarPacote(jm.valor, lerDocumento, porNome, zip.entradas);
+  return r.ok ? { ...r, migracao: [] } : r;
+}
+
+/** Valida manifesto e documento (já na versão atual) e lê as mídias declaradas e a miniatura. */
+function montarPacote(
+  manifestoJson: unknown,
+  lerDocumento: () => Resultado<unknown>,
+  porNome: ReadonlyMap<string, EntradaZip>,
+  entradas: readonly EntradaZip[],
+): ResultadoMontagem {
+  const porNomeRecusa = recusaPorNome(entradas);
+  if (porNomeRecusa) return porNomeRecusa;
+  const rm = validarManifestoV1(manifestoJson);
   if (!rm.ok) return rm;
-  const jd = lerJson(porNome.get('documento.json'), 'documento.json');
+  const jd = lerDocumento();
   if (!jd.ok) return jd;
   const rd = validarDocumentoV1(jd.valor);
   if (!rd.ok) return rd;
@@ -197,7 +294,7 @@ export function lerProjeto(bytes: Uint8Array, limites: LimitesConteiner = LIMITE
     return true;
   });
   const declaradas = new Set(rm.valor.midias.map((m) => m.caminho));
-  for (const e of zip.entradas) {
+  for (const e of entradas) {
     if (NOME_MIDIA.test(e.nome) && !declaradas.has(e.nome)) avisos.push({ caminho: e.nome, mensagem: 'mídia não declarada no manifesto; descartada' });
   }
 

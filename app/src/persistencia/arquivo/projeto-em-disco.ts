@@ -1,8 +1,10 @@
 /**
  * Projeto no disco: empacotar + salvamento atômico, e abertura com limite de tamanho conferido antes de ler
- * (pendência do M1-T05 para o M1-T06).
+ * (pendência do M1-T05 para o M1-T06). Abrir um projeto de formato antigo exige o backup do arquivo original antes
+ * de entregar a versão migrada (ADR-0004, seções 2 e 4; M1-T07).
  */
-import type { ErroValidacao } from '../../dominio/esquemas';
+import { join } from 'node:path';
+import type { ErroValidacao, Migracao } from '../../dominio/esquemas';
 import { LIMITES_CONTEINER, type LimitesConteiner } from '../conteiner/limites';
 import { empacotarProjeto, lerProjeto, type PacoteProjeto, type ResultadoLeituraProjeto } from '../conteiner/pacote';
 import { gravarAtomico, MENSAGENS_FALHA, type OpcoesGravacao, type ResultadoGravacao } from './gravacao-atomica';
@@ -35,7 +37,85 @@ export async function salvarProjeto(
   return gravarAtomico(destino, r.bytes, opcoes);
 }
 
-const erroArquivo = (mensagem: string): ResultadoLeituraProjeto => ({ ok: false, erros: [{ caminho: 'arquivo', mensagem }] });
+export interface OpcoesAbertura {
+  fs?: SistemaArquivos;
+  limites?: LimitesConteiner;
+  migracoes?: readonly Migracao[];
+  /**
+   * Pasta dos backups (`%LOCALAPPDATA%\BiblioDocsPro\backups`). Sem ela, um projeto que precise de migração não
+   * abre: o backup antes de migrar é obrigatório.
+   */
+  pastaBackups?: string;
+  agora?: () => Date;
+  /** Opções do `gravarAtomico` do backup (esperas e sufixo aleatório, nos testes). */
+  gravacao?: Omit<OpcoesGravacao, 'fs'>;
+}
+
+export type ResultadoAbertura =
+  | (Extract<ResultadoLeituraProjeto, { ok: true }> & {
+      /** Cópia do arquivo original gravada antes da migração; `null` se o arquivo já estava na versão atual. */
+      backupMigracao: string | null;
+    })
+  | Extract<ResultadoLeituraProjeto, { ok: false }>;
+
+const erroArquivo = (mensagem: string): Extract<ResultadoLeituraProjeto, { ok: false }> => ({ ok: false, erros: [{ caminho: 'arquivo', mensagem }] });
+
+const MENSAGEM_SEM_BACKUP =
+  'não foi possível guardar a cópia de segurança exigida antes de atualizar o formato do projeto; o arquivo não foi alterado';
+
+const doisDigitos = (n: number, tamanho = 2) => String(n).padStart(tamanho, '0');
+
+/**
+ * `AAAAMMDD-HHMMSS-mmm-formato-v<N>.bdp`, na hora local (o nome é lido pelo usuário); `-2`, `-3`... antes de `.bdp`
+ * quando o nome já existe.
+ */
+export function nomeBackupMigracao(quando: Date, versaoOrigem: number, ordem = 1): string {
+  const d = quando;
+  const data = `${d.getFullYear()}${doisDigitos(d.getMonth() + 1)}${doisDigitos(d.getDate())}`;
+  const hora = `${doisDigitos(d.getHours())}${doisDigitos(d.getMinutes())}${doisDigitos(d.getSeconds())}-${doisDigitos(d.getMilliseconds(), 3)}`;
+  return `${data}-${hora}-formato-v${versaoOrigem}${ordem > 1 ? `-${ordem}` : ''}.bdp`;
+}
+
+/** Tentativas de nome livre para o backup (mesmo id aberto no mesmo milissegundo, relógio que volta). */
+const NOMES_BACKUP_TENTADOS = 20;
+
+/**
+ * Grava os bytes originais em `<pastaBackups>/<id>/` com `gravarAtomico` (cópia nova, não o `.bak`, que o próximo
+ * salvamento substitui). O id vem do manifesto já validado (`PADRAO_ID`), então serve de nome de pasta.
+ * Nunca substitui um backup existente: procura um nome livre antes (revisão do M1-T07, B1).
+ */
+async function gravarBackupMigracao(
+  bytes: Uint8Array,
+  id: string,
+  versaoOrigem: number,
+  fs: SistemaArquivos,
+  opcoes: OpcoesAbertura,
+): Promise<string | null> {
+  if (!opcoes.pastaBackups) return null;
+  const pasta = join(opcoes.pastaBackups, id);
+  try {
+    await fs.criarPasta(pasta);
+  } catch {
+    return null;
+  }
+  const quando = (opcoes.agora ?? (() => new Date()))();
+  let destino: string | null = null;
+  for (let ordem = 1; ordem <= NOMES_BACKUP_TENTADOS && !destino; ordem++) {
+    const candidato = join(pasta, nomeBackupMigracao(quando, versaoOrigem, ordem));
+    try {
+      await fs.info(candidato);
+    } catch (e) {
+      if (codigoErro(e) !== 'ENOENT') return null;
+      destino = candidato;
+    }
+  }
+  if (!destino) return null;
+  const r = await gravarAtomico(destino, bytes, { ...opcoes.gravacao, fs });
+  if (r.ok) return r.caminho;
+  // O temporário deixado serve à recuperação de um salvamento; aqui o original está intacto, então é só lixo.
+  if (r.temporario) await fs.apagar(r.temporario).catch(() => undefined);
+  return null;
+}
 
 function mensagemAbertura(erro: unknown): string {
   switch (codigoErro(erro)) {
@@ -56,10 +136,7 @@ function mensagemAbertura(erro: unknown): string {
  * para no tamanho conferido: um arquivo que cresce durante a leitura é recusado, nunca lido além do limite.
  * Nunca lança.
  */
-export async function abrirProjeto(
-  caminho: string,
-  opcoes: { fs?: SistemaArquivos; limites?: LimitesConteiner } = {},
-): Promise<ResultadoLeituraProjeto> {
+export async function abrirProjeto(caminho: string, opcoes: OpcoesAbertura = {}): Promise<ResultadoAbertura> {
   const fs = opcoes.fs ?? SISTEMA_ARQUIVOS_NODE;
   const limites = opcoes.limites ?? LIMITES_CONTEINER;
   const grandeDemais = 'o arquivo é maior que o limite aceito para um projeto';
@@ -82,7 +159,14 @@ export async function abrirProjeto(
       lidos += n;
     }
     if ((await arquivo.ler(new Uint8Array(1), 0, 1, tamanho)) !== 0) return erroArquivo('o arquivo mudou durante a leitura');
-    return lerProjeto(bytes, limites);
+    await arquivo.fechar().catch(() => undefined);
+    arquivo = null;
+
+    const r = lerProjeto(bytes, limites, opcoes.migracoes);
+    if (!r.ok) return r;
+    if (r.migracao.length === 0) return { ...r, backupMigracao: null };
+    const backup = await gravarBackupMigracao(bytes, r.pacote.manifesto.id, r.migracao[0]!, fs, opcoes);
+    return backup ? { ...r, backupMigracao: backup } : erroArquivo(MENSAGEM_SEM_BACKUP);
   } catch (e) {
     return erroArquivo(mensagemAbertura(e));
   } finally {

@@ -367,3 +367,53 @@ resolvido, em minúsculas no Windows.
   - a fila por caminho não reconhece nomes 8.3, `subst` ou UNC do mesmo arquivo. Basta enquanto houver instância única
     (M6-10); se não bastar, usar `realpath.native` da pasta como chave.
 - OneDrive e pastas de rede não foram testados [HIPÓTESE]. As tentativas cobrem `EACCES`/`EPERM` transitórios.
+
+## Adendo técnico — migrações (M1-T07, 2026-10-16)
+
+Decisões técnicas da sessão principal, revisadas pelo `especialista-documento` (relatório do M1; achados M1, M2 e
+B1–B5 incorporados abaixo).
+Código: `app/src/dominio/esquemas/migracoes.ts` (puro) e `app/src/persistencia/`.
+
+**Forma da migração:**
+- `Migracao = { de: N, migrar({manifesto, documento}) → {manifesto, documento} }`. A migração recebe o par de JSON
+  porque a versão mora no manifesto e uma mudança de formato pode mexer nos dois.
+- A entrada são os JSON já lidos e **ainda não validados**. A validação estrita roda uma vez, depois da cadeia inteira,
+  contra a versão atual. O aninhamento é limitado antes de chamar a primeira migração (as migrações podem ser recursivas).
+- Depois de cada passo, o manifesto precisa declarar exatamente `N + 1` e manter o mesmo `id` (ele nomeia as pastas de
+  backup e de recuperação); exceção dentro da migração, ou saída que não é objeto, vira erro em pt-BR.
+- Toda migração registrada é testada sobre a fixture de entrada congelada (pureza).
+- O registro (`MIGRACOES_REGISTRADAS`) precisa ser contíguo e terminar na versão atual. No v1 ele é **vazio**. Teste
+  confere o registro e exige `tests/fixtures/migracoes/v<N>-para-v<N+1>/` com entrada e saída para cada migração
+  (RNF-16). A migração fictícia v0 → v1 existe só nos testes.
+
+**Versão futura (R33):**
+- `lerProjeto` devolve `ok: false` com `versaoFutura: { versaoFormato, leitura }`. Como o resultado é de falha, nenhum
+  caminho de edição ou de salvamento recebe esse pacote: a recusa da edição está no tipo.
+- `leitura` é o pacote validado **como se fosse v1**, para abrir só para leitura. Depois da validação o manifesto
+  volta a declarar a versão do arquivo, com o tipo `PacoteSomenteLeitura` (`versaoFormato: number`): `salvarProjeto`
+  não o aceita na compilação e `empacotarProjeto` o recusa na execução, então um arquivo novo nunca é regravado no
+  formato antigo. Se a versão nova usa algo que o v1 não conhece, `leitura` é `null` e o app só mostra a mensagem.
+- O leitor do ZIP aceita, com limite e **sem descomprimir**, nomes que uma versão futura pode trazer
+  (`<nome>.json` na raiz, `midias/<sha256>.<ext>`). A recusa pelo nome (desconhecido ou `bibliografia.json`/`ajustes.json`)
+  vem depois do manifesto, para que um arquivo de versão futura receba a mensagem de versão nova; na versão atual a
+  mensagem continua "nome de entrada não permitido no pacote".
+- Versão antiga: a recusa pelo nome e a falta de migração são conferidas antes de descomprimir o `documento.json`.
+
+**Backup obrigatório antes de migrar:**
+- Quem faz é `abrirProjeto`: grava os bytes originais com `gravarAtomico` em
+  `<pastaBackups>/<id>/AAAAMMDD-HHMMSS-mmm-formato-v<N>.bdp` (hora local). O `id` vem do manifesto já validado
+  (`PADRAO_ID`), então é seguro como nome de pasta.
+- Um backup nunca substitui outro: se o nome existe, usa `-2`, `-3`... (até 20) antes de `.bdp`. Ids que diferem só
+  em maiúsculas dividem a pasta no Windows, mas os nomes continuam únicos.
+- Se a gravação do backup falha, o temporário que o `gravarAtomico` deixaria para a recuperação é apagado (o original
+  está intacto).
+- Sem `pastaBackups`, ou com falha ao criar a pasta ou gravar, o projeto antigo **não abre**, com mensagem. O arquivo
+  original nunca é alterado na abertura; o formato novo só vai para o disco no salvamento seguinte.
+- `SistemaArquivos` ganhou `criarPasta` (recursiva).
+
+**Para tarefas seguintes:**
+- **M1-T08:** passar `pastaBackups` (`%LOCALAPPDATA%\BiblioDocsPro\backups`) ao `abrirProjeto`; mandar ao renderizador
+  `versaoFutura.versaoFormato` e o pacote de leitura, nunca o caminho do backup completo.
+- **M1-T11:** mensagem de versão futura com a opção "abrir só para leitura" quando `leitura` não for `null`; avisar que o
+  projeto foi atualizado e onde ficou a cópia.
+- **M1-T12:** a rotação de backups não apaga os `*-formato-v<N>.bdp` [HIPÓTESE de política; ajustável].

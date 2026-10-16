@@ -4,7 +4,7 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Pode importar dominio/modelo; único lugar do domínio com zod (regras 1 e 2).
  *
- * Esquemas v1 e validação criados no M1-T04; migrações vêm no M1-T07.
+ * Esquemas v1 e validação criados no M1-T04; migrações no M1-T07.
  */
 export { LIMITES_V1 } from './limites';
 export {
@@ -33,3 +33,13 @@ export {
   type ResultadoValidacao,
 } from './validar';
 export { gerarJsonSchemasV1, type ArquivoJsonSchema } from './json-schema';
+export {
+  MIGRACOES_REGISTRADAS,
+  migrarParaAtual,
+  motivoParaNaoMigrar,
+  problemasDoRegistro,
+  versaoFormatoDeclarada,
+  type JsonProjeto,
+  type Migracao,
+  type ResultadoMigracao,
+} from './migracoes';

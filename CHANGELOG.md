@@ -6,6 +6,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T07: migrações do formato de projeto.
+  - `migrarParaAtual` (`app/src/dominio/esquemas/migracoes.ts`):
+    - cadeia `migrar_N_para_N+1` sobre os JSON ainda não validados, aplicada na ordem;
+    - conferência do registro, da versão e do id depois de cada passo;
+    - nunca lança.
+
+    O registro de produção é vazio no v1. A migração fictícia v0 → v1 e as suas fixtures existem só nos testes.
+  - `lerProjeto`: versão antiga é migrada e validada depois; versão futura → `ok: false` com `versaoFutura` e, quando
+    possível, um `PacoteSomenteLeitura` que não pode ser salvo.
+  - `abrirProjeto`: backup obrigatório dos bytes originais em `<pastaBackups>/<id>/` antes de entregar o projeto migrado;
+    sem backup, o projeto antigo não abre. O arquivo original nunca é alterado na abertura.
+  - Revisão do `especialista-documento`: nenhum achado Alto; M1, M2 e B1–B5 corrigidos. Adendo técnico no ADR-0004.
+  - Total de 443 testes (36 novos); PER-17 a PER-20 na matriz de testes; 27 de 28 mutações detectadas (1 equivalente).
 - Etapa 5, M1-T06: salvamento atômico e abertura do disco (`app/src/persistencia/arquivo/`).
   - `gravarAtomico`/`salvarProjeto`:
     - temporário exclusivo no mesmo diretório, com `fsync`;
