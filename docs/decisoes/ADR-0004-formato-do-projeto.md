@@ -417,3 +417,18 @@ Código: `app/src/dominio/esquemas/migracoes.ts` (puro) e `app/src/persistencia/
 - **M1-T11:** mensagem de versão futura com a opção "abrir só para leitura" quando `leitura` não for `null`; avisar que o
   projeto foi atualizado e onde ficou a cópia.
 - **M1-T12:** a rotação de backups não apaga os `*-formato-v<N>.bdp` [HIPÓTESE de política; ajustável].
+
+## Adendo técnico — leitura isolada (M1-T08, 2026-10-16)
+Resolve a pendência do M1-T05 ("isolar a leitura de arquivo vindo de fora").
+- `abrirProjeto` roda num `utilityProcess` (`app/src/principal/leitor-projeto.ts`), um processo por abertura.
+  O principal espera no máximo 60 s; saída sem resposta, resposta fora do protocolo ou tempo esgotado viram
+  "não foi possível ler o arquivo". Quem encerra o leitor é o principal, depois da resposta (S8-02).
+- Teto de heap do leitor: `--max-old-space-size=2048` [HIPÓTESE, a calibrar] (S8-01).
+- **Alcance:** o isolamento protege o principal contra queda, falta de memória e laço longo causados pelo arquivo.
+  **Não** isola privilégio: o leitor é um Node sem sandbox, com o mesmo acesso a disco. Avaliar o leitor com sandbox
+  antes da distribuição (Etapa 7).
+- O principal confere o envelope da resposta com esquema estrito (S8-05), mas não refaz a validação profunda do
+  documento; tudo é validado de novo antes de qualquer gravação.
+- Backups de migração em `%LOCALAPPDATA%\BiblioDocsPro\backups`; ao renderer só vai o nome do backup.
+- Medição [VERIFICADO]: projeto de 25 MB aberto pelo leitor, 20 vezes: 20 sucessos, 307 a 408 ms cada, incluindo
+  a criação do processo.

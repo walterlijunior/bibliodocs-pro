@@ -63,6 +63,8 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`;
 |---|---|---|---|
 | SEG-01 | Filtros de URL, navegação, rede, link externo e caminho do `app://` (funções puras) | Checklist C-3, C-5, C-6, C-8 | PASSOU (2026-10-16; `npm test`) |
 | SEG-02 | CSP de produção idêntica ao checklist; verificação estática das webPreferences | C-2, C-4, C-9, C-15 | PASSOU (2026-10-16) |
+| SEG-04 | IPC: remetente (outro webContents, iframe, outra origem, `file:`, credenciais) e argumentos fora do contrato são recusados antes de qualquer diálogo; identificadores opacos por janela; destino só por diálogo; nenhum caminho completo volta ao renderer | C-10, C-11, C-12; M6-11 | PASSOU (2026-10-16; `tests/ipc-projetos.test.ts`; 8/8 mutações detectadas) |
+| SEG-05 | Processo leitor (`utilityProcess`) e `contextBridge` no Electron real: `Uint8Array` atravessa nos dois sentidos; sem `ipcRenderer`/`require` na página; projeto de 25 MB lido 20 vezes sem falha | Pendência do M1-T05; S8-02 | PASSOU (2026-10-16; fumaça manual no Electron 44.8.0; vira E2E no M1-T13) |
 | SEG-03 | E2E: script inline bloqueado, `fetch` remoto falha, navegação/`window.open` sem efeito, segunda instância | Revisão M1-T02, achado M-1 | NÃO EXECUTADO (M1-T13; sondas manuais em 44.7.2 em `docs/relatorios/M1_RELATORIO_MARCO.md`) |
 
 ## Grupo FUN — funcionalidades (aplicativo)

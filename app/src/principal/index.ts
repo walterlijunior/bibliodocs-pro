@@ -13,7 +13,8 @@
  * - C-5/C-6/C-7/C-8 em seguranca/endurecimento.ts (navegação, links externos, permissões, rede);
  * - C-15 menu nulo no app empacotado (sem item nem atalho de DevTools);
  * - C-22 (parte 1) instância única: a segunda instância só foca a janela existente.
- * Ficam para depois: C-10–C-12 (IPC, M1-T08), C-13/C-14/C-16/C-17 (empacotamento, M1-T14),
+ * M1-T08 — IPC tipado (C-10–C-12) em ipc/: só a janela principal chama a API, pela origem da interface.
+ * Ficam para depois: C-13/C-14/C-16/C-17 (empacotamento, M1-T14),
  * C-18/C-19/C-20 (verificação de dependências e varreduras, M1-T03), trava por projeto (persistência).
  */
 import { join } from 'node:path';
@@ -25,6 +26,7 @@ import {
   registrarProtocoloApp,
   type ContextoSeguranca,
 } from './seguranca/endurecimento';
+import { registrarIpcProjetos } from './ipc/registrar';
 import { ORIGEM_PRODUCAO, URL_INICIAL_PRODUCAO, origemDeDesenvolvimento } from './seguranca/politica-urls';
 
 const TITULO = 'BiblioDocs Pro';
@@ -86,8 +88,11 @@ function iniciar(): void {
   endurecerTodosOsConteudos(contexto);
 
   let janelaPrincipal: BrowserWindow | null = null;
+  // C-11: só o webContents da janela principal (enquanto existir) chama a API.
+  let ipc: ReturnType<typeof registrarIpcProjetos> | null = null;
   const abrirJanela = (): void => {
     janelaPrincipal = criarJanelaPrincipal(urlInicial);
+    ipc?.vigiar(janelaPrincipal.webContents);
     janelaPrincipal.on('closed', () => {
       janelaPrincipal = null;
     });
@@ -106,6 +111,10 @@ function iniciar(): void {
     }
     // C-15: no app empacotado não há menu (logo, nem item nem atalho de DevTools). Menus reais: M1-T10.
     if (app.isPackaged) Menu.setApplicationMenu(null);
+
+    ipc = registrarIpcProjetos(contexto.origem, () =>
+      janelaPrincipal && !janelaPrincipal.isDestroyed() ? new Set([janelaPrincipal.webContents.id]) : new Set<number>(),
+    );
 
     abrirJanela();
     app.on('activate', () => {

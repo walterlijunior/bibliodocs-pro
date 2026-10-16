@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T07 concluído (migrações).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T07 concluídos; próximo T08).
+**Última atualização:** 2026-10-16 — M1-T08 concluído (IPC tipado).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T08 concluídos; próximo T09).
 
 ## Etapas
 
@@ -15,14 +15,14 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T08** (IPC tipado) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T09** (biblioteca de trabalhos) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
 com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
@@ -35,6 +35,18 @@ com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- IPC (M1-T08):
+  - Contrato em `app/src/aplicacao/portas/projetos.ts`; manipuladores puros em `app/src/principal/ipc/`, ligados ao
+    Electron só em `registrar.ts`. Canal novo: constante no contrato, função no `preload/api.ts`, manipulador com
+    `conferir` (remetente + quantidade de argumentos) e caso de recusa em `tests/ipc-projetos.test.ts`.
+  - Nunca devolver caminho completo ao renderer; arquivo novo de destino só por diálogo ou pasta do app.
+  - Leitura de `.bdp` sempre por `lerIsolado` (processo `leitor-projeto`), nunca `abrirProjeto` no principal.
+  - **Para o M1-T09:** `listar/criar/duplicar/renomear/excluir` entram como canais novos; a biblioteca pode registrar
+    identificadores para os arquivos da pasta padrão (o `RegistroProjetos` aceita qualquer caminho do principal).
+  - **Para o M1-T11:** `identificador: null` no `abrir` = só "Salvar como"; `VERSAO_FUTURA` traz `leitura`; usar
+    `codigo` (`EM_USO`, `NAO_ABERTO`...) para oferecer "Salvar como…"; mostrar texto como texto (nunca `innerHTML`).
+  - **Para o M1-T13:** E2E do leitor (tempo esgotado, saída sem resposta) e da recusa por iframe/origem.
+  - **Etapa 7:** avaliar sandbox do processo leitor (S8-01: isola falha, não privilégio).
 - Migrações (M1-T07):
   - API: `migrarParaAtual`/`motivoParaNaoMigrar` em `app/src/dominio/esquemas`; `abrirProjeto(caminho, { pastaBackups })`.
   - Migração nova: registrar em `MIGRACOES_REGISTRADAS`, subir `VERSAO_FORMATO_ATUAL` e criar
@@ -42,8 +54,7 @@ com `cd app; npm run verificar` passando.
     manter o `id`.
   - Nome novo de arquivo no pacote: incluir em `NOMES_V1` (`pacote.ts`) e na política do ZIP; senão é recusado.
   - **Para o M1-T08:**
-    - passar `pastaBackups` = `%LOCALAPPDATA%\BiblioDocsPro\backups`;
-    - mandar ao renderizador `versaoFutura.versaoFormato` e o pacote de leitura, nunca o caminho completo do backup.
+    - ✔ feito no M1-T08 (`pastaBackups` e só o nome do backup ao renderer).
   - **Para o M1-T11:**
     - versão futura → mensagem e "abrir só para leitura" quando `leitura` não for `null`. O `PacoteSomenteLeitura` não
       pode entrar no fluxo de salvamento: o tipo já impede, então não use `as`;
@@ -54,9 +65,7 @@ com `cd app; npm run verificar` passando.
   - Em erro, o resultado traz `codigo` e `mensagem` pt-BR para o visor; `detalhe` é só para o registro técnico.
   - Testes injetam falhas pela interface `SistemaArquivos`.
   - **Para o M1-T07:** o backup obrigatório antes de migrar usa `gravarAtomico` (cópia nova, não o `.bak`).
-  - **Para o M1-T08:**
-    - mandar ao renderizador só o nome do arquivo (M6-11);
-    - a fila por destino supõe instância única (M6-10).
+  - M1-T08: ✔ só o nome do arquivo ao renderer (M6-11); a fila por destino supõe instância única (M6-10, aceito).
   - **Para o M1-T11:** mostrar `mensagem` no visor; `avisos` do `.bak` não bloqueiam "Salvo".
   - **Para o M1-T12:**
     - órfãos `*.bdp.tmp-*` **e** `*.bdp.bak.tmp-*` (este pode ser apagado direto) (M6-03);
@@ -72,7 +81,7 @@ com `cd app; npm run verificar` passando.
     - `fs.stat` antes de ler (≤ 1 GB);
     - mostrar no visor o erro de `empacotarProjeto` sem perder o documento em memória;
     - medir a gravação em disco.
-  - **Para o M1-T08:** isolar `lerProjeto` de arquivo externo num `utilityProcess` ou worker (revisão do M1-T05).
+  - ✔ M1-T08: leitura isolada num `utilityProcess` (adendo no ADR-0004).
   - Os testes maliciosos usam `app/tests/apoio/zip-bruto.ts`.
 - Formato v1 (M1-T04):
   - Esquemas zod em `app/src/dominio/esquemas/projeto-v1.ts` (fonte da verdade).
@@ -134,3 +143,4 @@ com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T05) | Contêiner `.bdp` pela sessão principal (`fflate` 0.8.3, dependência local informada, só para escrever). Parser próprio do diretório central; descompressão sob demanda com `node:zlib` (`maxOutputLength`, sem sobra, CRC-32); lista de nomes; limites do ADR-0004; coerência manifesto × documento; mídia divergente descartada com aviso. `revisor-seguranca`: A1 (Alta) a A5 corrigidos, A6 eliminado, isolamento de processo → T08. 10 mutações detectadas. Medição: empacotar com releitura ~170 ms e ler ~90 ms (25 MB). Verificar 370/370, 0 vulnerabilidades. Commit autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T06) | Salvamento atômico pela sessão principal: temporário exclusivo com `fsync`; `.bak` por cópia (desvio do ADR registrado em adendo: o destino nunca some); troca por `rename`; tentativas EPERM/EBUSY/EACCES num orçamento único; fila por destino; `abrirProjeto` com limite conferido pelo caminho e pelo descritor. `revisor-seguranca`: 0 Alta, M6-01/M6-02 (Média) e 5 Baixas corrigidos, M6-03 → T12, M6-10/11 → T08. Bloqueio real medido (PowerShell): EPERM, 6 tentativas, ~1,64 s, original intacto. 25 MB: gravação 64–180 ms. 13/13 mutações detectadas. `verificar:tudo` 407/407, 0 vulnerabilidades, build OK. Commit autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T07) | Migrações pela sessão principal (retomado de sessão anterior com o código já escrito): cadeia pura `migrar_N_para_N+1`, registro de produção vazio, migração fictícia v0→v1 só nos testes com fixtures de entrada e saída; versão futura → `ok: false` com `PacoteSomenteLeitura`; backup obrigatório antes de migrar. `especialista-documento`: 0 Alta, M1/M2 (Média) e B1–B5 corrigidos; o teste novo da troca do backup revelou um temporário que sobrava, também corrigido. 27/28 mutações detectadas (1 equivalente). `verificar:tudo` 443/443, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `bdc9176` autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T08) | IPC tipado pela sessão principal: contrato `window.bibliodocs.projetos` (abrir, salvar, salvarComo, fechar) em `aplicacao/portas`; preload com 4 funções de canal fixo; principal confere remetente (webContents, quadro principal, origem) e argumentos (zod estrito, limites) antes de qualquer diálogo; identificadores opacos por janela; só nomes de arquivo ao renderer; leitura do `.bdp` num `utilityProcess`. `revisor-seguranca`: 0 Alta, S8-01/S8-02 (Média) e S8-03–S8-07 corrigidos (sandbox do leitor → Etapa 7). 8/8 mutações detectadas. Fumaça no Electron 44.8.0: `Uint8Array` atravessa `contextBridge` e `utilityProcess`; 25 MB × 20 leituras, 307–408 ms. `verificar` 492/492, 0 vulnerabilidades; build OK; kit 0 falhas. Sem commit (aguarda autorização). |

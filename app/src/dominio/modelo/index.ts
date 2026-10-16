@@ -20,3 +20,4 @@ export type {
   Secao,
   TipoTrabalhoId,
 } from './tipos';
+export { textoPlano } from './texto-plano';

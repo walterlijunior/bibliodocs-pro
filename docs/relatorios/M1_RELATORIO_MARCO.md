@@ -291,3 +291,52 @@ exceção em vez de devolver `{ok:false}`.
 - Nenhuma migração real existe; a forma foi validada só com a fictícia.
 - A rotação de backups não existe ainda (M1-T12); os `*-formato-v<N>.bdp` não devem ser apagados por ela [HIPÓTESE de política].
 - `pastaBackups` só é passado pelo app a partir do M1-T08; a mensagem e a opção "abrir só para leitura" são do M1-T11.
+
+## M1-T08 — IPC tipado
+
+**Implementação:** sessão principal (o plano indicava o `arquiteto-software`).
+**Revisão:** `revisor-seguranca` (somente leitura).
+
+**Arquivos:**
+- novos: `app/src/aplicacao/portas/projetos.ts`, `app/src/preload/api.ts`, `app/src/interface/bibliodocs.d.ts`,
+  `app/src/principal/ipc/` (`remetente`, `argumentos`, `registro-projetos`, `manipuladores-projetos`,
+  `protocolo-leitor`, `leitor-isolado`, `registrar`), `app/src/principal/leitor-projeto.ts`,
+  `app/src/dominio/modelo/texto-plano.ts`, `app/tests/ipc-projetos.test.ts`;
+- alterados: `app/src/preload/index.ts`, `app/src/principal/index.ts`, `app/src/aplicacao/index.ts`,
+  `app/src/dominio/modelo/index.ts`, `app/electron.vite.config.mts` (entrada `leitor-projeto`).
+
+**Decisões técnicas:** adendo do M1-T08 no ADR-0005 (contrato) e no ADR-0004 (leitura isolada).
+
+**Critério de aceite:** chamada com argumento inválido ou de origem não permitida é recusada, em todos os canais e antes
+de qualquer diálogo [VERIFICADO, `tests/ipc-projetos.test.ts`].
+
+**Revisão do `revisor-seguranca`:** nenhum achado Alto; 2 Médios e 5 Baixos. C-10 conforme; C-11 e C-12 conformes,
+com as ressalvas abaixo, todas tratadas.
+
+| Achado | Tratamento |
+|---|---|
+| S8-01 (Média): o leitor isola falha, não privilégio; sem teto de heap | Teto `--max-old-space-size=2048`; alcance registrado no ADR-0004; sandbox do leitor → Etapa 7 |
+| S8-02 (Média): `process.exit` logo após `postMessage` podia vencer a mensagem | Corrigido: o leitor não sai; o principal o encerra. Fumaça com 25 MB, 20/20 |
+| S8-03 (Baixa): identificadores sobreviviam à recarga | Corrigido: `did-start-navigation` (quadro principal, outro documento) esquece os da janela |
+| S8-04 (Baixa): arquivo aberto com outra extensão virava destino de `salvar` | Corrigido: identificador `null`; só "Salvar como" |
+| S8-05 (Baixa): resposta do leitor com campos livres e sem limite | Corrigido: envelope estrito, sha256 com padrão, nome do backup sem separador, listas e textos limitados |
+| S8-06 (Baixa): lista de erros sem limite ao renderer | Corrigido: corte em `LIMITES_V1.errosRelatados` (50) |
+| S8-07 (Baixa): quadro principal por identidade de objeto | Corrigido: `senderFrame.parent === null` |
+| M6-10 | Continua aceito (instância única) |
+| M6-11 | Resolvido: só nomes de arquivo vão ao renderer |
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar`: typecheck OK, 12 arquivos, **492/492**, `found 0 vulnerabilities`; `npm run build` OK
+  (preload de 1,7 kB, sem zod); `electron-vite preview` abre sem erro.
+- Mutação: 8 de 8 detectadas (sem conferir webContents, aceitar iframe, sem origem, sem contagem de argumentos,
+  sem dono do identificador, pacote frouxo, registrar qualquer extensão, caminho completo do backup).
+- Fumaça no Electron 44.8.0 (scripts no scratchpad, fora do repositório): leitor real com arquivo inválido e válido;
+  `contextBridge` com o preload real (`Uint8Array` nos dois sentidos; sem `ipcRenderer`/`require` na página);
+  25 MB x 20 leituras, 307–408 ms.
+- `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+
+**Limitações:**
+- O caminho do `leitor-isolado.ts` com tempo esgotado e saída sem resposta não tem teste automático (precisa do
+  Electron) → E2E do M1-T13.
+- Diálogos nativos não foram exercitados com clique; a interface que os chama é do M1-T10/T11.
+- O teto de heap de 2 GB é estimativa.

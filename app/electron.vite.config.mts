@@ -12,7 +12,11 @@ export default defineConfig({
     build: {
       outDir: 'out/principal',
       rollupOptions: {
-        input: { index: resolve(raiz, 'src/principal/index.ts') },
+        // leitor-projeto: processo utilitário que abre os .bdp fora do principal (M1-T08).
+        input: {
+          index: resolve(raiz, 'src/principal/index.ts'),
+          'leitor-projeto': resolve(raiz, 'src/principal/leitor-projeto.ts'),
+        },
       },
     },
   },

@@ -6,6 +6,17 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T08: IPC tipado.
+  - Contrato `window.bibliodocs.projetos` (`abrir`, `salvar`, `salvarComo`, `fechar`) em
+    `app/src/aplicacao/portas/projetos.ts`; o preload expõe só essas quatro funções, cada uma com canal fixo (C-10).
+  - Principal (`app/src/principal/ipc/`): remetente conferido (janela do app, quadro principal, origem da interface) e
+    argumentos validados com esquema estrito e limites antes de qualquer diálogo (C-11); arquivos por identificador
+    opaco e destinos só por diálogo (C-12); ao renderer só vai o nome do arquivo (M6-11).
+  - Leitura do `.bdp` num `utilityProcess` (`leitor-projeto`), com tempo máximo e teto de heap; backups de migração
+    em `%LOCALAPPDATA%\BiblioDocsPro\backups`.
+  - `textoPlano(Inline[])` no domínio, usado no nome sugerido do "Salvar como".
+  - Revisão do `revisor-seguranca`: nenhum achado Alto; S8-01 a S8-07 tratados. Total de 492 testes (49 novos);
+    SEG-04 e SEG-05 na matriz de testes; 8 de 8 mutações detectadas.
 - Etapa 5, M1-T07: migrações do formato de projeto.
   - `migrarParaAtual` (`app/src/dominio/esquemas/migracoes.ts`):
     - cadeia `migrar_N_para_N+1` sobre os JSON ainda não validados, aplicada na ordem;

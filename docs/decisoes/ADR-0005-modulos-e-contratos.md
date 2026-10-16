@@ -359,3 +359,22 @@ visível do documento.
 - **Observação:** o `tsconfig.puro.json` não impede `import 'electron'` no domínio, porque o typecheck passa. Quem garante a
   regra 1 é o teste de fronteiras.
 - **Imports com especificador calculado** (`import(x)`, `require` com template) são recusados, porque não podem ser analisados.
+
+## Adendo técnico — IPC tipado (M1-T08, 2026-10-16)
+Decisões técnicas da sessão principal, revisadas pelo `revisor-seguranca` (achados S8-01 a S8-07, no relatório do M1).
+- **Onde mora o contrato:** `app/src/aplicacao/portas/projetos.ts` (canais e tipos). A interface importa só os tipos;
+  o preload importa só os nomes dos canais; o principal implementa. Nenhum módulo novo no ADR.
+- **API do M1-T08:** `projetos.abrir()`, `projetos.salvar(identificador, pacote)`, `projetos.salvarComo(pacote)` e
+  `projetos.fechar(identificador)`. `listar`, `criar`, `duplicar`, `renomear`, `excluir` (M1-T09) e
+  `salvarRecuperacao` (M1-T12) entram nas tarefas deles.
+- **Sem caminhos no renderer (C-12, M6-11):** o arquivo aberto é um identificador opaco de 128 bits, ligado ao
+  `webContents` que o recebeu e esquecido quando a janela fecha, recarrega ou navega. O renderer recebe só o nome do
+  arquivo. Arquivo aberto sem a extensão `.bdp` recebe identificador `null` e só grava por "Salvar como".
+  Projeto de versão futura nunca recebe identificador.
+- **Forma transferível:** mídias em lista (`{sha256, bytes: Uint8Array}`), sem `Map`. Conferido no Electron 44.8.0 que
+  o `Uint8Array` atravessa o `contextBridge` e o `utilityProcess` [VERIFICADO, fumaça].
+- **Recusa × erro:** remetente não permitido ou argumento fora do contrato rejeita a promessa (`ErroIpcRecusado`,
+  mensagem genérica, motivo só no log). Conteúdo inválido do usuário, cancelamento e falha de gravação voltam como
+  resultado `ok: false` com mensagem pt-BR. A lista de erros devolvida tem o limite `LIMITES_V1.errosRelatados`.
+- **Limite de tamanho (C-11):** o Electron desserializa antes do manipulador; o limite (mídias, total até 1 GB) é
+  conferido logo depois. Aceito enquanto o renderer for só a interface do próprio app.
