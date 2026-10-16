@@ -9,6 +9,7 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 | M1-T03 Infraestrutura de testes | CONCLUÍDA | 2026-10-16 |
 | M1-T04 Contratos e esquemas v1 | CONCLUÍDA | 2026-10-16 |
 | M1-T05 Contêiner `.bdp` | CONCLUÍDA | 2026-10-16 |
+| M1-T06 Salvamento atômico | CONCLUÍDA | 2026-10-16 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -188,3 +189,58 @@ exceção em vez de devolver `{ok:false}`.
 **Limitações:**
 - Ainda não há leitura de arquivo em disco nem `fs.stat` (M1-T06).
 - A leitura roda no processo que a chamar, e o isolamento fica para o M1-T08.
+
+## M1-T06 — Salvamento atômico
+
+**Implementação:** sessão principal. **Revisão:** `revisor-seguranca` (somente leitura, com experimentos no scratchpad).
+
+**Arquivos:**
+- `app/src/persistencia/arquivo/{sistema-arquivos,gravacao-atomica,projeto-em-disco}.ts`;
+- `app/src/persistencia/index.ts`;
+- `app/tests/persistencia-salvamento.test.ts`.
+
+**Decisões técnicas:** adendo do M1-T06 no ADR-0004:
+- `.bak` por cópia, de modo que o destino nunca some;
+- orçamento único de tentativas (esperas de 50 a 800 ms, cerca de 1,55 s);
+- `SOMENTE_LEITURA` detectado antes de gravar;
+- fila por destino;
+- limpeza do temporário de uma falha anterior;
+- durabilidade da troca registrada como hipótese.
+
+**Revisão do `revisor-seguranca`:** nenhum achado Crítico ou Alto; 2 Médios e 9 Baixos.
+
+| Achado | Tratamento |
+|---|---|
+| M6-01 (Média): destino somente leitura → "em uso" após 1,66 s; o `.bak` herdava o somente leitura e travava os salvamentos seguintes | Corrigido: `SOMENTE_LEITURA` no passo 1, sem tentativas; `.bak.tmp` e `.bak` antigo ficam graváveis |
+| M6-02 (Média): bloqueio exclusivo → 6 + 6 tentativas, 3,26 s | Corrigido: orçamento único; medido 1,66 s |
+| M6-03 (Baixa): `*.bdp.bak.tmp-*` órfão fora da busca de recuperação | Pendente → M1-T12 |
+| M6-04 (Baixa): temporários de falhas repetidas se acumulavam | Corrigido: o salvamento seguinte do mesmo destino apaga o anterior |
+| M6-05 (Baixa): cópia do `.bak` sem `fsync` | Corrigido |
+| M6-06 (Baixa): durabilidade da troca sem `MOVEFILE_WRITE_THROUGH` | Aceito e registrado no ADR (atomicidade garantida, durabilidade não) |
+| M6-07 (Baixa): TOCTOU entre `lstat` e `open` | Corrigido: o tipo é conferido também pelo descritor |
+| M6-08 (Baixa): `ENOENT` na troca virava "pasta inexistente"; `EBUSY` ao criar não repetia | Corrigido |
+| M6-09 (Baixa): cópia do `.bak` sem `COPYFILE_EXCL` | Corrigido. O teste novo revelou um defeito, também corrigido: em `EEXIST`, o app apagava o `.bak.tmp` alheio |
+| M6-10 (Baixa): chave da fila não reconhece 8.3, `subst` ou UNC | Aceito enquanto houver instância única; reavaliar no M1-T08 |
+| M6-11 (Baixa): caminhos completos no resultado | → M1-T08: o IPC manda só o nome do arquivo ao renderizador |
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar:tudo`: typecheck OK, 10 arquivos, **407/407**, `found 0 vulnerabilities`, build OK.
+- `python tests/test_estrutura_kit.py`: 9 OK.
+- Mutação: 13 checagens desligadas uma a uma, todas detectadas:
+  - somente leitura, orçamento único, `fsync` do `.bak`, `fsync` do temporário;
+  - tirar o somente leitura do `.bak.tmp`, limpeza do temporário anterior, fila;
+  - `ENOENT` na troca, `.bak.tmp` alheio, `EBUSY` ao criar;
+  - tipo pelo descritor, crescimento do arquivo, `COPYFILE_EXCL`.
+
+  Uma sobreviveu na primeira rodada (somente leitura do `.bak.tmp`), e o teste da corrida foi acrescentado.
+- Medição real no Windows, em `%TEMP%`:
+  - arquivo aberto por outro processo com `FileShare.Read` → `EPERM`, 6 tentativas, cerca de 1,64 s, original intacto;
+  - liberado depois de cerca de 300 ms → salva na 4.ª tentativa, em cerca de 0,45 s;
+  - com `FileShare.None` → erro em cerca de 1,66 s;
+  - 25 MB: gravação em disco de 64 a 107 ms (152 a 180 ms com o `.bak`), salvamento completo de 0,24 a 0,84 s, abertura de 83 a 235 ms.
+
+**Limitações:**
+- OneDrive e pasta de rede não foram testados [HIPÓTESE].
+- A durabilidade depois de uma queda de energia não foi medida.
+- O visor (indicador de estado) é do M1-T11. Aqui só existe o resultado com código e mensagem.
+- Ainda não há IPC (M1-T08).

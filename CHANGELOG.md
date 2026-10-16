@@ -6,6 +6,23 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T06: salvamento atômico e abertura do disco (`app/src/persistencia/arquivo/`).
+  - `gravarAtomico`/`salvarProjeto`:
+    - temporário exclusivo no mesmo diretório, com `fsync`;
+    - `.bak` por **cópia** (o destino nunca some do disco);
+    - troca por `rename`;
+    - tentativas com espera crescente em `EPERM`/`EBUSY`/`EACCES`, num único orçamento de cerca de 1,55 s;
+    - fila por destino.
+
+    Nada lança exceção. Os erros têm código e mensagem em pt-BR: em uso, somente leitura, sem permissão, sem espaço,
+    pasta inexistente, destino inválido, pacote inválido, falha de gravação.
+  - `abrirProjeto`: confere tipo e tamanho (≤ 1 GB) pelo caminho e pelo descritor antes de ler, e recusa o arquivo que
+    cresce durante a leitura.
+  - Interface `SistemaArquivos` injetável, para testar falhas.
+  - Total de 407 testes (37 novos), incluindo bloqueio real por outro processo no Windows. PER-12 a PER-16 na matriz de testes.
+  - Revisão do `revisor-seguranca`: nenhum achado Alto. M6-01 (somente leitura) e M6-02 (orçamento duplicado) corrigidos,
+    assim como M6-04, M6-05, M6-07, M6-08 e M6-09; um defeito achado pelo teste do M6-09 (o app apagava um `.bak.tmp` que não era dele) também foi corrigido. M6-03 vai para o T12; M6-10 e M6-11 vão para o T08. Adendo técnico no ADR-0004.
+  - Medição: gravação de 25 MB em disco entre 64 e 180 ms (com o `.bak`).
 - Etapa 5, M1-T05: contêiner `.bdp` em memória (`app/src/persistencia/conteiner/`).
   - `empacotarProjeto` valida tudo e relê o resultado antes de devolvê-lo. A saída é determinística, com `mimetype`
     primeiro e sem compressão.

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T05 concluído (contêiner `.bdp`).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T05 concluídos; próximo T06).
+**Última atualização:** 2026-10-16 — M1-T06 concluído (salvamento atômico).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T06 concluídos; próximo T07).
 
 ## Etapas
 
@@ -15,14 +15,14 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T06** (salvamento atômico) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T07** (migrações) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
 com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
@@ -35,6 +35,21 @@ com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Salvamento (M1-T06):
+  - API: `gravarAtomico`, `salvarProjeto` e `abrirProjeto` em `app/src/persistencia`. Nada lança exceção.
+  - Em erro, o resultado traz `codigo` e `mensagem` pt-BR para o visor; `detalhe` é só para o registro técnico.
+  - Testes injetam falhas pela interface `SistemaArquivos`.
+  - **Para o M1-T07:** o backup obrigatório antes de migrar usa `gravarAtomico` (cópia nova, não o `.bak`).
+  - **Para o M1-T08:**
+    - mandar ao renderizador só o nome do arquivo (M6-11);
+    - a fila por destino supõe instância única (M6-10).
+  - **Para o M1-T11:** mostrar `mensagem` no visor; `avisos` do `.bak` não bloqueiam "Salvo".
+  - **Para o M1-T12:**
+    - órfãos `*.bdp.tmp-*` **e** `*.bdp.bak.tmp-*` (este pode ser apagado direto) (M6-03);
+    - na recuperação, gravar com `gravarAtomico`.
+  - Os testes do Windows abrem o arquivo num PowerShell (`FileShare.Read`/`None`) e só rodam no win32.
+  - Teste de mutação: um laço sem fim de tentativas com espera síncrona trava o vitest; o `semEspera` dos testes cede
+    ao laço de eventos (`setImmediate`) para virar timeout.
 - Contêiner (M1-T05):
   - API: `empacotarProjeto`/`lerProjeto` em `app/src/persistencia`. Nada lança exceção; tudo devolve `{ok, ...}`.
   - O empacotamento relê o próprio resultado, então documento acima de 1 MB e muito repetitivo é recusado ao salvar,
@@ -103,3 +118,4 @@ com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T03) | Infraestrutura de testes pelo `engenheiro-qualidade`: `npm run verificar` (typecheck + vitest + audit) e `verificar:tudo` (+ build); analisador de imports sem dependência nova; teste de fronteiras do ADR-0005 (regras 1–6) e varreduras (HTML, rede, `openExternal`, lockfile). A sessão principal acrescentou a proibição `aplicacao` → `persistencia`/`integracoes`/`preload` e registrou as interpretações como adendo do ADR-0005. Reexecutado: verificar 258/258, 0 vulnerabilidades; arquivo violador → EXIT=1; build OK. Grupos ARQ e SEG na matriz de testes. Commit autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T04) | Contratos e esquemas v1 pela sessão principal: tipos mínimos do modelo; esquemas zod estritos (`zod` 4.6.7, dependência local informada) de `documento.json`/`manifesto.json`; validação pt-BR com limites de profundidade (iterativa); JSON Schema 2020-12 gerado e versionado em `app/esquemas/projeto-v1/` (exportação do zod considerada fiel, sem `ajv`). Revisão do `especialista-documento`: M1/M2/B4/B5 corrigidos (XML 1.0, marcas, ids únicos), M3 → T05. Adendo técnico no ADR-0004. Verificar 310/310, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `e3129cf` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T05) | Contêiner `.bdp` pela sessão principal (`fflate` 0.8.3, dependência local informada, só para escrever). Parser próprio do diretório central; descompressão sob demanda com `node:zlib` (`maxOutputLength`, sem sobra, CRC-32); lista de nomes; limites do ADR-0004; coerência manifesto × documento; mídia divergente descartada com aviso. `revisor-seguranca`: A1 (Alta) a A5 corrigidos, A6 eliminado, isolamento de processo → T08. 10 mutações detectadas. Medição: empacotar com releitura ~170 ms e ler ~90 ms (25 MB). Verificar 370/370, 0 vulnerabilidades. Commit autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T06) | Salvamento atômico pela sessão principal: temporário exclusivo com `fsync`; `.bak` por cópia (desvio do ADR registrado em adendo: o destino nunca some); troca por `rename`; tentativas EPERM/EBUSY/EACCES num orçamento único; fila por destino; `abrirProjeto` com limite conferido pelo caminho e pelo descritor. `revisor-seguranca`: 0 Alta, M6-01/M6-02 (Média) e 5 Baixas corrigidos, M6-03 → T12, M6-10/11 → T08. Bloqueio real medido (PowerShell): EPERM, 6 tentativas, ~1,64 s, original intacto. 25 MB: gravação 64–180 ms. 13/13 mutações detectadas. `verificar:tudo` 407/407, 0 vulnerabilidades, build OK. Commit autorizado pelo usuário. |

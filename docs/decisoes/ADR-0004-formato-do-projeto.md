@@ -298,3 +298,72 @@ Isso refuta, na parte em memória, a hipótese das "centenas de ms" (seção Con
 - A leitura de arquivo vindo de fora roda no processo principal. A revisão recomenda isolá-la (`utilityProcess` ou
   worker) antes de abrir arquivos pelo IPC → **M1-T08**.
 - O `fs.stat` antes de ler (seção 3, item 1) → **M1-T06**.
+
+## Adendo técnico — salvamento atômico (M1-T06, 2026-10-16)
+
+Decisões técnicas da sessão principal, revisadas pelo `revisor-seguranca` (achados M6-01 a M6-11, no relatório do M1).
+Código: `app/src/persistencia/arquivo/`.
+
+**Passo 4 mudou: o `.bak` é cópia, não renomeação.**
+- O ADR dizia: renomear o destino para `.bak` e depois o temporário para o destino. Entre os dois passos o trabalho do
+  usuário não existiria no disco. Se o passo 5 esgotasse as tentativas, o original ficaria só no `.bak`.
+- Agora: copiar o destino para `<nome>.bdp.bak.tmp-<pid>-<aleatório>` (cópia exclusiva), tirar o atributo somente
+  leitura, `fsync`, renomear sobre o `.bak`. Depois, renomear o temporário sobre o destino (`MoveFileExW` com substituição,
+  pela libuv). O destino nunca deixa de existir.
+- O revisor mediu [VERIFICADO]: o `rename` sobre um destino aberto por outro processo dá `EPERM` em todos os modos de
+  compartilhamento testados, inclusive com `FILE_SHARE_DELETE`. O `copyFile` só falha no compartilhamento `None` (`EBUSY`).
+- Falha no `.bak` não impede salvar: vira aviso no resultado.
+
+**Tentativas:**
+- "Até 6 tentativas, de 50 ms a cerca de 1,6 s" foi lido como esperas de 50, 100, 200, 400 e 800 ms, **somando cerca
+  de 1,55 s**.
+- O orçamento vale para o salvamento inteiro: o `.bak` e a troca dividem as mesmas esperas (M6-02). Com bloqueio
+  exclusivo, o erro sai em cerca de 1,66 s, e não mais em 3,26 s.
+- A criação do temporário repete só em `EBUSY`. `EACCES` ali é pasta protegida e falha na hora.
+
+**Erros:**
+- Destino somente leitura → `SOMENTE_LEITURA` na hora, sem tentativas (M6-01). Antes saía "em uso por outro programa"
+  depois de 1,6 s.
+- Destino que não é arquivo comum (pasta, link, junção) → `DESTINO_INVALIDO`.
+- `ENOENT` na troca (temporário apagado por antivírus) → erro de gravação, não "pasta inexistente".
+- Os códigos e as mensagens em pt-BR estão em `MENSAGENS_FALHA`. O `detalhe` (código do sistema) é só para o registro técnico.
+
+**Temporários:**
+- Em falha antes da troca, o temporário parcial é apagado.
+- Um temporário ou `.bak.tmp` que já existia (`EEXIST`) nunca é apagado nem sobrescrito.
+- Se as tentativas da troca se esgotam, o temporário completo fica para a recuperação (M1-T12). O salvamento seguinte do
+  mesmo destino, na mesma sessão, apaga esse temporário, para não acumular cópias do projeto (M6-04).
+
+**Concorrência:** salvamentos do mesmo destino (Ctrl+S e automático) passam por uma fila em memória. A chave é o caminho
+resolvido, em minúsculas no Windows.
+
+**Durabilidade [HIPÓTESE, não medida]:**
+- A troca é atômica. Depois de uma queda de energia ela pode não ter sido persistida: não há `fsync` de diretório no
+  Windows nem `MOVEFILE_WRITE_THROUGH` na libuv. O que se garante é encontrar o original **ou** o novo, íntegros (M6-06).
+- O temporário e a cópia do `.bak` passam por `fsync`.
+
+**Abertura (`abrirProjeto`):**
+- `lstat` pelo caminho: precisa ser arquivo comum dentro do limite (1 GB).
+- Ao abrir, confere de novo pelo descritor que é arquivo comum (M6-07) e o tamanho.
+- Lê exatamente o tamanho conferido e recusa o arquivo se ele crescer durante a leitura.
+
+**Medição [VERIFICADO, 2026-10-16]:**
+- Projeto com 25 MB de mídia incompressível em `%TEMP%`, SSD local:
+  - gravação em disco (temporário + `fsync` + troca): 64 a 107 ms;
+  - com o `.bak`: 152 a 180 ms;
+  - salvamento completo (empacotar com releitura + gravar): 0,24 a 0,84 s, conforme a carga da máquina;
+  - abrir: 83 a 235 ms.
+
+  Fica abaixo do critério de reversão de 2 s.
+- Arquivo aberto por outro processo (PowerShell, `FileShare.Read`): 6 tentativas, `EPERM`, cerca de 1,64 s, original
+  intacto. Liberado depois de cerca de 300 ms: salva na 4.ª tentativa, em cerca de 0,45 s.
+
+**Para tarefas seguintes:**
+- **M1-T12:**
+  - a busca de órfãos inclui também `*.bdp.bak.tmp-*`, que pode ser apagado direto (é só cópia do original) (M6-03);
+  - o resultado `{ok:false, temporario}` informa o temporário preservado.
+- **M1-T08:**
+  - mandar ao renderizador só o nome do arquivo, não o caminho completo (M6-11);
+  - a fila por caminho não reconhece nomes 8.3, `subst` ou UNC do mesmo arquivo. Basta enquanto houver instância única
+    (M6-10); se não bastar, usar `realpath.native` da pasta como chave.
+- OneDrive e pastas de rede não foram testados [HIPÓTESE]. As tentativas cobrem `EACCES`/`EPERM` transitórios.
