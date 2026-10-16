@@ -46,6 +46,12 @@ muito espaço em branco; grade de capas como forma principal de navegar pela bib
 | Tela "Olá" com Não / Aceitar | **Boas-vindas na primeira execução:** apresentação curta e o pedido de consentimento para recursos on-line (ex.: revisão gramatical externa), com **Não** como padrão seguro | Coerente com RNF-03 (privacidade) |
 | Azul de destaque | **Cor de destaque derivada do pequi** (amarelo-alaranjado da polpa), com verde da casca como cor secundária | Paletas candidatas apresentadas ao usuário na Etapa 4, com contraste conferido (WCAG AA) |
 
+**Decisão do usuário (2026-10-16):** paleta **A — Cerrado claro** (destaque laranja queimado `#B35400` com texto
+branco; verde da casca como secundária), escolhida no protótipo `analise/poc-ui/prototipo.html`; 138 pares de
+contraste conferidos, 0 reprovados (`python -I analise/poc-ui/contraste.py`). Os demais itens `[PROPOSTA]` (botões
+da barra superior, conteúdo do visor, menus, abas, capa em miniatura, tema escuro, cor do foco) são confirmados
+com o usuário no M1-T10.
+
 ## 3. Regras de uso da referência
 1. **Inspiração de organização e ritmo visual, não cópia.** Não usar logotipo, ícones, nomes,
    imagens ou fontes proprietárias da Apple; o pequi e os ícones são desenhos originais.

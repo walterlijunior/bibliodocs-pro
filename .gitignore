@@ -11,6 +11,9 @@ CLAUDE.local.md
 .env.*
 *.pem
 *.key
+*.pfx
+*.p12
+*.spc
 
 # Dependências e artefatos de build do aplicativo
 node_modules/

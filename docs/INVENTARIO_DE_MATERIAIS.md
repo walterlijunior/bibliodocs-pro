@@ -56,6 +56,10 @@ calcula o SHA-256 de cada um e preenche a coluna correspondente.
 
 ## Observações preliminares (a confirmar ou refutar na Etapa 2/3)
 
+> **Resultado da Etapa 2 (2026-10-15):** O-1, O-2, O-3, O-4, O-6, O-7 e O-8 **confirmadas**; O-5
+> **confirmada em parte** (envio só ao clicar, sem aviso de privacidade nem opção de desligar).
+> Evidências em `docs/relatorios/ETAPA2_AUDITORIA.md` §3.
+
 Verificadas por leitura direta na preparação do kit; nenhuma foi testada em execução.
 
 | # | Observação | Evidência |

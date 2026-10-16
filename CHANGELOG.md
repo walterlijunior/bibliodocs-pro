@@ -9,12 +9,44 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Etapa 1 — Inventário: `docs/relatorios/ETAPA1_INVENTARIO.md`; repositório git (commit inicial `acc4f73`);
   `.gitattributes` (`materiais/** -text -diff`) para preservar os originais byte a byte apesar de `core.autocrlf`.
 
+- Etapa 2 — Auditoria: `docs/relatorios/ETAPA2_AUDITORIA.md` (mapa de módulos, funcionalidades,
+  defeitos E-1..E-8, riscos S-1..S-14, regras candidatas CA-01..CA-22, reaproveitamento por módulo);
+  harness `analise/harness/gerar_docx_linha_base.js` e DOCX de linha de base em `analise/amostras/`.
+- `docs/MATRIZ_DE_RISCOS.md`: riscos R18 (XSS) e R19 (regras antigas tomadas como norma).
+- Etapa 3 — Análise normativa: `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` (método, amostragem, riscos N-1..N-6
+  e, em apêndice, as análises das três frentes com divergências Manual × modelos × código e as perguntas de fonte).
+
+- Etapa 4 — Planejamento arquitetural (ADRs ACEITOS em 2026-10-16): `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`
+  (Electron 44 + TypeScript + React 19 + `docx` 9.11.x, com resultado da PoC DOCX), `ADR-0004-formato-do-projeto.md`
+  (`.bdp`, salvamento atômico, recuperação, importador do backup antigo), `ADR-0005-modulos-e-contratos.md`,
+  `ADR-0006-estrategia-de-testes.md`; `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` (checklist C-1..C-22);
+  `docs/relatorios/ETAPA4_PLANO_M1_RASCUNHO.md`. PoCs descartáveis em `analise/poc-docx/` e `analise/poc-ui/`.
+- `docs/MATRIZ_DE_RISCOS.md`: riscos R20–R33 (suporte do runtime, assinatura de código, auto-update, rede implícita,
+  salvamento com EPERM, arquivo malicioso, LibreOffice, chaves, LanguageTool, TS 7, Playwright, estimativa de
+  páginas, versões do `docx`, downgrade de formato).
+
 ### Alterado
+- `docs/MATRIZ_DE_REQUISITOS_NORMATIVOS.md`: de semente (17 regras) para 312 regras RN-001..RN-312 com fonte,
+  validação automática e status; coluna Observações; ordem dos elementos por tipo de trabalho; conflitos
+  consolidados (20 aguardando o usuário, 7 resolvidos); pendências de fonte por norma. Semente revisada:
+  RN-001, 004–009, 011, 015–017 corrigidas; RN-006 e RN-009 desmembradas.
+- `docs/MATRIZ_DE_REQUISITOS_NORMATIVOS.md`: decisões do usuário de 2026-10-15 registradas em 46 linhas
+  (todas as recomendações aceitas; separador de milhares = ponto, RN-261; referência de monografia
+  "Universidade, Programa", RN-206; apêndices/anexos com título geral centralizado e identificação à esquerda,
+  RN-237). Situação final: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO. Seções "Decisões do
+  usuário" e "Ambiguidades remanescentes".
+- `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md`: seção "Decisões do usuário (2026-10-15)"; riscos N-1 e N-2 resolvidos.
+- `docs/ARQUITETURA_PRELIMINAR.md`: status "DEFINIDA (ADR-0003 aceito em 2026-10-16)".
+- `docs/REFERENCIA_DE_LAYOUT.md`: paleta A — Cerrado claro escolhida pelo usuário.
+- `docs/PLANO_DE_IMPLEMENTACAO.md`: tarefas M1-T01..T15 com critério de aceite e comando de verificação.
+- `.gitignore`: `*.pfx`, `*.p12`, `*.spc` (chaves de assinatura; SR-11).
+- `tests/artefatos_futuros.txt`: retirados os relatórios das Etapas 1 e 2, que já existem.
+- `docs/INVENTARIO_DE_MATERIAIS.md`: resultado das observações O-1..O-8 (Etapa 2).
 - `docs/INVENTARIO_DE_MATERIAIS.md`: caminhos completos, tamanhos, formato conferido e SHA-256 dos 14 itens
   (10 checksums novos), agora verificados por `validar-kit.ps1` e `test_estrutura_kit.py`.
 
 ### A fazer
-- Etapa 2 — Auditoria do sistema existente.
+- Etapa 4 — Planejamento arquitetural.
 
 ## [kit-1.1.0] — 2026-10-12
 
