@@ -23,9 +23,27 @@ mostra o nome do aplicativo.
 | `npm run preview` | Abre o aplicativo a partir do build em `out/` |
 | `npm run typecheck` | `tsc --noEmit` nos três projetos TypeScript (node, puro e web) |
 | `npm test` | `vitest run` (testes em `tests/`) |
+| `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --omit=dev --audit-level=high`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
+| `npm run verificar:tudo` | Por enquanto, `verificar` + `build`. As camadas E2E (Playwright, M1-T13), OOXML e LibreOffice (M3) entram aqui quando existirem |
 
-O comando único `npm run verificar` (typecheck + testes + `npm audit`) entra no M1-T03. O instalador
-(`release/`) entra num marco posterior.
+O instalador (`release/`) entra num marco posterior.
+
+### Testes de arquitetura (M1-T03)
+
+O analisador fica em `tests/apoio/analisador-fontes.ts`: um léxico mínimo e expressões regulares, sem dependência
+nova (ADR-0006, camada 3). As funções são puras e recebem `{arquivo, conteudo}`. Assim, os casos negativos usam
+arquivos sintéticos em memória e nenhum arquivo violador fica em `src/`.
+
+| Teste | O que verifica |
+|---|---|
+| `tests/arquitetura-fronteiras.test.ts` | Regras 1 a 6 do ADR-0005, seção 2, sobre todo o `src/` (import/export from, `import type`, `import()`, `require()`, `/// <reference>`), com a tabela de permissões do domínio escrita em `PERMISSOES_DOMINIO`. Também verifica que todo arquivo pertence a um módulo previsto. Inclui um caso negativo por regra e casos positivos (sem falso positivo) |
+| `tests/arquitetura-varreduras.test.ts` | Regra 7/C-20 (`innerHTML`, `outerHTML`, `insertAdjacentHTML`, `dangerouslySetInnerHTML`, `document.write`, `eval(`, `Function(`…); regra 8 (módulos e chamadas de rede fora de `src/integracoes/revisao-texto/`); C-6 (`shell.openExternal` só em `src/principal/seguranca/endurecimento.ts`); C-18/C-19 (lockfile v3 em sincronia, nada sem versão, sem `html2canvas`/`jspdf`) |
+
+Comentários e conteúdo de strings são ignorados. Por isso, o texto `'https:'` da política de URLs não conta como
+rede: contam as importações e as chamadas. Um `import()`/`require()` com especificador calculado é recusado,
+porque não dá para verificá-lo.
+
+Uma mensagem de falha tem esta forma: `src/dominio/modelo/x.ts:2 — import 'electron' — ADR-0005 regra 1: domínio não usa plataforma: 'electron'`.
 
 ## Estrutura
 
@@ -54,7 +72,7 @@ app/
 ```
 
 Cada pasta de `src/` tem um `index.ts` que descreve o módulo e as regras de dependência dele. As
-fronteiras entre módulos são verificadas por teste a partir do M1-T03.
+fronteiras entre módulos são verificadas por `tests/arquitetura-fronteiras.test.ts` (M1-T03).
 
 ## Segurança
 
@@ -93,7 +111,7 @@ query ou fragmento, para não expor dados do usuário.
 porque o controle `app.isPackaged` vem antes.
 
 **Fica para outras tarefas:** C-10 a C-12 (IPC tipado, validação de `sender`, caminhos por diálogo) no M1-T08;
-C-18 a C-20 (`npm audit`, licenças, varreduras de `innerHTML`/rede) no M1-T03; C-13, C-14, C-16 e C-17 (fuses,
+C-18 a C-20 cobertos no M1-T03 (`npm run verificar` com `npm audit`; lockfile, `html2canvas`/`jspdf` e varreduras de `innerHTML`/rede em `tests/arquitetura-varreduras.test.ts`), exceto o inventário de licenças (RNF-15) e `npm audit signatures`, que continuam pendentes; C-13, C-14, C-16 e C-17 (fuses,
 integridade do ASAR, NSIS por usuário, sem auto-update) no M1-T14; trava por projeto aberto (C-22, parte 2) na
 persistência (M1-T12); C-1 (política de atualização do Electron) é processo, não código.
 

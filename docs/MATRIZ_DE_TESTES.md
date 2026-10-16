@@ -17,6 +17,27 @@ Status: `NÃO EXECUTADO` (inicial) → `PASSOU` / `FALHOU` / `BLOQUEADO`, sempre
 | KIT-07 | Checksums dos materiais conferem com o inventário | idem | PASSOU (2026-10-12) |
 | KIT-08 | Claude Code carrega CLAUDE.md, agentes e skills no Windows | Manual: Passo 8 de `INSTRUCOES_INICIAIS.md` | NÃO EXECUTADO (requer a máquina do usuário) |
 
+## Grupo ARQ — arquitetura e varreduras (aplicativo, desde o M1-T03)
+
+Executar: `cd app; npm run verificar`. Testes em `app/tests/arquitetura-*.test.ts` e `app/tests/apoio/analisador-fontes.ts`.
+
+| ID | Caso | Fonte do esperado | Status |
+|---|---|---|---|
+| ARQ-01 | Nenhum import de `src/` viola as regras 1–6 de dependência (código real) | ADR-0005 §2 + adendo M1-T03 | PASSOU (2026-10-16; 258/258) |
+| ARQ-02 | Casos negativos sintéticos: ao menos um por regra 1–6 é detectado | idem | PASSOU (2026-10-16) |
+| ARQ-03 | Arquivo violador real em `src/` faz `npm run verificar` falhar (`src/dominio/modelo/_violacao.ts` → `import 'electron'`) | ADR-0006, critério do M1 | PASSOU (2026-10-16; EXIT=1 com "ADR-0005 regra 1"; arquivo apagado) |
+| ARQ-04 | Sem `innerHTML`/`dangerouslySetInnerHTML`/`eval`/`new Function` e afins em `src/` | ADR-0005 regra 7; C-20 | PASSOU (2026-10-16) |
+| ARQ-05 | Sem import de rede nem `fetch`/`XMLHttpRequest`/`WebSocket`/`net.*` fora de `integracoes/revisao-texto`; `openExternal` só em `endurecimento.ts` | ADR-0005 regra 8; C-6, C-8 | PASSOU (2026-10-16) |
+| ARQ-06 | Lockfile ≥ v3 em sincronia com o `package.json`; sem `html2canvas`/`jspdf` | C-18, C-19 | PASSOU (2026-10-16) |
+
+## Grupo SEG — runtime (aplicativo, desde o M1-T02)
+
+| ID | Caso | Fonte do esperado | Status |
+|---|---|---|---|
+| SEG-01 | Filtros de URL, navegação, rede, link externo e caminho do `app://` (funções puras) | Checklist C-3, C-5, C-6, C-8 | PASSOU (2026-10-16; `npm test`) |
+| SEG-02 | CSP de produção idêntica ao checklist; verificação estática das webPreferences | C-2, C-4, C-9, C-15 | PASSOU (2026-10-16) |
+| SEG-03 | E2E: script inline bloqueado, `fetch` remoto falha, navegação/`window.open` sem efeito, segunda instância | Revisão M1-T02, achado M-1 | NÃO EXECUTADO (M1-T13; sondas manuais em 44.7.2 em `docs/relatorios/M1_RELATORIO_MARCO.md`) |
+
 ## Grupo FUN — funcionalidades (aplicativo)
 
 | ID | Requisito | Caso | Status |

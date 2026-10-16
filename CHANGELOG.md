@@ -6,6 +6,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T03: infraestrutura de testes.
+  - Comandos `npm run verificar` (typecheck + Vitest + `npm audit --omit=dev --audit-level=high`) e `verificar:tudo` (+ build).
+  - Analisador de imports sem dependência nova (`app/tests/apoio/`).
+  - Teste de fronteiras do ADR-0005 (regras 1–6, com casos negativos por regra).
+  - Varreduras de HTML inseguro, rede, `openExternal` e lockfile (C-18..C-20).
+  - Total de 258 testes; grupos ARQ e SEG em `docs/MATRIZ_DE_TESTES.md`; adendo técnico no ADR-0005.
 - Etapa 5, M1-T02 — endurecimento do runtime Electron (checklist C-2..C-9, C-15, C-21, C-22 parte 1):
   protocolo `app://interface` com resolução segura de caminho; CSP de produção idêntica ao checklist (cabeçalho) e
   CSP de desenvolvimento restrita à origem do Vite; bloqueio de navegação, janelas, webview, permissões e rede

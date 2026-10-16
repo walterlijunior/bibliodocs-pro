@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T02 concluído (endurecimento do runtime).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T02 concluídos; próximo T03).
+**Última atualização:** 2026-10-16 — M1-T03 concluído (infraestrutura de testes).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T03 concluídos; próximo T04).
 
 ## Etapas
 
@@ -15,16 +15,15 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T03** (infraestrutura de testes: `npm run verificar` =
-typecheck + vitest + `npm audit --omit=dev --audit-level=high`; teste de fronteiras do ADR-0005 com caso negativo;
-varreduras de `innerHTML`/rede — C-18..C-20; agente `engenheiro-qualidade`).
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T04** (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
+com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -36,6 +35,10 @@ varreduras de `innerHTML`/rede — C-18..C-20; agente `engenheiro-qualidade`).
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Testes (M1-T03): `npm run verificar` é o comando do dia a dia (precisa de rede por causa do `npm audit`). O teste de fronteiras é
+  a única barreira da regra 1 do ADR-0005 (o `tsconfig.puro.json` não bloqueia `electron`). Interpretações das regras estão no
+  adendo do ADR-0005. Pasta nova em `src/` precisa entrar no mapa do analisador (`app/tests/apoio/analisador-fontes.ts`),
+  senão o teste falha. Pendentes: inventário de licenças (C-19) e `npm audit signatures` no `verificar` (C-18).
 - Segurança do runtime (M1-T02): decisões em funções puras `app/src/principal/seguranca/` (`politica-urls`,
   `protocolo-caminho`, `csp`); só `endurecimento.ts` e `index.ts` importam `electron`. Recurso novo servido pelo
   `app://` precisa constar em `TIPOS_MIME` (senão 404). Link externo novo → host em `HOSTS_EXTERNOS_PERMITIDOS` com o
@@ -81,3 +84,4 @@ varreduras de `innerHTML`/rede — C-18..C-20; agente `engenheiro-qualidade`).
 | 2026-10-15/16 | 4 | Planejamento arquitetural: 4 agentes em paralelo (arquiteto, documento, segurança, interface), interrompidos por limite de uso e retomados. Comparação de 4 alternativas (Electron 83,0; D web 76,8; .NET 74,6; Tauri 73,6). PoC DOCX `docx` 9.11.0: 8 OK + 2 PARCIAL com contorno, 60/60 verificações de XML, sumário 52/52 páginas = PDF (reexecutado pela sessão principal). Protótipo de UI com 3 paletas (138 pares de contraste OK; 12/12 testes de teclado). Revisão de segurança com checklist C-1..C-22 e medições (EPERM no rename; 1.ª conversão LibreOffice falha). Decisões do usuário: Electron; paleta A; autosave no arquivo ~30 s; sumário estimado + Word recalcula; `.bdp` em Documentos; importador antigo após M7; assinatura na Etapa 7; LanguageTool opcional desligado; MVP só DOCX. ADR-0003..0006 ACEITOS; riscos R20–R33; plano M1-T01..T15. Commit `fc520a4` (Etapas 2–4, autorizado pelo usuário). |
 | 2026-10-16 | 5 (M1-T01) | Esqueleto `app/` pelo `arquiteto-software`: electron 44.7.2, electron-vite 6.0.0, vite 8.3.4, react 19.3.1, typescript 7.0.2, vitest 5.0.5 (versões exatas); 14 módulos do ADR-0005 com `index.ts` de marcação; janela "BiblioDocs Pro" com contextIsolation/sandbox. Reexecutado pela sessão principal: typecheck OK, 16/16 testes, build OK; validador do kit ajustado para `app/README.md` (0 falhas). `npm audit`: 0 vulnerabilidades. Sem commit (aguarda autorização). |
 | 2026-10-16 | 5 (M1-T02) | Endurecimento do runtime pelo `arquiteto-software` (C-2..C-9, C-15, C-21, C-22 parte 1; protocolo `app://interface`, CSP de produção no cabeçalho e CSP de dev separada, filtros de navegação/rede/link externo em funções puras). `revisor-seguranca`: todos CONFORMES, 1 Média (E2E → T13) e 6 Baixas; B-1, B-2, B-4, B-6 corrigidos pela sessão principal, B-3 adiado, B-5 aceito. Revisor recomendou Electron 44.8.0; usuário autorizou → trocado (integridade do lock e SHA-256 do zip conferidos com o `SHASUMS256.txt`; `npm audit signatures` 95/95; `npm audit` 0). Reexecutado no 44.8.0: typecheck OK, 156/156 testes, build OK, preview sem erro. Commit autorizado pelo usuário (M1-T01 + M1-T02). |
+| 2026-10-16 | 5 (M1-T03) | Infraestrutura de testes pelo `engenheiro-qualidade`: `npm run verificar` (typecheck + vitest + audit) e `verificar:tudo` (+ build); analisador de imports sem dependência nova; teste de fronteiras do ADR-0005 (regras 1–6) e varreduras (HTML, rede, `openExternal`, lockfile). A sessão principal acrescentou a proibição `aplicacao` → `persistencia`/`integracoes`/`preload` e registrou as interpretações como adendo do ADR-0005. Reexecutado: verificar 258/258, 0 vulnerabilidades; arquivo violador → EXIT=1; build OK. Grupos ARQ e SEG na matriz de testes. Commit autorizado pelo usuário. |

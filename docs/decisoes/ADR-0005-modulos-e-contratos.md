@@ -333,3 +333,29 @@ O motor roda no renderer para pré-visualizar e no utilitário de novo antes de 
 - Sumário e listas: o DOCX sai com números de página **estimados** (`docx/layout`, validado na PoC: 52/52 iguais ao
   LibreOffice) **e** com `updateFields` para o Word oferecer a atualização ao abrir. A combinação dos dois é
   verificada no M3 (abertura no Word pelo usuário).
+
+## Adendo técnico — interpretação das regras no teste de fronteiras (M1-T03, 2026-10-16)
+Decisões técnicas da sessão principal ao implementar `app/tests/arquitetura-fronteiras.test.ts`. Elas não mudam o resultado
+visível do documento.
+- **Regra 2:** "A ← B" significa "B importa A". A tabela `PERMISSOES_DOMINIO` em `app/tests/apoio/analisador-fontes.ts` é a forma
+  executável da regra:
+  - modelo: nada;
+  - numeracao: modelo;
+  - bibliografia e visuais: modelo e numeracao, mas não um ao outro;
+  - normas: os quatro anteriores;
+  - verificador: todos, inclusive esquemas;
+  - esquemas: modelo.
+
+  `normas → esquemas` fica proibido enquanto não houver necessidade justificada.
+  "Ninguém importa verificador" vale dentro do domínio; `aplicacao` pode importá-lo.
+  O agregador `dominio/index.ts` não reexporta `normas` nem `verificador`, para não abrir um atalho que contorne a regra 4.
+- **Regras 4 e 5:** `interface` e `exportacao/docx` usam apenas `import type` do domínio. De `dominio/normas`, só podem importar
+  tipos de `dominio/normas/formatado`.
+- **Regras 3 e 6:** um import de `node:*` ou `electron` conta como violação mesmo quando é só de tipo.
+- **Regra 3, acréscimo:** `aplicacao` também não importa `persistencia`, `integracoes` nem `preload`; os adaptadores entram por
+  portas declaradas em `aplicacao/`.
+- **Regra 6:** `importacao` não usa `node:fs`. A leitura do arquivo fica em `persistencia`/`principal`, e `importacao` recebe os
+  bytes. Rever esta regra se o M4/M5 mostrar que ela não se sustenta.
+- **Observação:** o `tsconfig.puro.json` não impede `import 'electron'` no domínio, porque o typecheck passa. Quem garante a
+  regra 1 é o teste de fronteiras.
+- **Imports com especificador calculado** (`import(x)`, `require` com template) são recusados, porque não podem ser analisados.

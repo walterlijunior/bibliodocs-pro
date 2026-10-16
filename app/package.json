@@ -14,7 +14,9 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.puro.json && tsc --noEmit -p tsconfig.web.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verificar": "npm run typecheck && vitest run && npm audit --omit=dev --audit-level=high",
+    "verificar:tudo": "npm run verificar && npm run build"
   },
   "dependencies": {
     "react": "19.3.1",

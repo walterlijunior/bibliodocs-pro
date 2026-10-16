@@ -6,6 +6,7 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 |---|---|---|
 | M1-T01 Esqueleto `app/` | CONCLUÍDA | 2026-10-16 |
 | M1-T02 Endurecimento do runtime | CONCLUÍDA (Electron 44.8.0) | 2026-10-16 |
+| M1-T03 Infraestrutura de testes | CONCLUÍDA | 2026-10-16 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -83,3 +84,27 @@ build OK; preview → 4 processos `electron.exe`, log só com "starting electron
 - Não verificado:
   - o foco visual da janela na segunda instância;
   - as sondas repetidas depois dos ajustes B-1/B-2/B-4 (só o preview de fumaça foi repetido).
+
+## M1-T03 — Infraestrutura de testes
+
+**Implementação:** `engenheiro-qualidade`. A sessão principal acrescentou a proibição `aplicacao` → `persistencia`/`integracoes`/`preload`.
+**Arquivos:** `app/package.json` (scripts `verificar` e `verificar:tudo`), `app/tests/apoio/{analisador-fontes,ler-fontes}.ts`,
+`app/tests/arquitetura-{fronteiras,varreduras}.test.ts` e `app/README.md`. Nenhuma dependência nova.
+
+- **`npm run verificar`:** `typecheck && vitest run && npm audit --omit=dev --audit-level=high`.
+- **`npm run verificar:tudo`:** `verificar && build`. E2E, OOXML e LibreOffice entram nos marcos seguintes.
+- **Grupo ARQ:** ARQ-01..06 em `docs/MATRIZ_DE_TESTES.md`. As interpretações das regras estão no adendo do ADR-0005.
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar` → typecheck OK, 6 arquivos, **258/258**, `found 0 vulnerabilities`, EXIT=0.
+- Experimento negativo: `src/dominio/modelo/_violacao.ts` com `export { app } from 'electron'` → EXIT=1, falha em
+  "nenhuma importação viola as regras 1 a 6". O arquivo foi apagado em seguida.
+- `npm run build` → OK.
+
+**Limitações conhecidas:**
+- Aliases de chamada escapam da varredura de rede (ex.: `const f = globalThis.fetch; f()`); mitigados pelo E2E "zero requisições" do T13.
+- Montagens dinâmicas de propriedade escapam (`el['inner'+'HTML']`).
+- Se forem criados aliases de caminho (`paths` no tsconfig), o analisador precisa aprender a resolvê-los.
+- O `npm audit` precisa de rede.
+
+**Pendente:** inventário de licenças (C-19/RNF-15) e `npm audit signatures` dentro do `verificar` (C-18; hoje é rodado manualmente).
