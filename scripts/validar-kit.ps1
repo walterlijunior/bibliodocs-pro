@@ -148,7 +148,10 @@ else { $ausentesDoc | ForEach-Object { Falha "Nao citado no README ou em docs/RE
 
 # 7. Segredos -----------------------------------------------------------------
 $padroes = @('sk-ant-[A-Za-z0-9_-]{10,}','AKIA[0-9A-Z]{16}','-----BEGIN [A-Z ]*PRIVATE KEY-----','ghp_[A-Za-z0-9]{30,}','xox[bp]-[A-Za-z0-9-]{10,}','"?(api[_-]?key|token|password|senha)"?\s*[:=]\s*"[^"\s]{12,}"')
-$textos = @(Get-ChildItem -LiteralPath $Raiz -Recurse -File -Force | Where-Object { $_.Extension -in @('.md','.json','.ps1','.py','.txt','.gitignore') -or $_.Name -eq '.gitignore' })
+# Pastas geradas e ignoradas pelo git (dependencias de terceiros e builds) ficam fora da busca de padroes:
+# READMEs de pacotes do npm trazem exemplos de chave (M1-T14). Os arquivos proibidos abaixo seguem em todo o kit.
+$geradas = '[\\/](node_modules|out|release|release-fumaca)[\\/]'
+$textos = @(Get-ChildItem -LiteralPath $Raiz -Recurse -File -Force | Where-Object { ($_.Extension -in @('.md','.json','.ps1','.py','.txt','.gitignore') -or $_.Name -eq '.gitignore') -and $_.FullName.Substring($Raiz.Length) -notmatch $geradas })
 $achados = @()
 foreach ($t in $textos) {
   $c = [System.IO.File]::ReadAllText($t.FullName, $Utf8)

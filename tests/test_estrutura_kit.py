@@ -55,6 +55,9 @@ def frontmatter(caminho: Path):
     return None, ""
 
 
+GERADAS = {"node_modules", "out", "release", "release-fumaca"}
+
+
 class TestEstruturaKit(unittest.TestCase):
     def test_01_arquivos_obrigatorios(self):
         faltando = [f for f in OBRIGATORIOS if not (RAIZ / f).exists()]
@@ -130,6 +133,9 @@ class TestEstruturaKit(unittest.TestCase):
                 continue
             if arq.name in {".env", ".credentials.json", "settings.local.json", ".claude.json"}:
                 achados.append(str(arq))
+            # Pastas geradas e ignoradas pelo git (dependências e builds) ficam fora da busca de padrões (M1-T14).
+            if GERADAS & set(arq.relative_to(RAIZ).parts[:-1]):
+                continue
             if arq.suffix in {".md", ".json", ".ps1", ".py", ".txt"} or arq.name == ".gitignore":
                 if arq.name in {"validar-kit.ps1", "test_estrutura_kit.py"}:
                     continue

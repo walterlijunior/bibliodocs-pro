@@ -27,8 +27,26 @@ mostra o nome do aplicativo.
 | `npm run esquemas:gerar` | Regrava o JSON Schema de `esquemas/projeto-v1/` a partir dos esquemas zod. Rode depois de mudar `src/dominio/esquemas/projeto-v1.ts`; o `verificar` falha enquanto o arquivo versionado estiver diferente |
 | `npm run test:e2e` | `build` + E2E do Playwright no Electron real (`e2e/`): fluxo do trabalho, recuperação após `taskkill`, casca em 3 escalas, zero rede (net-log) e defesas do runtime. Abre janelas na tela (~25 s). Dados, biblioteca e perfil do Chromium ficam numa pasta temporária apagada no fim; roda mesmo com o app aberto |
 | `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
+| `npm run dist` | `build` + instalador NSIS por usuário em `release/BiblioDocsPro-Instalador-<versão>.exe` (M1-T14). Configuração em `electron-builder.config.cjs`; ganchos em `empacotamento/`. Sem assinatura até a Etapa 7: **não distribuir** |
+| `npm run dist:pasta` | Igual, mas só a pasta `release/win-unpacked/` (sem instalador) |
+| `npm run dist:fumaca` | Pasta em `release-fumaca/` com a marca `bibliodocsFumaca`, a única que aceita `--remote-debugging-port`, `--user-data-dir` e `--log-net-log` (fumaça por CDP). Nunca distribuir |
 
-O instalador (`release/`) entra num marco posterior.
+### Instalador (M1-T14)
+
+- Por usuário, sem administrador: vai para `%LOCALAPPDATA%\Programs\bibliodocs-pro`, com atalhos na Área de Trabalho e
+  no Menu Iniciar e registro só em `HKCU`. Medido em 2026-10-17: instalador 111,8 MB, instalado 390,2 MB (meta RNF-08:
+  < 200 MB para o instalador).
+- Fuses (C-13) e integridade do ASAR (C-14) ligados: o Playwright não dirige o `.exe`, e o E2E roda sobre `out/`.
+- O app empacotado recusa toda chave de linha de comando (`-x`, `--x`, `/x`) antes de um `--`, exceto `--updated`
+  (do instalador), e sai com código 2 (`src/principal/seguranca/argumentos.ts`).
+- **O desinstalador não apaga os dados do usuário.** Ficam, até que o usuário os apague:
+  - `Documentos\BiblioDocs Pro\Trabalhos` (ou a pasta escolhida): os trabalhos `.bdp`;
+  - `%LOCALAPPDATA%\BiblioDocsPro`: índice da biblioteca, preferências, backups e cópias de recuperação, que contêm o
+    texto dos trabalhos;
+  - `%APPDATA%\BiblioDocs Pro`: perfil do Chromium (cache e trava de instância única).
+- Com o Controle Inteligente de Aplicativos do Windows 11 ativo, um `.exe` sem assinatura pode ser bloqueado
+  ("Uma política de Controle de Aplicativo bloqueou este arquivo"). Medido no M1-T14: o artefato de fumaça foi
+  bloqueado e o do instalador não. Não contornar; a assinatura é decisão da Etapa 7.
 
 ### Testes de arquitetura (M1-T03)
 

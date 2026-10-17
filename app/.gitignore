@@ -2,6 +2,7 @@ node_modules/
 out/
 dist/
 release/
+release-fumaca/
 *.log
 # Saída do Playwright (E2E, M1-T13)
 test-results/

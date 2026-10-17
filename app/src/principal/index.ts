@@ -15,12 +15,14 @@
  * - C-22 (parte 1) instância única: a segunda instância só foca a janela existente. Com ela, uma trava de sessão
  *   (`sessao\<id>.lock`, M1-T12) que não pertence a uma sessão ativa deste processo é sempre órfã.
  * M1-T08 — IPC tipado (C-10–C-12) em ipc/: só a janela principal chama a API, pela origem da interface.
- * Ficam para depois: C-13/C-14/C-16/C-17 (empacotamento, M1-T14),
- * C-18/C-19/C-20 (verificação de dependências e varreduras, M1-T03).
+ * C-13/C-14/C-16/C-17 ficam no empacotamento (electron-builder.config.cjs, M1-T14); C-18/C-19/C-20 nos testes
+ * (M1-T03). M1-T14 (A-1): argumentos de linha de comando recusados no app empacotado (seguranca/argumentos.ts).
  * M1-T12 — recuperação (instantâneos, trava de sessão, restos de gravação) em ipc/manipuladores-recuperacao.ts.
  */
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app, BrowserWindow, Menu, session } from 'electron';
+import { argumentoRecusado, SAIDA_ARGUMENTO_RECUSADO } from './seguranca/argumentos';
 import {
   endurecerSessao,
   endurecerTodosOsConteudos,
@@ -85,7 +87,28 @@ function criarJanelaPrincipal(urlInicial: string): BrowserWindow {
   return janela;
 }
 
+/** Marca do artefato de fumaça (`npm run dist:fumaca`) no package.json do ASAR. */
+function ehArtefatoDeFumaca(): boolean {
+  try {
+    const pacote = JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')) as Record<string, unknown>;
+    return pacote['bibliodocsFumaca'] === true;
+  } catch {
+    return false;
+  }
+}
+
 function iniciar(): void {
+  // A-1 (M1-T14): no app empacotado, chave de linha de comando fora da lista sai antes de tudo (ex.: a porta CDP de
+  // `--remote-debugging-port`, que nenhum fuse cobre). Ver seguranca/argumentos.ts.
+  if (app.isPackaged) {
+    const recusado = argumentoRecusado(process.argv.slice(1), ehArtefatoDeFumaca());
+    if (recusado !== null) {
+      console.error(`[seguranca] argumento recusado: ${recusado}`);
+      app.exit(SAIDA_ARGUMENTO_RECUSADO);
+      return;
+    }
+  }
+
   // C-22 (parte 1): instância única.
   if (!app.requestSingleInstanceLock()) {
     app.quit();

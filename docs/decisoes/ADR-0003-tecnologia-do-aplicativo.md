@@ -252,3 +252,45 @@ por `docx` + Electron se mantém; o plano B (.NET Open XML SDK) não é necessá
 - **Paleta da interface:** A — Cerrado claro (tokens em `analise/poc-ui/tokens.css`, a migrar para `app/` no M1-T10).
 - Anteriores (2026-10-15): LanguageTool opcional, desligado por padrão, com consentimento, após o M7;
   MVP só DOCX, PDF via LibreOffice após o M7.
+
+## Adendo M1-T14 — empacotamento de fumaça (2026-10-17)
+
+**Medido** [VERIFICADO 2026-10-17, Windows 11, Electron 44.8.0, electron-builder 26.15.3]:
+- Instalador NSIS `release/BiblioDocsPro-Instalador-0.1.0.exe`: **111 841 150 bytes (111,8 MB)**. Isso substitui a
+  `[HIPÓTESE]` de 90–130 MB e fica dentro da meta de 200 MB (RNF-08). O critério de reversão 2 não dispara.
+- Instalado (`%LOCALAPPDATA%\Programs\bibliodocs-pro`): 390 206 215 bytes; `app.asar` 3,9 MB. Instalação silenciosa em
+  ~21 s, `asInvoker`, só HKCU.
+
+**Decisões técnicas:**
+1. electron-builder **26.15.3** (dist-tag `latest`, MIT), dependência local de desenvolvimento. Configuração em
+   `app/electron-builder.config.cjs` (módulo, para o teste ler sem dependência de YAML).
+2. `electronDist: node_modules/electron/dist`: usa o binário já conferido no M1-T02, sem novo download. Efeito
+   colateral: a limpeza do electron-builder é pulada, então um `afterPack` (`app/empacotamento/apos-empacotar.cjs`)
+   remove `default_app.asar` e `version` e confere que sumiram.
+3. `nsis.include` (`app/empacotamento/instalador.nsh`): o modelo do electron-builder copia sempre o instalador
+   (~112 MB) para `%LOCALAPPDATA%\bibliodocs-pro-updater\`, para a atualização automática, que não usamos (C-17).
+   Medido na 1.ª rodada: a cópia sobrava depois de desinstalar. Ela agora sai em `customInstall` e em `customUnInstall`.
+4. `packElevateHelper: false`: o `elevate.exe` sai do pacote.
+5. **Argumentos de linha de comando (achado A-1/S-1 do `revisor-seguranca`, Média).** `--remote-debugging-port`
+   funcionava no pacote: porta CDP sem senha no 127.0.0.1, sem fuse que a cubra. Agora o app empacotado recusa toda
+   chave antes de `--`, exceto `--updated`, e sai com 2 antes da instância única. Medido: porta nunca aberta.
+6. **Testabilidade (desvio da recomendação do revisor).** O revisor preferia aceitar só `--remote-debugging-pipe`
+   no mesmo artefato. Adotado: artefato separado `npm run dist:fumaca`, marcado com `bibliodocsFumaca: true` no
+   `package.json` do ASAR, que a integridade protege. Só ele aceita a porta, o perfil e o net-log. Motivos:
+   - o `chromium.connectOverCDP` do Playwright não conecta por pipe a um processo que ele não lançou;
+   - um pipe mantido no mesmo artefato ainda deixaria um caminho de exceção no instalador real;
+   - a fumaça negativa (porta recusada) roda no instalador real.
+   Custo: a fumaça funcional roda num artefato que difere do distribuído nessa marca.
+
+**Achado de distribuição.** O Controle Inteligente de Aplicativos do Windows 11
+(`VerifiedAndReputablePolicyState = 1`, ativo nesta máquina) bloqueou o `.exe` do artefato de fumaça (CodeIntegrity
+3033/3077) e deixou rodar o do instalador. A decisão é por reputação de cada hash, então um app sem assinatura pode ser
+bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 7 (R34).
+
+**Pendências para a Etapa 7:**
+- assinatura com `forceCodeSigning`/`publisherName` (C-17, segunda parte);
+- NSIS 3.0.4.1 legado (CVE-2023-37378, impacto baixo sem elevação): avaliar `toolsets.nsis`;
+- build de release com cache do electron-builder limpo ou em CI (a pasta extraída é validada só pela contagem);
+- fuse do índice 8 (provável `wasmTrapHandlers`), que o `@electron/fuses` 1.8.0 não nomeia;
+- ícone do app (hoje o ícone padrão do Electron), que é decisão de identidade visual;
+- `CompanyName` "BiblioDocs Pro" provisório.

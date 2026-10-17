@@ -5,6 +5,7 @@
   "private": true,
   "description": "Aplicativo desktop para elaborar e formatar trabalhos acadêmicos conforme o Manual de Normalização da UFT e as normas ABNT.",
   "license": "UNLICENSED",
+  "author": "BiblioDocs Pro",
   "main": "./out/principal/index.js",
   "engines": {
     "node": ">=24.0.0 <25"
@@ -18,6 +19,9 @@
     "verificar": "npm run typecheck && vitest run && npm audit --omit=dev --audit-level=high",
     "verificar:tudo": "npm run verificar && npm run build && playwright test",
     "test:e2e": "npm run build && playwright test",
+    "dist": "npm run build && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
+    "dist:pasta": "npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never",
+    "dist:fumaca": "npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never -c.extraMetadata.bibliodocsFumaca=true -c.directories.output=release-fumaca",
     "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts"
   },
   "dependencies": {
@@ -33,6 +37,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "electron": "44.8.0",
+    "electron-builder": "26.15.3",
     "electron-vite": "6.0.0",
     "typescript": "7.0.2",
     "vite": "8.3.4",

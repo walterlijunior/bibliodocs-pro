@@ -6,6 +6,15 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T14: instalador do Windows (fumaça) com electron-builder 26.15.3 (só desenvolvimento).
+  - `npm run dist` gera `release/BiblioDocsPro-Instalador-0.1.0.exe` (111,8 MB; meta < 200 MB): por usuário, sem
+    administrador, sem atualização automática, sem assinatura (Etapa 7). Não distribuir.
+  - Fuses e integridade do ASAR ligados (C-13, C-14), conferidos no `.exe` e em execução.
+  - O app empacotado recusa chaves de linha de comando, como `--remote-debugging-port` (achado da revisão), e sai
+    com código 2.
+  - A desinstalação não deixa cópia do instalador para trás e mantém os dados do usuário (lista no `app/README.md`).
+  - `npm run dist:pasta` e `npm run dist:fumaca` (artefato só para a fumaça por CDP).
+  - 29 testes novos (total 741); 10/10 mutações detectadas; instalação e desinstalação conferidas nesta máquina.
 - Etapa 5, M1-T13: testes E2E no Electron real com Playwright (`@playwright/test` 1.64.1, só desenvolvimento).
   - `npm run test:e2e` (build + E2E); `npm run verificar:tudo` passa a rodá-los.
   - FUN-01: criar → salvar → fechar → reabrir (também depois de reiniciar o app) com o título idêntico e o arquivo
@@ -170,6 +179,8 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   páginas, versões do `docx`, downgrade de formato).
 
 ### Alterado
+- Kit: a busca de segredos de `scripts/validar-kit.ps1` e `tests/test_estrutura_kit.py` ignora pastas geradas e
+  ignoradas pelo git (`node_modules`, `out`, `release`, `release-fumaca`). READMEs de dependências trazem exemplos de chave.
 - M1-T13: ao iniciar, o Chromium procurava proxy automático (consulta DNS `wpad` na rede local) e testava o IPv6,
   mesmo sem nenhuma requisição. O app agora inicia com `no-proxy-server` e não faz nenhuma atividade de rede
   (RNF-03).

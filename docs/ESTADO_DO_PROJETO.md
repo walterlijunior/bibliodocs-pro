@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M1-T13 concluído (E2E com Playwright).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T13 concluídos; próximo T14).
+**Última atualização:** 2026-10-17 — M1-T14 concluído (empacotamento de fumaça).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T14 concluídos; próximo T15).
 
 ## Etapas
 
@@ -15,18 +15,17 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T14** (empacotamento de fumaça: electron-builder NSIS
-`oneClick`, `perMachine: false`, fuses, sem atualização automática; medir instalador e tamanho instalado contra a
-meta de 200 MB do RNF-08) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). **Instala dependência local nova**
-(electron-builder): informar antes. Instalar/desinstalar nesta máquina pede confirmação do usuário. Todo incremento
-termina com `cd app; npm run verificar:tudo` passando (agora inclui os E2E).
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T15** (fechamento do marco M1): `app/README.md` com os comandos,
+`docs/MATRIZ_DE_TESTES.md` com os grupos ARQ, PER e E2E, revisão `revisao-seguranca-qualidade` e relatório do marco a
+partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina com
+`cd app; npm run verificar:tudo` passando. O commit do M1-T14 aguarda autorização do usuário.
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -38,6 +37,28 @@ termina com `cd app; npm run verificar:tudo` passando (agora inclui os E2E).
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Empacotamento (M1-T14):
+  - Configuração em `app/electron-builder.config.cjs` (não há YAML); ganchos em `app/empacotamento/`; decisões e
+    medidas no adendo do M1-T14 no ADR-0003. `npm run dist` (instalador), `dist:pasta`, `dist:fumaca`.
+  - **Nunca distribuir** o instalador sem assinatura (R34: o Controle Inteligente de Aplicativos ativo nesta máquina
+    bloqueou o `.exe` do `dist:fumaca`). Não contornar o bloqueio.
+  - O app empacotado recusa toda chave de linha de comando antes de `--`, exceto `--updated`
+    (`src/principal/seguranca/argumentos.ts`). Chave nova necessária no pacote → lista de permissão + teste. A
+    associação `.bdp` (futura) deve registrar `"...exe" -- "%1"` e tratar o argv de `second-instance` do mesmo jeito.
+  - Fumaça do pacote: script de referência descrito no relatório do M1 (fuses em execução, ASAR adulterado, CDP no
+    `dist:fumaca`, negativo no instalador). Repetir a cada troca de Electron ou electron-builder (SEG-09/10).
+  - Mudou o `name` do `package.json` → mudar a pasta `bibliodocs-pro-updater` em `empacotamento/instalador.nsh`
+    (o teste confere).
+  - **Para a Etapa 7:**
+    - assinatura (`forceCodeSigning`, `publisherName`);
+    - NSIS legado 3.0.4.1 (CVE-2023-37378) → avaliar `toolsets.nsis`;
+    - build de release com cache do electron-builder limpo ou em CI;
+    - ícone do app (identidade visual: pergunta ao usuário) e `CompanyName` definitivo;
+    - instalação limpa no Windows 10/11, atualização por cima e desinstalação com o app aberto (DIST);
+    - aviso de terceiros consolidado (RNF-15).
+  - Desinstalar mantém `%LOCALAPPDATA%\BiblioDocsPro` (recuperação e backups com texto dos trabalhos),
+    `%APPDATA%\BiblioDocs Pro` e `Documentos\BiblioDocs Pro` (documentado no `app/README.md`). Uma opção "apagar
+    dados" seria decisão do usuário.
 - E2E (M1-T13):
   - `app/e2e/`; apoio em `e2e/apoio/app.ts` (`criarAmbiente`, `abrirApp`, `fechar`, `matar`, `atividadeDeRede`,
     `lerDocumento`). Decisões e armadilhas medidas no adendo do M1-T13 no ADR-0006 (eval no `page.evaluate`, `%2e%2e`
@@ -185,6 +206,8 @@ termina com `cd app; npm run verificar:tudo` passando (agora inclui os E2E).
   das 3 majors suportadas (R20).
 
 ## Decisões aguardando o usuário
+- (Etapa 7, sem urgência) Ícone do app e nome da empresa no `.exe` (hoje ícone padrão do Electron e "BiblioDocs Pro");
+  desinstalação com opção de apagar recuperação/backups ou não (hoje: nunca apaga).
 - (Antes do M2) ADR do editor de texto rico (recomendação do `especialista-interface`: TipTap só com núcleo MIT
   ou ProseMirror puro) e da biblioteca de componentes (React Aria Components ou Radix) — técnico, conferir versões.
 - (M5) Margens da seção em paisagem: sem RN no Manual; decisão editorial.
@@ -218,4 +241,5 @@ termina com `cd app; npm run verificar:tudo` passando (agora inclui os E2E).
 | 2026-10-16 | 5 (M1-T10) | Casca da interface pela sessão principal, após o usuário aprovar o protótipo (todos os `[PROPOSTA]` aceitos; `docs/GUIA_VISUAL.md`). Quatro faixas, menus ARIA, abas, Voltar/Avançar, biblioteca real (grade, lateral, detalhes, estados, aviso de OneDrive), criar trabalho, escolher pasta; janela mínima 1024×700; menu nativo nulo também no dev (F12). Sem dependência nova. `verificar:tudo` 630/630, 0 vulnerabilidades, build OK; 10/10 mutações; fumaça no Electron 44.8.0 por CDP 21/21 (achou e corrigiu Alt+Seta duplicado nas abas); kit 0 falhas. Commit `3040a9a` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M1-T12) | Recuperação pela sessão principal: instantâneo ~2 s depois de cada alteração em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao\<id>\` (atual + anterior, sem `.bak`), trava de sessão, oferta na Biblioteca (Recuperar / Abrir o arquivo salvo / Decidir depois), restaurar a partir de temporário ou `.bak` de arquivo que não abre, `recuperacao-antigos` por 7 dias. `revisor-seguranca`: 4 Alta (prazo pela data errada, queda adiada arquivada, salvamento apagando instantâneo mais novo, restauração que tirava o original), 5 Média e 2 Baixa corrigidas; B2/B4 aceitas. 27/27 mutações. Fumaça no Electron 44.8.0 por CDP 20/20 (`taskkill` e reabrir oferece a versão). `verificar:tudo` 711/711, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `abbe147` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M1-T13) | E2E pela sessão principal com `@playwright/test` 1.64.1 (dependência local informada) no Electron 44.8.0: FUN-01 (reabrir idêntico, também após reiniciar; SHA-256 do arquivo igual), RNF-04 (`taskkill /F /T`, instantâneo 1992 ms, Recuperar, "Abrir o arquivo salvo"), UI-01 (faixas de 1024×700 a maximizada em 100/125/150%), zero rede pelo net-log e SEG-03. O net-log achou WPAD + checagem de IPv6 ao iniciar → `no-proxy-server` no principal. `engenheiro-qualidade`: 1 Alta (travessia com alvo inexistente), 4 Média (perfil do Chromium real, órfão, laços vazios, corrida no `taskkill`) e 7 Baixa; corrigidas, exceto 3 Baixas aceitas. 4/5 mutações (a de `..` é inalcançável pela página). `verificar:tudo` 712/712 + E2E 8/8, 0 vulnerabilidades; repetições 24/24 e 16/16; kit 0 falhas. Commit `c93933f` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M1-T14) | Empacotamento de fumaça pela sessão principal com electron-builder 26.15.3 (dependência local informada): NSIS por usuário, fuses e ASAR, `electronDist` local, `afterPack` e gancho NSIS. Instalador 111 841 150 bytes (< 200 MB, RNF-08), instalado 390 MB. `revisor-seguranca`: 0 Alta, A-1 (Média, `--remote-debugging-port` abria CDP no pacote) corrigido com recusa de argumentos; `elevate.exe`, comentários e afterPack corrigidos; assinatura, NSIS legado e cache para a Etapa 7. Instalar/desinstalar autorizado pelo usuário: 1.ª rodada achou a cópia de 112 MB em `bibliodocs-pro-updater` → corrigida, 2.ª limpa. Fumaça CDP 11/11 (antes do A-1), negativa 6/6; ASAR adulterado recusado. O Controle Inteligente de Aplicativos bloqueou o `.exe` do `dist:fumaca` (R34). `verificar:tudo` 741/741 + E2E 8/8, 0 vulnerabilidades; 10/10 mutações; kit 0 falhas (busca de segredos passa a ignorar `node_modules`/builds). Sem commit (aguarda autorização). |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |

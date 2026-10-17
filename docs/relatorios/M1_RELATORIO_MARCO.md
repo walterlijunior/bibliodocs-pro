@@ -588,3 +588,69 @@ técnicas no adendo do ADR-0005.
   nas fumaças.
 - Escala real do Windows por monitor, leitor de tela e axe-core não exercitados.
 - O E2E abre janelas na tela e precisa de sessão gráfica (não roda em CI sem área de trabalho).
+
+## M1-T14 — Empacotamento de fumaça
+
+**Implementado** (sessão principal; electron-builder 26.15.3, dependência local informada):
+- `app/electron-builder.config.cjs`: NSIS `oneClick`, `perMachine: false`, `allowElevation: false`,
+  `packElevateHelper: false`, `publish: null`, os 6 fuses do C-13, ASAR, `electronDist` local, `npmRebuild: false`,
+  só `out/` e `package.json` (React fora; zod e fflate sem fontes `.ts`).
+- `app/empacotamento/apos-empacotar.cjs` (afterPack: tira `default_app.asar` e `version`) e
+  `app/empacotamento/instalador.nsh` (apaga a cópia do instalador em `bibliodocs-pro-updater`).
+- `src/principal/seguranca/argumentos.ts` + ligação em `index.ts`: o app empacotado recusa chaves de linha de comando.
+- Scripts `dist`, `dist:pasta`, `dist:fumaca`; `author` no `package.json` (o exe dizia "GitHub, Inc."); testes
+  `tests/empacotamento.test.ts` e `tests/seguranca-argumentos.test.ts`.
+- Kit: a busca de segredos do `validar-kit.ps1`/`test_estrutura_kit.py` passa a ignorar `node_modules`, `out` e
+  `release*` (READMEs de `aws4` e `dotenv`, que vieram com o electron-builder, têm exemplos de chave). A busca de
+  arquivos proibidos continua em tudo. Controle: segredo plantado em `docs/` → 2/2 detectados.
+
+**Revisão** (`revisor-seguranca`, somente leitura, duas passagens): 0 Crítica e 0 Alta.
+- A-1/S-1 (Média): `--remote-debugging-port` abria porta CDP sem senha no pacote. Corrigido.
+- A-2/S-3 (Média, distribuição): sem assinatura. Etapa 7.
+- Baixas corrigidas:
+  - `elevate.exe` no pacote;
+  - comentários errados (o Playwright e o `deleteAppDataOnUninstall`);
+  - afterPack calado se o caminho mudar;
+  - caminho fixo no `customUnInstall`.
+- Baixas para a Etapa 7: NSIS 3.0.4.1 (CVE-2023-37378), cache de ferramentas validado só pela contagem, fuse do
+  índice 8 sem nome.
+- Baixa aceita: as moderadas do `npm audit` na cadeia de build (R35).
+- **Desvio:** a fumaça funcional usa um artefato separado (`dist:fumaca`) em vez de `--remote-debugging-pipe` no
+  mesmo artefato. Motivo registrado no adendo do ADR-0003.
+
+**Verificação executada** (2026-10-17, Windows 11):
+- `npm run dist`: ~38 s.
+  - Instalador **111 841 150 bytes**, contra a meta de 200 MB do RNF-08.
+  - `win-unpacked` 390 065 666 bytes; `app.asar` 3,9 MB; `resources/` só com `app.asar`.
+  - `NotSigned` nos dois binários.
+- Fuses lidos com `@electron/fuses read`: os 6 do checklist e "undefined is Enabled" (índice 8).
+- Fumaça por CDP no pacote antes da correção A-1, 11/11, no `win-unpacked` e no instalado:
+  - fuses em execução;
+  - `app://interface/`;
+  - criar, salvar e reabrir pelo leitor dentro do ASAR em ~2 s;
+  - F12 sem DevTools; console sem erro; net-log sem URL externa nem WPAD.
+- C-14: com 1 byte alterado, o app sai com 1 e sem processo vivo; com o original, a janela "BiblioDocs Pro" abre.
+- Instalação 1 (`/S`): saída 0 em 21 s.
+  - `requestedExecutionLevel asInvoker`; só HKCU (`DisplayName` "BiblioDocs Pro 0.1.0", `Publisher` "BiblioDocs Pro").
+  - 390 310 951 bytes instalados; atalhos na Área de Trabalho e no Menu Iniciar.
+  - Desinstalação (`/S /currentuser`): **sobrou** `bibliodocs-pro-updater\installer.exe` (111 889 446 bytes).
+- Instalação 2, com as correções:
+  - a instalação já apagou a sobra da 1.ª;
+  - sem `-updater`, sem `elevate.exe`; atalhos sem argumentos; nenhum `ns*.tmp` em `%TEMP%`.
+  - Fumaça negativa 6/6 no instalado: porta recusada com saída 2, porta nunca aberta (consulta em laço), controle
+    sem argumentos abre.
+  - Desinstalação: sem programa, `-updater`, atalhos e chaves HKCU. Ficam `%APPDATA%\BiblioDocs Pro` e
+    `Documentos\BiblioDocs Pro` (dados do usuário).
+- `npm run verificar:tudo`: typecheck OK, vitest 20 arquivos **741/741** (29 novos), `found 0 vulnerabilities`,
+  build OK, **E2E 8/8**. 10/10 mutações detectadas: argumentos ×6, `packElevateHelper`, `RMDir /r`, afterPack,
+  fuse `runAsNode`. `scripts/validar-kit.ps1`: 0 falhas; `python tests/test_estrutura_kit.py`: 9 OK.
+
+**Limitações:**
+- **Fluxo funcional depois da correção A-1 não reexecutado no pacote.** O `.exe` do `dist:fumaca` foi bloqueado pelo
+  Controle Inteligente de Aplicativos (`VerifiedAndReputablePolicyState = 1`, eventos CodeIntegrity 3033/3077), e
+  não foi contornado. A mudança só acrescenta a checagem de argumentos no início. O mesmo código passa no E2E sobre
+  `out/`, e o instalado abre a janela sem argumentos.
+- Instalação em máquina limpa, Windows 10, atualização por cima de versão anterior, desinstalação com o app aberto e
+  SmartScreen ao baixar: Etapa 7 (DIST).
+- Ícone padrão do Electron (identidade visual a decidir); `CompanyName` provisório.
+- Associação `.bdp` ainda não existe. Quando existir, registrar `"...exe" -- "%1"`.
