@@ -44,7 +44,9 @@ module.exports = {
     grantFileProtocolExtraPrivileges: false,
   },
 
-  win: { target: [{ target: 'nsis', arch: ['x64'] }] },
+  // Ícone: o pequi da interface (recursos-build/icone*.svg → icone.ico por `npm run icone:gerar`). Vale também para o
+  // instalador, o desinstalador e os atalhos.
+  win: { target: [{ target: 'nsis', arch: ['x64'] }], icon: 'recursos-build/icone.ico' },
 
   // C-16: instalação por usuário, sem elevação. C-17: sem atualização automática (publish: null).
   nsis: {

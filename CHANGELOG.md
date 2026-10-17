@@ -15,6 +15,8 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   - A desinstalação não deixa cópia do instalador para trás e mantém os dados do usuário (lista no `app/README.md`).
   - `npm run dist:pasta` e `npm run dist:fumaca` (artefato só para a fumaça por CDP).
   - 29 testes novos (total 741); 10/10 mutações detectadas; instalação e desinstalação conferidas nesta máquina.
+  - Ícone próprio do app e do instalador: o pequi da interface (`npm run icone:gerar`), no lugar do ícone padrão do
+    Electron. O desinstalador nunca apaga os dados do usuário.
 - Etapa 5, M1-T13: testes E2E no Electron real com Playwright (`@playwright/test` 1.64.1, só desenvolvimento).
   - `npm run test:e2e` (build + E2E); `npm run verificar:tudo` passa a rodá-los.
   - FUN-01: criar → salvar → fechar → reabrir (também depois de reiniciar o app) com o título idêntico e o arquivo

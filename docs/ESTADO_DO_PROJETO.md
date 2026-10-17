@@ -53,12 +53,14 @@ partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.m
     - assinatura (`forceCodeSigning`, `publisherName`);
     - NSIS legado 3.0.4.1 (CVE-2023-37378) → avaliar `toolsets.nsis`;
     - build de release com cache do electron-builder limpo ou em CI;
-    - ícone do app (identidade visual: pergunta ao usuário) e `CompanyName` definitivo;
+    - `CompanyName` definitivo;
     - instalação limpa no Windows 10/11, atualização por cima e desinstalação com o app aberto (DIST);
     - aviso de terceiros consolidado (RNF-15).
   - Desinstalar mantém `%LOCALAPPDATA%\BiblioDocsPro` (recuperação e backups com texto dos trabalhos),
     `%APPDATA%\BiblioDocs Pro` e `Documentos\BiblioDocs Pro` (documentado no `app/README.md`). Uma opção "apagar
-    dados" seria decisão do usuário.
+    dados" seria decisão do usuário. Decidido em 2026-10-17 (delegado pelo usuário): o desinstalador nunca apaga dados.
+  - Ícone: `app/recursos-build/icone*.svg` → `npm run icone:gerar` → `icone.ico` (versionado). Mudou o pequi da
+    interface → atualizar os SVGs do ícone também.
 - E2E (M1-T13):
   - `app/e2e/`; apoio em `e2e/apoio/app.ts` (`criarAmbiente`, `abrirApp`, `fechar`, `matar`, `atividadeDeRede`,
     `lerDocumento`). Decisões e armadilhas medidas no adendo do M1-T13 no ADR-0006 (eval no `page.evaluate`, `%2e%2e`
@@ -206,8 +208,6 @@ partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.m
   das 3 majors suportadas (R20).
 
 ## Decisões aguardando o usuário
-- (Etapa 7, sem urgência) Ícone do app e nome da empresa no `.exe` (hoje ícone padrão do Electron e "BiblioDocs Pro");
-  desinstalação com opção de apagar recuperação/backups ou não (hoje: nunca apaga).
 - (Antes do M2) ADR do editor de texto rico (recomendação do `especialista-interface`: TipTap só com núcleo MIT
   ou ProseMirror puro) e da biblioteca de componentes (React Aria Components ou Radix) — técnico, conferir versões.
 - (M5) Margens da seção em paisagem: sem RN no Manual; decisão editorial.

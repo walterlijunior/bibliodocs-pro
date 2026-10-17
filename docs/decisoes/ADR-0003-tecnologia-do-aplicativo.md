@@ -292,5 +292,19 @@ bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 
 - NSIS 3.0.4.1 legado (CVE-2023-37378, impacto baixo sem elevação): avaliar `toolsets.nsis`;
 - build de release com cache do electron-builder limpo ou em CI (a pasta extraída é validada só pela contagem);
 - fuse do índice 8 (provável `wasmTrapHandlers`), que o `@electron/fuses` 1.8.0 não nomeia;
-- ícone do app (hoje o ícone padrão do Electron), que é decisão de identidade visual;
 - `CompanyName` "BiblioDocs Pro" provisório.
+
+**Decisões posteriores (2026-10-17, mesmo incremento):**
+- **Ícone** (pedido do usuário: "não deve ser o padrão do electron, crie um"): o pequi da interface em
+  `app/recursos-build/icone.ico` (16, 24, 32, 48, 64, 128 e 256 px, entradas PNG). Os tamanhos de 16 e 24 px usam um
+  desenho simplificado. Vale para o app, o instalador, o desinstalador e os atalhos. Gerado pelo próprio Electron
+  (`npm run icone:gerar`), sem dependência nova. Conferido extraindo o ícone dos dois `.exe`.
+- **Dados ao desinstalar** (o usuário deixou a decisão à sessão principal): **nunca apagar**. Ficam os trabalhos,
+  `%LOCALAPPDATA%\BiblioDocsPro` (índice, preferências, backups, recuperação) e `%APPDATA%\BiblioDocs Pro`.
+  Motivos:
+  - apagar trabalho acadêmico ou cópia de recuperação é irreversível;
+  - o desinstalador do NSIS também roda em toda atualização (`--updated`), então um erro ali apagaria dados numa
+    simples atualização;
+  - reinstalar o app recupera tudo.
+  O que fica está documentado em `app/README.md`. Uma limpeza explícita, dentro do app e com confirmação, pode entrar
+  depois, se houver pedido.

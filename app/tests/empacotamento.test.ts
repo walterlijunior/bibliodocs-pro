@@ -18,7 +18,7 @@ interface Configuracao {
   npmRebuild: boolean;
   asar: boolean;
   electronFuses: Record<string, boolean>;
-  win: { target: { target: string; arch: string[] }[] };
+  win: { target: { target: string; arch: string[] }[]; icon: string };
   nsis: Record<string, unknown>;
   publish: unknown;
 }
@@ -107,6 +107,31 @@ describe('instalador (C-16, C-17)', () => {
 
   it('o exe não herda "GitHub, Inc." como empresa: o package.json tem author', () => {
     expect(pacote.author).toBe('BiblioDocs Pro');
+  });
+});
+
+describe('ícone do app', () => {
+  it('o .exe usa o pequi (não o ícone padrão do Electron): .ico com 16 a 256 px em PNG, gerado dos SVGs', () => {
+    expect(config.win.icon).toBe('recursos-build/icone.ico');
+    const ico = readFileSync(join(raizApp, config.win.icon));
+    expect(ico.readUInt16LE(0)).toBe(0);
+    expect(ico.readUInt16LE(2)).toBe(1);
+    const n = ico.readUInt16LE(4);
+    const lados: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const e = 6 + 16 * i;
+      lados.push(ico.readUInt8(e) || 256);
+      const inicio = ico.readUInt32LE(e + 12);
+      const tamanho = ico.readUInt32LE(e + 8);
+      expect(inicio + tamanho).toBeLessThanOrEqual(ico.length);
+      // Assinatura PNG em cada entrada.
+      expect(ico.subarray(inicio, inicio + 8).toString('hex')).toBe('89504e470d0a1a0a');
+    }
+    expect(lados).toEqual([16, 24, 32, 48, 64, 128, 256]);
+    for (const svg of ['icone.svg', 'icone-pequeno.svg']) {
+      expect(lerFonte(join('recursos-build', svg))).toMatch(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 64 64">/);
+    }
+    expect(pacote.scripts['icone:gerar']).toBe('electron empacotamento/gerar-icone.cjs');
   });
 });
 

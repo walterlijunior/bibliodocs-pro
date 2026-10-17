@@ -652,5 +652,11 @@ técnicas no adendo do ADR-0005.
   `out/`, e o instalado abre a janela sem argumentos.
 - Instalação em máquina limpa, Windows 10, atualização por cima de versão anterior, desinstalação com o app aberto e
   SmartScreen ao baixar: Etapa 7 (DIST).
-- Ícone padrão do Electron (identidade visual a decidir); `CompanyName` provisório.
+- `CompanyName` provisório.
+
+**Complemento (2026-10-17, depois do commit `1efbb74`):**
+- Ícone próprio: o pequi em `app/recursos-build/` (`icone.svg`, `icone-pequeno.svg` → `icone.ico`; gerador
+  `app/empacotamento/gerar-icone.cjs`). Conferido visualmente em 256 px e ampliado em 16, 24, 32 e 48 px; extraído do
+  `.exe` do app e do instalador pelo `System.Drawing.Icon.ExtractAssociatedIcon`. Instalador: 111 915 440 bytes.
+- Decisão do desinstalador: nunca apagar dados do usuário (adendo do ADR-0003).
 - Associação `.bdp` ainda não existe. Quando existir, registrar `"...exe" -- "%1"`.

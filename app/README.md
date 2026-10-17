@@ -29,6 +29,7 @@ mostra o nome do aplicativo.
 | `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
 | `npm run dist` | `build` + instalador NSIS por usuário em `release/BiblioDocsPro-Instalador-<versão>.exe` (M1-T14). Configuração em `electron-builder.config.cjs`; ganchos em `empacotamento/`. Sem assinatura até a Etapa 7: **não distribuir** |
 | `npm run dist:pasta` | Igual, mas só a pasta `release/win-unpacked/` (sem instalador) |
+| `npm run icone:gerar` | Regrava `recursos-build/icone.ico` (16 a 256 px) a partir de `recursos-build/icone.svg` e `icone-pequeno.svg`, desenhando no próprio Electron. Rode depois de mudar os SVGs |
 | `npm run dist:fumaca` | Pasta em `release-fumaca/` com a marca `bibliodocsFumaca`, a única que aceita `--remote-debugging-port`, `--user-data-dir` e `--log-net-log` (fumaça por CDP). Nunca distribuir |
 
 ### Instalador (M1-T14)

@@ -16,6 +16,7 @@
 | Menus | **Arquivo · Editar · Trabalho · Inserir · Verificar · Exportar · Ajuda** | 2026-10-16 (M1-T10) |
 | Abas | **Biblioteca · Escrever · Elementos · Referências · Conformidade** | 2026-10-16 (M1-T10) |
 | Capas da grade | **Miniatura da capa** do trabalho. No M1, capa simplificada (título e ano); a capa fiel vem com o motor normativo | 2026-10-16 (M1-T10) |
+| Ícone do app | **O pequi da interface**, sem fundo, em `.ico` de 16 a 256 px: desenho completo de 32 px para cima e versão simplificada (contornos grossos, faixa creme do corte) em 16 e 24 px. Fontes: `app/recursos-build/icone.svg` e `icone-pequeno.svg`; `npm run icone:gerar`. O usuário pediu um ícone próprio e delegou o desenho | 2026-10-17 (M1-T14) |
 | Cor do foco | **Azul** `#1F5FBF` (claro) / `#8AB4FF` (escuro), distinta de destaque, seleção e sucesso | 2026-10-16 (M1-T10) |
 
 ## Regras de implementação

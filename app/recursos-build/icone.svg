@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Ícone do BiblioDocs Pro (32 px ou mais): o pequi da interface (app/src/interface/Icones.tsx), ampliado para
+       ocupar o quadro, com os mesmos tokens de cor (tokens.css). Desenho original; fonte do icone.ico. -->
+  <g transform="translate(32 32) scale(1.07) translate(-32 -36.5)">
+    <ellipse cx="32" cy="37" rx="27" ry="6" fill="#FFF3D1" stroke="#34561D" stroke-width="1.5"/>
+    <ellipse cx="19" cy="31" rx="10" ry="12.5" fill="#F5A623" stroke="#D9800B" stroke-width="1.5"/>
+    <ellipse cx="45" cy="31" rx="10" ry="12.5" fill="#F5A623" stroke="#D9800B" stroke-width="1.5"/>
+    <ellipse cx="32" cy="27" rx="11" ry="14" fill="#F5A623" stroke="#D9800B" stroke-width="1.5"/>
+    <path d="M26 19 q3 -5 8 -4" fill="none" stroke="#FFE29A" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M5 37 A27 6 0 0 0 59 37 A27 23 0 0 1 5 37 Z" fill="#4E7A2E" stroke="#34561D" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M6.5 38.5 A26 5 0 0 0 57.5 38.5" fill="none" stroke="#FFF3D1" stroke-width="2.4"/>
+    <path d="M14 47 q4 6 10 8 M50 47 q-4 6 -10 8" fill="none" stroke="#34561D" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+  </g>
+</svg>

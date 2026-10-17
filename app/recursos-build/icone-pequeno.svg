@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Ícone do BiblioDocs Pro para 16 e 24 px: o mesmo pequi de icone.svg, sem o brilho e os veios da casca e com
+       contornos mais grossos, para não virar borrão em poucos pixels. -->
+  <g transform="translate(32 32) scale(1.05) translate(-32 -36.5)">
+    <ellipse cx="32" cy="37" rx="27" ry="6" fill="#FFF3D1" stroke="#34561D" stroke-width="3"/>
+    <ellipse cx="18" cy="30" rx="10.5" ry="12.5" fill="#F5A623" stroke="#D9800B" stroke-width="3"/>
+    <ellipse cx="46" cy="30" rx="10.5" ry="12.5" fill="#F5A623" stroke="#D9800B" stroke-width="3"/>
+    <ellipse cx="32" cy="26" rx="11.5" ry="14" fill="#F5A623" stroke="#D9800B" stroke-width="3"/>
+    <path d="M5 37 A27 6 0 0 0 59 37 A27 23 0 0 1 5 37 Z" fill="#4E7A2E" stroke="#34561D" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M7 38.5 A25.5 5 0 0 0 57 38.5" fill="none" stroke="#FFF3D1" stroke-width="4.5"/>
+  </g>
+</svg>

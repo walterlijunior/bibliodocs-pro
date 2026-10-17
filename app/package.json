@@ -22,6 +22,7 @@
     "dist": "npm run build && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
     "dist:pasta": "npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never",
     "dist:fumaca": "npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never -c.extraMetadata.bibliodocsFumaca=true -c.directories.output=release-fumaca",
+    "icone:gerar": "electron empacotamento/gerar-icone.cjs",
     "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts"
   },
   "dependencies": {
