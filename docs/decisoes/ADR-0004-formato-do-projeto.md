@@ -432,3 +432,49 @@ Resolve a pendência do M1-T05 ("isolar a leitura de arquivo vindo de fora").
 - Backups de migração em `%LOCALAPPDATA%\BiblioDocsPro\backups`; ao renderer só vai o nome do backup.
 - Medição [VERIFICADO]: projeto de 25 MB aberto pelo leitor, 20 vezes: 20 sucessos, 307 a 408 ms cada, incluindo
   a criação do processo.
+
+## Adendo técnico — biblioteca (M1-T09, 2026-10-16)
+Detalha a seção 5 e o item "Excluir trabalho" da seção 4.
+- **Arquivos locais** em `%LOCALAPPDATA%\BiblioDocsPro\`:
+  - `biblioteca.json`: **cache**. Guarda nome, tamanho, data de modificação e resumo (título em texto plano, tipo,
+    datas) de cada `.bdp` da pasta. Um arquivo só é resumido de novo quando o tamanho ou a data mudam. Índice ausente,
+    corrompido, de outro formato ou de outra pasta começa vazio e é recriado.
+  - `preferencias.json`: a pasta escolhida pelo usuário (`null` = padrão). Não é cache, por isso fica fora do índice.
+    Apagar o índice não muda a pasta. Preferência inválida ou com caminho relativo volta para a padrão.
+  - Os dois são lidos com limite (16 MB) e esquema estrito, e gravados por `gravarAtomico`.
+- **Varredura:** só arquivos comuns `.bdp` do primeiro nível, sem seguir links (temporários e `.bak` ficam de fora).
+  Limite de 5 000 itens, com aviso. Prazo total de 180 s: passado o prazo, a lista sai parcial, com aviso, e o
+  restante fica para a próxima listagem.
+- **Desvio do "um processo por abertura" (adendo do M1-T08):** o **resumo** da lista roda no processo leitor em lotes
+  de até 50 arquivos por processo. Um processo por arquivo custaria cerca de 0,3 s × N na primeira listagem.
+  - O lote só devolve texto curto, conferido por esquema estrito e na ordem do pedido.
+  - Se o lote falha, ele é refeito um arquivo por vez (revisão do M1-T09, M3). Assim, um arquivo que derruba o leitor
+    fica marcado como inválido no índice e não leva os outros junto. Se todos falham sozinhos, a falha é do leitor, e
+    nada entra no índice.
+  - **Abrir e duplicar** continuam com um processo por arquivo.
+  - Resíduo aceito: um leitor comprometido por um arquivo pode falsear o resumo exibido dos outros do mesmo lote. Abrir
+    e duplicar releem o arquivo.
+- **Identificadores de item:** registro próprio, separado do registro dos projetos abertos. São estáveis por janela
+  e por caminho (índice por janela + caminho, tempo constante; revisão A1). Não servem como destino de
+  `projetos.salvar`.
+- **Operações** (fila única por processo; diálogos fora da fila e reconferência dentro dela):
+  - criar: `Trabalho sem título.bdp` (ou `(2)`, `(3)`…), tipo genérico, id novo, já aberto;
+  - renomear: o nome digitado é validado, nunca corrigido. São recusados os caracteres proibidos do Windows,
+    invisíveis (`\p{Cf}`), surrogates órfãos, nomes reservados (inclusive `CONIN$`/`CONOUT$`) e mais de 80 caracteres.
+    O nome novo nasce como link físico, que falha se o nome já existir; só depois o nome antigo é removido. Volume sem
+    link físico usa conferência + `rename`. A troca só de caixa exige a mesma identidade de arquivo (`dev:ino`);
+  - duplicar: `<nome> (cópia).bdp` com id novo no manifesto e no documento (o id dá nome às pastas de backup e de
+    recuperação);
+  - excluir: confirmação por diálogo do principal, com Cancelar como padrão, e depois `shell.trashItem`. Se a Lixeira
+    falha, nada é apagado;
+  - renomear e excluir recusam um trabalho aberto no app (`ABERTO_NO_APP`), porque um salvamento em curso recriaria o
+    arquivo.
+- **OneDrive (R16):** a pasta está dentro de `%OneDrive%`, `%OneDriveConsumer%` ou `%OneDriveCommercial%`, ou tem no
+  caminho uma pasta `OneDrive` ou `OneDrive - <organização>`. O resultado vai para a interface, que mostra o aviso
+  (M1-T10/T11). [HIPÓTESE] Outros clientes de sincronização não são detectados.
+- **Leitura:** `lerArquivoLimitado` passou a conferir que o descritor aberto é o mesmo arquivo conferido pelo caminho
+  (revisão B6).
+- **Resíduos registrados:** dentro do app, a fila protege as operações. Ainda há duas corridas raras:
+  - um processo externo que crie o mesmo nome entre `nomeLivre` e o salvamento atômico em criar/duplicar
+    (o salvamento substitui);
+  - `projetos.abrir` (diálogo) do mesmo arquivo durante um renomear da biblioteca.

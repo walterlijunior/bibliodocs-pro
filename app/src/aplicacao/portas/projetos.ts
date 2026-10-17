@@ -14,6 +14,7 @@
  */
 import type { Manifesto } from '../../dominio/esquemas';
 import type { Documento } from '../../dominio/modelo';
+import type { ApiBiblioteca } from './biblioteca';
 
 /** Nomes dos canais. O preload só invoca estes; o principal só registra estes. */
 export const CANAIS_PROJETOS = {
@@ -115,4 +116,5 @@ export interface ApiProjetos {
 /** O que o preload expõe em `window.bibliodocs`. */
 export interface ApiBiblioDocs {
   readonly projetos: ApiProjetos;
+  readonly biblioteca: ApiBiblioteca;
 }

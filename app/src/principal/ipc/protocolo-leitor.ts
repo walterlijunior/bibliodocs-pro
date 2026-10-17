@@ -8,12 +8,15 @@
  * A resposta já vem na forma do contrato (`PacoteTransferivel`, sem `Map`) e com o backup reduzido ao nome do arquivo
  * (revisão M6-11). O leitor é código do próprio app: o principal confere o envelope da resposta, não refaz a validação
  * profunda (o conteúdo volta a ser validado por inteiro antes de qualquer gravação).
+ *
+ * Pedido de resumo (M1-T09): a biblioteca manda um lote de caminhos e recebe, na mesma ordem, o resumo de cada arquivo
+ * (título, tipo, datas). O lote divide um processo, mas a resposta é só texto curto e cada resumo é conferido aqui.
  */
 import { basename, isAbsolute } from 'node:path';
 import { z } from 'zod';
 import type { AvisoProjeto, ErroProjeto, PacoteSomenteLeituraTransferivel, PacoteTransferivel } from '../../aplicacao';
 import { LIMITES_V1, PADRAO_ID } from '../../dominio/esquemas';
-import type { ResultadoAbertura } from '../../persistencia';
+import { esquemaResumoProjeto, type ResultadoAbertura, type ResumoProjeto } from '../../persistencia';
 import { paraTransferivel, paraTransferivelSomenteLeitura } from './argumentos';
 
 export interface PedidoLeitor {
@@ -39,6 +42,32 @@ const esquemaPedido = z.strictObject({ caminho: caminhoAbsoluto, pastaBackups: c
 export function lerPedidoLeitor(valor: unknown): PedidoLeitor | null {
   const r = esquemaPedido.safeParse(valor);
   return r.success ? r.data : null;
+}
+
+/** Arquivos por pedido de resumo (o `ARQUIVOS_POR_LOTE` da varredura fica abaixo disto). */
+export const MAX_ARQUIVOS_RESUMO = 100;
+
+export interface PedidoResumo {
+  resumir: string[];
+}
+
+export interface RespostaResumo {
+  resumos: ResumoProjeto[];
+}
+
+const esquemaPedidoResumo = z.strictObject({ resumir: z.array(caminhoAbsoluto).min(1).max(MAX_ARQUIVOS_RESUMO) });
+
+export function lerPedidoResumo(valor: unknown): PedidoResumo | null {
+  const r = esquemaPedidoResumo.safeParse(valor);
+  return r.success ? r.data : null;
+}
+
+const esquemaRespostaResumo = z.strictObject({ resumos: z.array(esquemaResumoProjeto).max(MAX_ARQUIVOS_RESUMO) });
+
+/** Confere a resposta de um pedido de `quantidade` arquivos; `null` se fora do protocolo ou de outro tamanho. */
+export function lerRespostaResumo(valor: unknown, quantidade: number): ResumoProjeto[] | null {
+  const r = esquemaRespostaResumo.safeParse(valor);
+  return r.success && r.data.resumos.length === quantidade ? r.data.resumos : null;
 }
 
 export function paraRespostaLeitor(r: ResultadoAbertura): RespostaLeitor {

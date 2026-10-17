@@ -3,13 +3,15 @@
  * que os testes injetem falhas (EPERM, ENOSPC, queda entre passos) sem tocar no código de produção.
  */
 import { constants } from 'node:fs';
-import { chmod, copyFile, lstat, mkdir, open, rename, unlink } from 'node:fs/promises';
+import { chmod, copyFile, link, lstat, mkdir, open, readdir, rename, unlink } from 'node:fs/promises';
 
 export interface ArquivoAberto {
   /** Tamanho atual pelo próprio descritor (não pelo caminho, que pode ter mudado). */
   tamanho(): Promise<number>;
   /** Se o próprio descritor é de arquivo comum (fecha a janela entre conferir o caminho e abri-lo). */
   arquivoComum(): Promise<boolean>;
+  /** Identidade do arquivo pelo descritor (`dev:ino`), para conferir que é o mesmo conferido pelo caminho. */
+  identidade(): Promise<string>;
   /** Lê até `quantidade` bytes a partir de `posicao`; devolve quantos leu. */
   ler(destino: Uint8Array, deslocamento: number, quantidade: number, posicao: number): Promise<number>;
   gravarTudo(dados: Uint8Array): Promise<void>;
@@ -24,6 +26,17 @@ export interface InfoCaminho {
   /** Atributo somente leitura (no Windows, o bit de escrita ausente no `mode`). */
   somenteLeitura: boolean;
   bytes: number;
+  /** Data de modificação (ms desde 1970), para o índice da biblioteca saber se o arquivo mudou. */
+  modificadoEmMs: number;
+  /** Identidade do arquivo no volume (`dev:ino`): dois nomes do mesmo arquivo têm a mesma. */
+  identidade: string;
+}
+
+/** Entrada de uma pasta, sem seguir link simbólico. */
+export interface EntradaPasta {
+  nome: string;
+  arquivoComum: boolean;
+  link: boolean;
 }
 
 export interface SistemaArquivos {
@@ -33,6 +46,8 @@ export interface SistemaArquivos {
   /** Informação do próprio caminho, sem seguir link simbólico. Erro ENOENT se não existir. */
   info(caminho: string): Promise<InfoCaminho>;
   renomear(de: string, para: string): Promise<void>;
+  /** Link físico novo para o arquivo; falha com EEXIST se `para` já existir (nunca sobrescreve). */
+  vincular(de: string, para: string): Promise<void>;
   /** Copia para um caminho novo; falha se `para` já existir. */
   copiar(de: string, para: string): Promise<void>;
   /** `fsync` de um arquivo já gravado (a cópia do `.bak`). */
@@ -42,6 +57,8 @@ export interface SistemaArquivos {
   apagar(caminho: string): Promise<void>;
   /** Cria a pasta e as que faltarem acima dela; não falha se já existir. */
   criarPasta(caminho: string): Promise<void>;
+  /** Entradas diretas da pasta (sem descer em subpastas). */
+  listarPasta(caminho: string): Promise<EntradaPasta[]>;
 }
 
 async function embrulhar(caminho: string, flags: string | number): Promise<ArquivoAberto> {
@@ -49,6 +66,10 @@ async function embrulhar(caminho: string, flags: string | number): Promise<Arqui
   return {
     tamanho: async () => (await h.stat()).size,
     arquivoComum: async () => (await h.stat()).isFile(),
+    identidade: async () => {
+      const s = await h.stat({ bigint: true });
+      return `${s.dev}:${s.ino}`;
+    },
     ler: async (destino, deslocamento, quantidade, posicao) => (await h.read(destino, deslocamento, quantidade, posicao)).bytesRead,
     gravarTudo: (dados) => h.writeFile(dados),
     sincronizar: () => h.sync(),
@@ -60,10 +81,19 @@ export const SISTEMA_ARQUIVOS_NODE: SistemaArquivos = {
   criarExclusivo: (caminho) => embrulhar(caminho, 'wx'),
   abrirLeitura: (caminho) => embrulhar(caminho, constants.O_RDONLY),
   info: async (caminho) => {
-    const s = await lstat(caminho);
-    return { arquivoComum: s.isFile(), pasta: s.isDirectory(), link: s.isSymbolicLink(), somenteLeitura: (s.mode & 0o200) === 0, bytes: s.size };
+    const s = await lstat(caminho, { bigint: true });
+    return {
+      arquivoComum: s.isFile(),
+      pasta: s.isDirectory(),
+      link: s.isSymbolicLink(),
+      somenteLeitura: (s.mode & 0o200n) === 0n,
+      bytes: Number(s.size),
+      modificadoEmMs: Number(s.mtimeMs),
+      identidade: `${s.dev}:${s.ino}`,
+    };
   },
   renomear: (de, para) => rename(de, para),
+  vincular: (de, para) => link(de, para),
   copiar: (de, para) => copyFile(de, para, constants.COPYFILE_EXCL),
   sincronizar: async (caminho) => {
     const h = await open(caminho, 'r+');
@@ -76,6 +106,8 @@ export const SISTEMA_ARQUIVOS_NODE: SistemaArquivos = {
   tornarGravavel: (caminho) => chmod(caminho, 0o644),
   apagar: (caminho) => unlink(caminho),
   criarPasta: async (caminho) => void (await mkdir(caminho, { recursive: true })),
+  listarPasta: async (caminho) =>
+    (await readdir(caminho, { withFileTypes: true })).map((d) => ({ nome: d.name, arquivoComum: d.isFile(), link: d.isSymbolicLink() })),
 };
 
 /** Código de erro do Node (`EPERM`, `ENOENT`...) ou `undefined`. */

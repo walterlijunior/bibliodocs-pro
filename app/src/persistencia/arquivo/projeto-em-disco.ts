@@ -131,45 +131,67 @@ function mensagemAbertura(erro: unknown): string {
   }
 }
 
+/** Bytes de um arquivo lido com o limite de tamanho, ou a mensagem pt-BR do motivo de não ter lido. */
+export type ResultadoLeituraArquivo =
+  | { ok: true; bytes: Uint8Array }
+  /** `codigo`: código do sistema (`ENOENT`...), quando a falha veio do disco. */
+  | { ok: false; mensagem: string; codigo?: string };
+
 /**
- * Lê e valida um `.bdp` do disco. O tamanho é conferido pelo caminho e de novo pelo descritor aberto, e a leitura
- * para no tamanho conferido: um arquivo que cresce durante a leitura é recusado, nunca lido além do limite.
- * Nunca lança.
+ * Lê um arquivo inteiro sem passar do limite. O tamanho é conferido pelo caminho e de novo pelo descritor aberto, e a
+ * leitura para no tamanho conferido: um arquivo que cresce durante a leitura é recusado, nunca lido além do limite.
+ * Nunca lança. Usada pela abertura e pelo resumo da biblioteca (M1-T09).
  */
-export async function abrirProjeto(caminho: string, opcoes: OpcoesAbertura = {}): Promise<ResultadoAbertura> {
-  const fs = opcoes.fs ?? SISTEMA_ARQUIVOS_NODE;
-  const limites = opcoes.limites ?? LIMITES_CONTEINER;
+export async function lerArquivoLimitado(
+  caminho: string,
+  fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE,
+  limites: LimitesConteiner = LIMITES_CONTEINER,
+): Promise<ResultadoLeituraArquivo> {
+  const falha = (mensagem: string): ResultadoLeituraArquivo => ({ ok: false, mensagem });
   const grandeDemais = 'o arquivo é maior que o limite aceito para um projeto';
   let arquivo: ArquivoAberto | null = null;
   try {
     const info = await fs.info(caminho);
-    if (!info.arquivoComum) return erroArquivo('o caminho não é um arquivo comum');
-    if (info.bytes > limites.bytesArquivo) return erroArquivo(grandeDemais);
+    if (!info.arquivoComum) return falha('o caminho não é um arquivo comum');
+    if (info.bytes > limites.bytesArquivo) return falha(grandeDemais);
 
     arquivo = await fs.abrirLeitura(caminho);
     // O caminho pode ter virado link ou pasta entre a conferência e a abertura (revisão M6-07).
-    if (!(await arquivo.arquivoComum())) return erroArquivo('o caminho não é um arquivo comum');
+    if (!(await arquivo.arquivoComum())) return falha('o caminho não é um arquivo comum');
+    // O caminho conferido e o descritor aberto precisam ser o mesmo arquivo (link trocado no meio; revisão do M1-T09, B6).
+    if ((await arquivo.identidade()) !== info.identidade) return falha('o arquivo mudou durante a leitura');
     const tamanho = await arquivo.tamanho();
-    if (tamanho > limites.bytesArquivo) return erroArquivo(grandeDemais);
+    if (tamanho > limites.bytesArquivo) return falha(grandeDemais);
     const bytes = new Uint8Array(tamanho);
     let lidos = 0;
     while (lidos < tamanho) {
       const n = await arquivo.ler(bytes, lidos, tamanho - lidos, lidos);
-      if (n === 0) return erroArquivo('o arquivo mudou durante a leitura');
+      if (n === 0) return falha('o arquivo mudou durante a leitura');
       lidos += n;
     }
-    if ((await arquivo.ler(new Uint8Array(1), 0, 1, tamanho)) !== 0) return erroArquivo('o arquivo mudou durante a leitura');
-    await arquivo.fechar().catch(() => undefined);
-    arquivo = null;
+    if ((await arquivo.ler(new Uint8Array(1), 0, 1, tamanho)) !== 0) return falha('o arquivo mudou durante a leitura');
+    return { ok: true, bytes };
+  } catch (e) {
+    const codigo = codigoErro(e);
+    return codigo ? { ok: false, mensagem: mensagemAbertura(e), codigo } : falha(mensagemAbertura(e));
+  } finally {
+    if (arquivo) await arquivo.fechar().catch(() => undefined);
+  }
+}
 
-    const r = lerProjeto(bytes, limites, opcoes.migracoes);
+/** Lê e valida um `.bdp` do disco (leitura por `lerArquivoLimitado`). Nunca lança. */
+export async function abrirProjeto(caminho: string, opcoes: OpcoesAbertura = {}): Promise<ResultadoAbertura> {
+  const fs = opcoes.fs ?? SISTEMA_ARQUIVOS_NODE;
+  const lido = await lerArquivoLimitado(caminho, fs, opcoes.limites);
+  if (!lido.ok) return erroArquivo(lido.mensagem);
+  const bytes = lido.bytes;
+  try {
+    const r = lerProjeto(bytes, opcoes.limites ?? LIMITES_CONTEINER, opcoes.migracoes);
     if (!r.ok) return r;
     if (r.migracao.length === 0) return { ...r, backupMigracao: null };
     const backup = await gravarBackupMigracao(bytes, r.pacote.manifesto.id, r.migracao[0]!, fs, opcoes);
     return backup ? { ...r, backupMigracao: backup } : erroArquivo(MENSAGEM_SEM_BACKUP);
   } catch (e) {
     return erroArquivo(mensagemAbertura(e));
-  } finally {
-    if (arquivo) await arquivo.fechar().catch(() => undefined);
   }
 }

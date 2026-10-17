@@ -1,13 +1,17 @@
 /**
- * Liga os manipuladores da API `projetos` ao Electron: `ipcMain.handle`, diálogos nativos e o processo leitor.
- * As decisões ficam nos módulos puros desta pasta; aqui só se traduz o evento e se escolhe a implementação real.
+ * Liga os manipuladores das APIs `projetos` e `biblioteca` ao Electron: `ipcMain.handle`, diálogos nativos, Lixeira e
+ * o processo leitor. As decisões ficam nos módulos puros desta pasta; aqui só se traduz o evento e se escolhe a
+ * implementação real.
  */
+import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
-import { CANAIS_PROJETOS } from '../../aplicacao';
+import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
+import { CANAIS_BIBLIOTECA, CANAIS_PROJETOS } from '../../aplicacao';
 import { salvarProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
-import { lerIsolado } from './leitor-isolado';
+import { blindar } from './chamada';
+import { lerIsolado, resumirIsolado } from './leitor-isolado';
+import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
 import type { InfoRemetente } from './remetente';
 
@@ -21,6 +25,12 @@ export function pastaDadosLocais(): string {
   const local = process.platform === 'win32' ? process.env['LOCALAPPDATA'] : undefined;
   return local ? join(local, 'BiblioDocsPro') : app.getPath('userData');
 }
+
+/** Pasta padrão da biblioteca (ADR-0004, seção 5): `Documentos\BiblioDocs Pro\Trabalhos`. */
+export const pastaPadraoBiblioteca = (): string => join(app.getPath('documents'), 'BiblioDocs Pro', 'Trabalhos');
+
+/** Id de projeto novo: `prj_` + 16 caracteres base64url (dentro do `PADRAO_ID`). */
+const gerarIdProjeto = (): string => `prj_${randomBytes(12).toString('base64url')}`;
 
 function infoRemetente(evento: IpcMainInvokeEvent): InfoRemetente {
   const quadro = evento.senderFrame;
@@ -38,12 +48,14 @@ const janelaDe = (idConteudo: number): BrowserWindow | null => {
 };
 
 /**
- * Registra os canais. `conteudosPermitidos` devolve os ids dos `webContents` das janelas do app; `vigiar` deve ser
- * chamado para cada janela criada, para que os identificadores dela morram com ela.
+ * Registra os canais das duas APIs. `conteudosPermitidos` devolve os ids dos `webContents` das janelas do app;
+ * `vigiar` deve ser chamado para cada janela criada, para que os identificadores dela morram com ela.
  */
 export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitidos: () => ReadonlySet<number>) {
   const entradaLeitor = join(__dirname, 'leitor-projeto.js');
-  const pastaBackups = join(pastaDadosLocais(), 'backups');
+  const dadosLocais = pastaDadosLocais();
+  const pastaBackups = join(dadosLocais, 'backups');
+  const ler = (caminho: string) => lerIsolado(entradaLeitor, { caminho, pastaBackups });
 
   const { manipuladores, registro } = criarManipuladoresProjetos({
     origem,
@@ -70,26 +82,74 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       });
       return r.canceled || !r.filePath ? null : r.filePath;
     },
-    ler: (caminho) => lerIsolado(entradaLeitor, { caminho, pastaBackups }),
+    ler,
     salvar: (destino, pacote) => salvarProjeto(destino, pacote),
   });
 
-  for (const [canal, manipulador] of Object.entries(manipuladores)) {
-    ipcMain.handle(canal, (evento, ...argumentos: unknown[]) => manipulador(infoRemetente(evento), argumentos));
+  const biblioteca = criarManipuladoresBiblioteca({
+    origem,
+    conteudosPermitidos,
+    pastaPadrao: pastaPadraoBiblioteca(),
+    arquivoIndice: join(dadosLocais, 'biblioteca.json'),
+    arquivoPreferencias: join(dadosLocais, 'preferencias.json'),
+    ambiente: process.env,
+    escolherPasta: async (id) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showOpenDialog(janela, {
+        title: 'Escolher a pasta da biblioteca',
+        defaultPath: app.getPath('documents'),
+        properties: ['openDirectory', 'createDirectory'],
+      });
+      return r.canceled ? null : (r.filePaths[0] ?? null);
+    },
+    confirmarExclusao: async (id, nomeArquivo) => {
+      const janela = janelaDe(id);
+      if (!janela) return false;
+      const r = await dialog.showMessageBox(janela, {
+        type: 'warning',
+        title: 'Excluir trabalho',
+        message: `Mover “${nomeArquivo}” para a Lixeira?`,
+        detail: 'O arquivo pode ser restaurado pela Lixeira do Windows.',
+        buttons: ['Mover para a Lixeira', 'Cancelar'],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      });
+      return r.response === 0;
+    },
+    enviarParaLixeira: (caminho) => shell.trashItem(caminho),
+    resumir: (caminhos) => resumirIsolado(entradaLeitor, caminhos),
+    ler,
+    salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    projetos: registro,
+    gerarIdProjeto,
+    agora: () => new Date(),
+    appVersao: app.getVersion(),
+  });
+
+  const log = (m: string) => console.warn(m);
+  for (const [canal, manipulador] of [...Object.entries(manipuladores), ...Object.entries(biblioteca.manipuladores)]) {
+    const protegido = blindar(canal, manipulador, log);
+    ipcMain.handle(canal, (evento, ...argumentos: unknown[]) => protegido(infoRemetente(evento), argumentos));
   }
 
   return {
     vigiar(conteudo: WebContents): void {
       const id = conteudo.id;
-      conteudo.once('destroyed', () => registro.esquecerDono(id));
-      conteudo.on('render-process-gone', () => registro.esquecerDono(id));
+      const esquecer = () => {
+        registro.esquecerDono(id);
+        biblioteca.itens.esquecerDono(id);
+      };
+      conteudo.once('destroyed', esquecer);
+      conteudo.on('render-process-gone', esquecer);
       // Recarga ou navegação para outro documento: a página nova não herda os arquivos abertos (S8-03).
       conteudo.on('did-start-navigation', (detalhes) => {
-        if (detalhes.isMainFrame && !detalhes.isSameDocument) registro.esquecerDono(id);
+        if (detalhes.isMainFrame && !detalhes.isSameDocument) esquecer();
       });
     },
     remover(): void {
-      for (const canal of Object.values(CANAIS_PROJETOS)) ipcMain.removeHandler(canal);
+      for (const canal of [...Object.values(CANAIS_PROJETOS), ...Object.values(CANAIS_BIBLIOTECA)]) ipcMain.removeHandler(canal);
     },
   };
 }

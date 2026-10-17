@@ -8,7 +8,7 @@
  * só então o diálogo, a leitura ou a gravação. Falhar em 1 ou 2 rejeita a promessa com `ErroIpcRecusado`, de
  * mensagem genérica; erros esperados (cancelado, arquivo em uso, inválido) voltam como resultado `ok: false`.
  */
-import { basename, extname } from 'node:path';
+import { basename } from 'node:path';
 import {
   CANAIS_PROJETOS,
   type CanalProjetos,
@@ -18,14 +18,14 @@ import {
 } from '../../aplicacao';
 import { LIMITES_V1, type ErroValidacao } from '../../dominio/esquemas';
 import { textoPlano } from '../../dominio/modelo';
-import { MENSAGENS_FALHA, type PacoteProjeto, type ResultadoSalvamento } from '../../persistencia';
+import { ehArquivoProjeto, EXTENSAO_PROJETO, limparNomeArquivo, MENSAGENS_FALHA, type PacoteProjeto, type ResultadoSalvamento } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerIdentificador, lerPacoteTransferivel } from './argumentos';
+import { criarConferencia, ErroIpcRecusado, type Manipulador } from './chamada';
 import type { RespostaLeitor } from './protocolo-leitor';
 import { RegistroProjetos } from './registro-projetos';
-import { remetentePermitido, type InfoRemetente } from './remetente';
 
-export const EXTENSAO_PROJETO = '.bdp';
+export { EXTENSAO_PROJETO };
 
 export interface DependenciasProjetos {
   origem: OrigemPermitida;
@@ -43,27 +43,11 @@ export interface DependenciasProjetos {
   log?: (mensagem: string) => void;
 }
 
-export class ErroIpcRecusado extends Error {
-  constructor() {
-    super('chamada recusada');
-    this.name = 'ErroIpcRecusado';
-  }
-}
-
-export type Manipulador = (remetente: InfoRemetente, argumentos: readonly unknown[]) => Promise<unknown>;
-
-/** Caracteres que o Windows não aceita em nome de arquivo, e controles. */
-const PROIBIDOS_NOME = /[<>:"/\\|?*\u0000-\u001F]/gu;
-const NOMES_RESERVADOS = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
-const NOME_PADRAO = 'Trabalho';
-const MAX_NOME = 80;
+export { ErroIpcRecusado, type Manipulador };
 
 /** Nome sugerido no "Salvar como": o título do trabalho, limpo para o Windows, com `.bdp`. */
 export function nomeSugerido(pacote: PacoteProjeto): string {
-  let nome = textoPlano(pacote.documento.metadados.titulo).replace(PROIBIDOS_NOME, ' ').replace(/\s+/gu, ' ').trim();
-  nome = [...nome].slice(0, MAX_NOME).join('').replace(/[ .]+$/u, '');
-  if (nome === '' || NOMES_RESERVADOS.test(nome)) nome = NOME_PADRAO;
-  return `${nome}${EXTENSAO_PROJETO}`;
+  return limparNomeArquivo(textoPlano(pacote.documento.metadados.titulo));
 }
 
 const MENSAGEM_EXTENSAO = 'Não foi possível salvar: o nome do arquivo precisa terminar em .bdp.';
@@ -75,12 +59,38 @@ const limitarErros = <T>(erros: readonly T[]): T[] => erros.slice(0, LIMITES_V1.
 const erroPacote = (erros: ErroValidacao[]) =>
   ({ ok: false, motivo: 'ERRO', codigo: 'PACOTE_INVALIDO', mensagem: MENSAGENS_FALHA.PACOTE_INVALIDO, erros: limitarErros(erros) }) as const;
 
-const ehProjeto = (caminho: string) => extname(caminho).toLowerCase() === EXTENSAO_PROJETO;
+const ehProjeto = (caminho: string) => ehArquivoProjeto(basename(caminho));
 
 function paraResultadoSalvar(r: ResultadoSalvamento, log: (m: string) => void): ResultadoSalvar {
   if (r.ok) return { ok: true, nomeArquivo: basename(r.caminho), avisos: r.avisos };
   log(`[ipc] salvamento falhou: ${r.codigo}${r.detalhe ? ` (${r.detalhe})` : ''}`);
   return { ok: false, motivo: 'ERRO', codigo: r.codigo, mensagem: r.mensagem, erros: 'erros' in r ? limitarErros(r.erros) : [] };
+}
+
+/**
+ * Resultado de `abrir` para um arquivo já lido pelo processo leitor; registra o identificador de gravação quando o
+ * arquivo é um `.bdp` lido sem erro. Usado também pela biblioteca (abrir da lista).
+ */
+export function respostaAbrir(caminho: string, lido: RespostaLeitor, registro: RegistroProjetos, dono: number): ResultadoAbrir {
+  const nomeArquivo = basename(caminho);
+  if (lido.ok) {
+    // Arquivo aberto com outra extensão (filtro "*.*" no diálogo) não vira destino de `salvar` (S8-04).
+    const identificador = ehProjeto(caminho) ? registro.registrar(caminho, dono) : null;
+    const atualizacao =
+      lido.migracao.length > 0 && lido.nomeBackup !== null ? { versaoOrigem: lido.migracao[0]!, nomeBackup: lido.nomeBackup } : null;
+    return { ok: true, projeto: { identificador, nomeArquivo, pacote: lido.pacote, avisos: lido.avisos, atualizacao } };
+  }
+  if (lido.versaoFutura) {
+    // Sem identificador: um arquivo de versão futura nunca recebe destino de gravação.
+    return { ok: false, motivo: 'VERSAO_FUTURA', nomeArquivo, ...lido.versaoFutura };
+  }
+  return {
+    ok: false,
+    motivo: 'ERRO',
+    nomeArquivo,
+    mensagem: `Não foi possível abrir “${nomeArquivo}”: ${lido.erros[0]?.mensagem ?? 'arquivo inválido'}.`,
+    erros: limitarErros(lido.erros),
+  };
 }
 
 export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
@@ -90,21 +100,7 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
   const registro = dep.registro ?? new RegistroProjetos();
   const log = dep.log ?? ((m: string) => console.warn(m));
 
-  /** Passos 1 e 2: remetente e quantidade de argumentos. */
-  const conferir = (canal: CanalProjetos, r: InfoRemetente, argumentos: readonly unknown[], quantidade: number): void => {
-    if (!remetentePermitido(r, dep.origem, dep.conteudosPermitidos())) {
-      log(`[ipc] ${canal} recusado: remetente não permitido (conteúdo ${r.idConteudo})`);
-      throw new ErroIpcRecusado();
-    }
-    if (argumentos.length !== quantidade) {
-      log(`[ipc] ${canal} recusado: ${argumentos.length} argumento(s), esperado ${quantidade}`);
-      throw new ErroIpcRecusado();
-    }
-  };
-  const recusarArgumento = (canal: CanalProjetos, qual: string): never => {
-    log(`[ipc] ${canal} recusado: ${qual} fora do contrato`);
-    throw new ErroIpcRecusado();
-  };
+  const { conferir, recusarArgumento } = criarConferencia(dep.origem, dep.conteudosPermitidos, log);
 
   const pacoteOuRecusa = (canal: CanalProjetos, valor: unknown) => {
     const p = lerPacoteTransferivel(valor);
@@ -116,26 +112,7 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     conferir(CANAIS_PROJETOS.abrir, r, argumentos, 0);
     const caminho = await dep.escolherArquivoParaAbrir(r.idConteudo);
     if (caminho === null) return { ok: false, motivo: 'CANCELADO' };
-    const nomeArquivo = basename(caminho);
-    const lido = await dep.ler(caminho);
-    if (lido.ok) {
-      // Arquivo aberto com outra extensão (filtro "*.*" no diálogo) não vira destino de `salvar` (S8-04).
-      const identificador = ehProjeto(caminho) ? registro.registrar(caminho, r.idConteudo) : null;
-      const atualizacao =
-        lido.migracao.length > 0 && lido.nomeBackup !== null ? { versaoOrigem: lido.migracao[0]!, nomeBackup: lido.nomeBackup } : null;
-      return { ok: true, projeto: { identificador, nomeArquivo, pacote: lido.pacote, avisos: lido.avisos, atualizacao } };
-    }
-    if (lido.versaoFutura) {
-      // Sem identificador: um arquivo de versão futura nunca recebe destino de gravação.
-      return { ok: false, motivo: 'VERSAO_FUTURA', nomeArquivo, ...lido.versaoFutura };
-    }
-    return {
-      ok: false,
-      motivo: 'ERRO',
-      nomeArquivo,
-      mensagem: `Não foi possível abrir “${nomeArquivo}”: ${lido.erros[0]?.mensagem ?? 'arquivo inválido'}.`,
-      erros: limitarErros(lido.erros),
-    };
+    return respostaAbrir(caminho, await dep.ler(caminho), registro, r.idConteudo);
   };
 
   const salvar: Manipulador = async (r, argumentos): Promise<ResultadoSalvar> => {

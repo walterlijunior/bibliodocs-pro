@@ -6,6 +6,21 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T09: biblioteca de trabalhos.
+  - Contrato `window.bibliodocs.biblioteca` (`listar`, `escolherPasta`, `criar`, `abrir`, `renomear`, `duplicar`,
+    `excluir`) em `app/src/aplicacao/portas/biblioteca.ts`. Cada arquivo da lista tem um identificador opaco por
+    janela; a pasta aparece só pelo nome.
+  - Pasta padrão `Documentos\BiblioDocs Pro\Trabalhos` (criada se faltar), configurável. A escolha fica em
+    `%LOCALAPPDATA%\BiblioDocsPro\preferencias.json`.
+  - Índice-cache `%LOCALAPPDATA%\BiblioDocsPro\biblioteca.json`, recriável. Resumo (título, tipo, datas) feito no
+    processo leitor, em lotes, só para arquivos novos ou alterados.
+  - Criar trabalho vazio (tipo genérico), renomear sem sobrescrever (link físico), duplicar com id novo e excluir para
+    a Lixeira com confirmação do principal. Renomear e excluir recusam trabalho aberto.
+  - Indicador de pasta no OneDrive (R16) para a interface.
+  - `blindar`: exceção inesperada de qualquer manipulador IPC volta ao renderer como recusa genérica, sem caminho.
+  - Revisão do `revisor-seguranca`: A1 (Alta: listagem quadrática), M1–M4 e B1–B4, B6 corrigidos; B5 aceito.
+    Adendo técnico no ADR-0004. Total de 594 testes (102 novos); PER-21, PER-22, SEG-06 e SEG-07 na matriz de testes;
+    19 de 19 mutações detectadas.
 - Etapa 5, M1-T08: IPC tipado.
   - Contrato `window.bibliodocs.projetos` (`abrir`, `salvar`, `salvarComo`, `fechar`) em
     `app/src/aplicacao/portas/projetos.ts`; o preload expõe só essas quatro funções, cada uma com canal fixo (C-10).

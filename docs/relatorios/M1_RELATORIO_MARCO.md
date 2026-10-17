@@ -340,3 +340,70 @@ com as ressalvas abaixo, todas tratadas.
   Electron) → E2E do M1-T13.
 - Diálogos nativos não foram exercitados com clique; a interface que os chama é do M1-T10/T11.
 - O teto de heap de 2 GB é estimativa.
+
+## M1-T09 — Biblioteca de trabalhos
+
+**Implementação:** sessão principal (o plano indicava o `especialista-documento`).
+**Revisão:** `revisor-seguranca` (somente leitura).
+
+**Arquivos:**
+- novos:
+  - `app/src/aplicacao/portas/biblioteca.ts` e `app/src/aplicacao/servicos/criar-trabalho.ts`;
+  - `app/src/persistencia/biblioteca/` (`nomes`, `indice`, `resumo`, `varredura`, `renomear`);
+  - `app/src/principal/ipc/manipuladores-biblioteca.ts` e `app/src/principal/ipc/chamada.ts`;
+  - `app/tests/biblioteca.test.ts`;
+- alterados:
+  - `sistema-arquivos.ts`: `listarPasta`, `vincular`, `modificadoEmMs`, identidade;
+  - `projeto-em-disco.ts`: `lerArquivoLimitado` extraído;
+  - no IPC: `registro-projetos.ts`, `protocolo-leitor.ts`, `leitor-isolado.ts`, `leitor-projeto.ts`, `registrar.ts`,
+    `manipuladores-projetos.ts`;
+  - `preload/api.ts`, `aplicacao/index.ts`, `persistencia/index.ts` e dois testes antigos (a forma da API e o falso do
+    `SistemaArquivos`).
+
+**Decisões técnicas:** adendo do M1-T09 no ADR-0004 (índice e preferências, lote no leitor, operações, OneDrive,
+resíduos).
+
+**Critérios de aceite:**
+- Apagar o índice e reabrir recria a mesma lista. [VERIFICADO, `tests/biblioteca.test.ts`]
+- Excluir pede confirmação no principal e o arquivo vai para a Lixeira:
+  - [VERIFICADO, unidade] cancelar não toca no arquivo;
+  - [VERIFICADO, Electron real] com `shell.trashItem`, o arquivo sumiu da pasta e apareceu na Lixeira do Windows
+    (consulta `Shell.Application`, `Namespace(10)`) com o local de origem.
+
+**Revisão do `revisor-seguranca`:** 1 achado Alto, 4 Médios e 6 Baixos. Todos tratados, com 2 resíduos registrados.
+
+| Achado | Tratamento |
+|---|---|
+| A1 (Alta): `idPara` quadrático; 5 000 itens levavam cerca de 40 s por listagem, com o principal congelado | Corrigido: chave do caminho calculada ao registrar e índice por janela + caminho. Teste: 5 000 `idPara` + `manterSo` < 1 s; listagem de 5 000 arquivos dentro do prazo do teste |
+| M1 (Média): exceção inesperada (ex.: `lstat` depois de gravar) chegava ao renderer com o caminho | Corrigido: `registrarNoIndice` nunca lança (índice é cache) e `blindar` troca qualquer exceção por `ErroIpcRecusado` genérico, com o detalhe só no log |
+| M2 (Média): diálogos dentro da fila única a travavam; varredura sem prazo | Corrigido: diálogos fora da fila, com reconferência dentro; prazo total de 180 s, com lista parcial e aviso |
+| M3 (Média): um arquivo hostil derrubava o lote de 50 em toda listagem | Corrigido: lote perdido refeito um a um, e o hostil fica inválido no índice; desvio registrado no ADR-0004 |
+| M4 (Média): corridas de `abrir` com renomear e excluir | Corrigido: `abrir` da biblioteca na fila; excluir reconfere caminho e "aberto" depois da confirmação. Resíduo: `projetos.abrir` por diálogo durante um renomear |
+| B1 (Baixa): `rename` do Windows sobrescreve | Corrigido no renomear: link físico (EEXIST) e remoção do nome antigo, com alternativa para volume sem link. Resíduo: criar/duplicar contra processo externo |
+| B2 (Baixa): troca só de caixa em pasta sensível à caixa | Corrigido: exige a mesma identidade `dev:ino` |
+| B3 (Baixa): surrogates órfãos, `\p{Cf}`, `CONIN$`/`CONOUT$` | Corrigido na validação e na limpeza do nome |
+| B4 (Baixa): preferência com caminho relativo; mensagem de link confusa | Corrigido: caminho absoluto exigido; link de pasta recusado com mensagem própria |
+| B5 (Baixa): índice adulterado altera só a exibição | Aceito (quem escreve em `%LOCALAPPDATA%` já controla a conta; abrir e duplicar releem o arquivo) |
+| B6 (Baixa): link trocado entre `lstat` e `open` | Corrigido: `lerArquivoLimitado` compara a identidade do caminho com a do descritor |
+
+**Verificação [VERIFICADO, sessão principal]:**
+- `npm run verificar`: typecheck OK, 13 arquivos, **594/594** (102 novos), `found 0 vulnerabilities`;
+  `npm run build` OK.
+- Mutação: 19 de 19 detectadas. Entre elas: sem confirmação, excluir ou renomear aberto, renomear sobrescreve,
+  duplicar mantém o id, sem fila, id de item de outra janela, cache ignora a data, índice de outra pasta, sem conferir
+  o remetente, caminho ao renderer, `blindar` repassa o erro, lote sem refazer um a um, troca de caixa sem identidade,
+  sem identidade do descritor. A primeira rodada mostrou que, com o link físico, a fila deixou de ser necessária no
+  renomear simultâneo; o teste de duas cópias simultâneas passou a cobri-la.
+- Fumaça no Electron 44.8.0 (script no scratchpad, fora do repositório):
+  - pedido de resumo real ao `leitor-projeto` (válido, inválido, inexistente) → `ok`, `invalido`, `invalido`, em
+    233 ms;
+  - `shell.trashItem` → arquivo fora da pasta e presente na Lixeira.
+- `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+- Defeito achado pelos testes durante a implementação: `.bdp` digitado sozinho virava o nome `.bdp.bdp` (o `extname`
+  trata `.bdp` como arquivo oculto). Corrigido.
+
+**Limitações:**
+- Diálogos nativos (escolher pasta, confirmar exclusão) não foram exercitados com clique; a interface é do M1-T10/T11.
+- O aviso de OneDrive só chega como `naNuvem` na resposta; o texto do aviso na tela é do M1-T10/T11.
+- A miniatura do índice (ADR-0004, seção 5) não foi feita: ainda não existe miniatura nos projetos.
+- A fumaça deixou dois arquivos de teste (`bdp-fumaca-lixeira-*.bdp`) na Lixeira do usuário.

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T08 concluído (IPC tipado).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T08 concluídos; próximo T09).
+**Última atualização:** 2026-10-16 — M1-T09 concluído (biblioteca de trabalhos).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T09 concluídos; próximo T10).
 
 ## Etapas
 
@@ -15,15 +15,17 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T09** (biblioteca de trabalhos) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina
-com `cd app; npm run verificar` passando.
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T10** (casca da interface) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`).
+**Antes de codificar, o T10 exige o protótipo aprovado pelo usuário** (skill `interface-desktop`, passo 1; partir de
+`analise/poc-ui/`), com as decisões `[PROPOSTA]` do layout listadas em "Decisões aguardando o usuário". Todo incremento
+termina com `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -35,6 +37,24 @@ com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Biblioteca (M1-T09):
+  - Contrato em `app/src/aplicacao/portas/biblioteca.ts`; manipuladores em `app/src/principal/ipc/manipuladores-biblioteca.ts`;
+    disco em `app/src/persistencia/biblioteca/`. Decisões no adendo do M1-T09 no ADR-0004.
+  - Todo manipulador novo passa por `blindar` (em `registrar.ts`) e por `criarConferencia`; operação que mexe na pasta
+    entra na fila (`emFila`), e diálogo fica **fora** dela, com reconferência dentro.
+  - **Para o M1-T10/T11:**
+    - grade a partir de `ItemBiblioteca`, com `estado` `versaoFutura`/`invalido` visível;
+    - aviso quando `pasta.naNuvem`; mostrar os `avisos` da listagem (lista parcial, falha de leitura);
+    - `criar` já devolve `ProjetoAberto` com identificador de gravação;
+    - `ABERTO_NO_APP` → orientar a fechar o trabalho;
+    - nome digitado vai cru ao `renomear` (o principal valida e devolve a mensagem);
+    - texto sempre como texto (nunca `innerHTML`).
+  - **Para o M1-T12:**
+    - a varredura ignora `*.bdp.tmp-*` e `.bak`; a recuperação deles é do T12 e pode reaproveitar `listarPasta`;
+    - id novo no duplicar já separa as pastas `backups/<id>` e `recuperacao/<id>`.
+  - **Para o M1-T13:** E2E clicando nos diálogos (escolher pasta, confirmar exclusão) e Lixeira real.
+  - Resíduos aceitos: corrida de processo externo em criar/duplicar e `projetos.abrir` por diálogo durante um
+    renomear. Miniatura no índice quando houver miniatura (M2+).
 - IPC (M1-T08):
   - Contrato em `app/src/aplicacao/portas/projetos.ts`; manipuladores puros em `app/src/principal/ipc/`, ligados ao
     Electron só em `registrar.ts`. Canal novo: constante no contrato, função no `preload/api.ts`, manipulador com
@@ -144,3 +164,4 @@ com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T06) | Salvamento atômico pela sessão principal: temporário exclusivo com `fsync`; `.bak` por cópia (desvio do ADR registrado em adendo: o destino nunca some); troca por `rename`; tentativas EPERM/EBUSY/EACCES num orçamento único; fila por destino; `abrirProjeto` com limite conferido pelo caminho e pelo descritor. `revisor-seguranca`: 0 Alta, M6-01/M6-02 (Média) e 5 Baixas corrigidos, M6-03 → T12, M6-10/11 → T08. Bloqueio real medido (PowerShell): EPERM, 6 tentativas, ~1,64 s, original intacto. 25 MB: gravação 64–180 ms. 13/13 mutações detectadas. `verificar:tudo` 407/407, 0 vulnerabilidades, build OK. Commit autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T07) | Migrações pela sessão principal (retomado de sessão anterior com o código já escrito): cadeia pura `migrar_N_para_N+1`, registro de produção vazio, migração fictícia v0→v1 só nos testes com fixtures de entrada e saída; versão futura → `ok: false` com `PacoteSomenteLeitura`; backup obrigatório antes de migrar. `especialista-documento`: 0 Alta, M1/M2 (Média) e B1–B5 corrigidos; o teste novo da troca do backup revelou um temporário que sobrava, também corrigido. 27/28 mutações detectadas (1 equivalente). `verificar:tudo` 443/443, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `bdc9176` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T08) | IPC tipado pela sessão principal: contrato `window.bibliodocs.projetos` (abrir, salvar, salvarComo, fechar) em `aplicacao/portas`; preload com 4 funções de canal fixo; principal confere remetente (webContents, quadro principal, origem) e argumentos (zod estrito, limites) antes de qualquer diálogo; identificadores opacos por janela; só nomes de arquivo ao renderer; leitura do `.bdp` num `utilityProcess`. `revisor-seguranca`: 0 Alta, S8-01/S8-02 (Média) e S8-03–S8-07 corrigidos (sandbox do leitor → Etapa 7). 8/8 mutações detectadas. Fumaça no Electron 44.8.0: `Uint8Array` atravessa `contextBridge` e `utilityProcess`; 25 MB × 20 leituras, 307–408 ms. `verificar` 492/492, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `0c0acad` autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T09) | Biblioteca pela sessão principal: contrato `window.bibliodocs.biblioteca` (7 canais); pasta padrão `Documentos\BiblioDocs Pro\Trabalhos` configurável (`preferencias.json`); índice-cache `biblioteca.json` recriável, com resumo no processo leitor em lotes; criar, renomear (link físico, nunca sobrescreve), duplicar (id novo), excluir para a Lixeira com confirmação do principal; aviso de OneDrive. `revisor-seguranca`: A1 (Alta, listagem quadrática ~40 s com 5 000 itens), M1–M4, B1–B4 e B6 corrigidos; B5 aceito; 2 resíduos registrados no adendo do ADR-0004. 19/19 mutações detectadas. Fumaça no Electron 44.8.0: resumo real em 233 ms; `shell.trashItem` → arquivo na Lixeira do Windows (conferido por `Shell.Application`). `verificar` 594/594, 0 vulnerabilidades; build OK; kit 0 falhas. Sem commit (aguarda autorização). |
