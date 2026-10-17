@@ -4,6 +4,7 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Importa só dominio/modelo (regra 2).
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Seções no M2-T03; ilustrações, tabelas, notas e remissivas nos marcos seguintes.
  */
-export {};
+export { indicativoSecao, mapaIndicativos, numerarSecoes } from './secoes';
+export type { SecaoNumerada } from './secoes';

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M2-T01 concluído (empacotador em worker, mídias uma vez; DES-01 dentro das metas).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔).
+**Última atualização:** 2026-10-17 — M2-T03 concluído (numeração progressiva e operações sobre a árvore de seções).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔).
 
 ## Etapas
 
@@ -15,16 +15,15 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T02–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T02 e T04–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T02** (tipos de trabalho no domínio), **M2-T03** (numeração e operações sobre a árvore de seções) ou
-   **M2-T10** (backups rotativos e `.bak` ao excluir/renomear): tocam arquivos diferentes e podem vir em qualquer
-   ordem. Recomendado: T03, que destrava o T04 → T05 → T06 (editor).
+1. **M2-T04** (alíneas, citação longa e nota no modelo; destravado pelo T03), **M2-T02** (tipos de trabalho) ou
+   **M2-T10** (backups rotativos). Recomendado: T04, que segue o caminho T05 → T06 (editor).
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Decisões da preparação do M2 (2026-10-17, delegadas pelo usuário à sessão principal)
@@ -54,7 +53,22 @@ O usuário escreveu: "deixo essas decisões para você".
 - (Opcional) Abrir `analise/amostras/linha_base_tcc.docx` no Microsoft Word e informar se aparece aviso
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
+## Decisão do M2-T03 (2026-10-17, do usuário)
+- **Promover como o Word:** a seção vira a irmã logo depois da mãe e as irmãs seguintes passam a ser subseções dela; a
+  ordem do texto não muda (adendo do M2-T03 no ADR-0007).
+
 ## Instruções para etapas futuras
+- Árvore de seções (M2-T03):
+  - Numeração só por `numerarSecoes`/`mapaIndicativos` (`dominio/numeracao`); nunca gravar número no modelo.
+  - Mudança estrutural só pelas operações de `dominio/modelo/operacoes.ts`; mostrar `mensagem` da recusa como texto.
+  - **Para o M2-T06/T07:**
+    - o `HistoricoEdicao` guarda o `inverso` como o recebeu, sem copiar nem serializar (senão ele perde a permissão de
+      restaurar além dos limites);
+    - `mudou: false` não soma revisão nem empilha desfazer;
+    - seção nova precisa de id no formato do esquema (fábrica a criar; `inserirSecao` não confere o formato);
+    - memorizar `mapaIndicativos` pelo `corpo` se recalcular a cada transação.
+  - **Para o M2-T08/T09:** quando pré e pós-textuais tiverem blocos, a unicidade de ids do `inserirSecao` deve
+    considerá-los (B2 da revisão).
 - Desempenho (M2-T01):
   - Todo `salvarProjeto` do principal passa pelo empacotador (`worker_threads`, `src/principal/empacotador.ts`):
     chamada nova de gravação no principal → `salvar` de `registrar.ts` (com `{ empacotar }`), nunca `salvarProjeto`
@@ -282,4 +296,5 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (M1-T14) | Empacotamento de fumaça pela sessão principal com electron-builder 26.15.3 (dependência local informada): NSIS por usuário, fuses e ASAR, `electronDist` local, `afterPack` e gancho NSIS. Instalador 111 841 150 bytes (< 200 MB, RNF-08), instalado 390 MB. `revisor-seguranca`: 0 Alta, A-1 (Média, `--remote-debugging-port` abria CDP no pacote) corrigido com recusa de argumentos; `elevate.exe`, comentários e afterPack corrigidos; assinatura, NSIS legado e cache para a Etapa 7. Instalar/desinstalar autorizado pelo usuário: 1.ª rodada achou a cópia de 112 MB em `bibliodocs-pro-updater` → corrigida, 2.ª limpa. Fumaça CDP 11/11 (antes do A-1), negativa 6/6; ASAR adulterado recusado. O Controle Inteligente de Aplicativos bloqueou o `.exe` do `dist:fumaca` (R34). `verificar:tudo` 741/741 + E2E 8/8, 0 vulnerabilidades; 10/10 mutações; kit 0 falhas (busca de segredos passa a ignorar `node_modules`/builds). Depois, a pedido do usuário: ícone próprio (pequi) e decisão delegada de nunca apagar dados ao desinstalar (742/742). Commits `1efbb74` e `e02ae4f` autorizados pelo usuário. |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T01) | Desempenho pela sessão principal: gerador do documento grande (≈150 páginas, 25 MiB) e E2E-07 no Electron 44.8.0. Medido antes: manipuladores do instantâneo e do salvar 224–292 ms síncronos no principal, travadas de 244–406 ms, tecla de até 328 ms. Corrigido com empacotador em `worker_threads`, mídias uma vez por identificador (`PacoteEnvio`, `MIDIA_AUSENTE` com reenvio) e `SharedArrayBuffer`; depois: p95 da tecla 6–12 ms, travada ≤ ~60 ms, abrir 0,45–1,43 s, pico 700–760 MB. `revisor-seguranca`: 0 Alta, F1/F2 (Médias: mídia guardada antes da conferência, acúmulo) corrigidos, comentários F3–F5 corrigidos, F6/F7 documentados e guarda da tecla mais lenta < 150 ms; S1 conferido com o `app.asar` do `dist:pasta`. 13/14 mutações (1 equivalente). `verificar:tudo` 770/770 + E2E 9/9, 0 vulnerabilidades. Commit `4cb58b9` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M2-T03) | Numeração progressiva e operações da árvore de seções pela sessão principal: `numerarSecoes` derivada (RN-038/039, `alemDoLimite` para RN-041) e operações puras inserir/remover/mover/recuar/promover com inverso, limite de 5 níveis (mensagem orienta alíneas, RN-028) e de 1000 por nível. `especialista-documento`: 0 Alta, M1–M3 e B1, B3 corrigidas, B2 → T07/T08. Decisão do usuário: promover como o Word (ordem do texto igual). 40/40 mutações. `verificar:tudo` 790/790 + E2E 9/9, 0 vulnerabilidades; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |

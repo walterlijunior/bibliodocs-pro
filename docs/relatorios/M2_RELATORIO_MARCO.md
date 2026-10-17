@@ -5,7 +5,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | Tarefa | Situação | Data |
 |---|---|---|
 | M2-T01 Desempenho do instantâneo e do salvamento | CONCLUÍDA | 2026-10-17 |
-| M2-T02 a M2-T12 | PENDENTE | — |
+| M2-T03 Numeração e operações sobre a árvore de seções | CONCLUÍDA | 2026-10-17 |
+| M2-T02, M2-T04 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -112,3 +113,46 @@ estrita da união, `SharedArrayBuffer` só entre principal e worker, descarte do
 | F6 | Média (teste) | Memória com margem de 5–12%, `workingSetSize` superestima, sem amostra durante a digitação | Documentado no teste e aqui; rever no M5 |
 | F7 | Baixa (teste) | p95 tolera até 10 teclas lentas | Guarda nova: tecla mais lenta < 150 ms; documentado |
 | S1 | Info | Worker e chunks no ASAR real não testados | **Conferido** com o `app.asar` do `dist:pasta` (item 4 acima); `.exe` com fuses fica para a fumaça do pacote |
+
+## M2-T03 — Numeração progressiva e operações sobre a árvore de seções (RF-03)
+
+Feito pela sessão principal. Revisão somente leitura do `especialista-documento`. Decisões no adendo do M2-T03 do
+ADR-0007.
+
+### Entregue
+- `app/src/dominio/numeracao/secoes.ts`: `numerarSecoes`, `mapaIndicativos`, `indicativoSecao` (RN-038, RN-039;
+  `alemDoLimite` para RN-041).
+- `app/src/dominio/modelo/operacoes.ts`: inserir, remover, mover, recuar, promover (como o Word, por decisão do
+  usuário), `aplicarOperacaoSecao` com inversos (`rebaixar` para promover), limites de 5 níveis e de 1000 por nível.
+- `LIMITES_V1.secoesPorNivel` passa a usar `MAXIMO_SECOES_POR_NIVEL` do modelo (mesmo valor, 1000).
+
+### Testes
+- `tests/secoes-operacoes.test.ts` (20):
+  - exemplos do aceite: mover a 3 para antes da 2; recuar além da quinária recusado com mensagem;
+  - promover como o Word, com o exemplo da decisão;
+  - limites, ids repetidos, entrada congelada e compartilhamento;
+  - propriedade com 400 sequências semeadas de 12 operações, um quarto delas sobre árvores "de arquivo" com até 7
+    níveis. Confere numeração progressiva, nenhuma árvore mais funda do que `max(5, antes)`, entrada intacta, desfazer,
+    refazer e desfazer tudo.
+- **Mutações:** 1.ª rodada 27/28. A sobrevivente era uma cópia profunda no caminho, e o teste de compartilhamento foi
+  acrescentado. Depois das correções da revisão, 2.ª rodada 39/40: a sobrevivente era o relaxamento do limite no mover,
+  e entrou um teste de mover uma seção funda para um nível menos fundo. Resultado final **40/40**. O script ficou no
+  scratchpad, sem ser versionado.
+- **Resultado:** `cd app; npm run verificar:tudo` → typecheck OK; vitest **790/790**; `npm audit` 0 vulnerabilidades;
+  build OK; E2E **9/9** [VERIFICADO 2026-10-17].
+
+### Registro do revisor (`especialista-documento`, 2026-10-17, somente leitura)
+
+Sem erro de correção nos casos válidos; RN-038, RN-039, RN-041 e RN-028 conferem.
+
+| Achado | Nível | Resumo | Tratamento |
+|---|---|---|---|
+| M1 | Média | Limite de 1000 seções por nível não respeitado: operação aceita e salvamento recusado | Corrigido (`SECOES_DEMAIS`; constante única) |
+| M2 | Média | Promover mudava a ordem do texto; comentário dizia ser o inverso exato de recuar | Perguntado ao usuário → como o Word; implementado com inverso `rebaixar` |
+| M3 | Média | `restaurar: true` público permitia furar a RN-041 | Corrigido (inversos registrados em `WeakSet`; campo removido) |
+| B1 | Baixa | Mover para o mesmo lugar sem sinal de "nada mudou" | Corrigido (`mudou: false`) |
+| B2 | Baixa | Ids só conferidos no corpo; formato do id não conferido | Pendente para o M2-T07/T08 (adendo do ADR-0007) |
+| B3 | Baixa | Ids repetidos na entrada corrompiam a árvore (busca × troca por caminhos diferentes) | Corrigido (troca pelo caminho de índices da busca) |
+| B4 | Baixa | Seção inserida compartilha a referência do chamador | Documentado no cabeçalho do módulo |
+| B5 | Info | Desempenho: mover ~2 ms, inserir ~16 ms, `mapaIndicativos` ~37 ms com 111 000 seções | Memorizar no M2-T07 se necessário |
+

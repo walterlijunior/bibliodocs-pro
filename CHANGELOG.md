@@ -6,6 +6,17 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T03: numeração progressiva e operações sobre a árvore de seções (RF-03; RN-028, RN-038, RN-039, RN-041).
+  - `app/src/dominio/numeracao/secoes.ts`: numeração derivada (1, 1.1 ... 1.1.1.1.1), nunca gravada.
+  - `app/src/dominio/modelo/operacoes.ts`: inserir, remover, mover, recuar e promover, puras e com inverso para
+    desfazer/refazer.
+    - Promover funciona como o modo de tópicos do Word (decisão do usuário): as irmãs seguintes viram subseções e a
+      ordem do texto não muda.
+    - Recuar além da quinária é recusado com mensagem que orienta usar alíneas.
+    - Limite de 1000 seções por nível, igual ao do formato.
+  - Revisão do `especialista-documento`: 3 Médias e 2 Baixas corrigidas; B2 (ids fora do corpo, formato do id) fica
+    para o M2-T07/T08. Adendo M2-T03 no ADR-0007. 40/40 mutações detectadas.
+
 - Etapa 5, M2-T01: desempenho do instantâneo de recuperação e do salvamento com o documento grande (R-M1-01, R36).
   - `app/tests/apoio/documento-grande.ts`: gerador determinístico de um trabalho de ≈150 páginas com 25 MiB de mídia,
     para o M3 e a Etapa 6.

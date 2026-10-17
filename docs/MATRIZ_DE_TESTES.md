@@ -105,6 +105,15 @@ diálogos nativos, Lixeira, salvamento automático de 30 s, erro de gravação, 
 | SEG-09 | Pacote: fuses lidos do `.exe` (C-13), recusa em execução de `ELECTRON_RUN_AS_NODE`, `NODE_OPTIONS --require` e `--inspect` (com controle no `electron.exe` sem fuses); `app.asar` com 1 byte alterado recusado (C-14, controle com o original abre); configuração conferida em `tests/empacotamento.test.ts` | C-13, C-14, C-16, C-17 | PASSOU (M1-T14, 2026-10-17): fumaça do pacote e 10 testes de unidade. Repetir a cada troca de Electron ou de electron-builder |
 | SEG-10 | App empacotado recusa chave de linha de comando antes de `--` (exceto `--updated`) e sai com 2 antes da instância única; porta CDP nunca aberta | Revisão M1-T14, achado A-1/S-1 | PASSOU (M1-T14, 2026-10-17): `tests/seguranca-argumentos.test.ts` (21) e fumaça negativa 6/6 no `win-unpacked` e no instalado (`--remote-debugging-port`, `/remote-debugging-port`, `--no-sandbox`, `--inspect-brk`; controle sem argumentos abre); 10/10 mutações (com SEG-09) |
 
+## Grupo MOD — modelo e numeração (aplicativo, desde o M2-T03)
+
+Executar: `cd app; npm run verificar`. Testes em `app/tests/secoes-operacoes.test.ts`.
+
+| ID | Caso | Fonte do esperado | Status |
+|---|---|---|---|
+| MOD-01 | Numeração progressiva derivada: 1, 1.1 ... 1.1.1.1.1 sem saltos, em algarismos arábicos; seção além da quinária marcada; 64 níveis sem recursão | RN-038, RN-039, RN-041 | PASSOU (M2-T03, 2026-10-17) |
+| MOD-02 | Operações da árvore: mover a seção 3 para antes da 2 renumera tudo; recuar além da quinária recusado com mensagem que orienta usar alíneas; promover como o Word (ordem do texto igual); limite de 1000 por nível; inverso montado à mão não fura os limites; propriedade com 400 sequências (numeração, níveis, entrada intacta, desfazer e refazer) | RF-03; RN-028, RN-039, RN-041; decisão do usuário de 2026-10-17 (adendo do M2-T03 no ADR-0007) | PASSOU (M2-T03, 2026-10-17): 20 testes; 40/40 mutações detectadas |
+
 ## Grupo FUN — funcionalidades (aplicativo)
 
 | ID | Requisito | Caso | Status |
@@ -112,7 +121,7 @@ diálogos nativos, Lixeira, salvamento automático de 30 s, erro de gravação, 
 | FUN-01 | RF-01 | Criar, salvar, fechar, reabrir trabalho: conteúdo idêntico | PASSOU (M1-T13, 2026-10-17): `e2e/fluxo-trabalho.spec.ts` — título com acentos, aspas curvas, travessão e `&`; Ctrl+S → `documento.json`; Ctrl+W → foco no cartão; Enter reabre; reiniciar o app e duplo clique reabre; SHA-256 do `.bdp` igual depois das reaberturas (abrir não regrava). No M1 o conteúdo é só o título |
 | FUN-10 | RNF-04 | Encerrar o processo durante a edição e reabrir: oferta com a versão de até ~2 s antes; Recuperar e "Abrir o arquivo salvo" | PARCIAL (M1-T12, 2026-10-17): fumaça no Electron 44.8.0 por CDP, 20/20 (processo encerrado com `taskkill /F /T`; instantâneo ~1,2 s depois da alteração; oferta com o texto do ADR-0004; Recuperar → "Alterações não salvas" → Ctrl+S grava e apaga os instantâneos; segunda queda → "Abrir o arquivo salvo"; fechamento normal sem oferta; console sem erro nem CSP). PASSOU no E2E (M1-T13, 2026-10-17): `e2e/recuperacao.spec.ts` — instantâneo 1992 ms depois da alteração (pelo `mtime`), trava de sessão, `taskkill /F /T`, oferta, Recuperar, Ctrl+S apaga os instantâneos, segunda queda → "Abrir o arquivo salvo" guarda em `recuperacao-antigos`, fechamento normal sem trava nem oferta |
 | FUN-02 | RF-02 | Para cada tipo de trabalho, elementos obrigatórios presentes | NÃO EXECUTADO |
-| FUN-03 | RF-03 | Mover seção renumera seções e remissivas | NÃO EXECUTADO |
+| FUN-03 | RF-03 | Mover seção renumera seções e remissivas | PARCIAL (M2-T03, 2026-10-17): domínio — MOD-01 e MOD-02 PASSARAM; falta a interface (M2-T07) e as remissivas (M6) |
 | FUN-04 | RF-05 | Toda formatação do DOCX tem `RN` | NÃO EXECUTADO |
 | FUN-05 | RF-07/08 | Documento com 1 citação órfã e 1 referência não citada é diagnosticado | NÃO EXECUTADO |
 | FUN-06 | RF-09 | Importar CSV/XLSX com acentos, vírgula decimal, vazios e datas | NÃO EXECUTADO |

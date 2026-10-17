@@ -508,3 +508,43 @@ O usuário escreveu: "deixo essas decisões para você". As quatro propostas for
    `Bloco/Inline` e nenhuma requisição de rede ao colar (R40).
 4. **Corretor ortográfico desligado no M2.** Motivo: o corretor do Chromium baixa dicionários (C-9; zero rede); a
    revisão de texto é a do RF-18, depois do M7, opcional e desligada por padrão.
+
+## Adendo do M2-T03 (2026-10-17) — numeração e operações sobre a árvore de seções
+
+Código: `app/src/dominio/numeracao/secoes.ts` e `app/src/dominio/modelo/operacoes.ts`; testes em
+`app/tests/secoes-operacoes.test.ts`.
+
+**Decisão do usuário (2026-10-17, regra 10 do CLAUDE.md):** **promover funciona como o modo de tópicos do Word.** A
+seção vira a irmã logo depois da mãe, e as irmãs que vinham depois dela passam a ser as suas últimas subseções. A ordem
+do texto não muda. Exemplo: em `2 Método` com `2.1 Coleta` e `2.2 Análise`, promover Coleta dá `3 Coleta` com
+`3.1 Análise`. A alternativa recusada fazia a seção subir sozinha, e o texto dela passava a vir depois do das irmãs.
+
+**Decisões técnicas (sessão principal):**
+- **Numeração derivada.** `numerarSecoes(corpo)` devolve as seções em ordem de leitura, com indicativo, nível, pai e
+  `alemDoLimite`. Nada é gravado no modelo (ADR-0005 §3). As funções são iterativas e aceitam os 64 níveis do formato.
+- **Operações puras.** São elas: `inserirSecao`, `removerSecao`, `moverSecao`, `recuarSecao`, `promoverSecao` e
+  `aplicarOperacaoSecao`.
+  - Nunca lançam exceção. A recusa traz `codigo` e `mensagem` pt-BR.
+  - A entrada não é alterada: só o caminho até a mudança é copiado.
+  - `mudou: false` marca o mover para o mesmo lugar, para a sessão não somar revisão nem empilhar desfazer.
+- **Índice de destino.** `destino.indice` conta as posições da lista sem a seção que se move.
+- **Recuar** leva a seção, com as suas subseções, para o fim da seção anterior. A ordem do texto também não muda.
+- **Limites.**
+  - Quinária (RN-041): a mensagem orienta usar alíneas (RN-028). Só é recusado o que leva a seção mais fundo do que a
+    quinária **e** mais fundo do que ela já estava. Assim, um arquivo que já passa do limite pode ser corrigido.
+  - 1000 seções por nível: `MAXIMO_SECOES_POR_NIVEL` fica em `dominio/modelo`, e `LIMITES_V1.secoesPorNivel` usa o
+    mesmo valor. Sem isso, uma operação aceita gerava um trabalho que o salvamento recusava (achado M1 da revisão).
+- **Inversos.** Toda operação aceita devolve o seu inverso. Promover tem um inverso próprio, `rebaixar`, com o número
+  de subseções a devolver.
+  - Um inverso só pula os limites quando é o **mesmo objeto** devolvido por uma operação aceita (registro em
+    `WeakSet`). Um inverso montado à mão, ou serializado e lido de volta, passa pelos limites normais (achado M3).
+  - Consequência para o M2-T06/T07: o `HistoricoEdicao` guarda o inverso como o recebeu, sem copiar.
+- **Ids.** A unicidade do que se insere é conferida contra seções e blocos do corpo. As operações supõem ids únicos na
+  entrada, como a leitura do arquivo garante.
+
+**Pendências para o M2-T07/T08 (revisão do `especialista-documento`, Baixas):**
+- conferir a unicidade também contra os ids dos pré e pós-textuais quando eles tiverem blocos (B2);
+- criar uma fábrica de seção nova com id no formato do esquema, porque `inserirSecao` não confere o formato (B2);
+- memorizar `mapaIndicativos` pela identidade do `corpo` se o editor recalcular a cada transação (B5: 37 ms com
+  111 000 seções).
+

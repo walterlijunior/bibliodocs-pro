@@ -4,6 +4,8 @@
  * Os limites de tamanho do arquivo, de entradas do ZIP e de compressão ficam no contêiner (M1-T05).
  * Aqui ficam os que dependem da estrutura dos JSON.
  */
+import { MAXIMO_SECOES_POR_NIVEL } from '../modelo';
+
 export const LIMITES_V1 = {
   /** Profundidade máxima da árvore de seções (ADR-0004: "profundidade da árvore de blocos ≤ 64"). */
   profundidadeSecoes: 64,
@@ -18,7 +20,8 @@ export const LIMITES_V1 = {
   /** Trechos (`Inline`) num título, parágrafo ou metadado. */
   inlinesPorConteudo: 10_000,
   blocosPorSecao: 10_000,
-  secoesPorNivel: 1_000,
+  /** Mesmo valor que as operações de `dominio/modelo` respeitam (M2-T03). */
+  secoesPorNivel: MAXIMO_SECOES_POR_NIVEL,
   /** 5.000 entradas do ZIP menos as entradas fixas do pacote. */
   midias: 4_990,
   bytesMidia: 64 * 1024 * 1024,
