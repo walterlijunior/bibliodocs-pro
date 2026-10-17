@@ -1,14 +1,18 @@
 /**
  * Conteúdo do visor central (decisão do usuário, 2026-10-16): sem trabalho aberto, só o pequi; com trabalho aberto,
  * título, tipo, estado de salvamento, número de não conformidades e progresso da exportação. Puro, testado em Node.
- * No M1-T10 nada abre trabalho, então o visor mostra o pequi; o M1-T11 liga o estado de salvamento.
+ * O estado de salvamento vem da sessão de edição (`aplicacao/servicos/sessao-trabalho.ts`, M1-T11).
  */
+import type { TrabalhoDaSessao } from '../../aplicacao';
+import { rotuloTipo } from '../biblioteca/selecao';
 
 export type EstadoSalvamento =
-  | { tipo: 'salvo'; em: Date }
+  /** `em` = hora da última gravação nesta sessão; `null` = recém-aberto, nada a gravar. */
+  | { tipo: 'salvo'; em: Date | null }
   | { tipo: 'salvando' }
   | { tipo: 'naoSalvo' }
-  | { tipo: 'erro'; mensagem: string };
+  | { tipo: 'erro'; mensagem: string }
+  | { tipo: 'somenteLeitura' };
 
 export interface TrabalhoNoVisor {
   titulo: string;
@@ -30,13 +34,15 @@ export interface LinhaVisor {
 export function textoSalvamento(s: EstadoSalvamento): string {
   switch (s.tipo) {
     case 'salvo':
-      return `Salvo às ${s.em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      return s.em === null ? 'Salvo' : `Salvo às ${s.em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     case 'salvando':
       return 'Salvando…';
     case 'naoSalvo':
       return 'Alterações não salvas';
     case 'erro':
       return `Erro ao salvar: ${s.mensagem}`;
+    case 'somenteLeitura':
+      return 'Somente leitura';
   }
 }
 
@@ -56,4 +62,25 @@ export function linhasDoVisor(t: TrabalhoNoVisor): LinhaVisor[] {
   }
   if (t.naoConformidades !== null) linhas.push({ texto: textoNaoConformidades(t.naoConformidades), erro: false });
   return linhas;
+}
+
+/** Tira o prefixo das mensagens do principal ("Não foi possível salvar: …"), que repetiria "Erro ao salvar". */
+export function mensagemCurta(mensagem: string): string {
+  return mensagem.replace(/^Não foi possível salvar:\s*/u, '');
+}
+
+/** Visor a partir do trabalho da sessão de edição (M1-T11). */
+export function visorDoTrabalho(t: TrabalhoDaSessao | null): EstadoVisor {
+  if (t === null) return { tipo: 'vazio' };
+  const s = t.salvamento;
+  return {
+    tipo: 'trabalho',
+    trabalho: {
+      titulo: t.titulo.trim() === '' ? 'Sem título' : t.titulo.trim(),
+      tipo: rotuloTipo(t.tipoTrabalho),
+      salvamento: s.tipo === 'erro' ? { tipo: 'erro', mensagem: mensagemCurta(s.mensagem) } : s,
+      naoConformidades: null,
+      exportacao: null,
+    },
+  };
 }

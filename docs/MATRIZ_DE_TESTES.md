@@ -75,7 +75,7 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`;
 
 | ID | Requisito | Caso | Status |
 |---|---|---|---|
-| FUN-01 | RF-01 | Criar, salvar, fechar, reabrir trabalho: conteúdo idêntico | NÃO EXECUTADO |
+| FUN-01 | RF-01 | Criar, salvar, fechar, reabrir trabalho: conteúdo idêntico | PARCIAL (M1-T11, 2026-10-16): fumaça no Electron 44.8.0 por CDP (criar → editar título → Ctrl+S → Ctrl+W → Enter no cartão reabre com o mesmo título, conferido também no `documento.json` do arquivo). E2E Playwright → M1-T13 |
 | FUN-02 | RF-02 | Para cada tipo de trabalho, elementos obrigatórios presentes | NÃO EXECUTADO |
 | FUN-03 | RF-03 | Mover seção renumera seções e remissivas | NÃO EXECUTADO |
 | FUN-04 | RF-05 | Toda formatação do DOCX tem `RN` | NÃO EXECUTADO |
@@ -104,6 +104,7 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`;
 |---|---|---|---|
 | UI-01 | Janela com barra superior (visor com pequi + busca), menus, navegação com abas, barra lateral e grade de trabalhos | `docs/REFERENCIA_DE_LAYOUT.md`, seção 4 | PARCIAL (M1-T10, 2026-10-16): `tests/interface/casca.test.tsx` (faixas, papéis ARIA, estados) e fumaça no Electron 44.8.0 com CDP, 21/21 (faixas inteiras e sem rolagem horizontal em 1008×661 e 1920×1017, Ctrl+F, setas na grade/abas/menus, Esc, foco azul visível, sem erro de CSP). E2E → M1-T13 |
 | UI-02 | Nenhum elemento de marca de terceiros na interface e nos ícones | `docs/REFERENCIA_DE_LAYOUT.md`, seção 3 | PASSOU (M1-T10): varredura de `src/interface` em `tests/interface-tokens.test.ts`; ícones e pequi são SVG próprios |
+| UI-03 | Estado de salvamento no visor ("Salvo", "Salvando…", "Alterações não salvas", "Erro ao salvar"); salvamento automático ~30 s após a última alteração, ao trocar de trabalho e ao fechar a janela; erro de gravação visível com "Salvar como…" | ADR-0004 §4 (opção 1 do usuário); S-11; plano M1-T11 | PASSOU (M1-T11, 2026-10-16): `tests/sessao-trabalho.test.ts` (22 casos, agendador manual) e fumaça CDP no Electron 44.8.0, 31/31 (automático em 30,2 s; arquivo somente leitura → erro visível no visor e no aviso; fechar a janela grava antes de sair, ~0,3 s). E2E → M1-T13 |
 
 ## Grupos DES (desempenho) e DIST (distribuição)
 Definidos nas Etapas 4 e 6: demais fluxos essenciais por teclado (UI), metas RNF-06/07 (DES), instalação

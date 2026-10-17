@@ -443,3 +443,55 @@ técnicas no adendo do ADR-0005.
 - Leitor de tela real (Narrador/NVDA) não foi usado; papéis e nomes ARIA conferidos no HTML renderizado.
 - Itens de menu sem função ficam desativados (`aria-disabled`); abas e coleções além de Biblioteca/Trabalhos mostram
   "ainda não disponível".
+
+## M1-T11 — Fluxo criar → editar → salvar → fechar → abrir
+
+**Implementado** (sessão principal):
+- `app/src/aplicacao/servicos/sessao-trabalho.ts` — `SessaoTrabalho`, pura (API, relógio e agendador injetados):
+  trabalho aberto, estado de salvamento do visor, salvamento automático da opção (1) do ADR-0004 (30 s depois da
+  última alteração, ao trocar de trabalho e ao fechar; Ctrl+S imediato), fila única de gravações (salvar, automático,
+  "Salvar como…"), só leitura para versão futura e "Salvar como…" para arquivo sem `.bdp`.
+- Interface: aba Escrever com o título editável (`interface/escrever/`); visor ligado à sessão; menu Arquivo com
+  Abrir… (Ctrl+O), Salvar (Ctrl+S), Salvar como… (Ctrl+Shift+S, item novo) e Fechar trabalho (Ctrl+W), desativados
+  quando não se aplicam; Enter/duplo clique no cartão e "Abrir" no painel abrem; renomear, duplicar e excluir no
+  painel; `ABERTO_NO_APP` com orientação para fechar; fechar a janela grava antes (cancelando o `beforeunload`).
+- Criar trabalho deixa o trabalho aberto na aba Escrever (antes era fechado logo após criar).
+- Decisões técnicas no adendo do M1-T11 no ADR-0004.
+
+**Revisão** (`especialista-interface`, somente leitura): 0 Alta, 4 Média e 5 Baixa, corrigidas:
+- M1 "Salvar como…" fora da fila: com o diálogo aberto, o automático gravava no arquivo antigo e trocava o nome de
+  volta → entrou na fila única e para o automático (teste novo; mutação detectada);
+- M2 `ocupado` era estado do React (duas teclas seguidas criavam dois trabalhos) → travas síncronas em `useRef`;
+- M3 o visor inteiro era região viva (título anunciado a cada tecla) → só a linha de salvamento é `role="status"`;
+- M4 foco perdido ao fechar o trabalho, excluir e renomear → foco no cartão, no vizinho e no botão "Renomear…";
+- Baixas: papel vivo fora do `<li>`; Ctrl+S em arquivo sem `.bdp` mostra o aviso; alvo ≥ 24 px nos botões de aviso
+  (token `--alvo-minimo`); comentário sobre descartar durante a gravação. Botões da aba Escrever sem `ocupado`:
+  aceito (gravar não conflita com a biblioteca).
+
+**Verificação executada:**
+- `npm run verificar:tudo`: typecheck OK (3 projetos), 17 arquivos, **665/665** (35 novos), `found 0
+  vulnerabilities`, build OK. `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+- Mutação: 12 de 12 detectadas (atraso de 30 s, visor durante a gravação, aviso de erro, fechar sem gravar, resultado
+  atrasado depois de descartar, `garantirSalvo` sem conferir, aviso sem `.bdp`, automático não agendado, prefixo do
+  erro no visor, Ctrl+Shift+S, Salvar em só leitura, campo editável em só leitura), mais 1 da revisão ("Salvar como…"
+  fora da fila).
+- Fumaça no Electron 44.8.0 (build `app://`, `LOCALAPPDATA` e biblioteca em pasta temporária, CDP; script no
+  scratchpad, fora do repositório): **31/31** — criar abre a aba Escrever com foco no título; visor "Salvo" →
+  "Alterações não salvas" → Ctrl+S "Salvo às HH:MM", com o título no `documento.json`; automático ainda pendente aos
+  25 s e gravado aos **30,2 s**; arquivo marcado somente leitura → "Erro ao salvar: …" visível no visor, aviso com
+  "Salvar como…", arquivo intacto; Ctrl+W com erro não fecha e oferece "Fechar sem salvar"; com o arquivo liberado,
+  Ctrl+S volta a "Salvo"; renomear aberto → `ABERTO_NO_APP` com orientação; Esc no campo cancela só o renomear;
+  Ctrl+W → pequi e foco no cartão; renomear fechado → arquivo novo e foco no botão; Enter no cartão reabre com o
+  título; fechar a janela com alteração pendente grava e sai em ~0,3 s; console sem erro nem violação de CSP.
+  Capturas conferidas.
+- Defeito achado pela captura e corrigido: a mensagem de erro longa quebrava para baixo do corte do visor e ficava
+  invisível (a checagem por texto passava). A linha do visor agora não quebra (reticências + dica com o texto
+  inteiro), e a fumaça confere a posição da linha vermelha dentro do visor.
+
+**Limitações:**
+- Diálogos nativos (Abrir…, Salvar como…, confirmar exclusão) não foram clicados na fumaça; a lógica está nos testes
+  com API falsa. Versão futura em só leitura e arquivo sem `.bdp` só nos testes de unidade.
+- Leitor de tela real não foi usado (papéis conferidos no HTML).
+- O título editado perde as marcas (itálico) até o editor rico do M2 [HIPÓTESE aceitável: nada no M1 cria marcas].
+- Seções, pré-visualização e zoom da barra superior continuam desativados mesmo com trabalho aberto (não há seções
+  nem página no M1).

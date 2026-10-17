@@ -16,7 +16,7 @@ import {
   tituloDaLista,
   tituloExibido,
 } from '../src/interface/biblioteca/selecao';
-import { ABAS, atalhoAria, COLECOES, MENUS } from '../src/interface/casca/definicoes';
+import { ABAS, atalhoAria, COLECOES, comandosDesativados, MENUS } from '../src/interface/casca/definicoes';
 import {
   acaoDoAtalho,
   avancar,
@@ -29,7 +29,8 @@ import {
   temModificador,
   voltar,
 } from '../src/interface/casca/teclado';
-import { linhasDoVisor, textoNaoConformidades, textoSalvamento } from '../src/interface/casca/visor';
+import { linhasDoVisor, mensagemCurta, textoNaoConformidades, textoSalvamento, visorDoTrabalho } from '../src/interface/casca/visor';
+import { avisoSomenteLeitura, avisosDaAbertura, mensagemVersaoFutura } from '../src/interface/escrever/aberturas';
 
 let seq = 0;
 function item(parcial: Partial<ItemBiblioteca> = {}): ItemBiblioteca {
@@ -129,6 +130,17 @@ describe('teclado', () => {
     expect(acaoDoAtalho(t('ArrowLeft'))).toBeNull();
   });
 
+  it('atalhos do trabalho (M1-T11): Ctrl+O, Ctrl+S, Ctrl+Shift+S (com Caps Lock), Ctrl+W', () => {
+    expect(acaoDoAtalho(t('o', { ctrlKey: true }))).toBe('abrir');
+    expect(acaoDoAtalho(t('s', { ctrlKey: true }))).toBe('salvar');
+    expect(acaoDoAtalho(t('S', { ctrlKey: true, shiftKey: true }))).toBe('salvarComo');
+    expect(acaoDoAtalho(t('s', { ctrlKey: true, shiftKey: true }))).toBe('salvarComo');
+    expect(acaoDoAtalho(t('w', { ctrlKey: true }))).toBe('fecharTrabalho');
+    expect(acaoDoAtalho(t('s', { ctrlKey: true, altKey: true }))).toBeNull();
+    expect(acaoDoAtalho(t('w', { ctrlKey: true, shiftKey: true }))).toBeNull();
+    expect(acaoDoAtalho(t('s'))).toBeNull();
+  });
+
   it('grade 2D: setas respeitam colunas e bordas; Home/End; outras teclas = null', () => {
     // 10 itens em 4 colunas: linha 0 = 0..3, linha 1 = 4..7, linha 2 = 8..9
     expect(proximoIndiceGrade('ArrowDown', 1, 10, 4)).toBe(5);
@@ -195,8 +207,30 @@ describe('visor', () => {
     expect(textoSalvamento({ tipo: 'naoSalvo' })).toBe('Alterações não salvas');
     expect(textoSalvamento({ tipo: 'erro', mensagem: 'disco cheio' })).toBe('Erro ao salvar: disco cheio');
     expect(textoSalvamento({ tipo: 'salvo', em: new Date(2026, 9, 16, 14, 32) })).toBe('Salvo às 14:32');
+    expect(textoSalvamento({ tipo: 'salvo', em: null })).toBe('Salvo');
+    expect(textoSalvamento({ tipo: 'somenteLeitura' })).toBe('Somente leitura');
   });
 
+  it('visor a partir da sessão: pequi sem trabalho; "Sem título"; tipo pelo rótulo; erro sem prefixo repetido', () => {
+    expect(visorDoTrabalho(null)).toEqual({ tipo: 'vazio' });
+    const trabalho = {
+      nomeArquivo: 'Trabalho.bdp',
+      titulo: '   ',
+      tipoTrabalho: 'generico',
+      somenteLeitura: false,
+      podeSalvar: true,
+      salvamento: { tipo: 'erro', codigo: 'EM_USO', mensagem: 'Não foi possível salvar: o arquivo está em uso por outro programa.' },
+    } as const;
+    const v = visorDoTrabalho(trabalho);
+    expect(v.tipo === 'trabalho' && linhasDoVisor(v.trabalho)).toEqual([
+      { texto: 'Genérico', erro: false },
+      { texto: 'Erro ao salvar: o arquivo está em uso por outro programa.', erro: true },
+    ]);
+    expect(v.tipo === 'trabalho' && v.trabalho.titulo).toBe('Sem título');
+    const v2 = visorDoTrabalho({ ...trabalho, titulo: ' Meu TCC ', salvamento: { tipo: 'naoSalvo' } });
+    expect(v2.tipo === 'trabalho' && [v2.trabalho.titulo, textoSalvamento(v2.trabalho.salvamento)]).toEqual(['Meu TCC', 'Alterações não salvas']);
+    expect(mensagemCurta('Disco cheio.')).toBe('Disco cheio.');
+  });
   it('tipo, salvamento e não conformidades; exportação substitui o salvamento', () => {
     expect(linhasDoVisor({ ...base, salvamento: { tipo: 'naoSalvo' } })).toEqual([
       { texto: 'Genérico', erro: false },
@@ -213,6 +247,25 @@ describe('visor', () => {
   });
 });
 
+describe('abertura de trabalho (M1-T11)', () => {
+  it('avisos da leitura e da atualização de formato (com o nome da cópia)', () => {
+    expect(avisosDaAbertura({ avisos: [], atualizacao: null })).toEqual([]);
+    const a = avisosDaAbertura({
+      avisos: [{ caminho: 'midias/x.png', mensagem: 'Uma imagem foi descartada.' }],
+      atualizacao: { versaoOrigem: 0, nomeBackup: 'Trabalho-formato-v0.bdp' },
+    });
+    expect(a.map((x) => x.nivel)).toEqual(['alerta', 'info']);
+    expect(a[0]!.texto).toBe('Uma imagem foi descartada.');
+    expect(a[1]!.texto).toContain('Trabalho-formato-v0.bdp');
+  });
+
+  it('versão futura: aviso de só leitura e mensagem quando nem abre', () => {
+    expect(avisoSomenteLeitura('Novo.bdp').texto).toContain('só para leitura');
+    expect(mensagemVersaoFutura('Novo.bdp', 3)).toContain('formato 3');
+    expect(mensagemVersaoFutura('Novo.bdp', 3)).toContain('não foi alterado');
+  });
+});
+
 describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () => {
   it('menus, abas e coleções na ordem aprovada', () => {
     expect(MENUS.map((m) => m.rotulo)).toEqual(['Arquivo', 'Editar', 'Trabalho', 'Inserir', 'Verificar', 'Exportar', 'Ajuda']);
@@ -223,5 +276,28 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
   it('cada menu tem ao menos um item; atalho ARIA usa "Control"', () => {
     for (const m of MENUS) expect(m.itens.some((i) => i !== 'separador')).toBe(true);
     expect(atalhoAria('Ctrl+Shift+C')).toBe('Control+Shift+C');
+  });
+
+  it('comandos desativados conforme o trabalho aberto', () => {
+    const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
+    expect(lista(null)).toEqual(['fecharTrabalho', 'salvar', 'salvarComo']);
+    expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
+    // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
+    expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);
+    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['salvar', 'salvarComo']);
+  });
+
+  it('Arquivo (M1-T11): Abrir, Salvar, Salvar como e Fechar trabalho ligados aos comandos e aos atalhos', () => {
+    const arquivo = MENUS[0]!.itens.filter((i) => i !== 'separador');
+    expect(arquivo.map((i) => [i.rotulo, i.atalho, i.comando])).toEqual([
+      ['Novo trabalho', 'Ctrl+N', 'novoTrabalho'],
+      ['Abrir…', 'Ctrl+O', 'abrir'],
+      ['Salvar', 'Ctrl+S', 'salvar'],
+      ['Salvar como…', 'Ctrl+Shift+S', 'salvarComo'],
+      ['Escolher pasta da biblioteca…', undefined, 'escolherPasta'],
+      ['Atualizar biblioteca', 'F5', 'atualizarBiblioteca'],
+      ['Fechar trabalho', 'Ctrl+W', 'fecharTrabalho'],
+      ['Sair', 'Alt+F4', 'sair'],
+    ]);
   });
 });

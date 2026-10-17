@@ -92,6 +92,8 @@
   --largura-busca: 240px;
   --largura-colecao: 170px;
   --largura-zoom: 110px;
+  --largura-formulario: 720px;
+  --alvo-minimo: 24px;
   --lado-botao-icone: 34px;
   --lado-icone-estado: 96px;
 }

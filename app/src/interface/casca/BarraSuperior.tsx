@@ -1,5 +1,6 @@
 // Faixa 1: navegação entre seções + pré-visualizar + zoom (decisão do usuário), visor central com o pequi,
-// alternar grade/lista e busca (Ctrl+F). Os controles do trabalho aberto ficam desativados até haver editor.
+// alternar grade/lista e busca (Ctrl+F). Seções e zoom ficam desativados mesmo com trabalho aberto: o M1 só edita o
+// título; a navegação entre seções chega com o editor (M2) e a pré-visualização e o zoom, com a página (M3).
 import type { Ref } from 'react';
 import { Icone, Pequi } from '../Icones';
 import { linhasDoVisor, type EstadoVisor } from './visor';
@@ -14,22 +15,23 @@ export interface PropsBarraSuperior {
 }
 
 export function BarraSuperior({ visor, modoLista, aoAlternarModo, busca, aoBuscar, refBusca }: PropsBarraSuperior) {
-  const semTrabalho = visor.tipo === 'vazio';
+  // Sem seções nem página para mostrar no M1 (ver o comentário do topo).
+  const semDocumento = true;
   return (
     <header className="barra">
       <div className="barra__esq">
-        <button className="btn-icone btn-icone--grande" type="button" aria-label="Seção anterior" title="Seção anterior (Ctrl+Page Up)" disabled={semTrabalho}>
+        <button className="btn-icone btn-icone--grande" type="button" aria-label="Seção anterior" title="Seção anterior (Ctrl+Page Up)" disabled={semDocumento}>
           <Icone nome="anterior" />
         </button>
-        <button className="btn-icone btn-icone--grande" type="button" aria-label="Pré-visualizar trabalho" title="Pré-visualizar (Ctrl+P)" disabled={semTrabalho}>
+        <button className="btn-icone btn-icone--grande" type="button" aria-label="Pré-visualizar trabalho" title="Pré-visualizar (Ctrl+P)" disabled={semDocumento}>
           <Icone nome="preview" />
         </button>
-        <button className="btn-icone btn-icone--grande" type="button" aria-label="Próxima seção" title="Próxima seção (Ctrl+Page Down)" disabled={semTrabalho}>
+        <button className="btn-icone btn-icone--grande" type="button" aria-label="Próxima seção" title="Próxima seção (Ctrl+Page Down)" disabled={semDocumento}>
           <Icone nome="proxima" />
         </button>
         <label className="zoom">
           <span>Zoom</span>
-          <input type="range" min={50} max={200} step={10} defaultValue={100} aria-label="Zoom da página" aria-valuetext="100%" disabled={semTrabalho} />
+          <input type="range" min={50} max={200} step={10} defaultValue={100} aria-label="Zoom da página" aria-valuetext="100%" disabled={semDocumento} />
         </label>
       </div>
 
@@ -72,24 +74,30 @@ export function BarraSuperior({ visor, modoLista, aoAlternarModo, busca, aoBusca
   );
 }
 
+/**
+ * Só a linha do estado (salvamento ou exportação) é região viva: o título muda a cada tecla digitada e não deve ser
+ * relido pelo leitor de tela (revisão do M1-T11; WCAG 4.1.3).
+ */
 export function Visor({ estado }: { estado: EstadoVisor }) {
   if (estado.tipo === 'vazio') {
     return (
-      <div className="visor" role="status">
+      <div className="visor">
         <Pequi className="visor__pequi" rotulo="BiblioDocs Pro — nenhum trabalho aberto" />
       </div>
     );
   }
   const t = estado.trabalho;
   return (
-    <div className="visor" role="status">
+    <div className="visor">
       <div className="visor__trabalho">
         <div className="visor__titulo" title={t.titulo}>
           {t.titulo}
         </div>
         <div className="visor__linha">
-          {linhasDoVisor(t).map((l) => (
-            <span key={l.texto} className={l.erro ? 'visor__erro' : undefined}>
+          {linhasDoVisor(t).map((l, i) => (
+            // A 2.ª linha é sempre o salvamento ou a exportação (linhasDoVisor); chave pela posição, para a região
+            // viva continuar a mesma quando o texto muda.
+            <span key={i} className={l.erro ? 'visor__erro' : undefined} role={i === 1 ? 'status' : undefined} title={l.texto}>
               {l.texto}
             </span>
           ))}

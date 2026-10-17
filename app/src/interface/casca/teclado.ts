@@ -11,13 +11,17 @@ export interface Tecla {
   metaKey?: boolean;
 }
 
-export type AcaoGlobal = 'buscar' | 'novoTrabalho' | 'voltar' | 'avancar';
+export type AcaoGlobal = 'buscar' | 'novoTrabalho' | 'abrir' | 'salvar' | 'salvarComo' | 'fecharTrabalho' | 'voltar' | 'avancar';
 
 /** Atalho global da janela; `null` deixa a tecla seguir para o controle em foco. */
 export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
   const tecla = t.key.length === 1 ? t.key.toLowerCase() : t.key;
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'f') return 'buscar';
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'n') return 'novoTrabalho';
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'o') return 'abrir';
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 's') return 'salvar';
+  if (t.ctrlKey && !t.altKey && t.shiftKey && tecla === 's') return 'salvarComo';
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'w') return 'fecharTrabalho';
   if (t.altKey && !t.ctrlKey && !t.shiftKey && tecla === 'ArrowLeft') return 'voltar';
   if (t.altKey && !t.ctrlKey && !t.shiftKey && tecla === 'ArrowRight') return 'avancar';
   return null;

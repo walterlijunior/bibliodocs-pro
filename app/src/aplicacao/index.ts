@@ -5,7 +5,8 @@
  * - Importa dominio/ e declara portas (interfaces) (regra 3).
  * - Não importa interface/, principal/ nem electron. Sem DOM e sem Node (checado por tsconfig.puro.json).
  *
- * Marcador criado no M1-T01; contrato da API de projetos (IPC) no M1-T08; biblioteca e criação de trabalho no M1-T09.
+ * Marcador criado no M1-T01; contrato da API de projetos (IPC) no M1-T08; biblioteca e criação de trabalho no M1-T09;
+ * sessão de edição (trabalho aberto e salvamento automático) no M1-T11.
  */
 export {
   CANAIS_PROJETOS,
@@ -41,3 +42,18 @@ export {
   type ResultadoListar,
 } from './portas/biblioteca';
 export { criarTrabalhoVazio, PERFIL_PADRAO, type DadosNovoTrabalho, type TrabalhoNovo } from './servicos/criar-trabalho';
+export {
+  ATRASO_SALVAMENTO_AUTOMATICO_MS,
+  MENSAGEM_FALHA_INESPERADA,
+  MENSAGEM_SEM_DESTINO,
+  SessaoTrabalho,
+  textoDoTitulo,
+  tituloDoTexto,
+  type AcaoAviso,
+  type AvisoSessao,
+  type Cancelar,
+  type DependenciasSessao,
+  type EstadoSessao,
+  type SalvamentoSessao,
+  type TrabalhoDaSessao,
+} from './servicos/sessao-trabalho';

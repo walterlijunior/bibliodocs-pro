@@ -49,7 +49,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .visor__pequi { height: 80%; width: auto; }
 .visor__trabalho { width: 100%; display: grid; gap: 2px; text-align: center; font-size: var(--tam-peq); min-width: 0; }
 .visor__titulo { font-weight: 600; font-size: var(--tam-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.visor__linha { display: flex; justify-content: center; gap: var(--esp-3); color: var(--cor-texto-sec); flex-wrap: wrap; }
+/* Uma linha só: texto longo (ex.: mensagem de erro) é cortado com reticências, nunca escondido abaixo (M1-T11). */
+.visor__linha { display: flex; justify-content: center; gap: var(--esp-3); color: var(--cor-texto-sec); min-width: 0; }
+.visor__linha > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.visor__linha > span:first-child { flex: none; }
 .visor__linha .visor__erro { color: var(--cor-erro); font-weight: 600; }
 .visor__progresso { width: 100%; height: 4px; accent-color: var(--cor-destaque); }
 
@@ -205,6 +208,28 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 @keyframes brilho { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .esqueleto { animation: none; } }
+
+/* Aba Escrever (M1-T11): dados do trabalho aberto. */
+.formulario { display: grid; gap: var(--esp-2); max-width: var(--largura-formulario); margin: 0 0 var(--esp-4); }
+.formulario label { font-weight: 600; }
+.campo {
+  width: 100%; padding: 6px var(--esp-2); background: var(--cor-fundo); color: var(--cor-texto);
+  border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); font-size: var(--tam-grande);
+}
+.campo[readonly] { background: var(--cor-superficie); }
+.dica { margin: 0; font-size: var(--tam-peq); color: var(--cor-texto-sec); }
+.formulario__dados { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--esp-3); margin: var(--esp-2) 0 0; font-size: var(--tam-peq); }
+.formulario__dados dt { color: var(--cor-texto-sec); }
+.formulario__dados dd { margin: 0; overflow-wrap: anywhere; }
+.aviso__texto { flex: 1; }
+.aviso__acoes { display: flex; gap: var(--esp-2); flex-wrap: wrap; }
+/* Alvo de pelo menos 24 px (WCAG 2.5.8). */
+.aviso__acoes .btn-secundario { padding: var(--esp-1) var(--esp-3); min-height: var(--alvo-minimo); }
+
+/* Renomear no painel de detalhes */
+.renomear { display: grid; gap: var(--esp-2); margin: 0 0 var(--esp-3); }
+.renomear .campo { font-size: var(--tam-base); }
+.renomear .erro-campo { margin: 0; font-size: var(--tam-peq); color: var(--cor-erro); }
 
 /* Painel de detalhes */
 .detalhes { width: var(--largura-detalhes); border-left: 1px solid var(--cor-borda); background: var(--cor-superficie); overflow: auto; padding: var(--esp-4); }

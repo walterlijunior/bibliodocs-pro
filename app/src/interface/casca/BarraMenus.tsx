@@ -6,13 +6,17 @@ import { moverCiclico, temModificador } from './teclado';
 
 export interface PropsBarraMenus {
   aoComando: (comando: ComandoMenu) => void;
+  /** Comandos que não se aplicam agora (ex.: Salvar sem trabalho aberto). */
+  desativados?: ReadonlySet<ComandoMenu>;
   refPrimeiro?: Ref<HTMLButtonElement>;
 }
 
 const itensAtivaveis = (indiceMenu: number): ItemMenu[] =>
   (MENUS[indiceMenu]?.itens ?? []).filter((i): i is ItemMenu => i !== 'separador');
 
-export function BarraMenus({ aoComando, refPrimeiro }: PropsBarraMenus) {
+const NENHUM: ReadonlySet<ComandoMenu> = new Set();
+
+export function BarraMenus({ aoComando, desativados = NENHUM, refPrimeiro }: PropsBarraMenus) {
   const [focoMenu, setFocoMenu] = useState(0);
   const [aberto, setAberto] = useState<number | null>(null);
   const [focoItem, setFocoItem] = useState(0);
@@ -52,8 +56,9 @@ export function BarraMenus({ aoComando, refPrimeiro }: PropsBarraMenus) {
       botoes.current[i]?.focus();
     }
   };
+  const ativo = (item: ItemMenu) => item.comando !== undefined && !desativados.has(item.comando);
   const executar = (item: ItemMenu) => {
-    if (item.comando === undefined) return;
+    if (!ativo(item) || item.comando === undefined) return;
     fechar(true);
     aoComando(item.comando);
   };
@@ -143,7 +148,7 @@ export function BarraMenus({ aoComando, refPrimeiro }: PropsBarraMenus) {
                         type="button"
                         role="menuitem"
                         tabIndex={-1}
-                        aria-disabled={item.comando === undefined ? true : undefined}
+                        aria-disabled={ativo(item) ? undefined : true}
                         aria-keyshortcuts={item.atalho ? atalhoAria(item.atalho) : undefined}
                         onClick={() => executar(item)}
                         onMouseEnter={() => setFocoItem(k)}

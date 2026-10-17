@@ -3,13 +3,14 @@
 // Interação real (foco, setas, clique) fica para o E2E do M1-T13 e para o roteiro manual do relatório.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { ApiBiblioDocs, ItemBiblioteca } from '../../src/aplicacao';
+import type { ApiBiblioDocs, EstadoSessao, ItemBiblioteca } from '../../src/aplicacao';
 import { Aplicativo } from '../../src/interface/Aplicativo';
 import { AreaBiblioteca, AVISO_NUVEM, type PropsAreaBiblioteca } from '../../src/interface/biblioteca/AreaBiblioteca';
 import { BarraLateral } from '../../src/interface/biblioteca/BarraLateral';
 import { PainelDetalhes } from '../../src/interface/biblioteca/PainelDetalhes';
 import { contar } from '../../src/interface/biblioteca/selecao';
 import { Visor } from '../../src/interface/casca/BarraSuperior';
+import { AreaEscrever, type PropsAreaEscrever } from '../../src/interface/escrever/AreaEscrever';
 
 const naoUsar = (): never => {
   throw new Error('a renderização estática não deve chamar a API');
@@ -135,7 +136,7 @@ describe('estados da biblioteca', () => {
     });
     expect(h).toContain(AVISO_NUVEM.slice(0, 40));
     expect(h).toContain('Lista parcial: 2 arquivos não foram lidos.');
-    expect(h).toMatch(/class="aviso aviso--erro" role="alert"/);
+    expect(h).toMatch(/<li class="aviso aviso--erro">.*?<span role="alert">Disco cheio\.<\/span>/);
   });
 
   it('texto do arquivo vai como texto: título com marcação é escapado', () => {
@@ -175,5 +176,102 @@ describe('visor com trabalho aberto (usado a partir do M1-T11)', () => {
     expect(h).toContain('Exportando DOCX… 50%');
     expect(h).toContain('2 não conformidades');
     expect(h).toContain('<progress');
+  });
+});
+
+describe('aba Escrever (M1-T11)', () => {
+  const nada = () => {};
+  function escrever(estado: EstadoSessao, p: Partial<PropsAreaEscrever> = {}): string {
+    const props: PropsAreaEscrever = {
+      estado,
+      rotuloDescartar: 'Fechar sem salvar',
+      ocupado: false,
+      aoAlterarTitulo: nada,
+      aoSalvar: nada,
+      aoFechar: nada,
+      aoAcao: nada,
+      aoCriar: nada,
+      aoAbrir: nada,
+      aoIrParaBiblioteca: nada,
+      ...p,
+    };
+    return renderToStaticMarkup(<AreaEscrever {...props} />);
+  }
+  const trabalho = {
+    nomeArquivo: 'Trabalho sem título.bdp',
+    titulo: 'Qualidade da água',
+    tipoTrabalho: 'generico',
+    somenteLeitura: false,
+    podeSalvar: true,
+    salvamento: { tipo: 'naoSalvo' },
+  } as const;
+
+  it('sem trabalho: convite para criar ou abrir', () => {
+    const h = escrever({ trabalho: null, avisos: [] });
+    expect(h).toContain('Nenhum trabalho aberto');
+    expect(h).toContain('Novo trabalho');
+    expect(h).toContain('Abrir…');
+    expect(h).not.toContain('campo-titulo');
+  });
+
+  it('com trabalho: campo do título rotulado, Salvar (Ctrl+S), Fechar (Ctrl+W), arquivo e tipo', () => {
+    const h = escrever({ trabalho, avisos: [] });
+    expect(h).toMatch(/<label for="campo-titulo">Título do trabalho<\/label>/);
+    expect(h).toMatch(/id="campo-titulo"[^>]*value="Qualidade da água"/);
+    expect(h).not.toMatch(/id="campo-titulo"[^>]*readOnly/i);
+    expect(h).toMatch(/aria-keyshortcuts="Control\+S"[^>]*>Salvar</);
+    expect(h).toMatch(/aria-keyshortcuts="Control\+W"[^>]*>Fechar trabalho</);
+    expect(h).toContain('Trabalho sem título.bdp');
+    expect(h).toContain('Genérico');
+    expect(h).toContain('30 segundos');
+  });
+
+  it('aviso de erro é alerta e traz "Salvar como…" e o descartar com o rótulo pedido', () => {
+    const h = escrever(
+      { trabalho, avisos: [{ nivel: 'erro', texto: 'Em uso por outro programa.', acoes: ['salvarComo', 'descartar'] }] },
+      { rotuloDescartar: 'Sair sem salvar' },
+    );
+    expect(h).toMatch(/<li class="aviso aviso--erro">.*?role="alert">Em uso por outro programa\.<\/span>/);
+    expect(h).toContain('>Salvar como…</button>');
+    expect(h).toContain('>Sair sem salvar</button>');
+  });
+
+  it('sem destino (.bdp): Salvar vira "Salvar como…"; só leitura: campo travado e sem botão de gravar', () => {
+    const semDestino = escrever({ trabalho: { ...trabalho, podeSalvar: false }, avisos: [] });
+    expect(semDestino).toMatch(/aria-keyshortcuts="Control\+Shift\+S"[^>]*>Salvar como…</);
+    expect(semDestino).not.toMatch(/>Salvar</);
+    const leitura = escrever({ trabalho: { ...trabalho, podeSalvar: false, somenteLeitura: true, salvamento: { tipo: 'somenteLeitura' } }, avisos: [] });
+    expect(leitura).toMatch(/id="campo-titulo"[^>]*readOnly=""/);
+    expect(leitura).not.toContain('Salvar como…');
+    expect(leitura).toContain('Somente leitura');
+  });
+
+  it('título com marcação vai como texto', () => {
+    const h = escrever({ trabalho: { ...trabalho, titulo: '<img src=x onerror=alert(1)>' }, avisos: [] });
+    expect(h).not.toContain('<img');
+  });
+});
+
+describe('painel de detalhes e menus (M1-T11)', () => {
+  it('ações do painel: Abrir, Renomear, Duplicar e Excluir; ilegível não abre nem duplica', () => {
+    const acoes = { aoAbrir: () => {}, aoRenomear: async () => ({ ok: true as const, id: 'x' }), aoDuplicar: () => {}, aoExcluir: () => {} };
+    const ok = renderToStaticMarkup(<PainelDetalhes item={item()} aoFechar={() => {}} {...acoes} />);
+    for (const r of ['>Abrir<', '>Renomear…<', '>Duplicar<', '>Excluir…<']) expect(ok).toContain(r);
+    const ruim = renderToStaticMarkup(<PainelDetalhes item={item({ estado: 'invalido', tipoTrabalho: null })} aoFechar={() => {}} {...acoes} />);
+    expect(ruim).not.toContain('>Abrir<');
+    expect(ruim).not.toContain('>Duplicar<');
+    expect(ruim).toContain('>Excluir…<');
+    const futuro = renderToStaticMarkup(<PainelDetalhes item={item({ estado: 'versaoFutura', tipoTrabalho: null })} aoFechar={() => {}} {...acoes} />);
+    expect(futuro).toContain('>Abrir<');
+    expect(futuro).toContain('só para leitura');
+  });
+
+  it('com trabalho aberto, o visor mostra título e "Alterações não salvas"', () => {
+    const h = renderToStaticMarkup(
+      <Visor estado={{ tipo: 'trabalho', trabalho: { titulo: 'Meu TCC', tipo: 'Genérico', salvamento: { tipo: 'naoSalvo' }, naoConformidades: null, exportacao: null } }} />,
+    );
+    expect(h).toContain('role="status"');
+    expect(h).toContain('Alterações não salvas');
+    expect(h).not.toContain('nenhum trabalho aberto');
   });
 });

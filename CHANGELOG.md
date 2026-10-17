@@ -6,6 +6,16 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T11: fluxo criar → editar título → salvar → fechar → abrir.
+  - Sessão de edição (`app/src/aplicacao/servicos/sessao-trabalho.ts`) com o salvamento automático escolhido no
+    ADR-0004: grava ~30 s depois da última alteração, ao trocar de trabalho e ao fechar a janela; Ctrl+S grava na hora.
+  - Visor com "Salvo às HH:MM", "Salvando…", "Alterações não salvas", "Erro ao salvar: …" e "Somente leitura".
+    Nenhum erro é silencioso: o aviso oferece "Salvar como…", e fechar com erro oferece descartar.
+  - Aba Escrever com o título do trabalho editável (o editor do texto vem no M2).
+  - Menu Arquivo: Abrir… (Ctrl+O), Salvar (Ctrl+S), Salvar como… (Ctrl+Shift+S, novo) e Fechar trabalho (Ctrl+W).
+  - Biblioteca: Enter ou duplo clique no cartão abre; painel com Abrir, Renomear…, Duplicar e Excluir…; trabalho de
+    versão mais nova abre só para leitura.
+  - 35 testes novos (total 665); 13 mutações detectadas; fumaça no Electron 31/31.
 - Etapa 5, M1-T10: casca da interface (decisões do usuário em `docs/GUIA_VISUAL.md`).
   - Quatro faixas no estilo da referência: barra superior (seção anterior / pré-visualizar / próxima + zoom,
     desativados sem trabalho; visor com o pequi; grade/lista; busca com Ctrl+F), barra de menus no padrão ARIA

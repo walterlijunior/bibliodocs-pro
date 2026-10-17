@@ -478,3 +478,24 @@ Detalha a seção 5 e o item "Excluir trabalho" da seção 4.
   - um processo externo que crie o mesmo nome entre `nomeLivre` e o salvamento atômico em criar/duplicar
     (o salvamento substitui);
   - `projetos.abrir` (diálogo) do mesmo arquivo durante um renomear da biblioteca.
+
+## Adendo técnico — sessão de edição e salvamento automático (M1-T11, 2026-10-16)
+Decisões técnicas da sessão principal ao implementar a opção (1) escolhida pelo usuário. Não mudam o resultado do
+documento.
+- **Onde mora:** `SessaoTrabalho` em `app/src/aplicacao/servicos/` (pura; relógio e agendador injetados). O renderer
+  guarda o documento em memória e chama `projetos.salvar`; o principal continua sendo o único que conhece caminhos.
+- **Fila única de gravações:** salvar, automático e "Salvar como…" rodam um de cada vez; o pedido que chega durante
+  outro espera e só grava se houve alteração no meio. "Salvar como…" para o automático enquanto o diálogo está aberto.
+- **Revisões:** cada alteração soma uma revisão; "Salvo" só quando a revisão gravada é a atual. Alteração durante a
+  gravação mantém "Alterações não salvas" e reagenda o automático.
+- **Depois de um erro**, o automático tenta de novo em 30 s (arquivo preso por pouco tempo: OneDrive, antivírus); o
+  erro continua no visor e nos avisos até uma gravação dar certo.
+- **Trocar de trabalho** (criar, abrir) grava antes; se não gravar, a troca não acontece e a aba Escrever mostra o
+  motivo. **Fechar o trabalho** grava antes; se não gravar, oferece "Salvar como…" e "Fechar sem salvar".
+- **Fechar a janela:** o renderer cancela o `beforeunload` quando há pendência (no Electron isso impede o fechamento,
+  sem diálogo), grava e chama `window.close()` com permissão. Se a gravação falha, oferece "Salvar como…" e "Sair sem
+  salvar". Descartar durante uma gravação não a interrompe (o principal termina de gravar o pacote que já recebeu).
+- **`atualizadoEm`** do manifesto passa a ser a hora de cada gravação (UTC, `toISOString`, como no criar/duplicar do
+  M1-T09).
+- **Título editado** vira um trecho sem marcas até o editor rico (M2); sem alteração, o original é preservado.
+- **Recuperação** (instantâneos de ~2 s, trava de sessão) continua no M1-T12.

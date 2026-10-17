@@ -22,6 +22,7 @@ export interface PropsAreaBiblioteca {
   mensagem: MensagemAcao | null;
   ocupado: boolean;
   aoSelecionar: (id: IdentificadorItem) => void;
+  aoAbrir?: (id: IdentificadorItem) => void;
   aoCriar: () => void;
   aoTentarDeNovo: () => void;
   aoEscolherPasta: () => void;
@@ -106,6 +107,7 @@ export function AreaBiblioteca(p: PropsAreaBiblioteca) {
           modoLista={p.modoLista}
           selecionado={p.selecionado}
           aoSelecionar={p.aoSelecionar}
+          aoAbrir={p.aoAbrir}
           focarId={p.focarId}
         />
       )}
@@ -115,9 +117,10 @@ export function AreaBiblioteca(p: PropsAreaBiblioteca) {
 
 function Aviso({ texto, erro = false, info = false }: { texto: string; erro?: boolean; info?: boolean }) {
   return (
-    <li className={erro ? 'aviso aviso--erro' : info ? 'aviso aviso--info' : 'aviso'} role={erro ? 'alert' : info ? 'status' : undefined}>
+    // O papel vivo fica no texto, não no <li> (que perderia o papel de item de lista; revisão do M1-T11).
+    <li className={erro ? 'aviso aviso--erro' : info ? 'aviso aviso--info' : 'aviso'}>
       <Icone nome={erro ? 'erro' : info ? 'ok' : 'alerta'} />
-      <span>{texto}</span>
+      <span role={erro ? 'alert' : info ? 'status' : undefined}>{texto}</span>
     </li>
   );
 }

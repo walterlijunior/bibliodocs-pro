@@ -1,4 +1,5 @@
-// Grade de capas (ou lista) dos trabalhos: listbox com tabindex móvel e setas em 2D; Espaço/Enter/clique selecionam.
+// Grade de capas (ou lista) dos trabalhos: listbox com tabindex móvel e setas em 2D; Espaço e clique selecionam (painel
+// de detalhes); Enter e duplo clique abrem o trabalho (M1-T11).
 // Capa em miniatura simplificada (decisão do usuário): no M1 o app só conhece o título e as datas; a capa fiel
 // (instituição, autoria, local) vem com o motor normativo. Texto sempre como texto (nunca HTML).
 import { useEffect, useRef, type KeyboardEvent } from 'react';
@@ -12,6 +13,8 @@ export interface PropsGrade {
   modoLista: boolean;
   selecionado: IdentificadorItem | null;
   aoSelecionar: (id: IdentificadorItem) => void;
+  /** Abrir o trabalho (Enter ou duplo clique); sem ele, Enter só seleciona. */
+  aoAbrir?: (id: IdentificadorItem) => void;
   /** Cartão que deve receber o foco assim que aparecer (ex.: trabalho recém-criado); objeto novo = novo pedido. */
   focarId?: { id: IdentificadorItem } | null;
 }
@@ -24,7 +27,7 @@ function colunasDe(grade: HTMLElement | null): number {
   return Math.max(1, getComputedStyle(grade).gridTemplateColumns.split(' ').filter(Boolean).length);
 }
 
-export function GradeTrabalhos({ itens, modoLista, selecionado, aoSelecionar, focarId }: PropsGrade) {
+export function GradeTrabalhos({ itens, modoLista, selecionado, aoSelecionar, aoAbrir, focarId }: PropsGrade) {
   const grade = useRef<HTMLUListElement>(null);
   const cartoes = useRef<(HTMLDivElement | null)[]>([]);
   const indiceSel = itens.findIndex((i) => i.identificador === selecionado);
@@ -54,6 +57,9 @@ export function GradeTrabalhos({ itens, modoLista, selecionado, aoSelecionar, fo
     if (j !== null) {
       e.preventDefault();
       mover(j);
+    } else if (e.key === 'Enter' && aoAbrir && !e.shiftKey) {
+      e.preventDefault();
+      aoAbrir(item.identificador);
     } else if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       aoSelecionar(item.identificador);
@@ -64,7 +70,9 @@ export function GradeTrabalhos({ itens, modoLista, selecionado, aoSelecionar, fo
   return (
     <>
       <p className="sr-only" id={ID_AJUDA}>
-        Use as setas para percorrer os trabalhos e Espaço ou Enter para ver os detalhes.
+        {aoAbrir
+          ? 'Use as setas para percorrer os trabalhos, Espaço para ver os detalhes e Enter para abrir.'
+          : 'Use as setas para percorrer os trabalhos e Espaço ou Enter para ver os detalhes.'}
       </p>
       <ul
         ref={grade}
@@ -88,6 +96,7 @@ export function GradeTrabalhos({ itens, modoLista, selecionado, aoSelecionar, fo
                 ativo.current = i;
                 aoSelecionar(item.identificador);
               }}
+              onDoubleClick={aoAbrir ? () => aoAbrir(item.identificador) : undefined}
               onKeyDown={(e) => tecla(e, i, item)}
             >
               <Capa item={item} />
