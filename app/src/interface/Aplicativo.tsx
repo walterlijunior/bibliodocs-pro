@@ -2,11 +2,14 @@
 // barra superior com visor e busca, barra de menus, navegação (coleção + abas), barra lateral e grade de trabalhos.
 // M1-T11: fluxo criar → editar título → salvar → fechar → abrir, com o estado de salvamento no visor e o salvamento
 // automático do ADR-0004 (sessão de edição em aplicacao/servicos/sessao-trabalho.ts).
+// M1-T12: ao iniciar, a Biblioteca mostra o que há para recuperar (instantâneo de um trabalho que estava aberto quando o
+// app foi fechado inesperadamente, gravação interrompida, `.bak` íntegro de um arquivo que não abre).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AcaoAviso, ApiBiblioDocs, IdentificadorItem, ResultadoAbrir } from '../aplicacao';
+import type { AcaoAviso, ApiBiblioDocs, IdentificadorItem, IdentificadorOferta, OfertaRecuperacao, ResultadoAbrir, ResultadoRecuperar } from '../aplicacao';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
+import { avisoRecuperado } from './biblioteca/recuperacao';
 import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista, type Filtro } from './biblioteca/selecao';
 import { FALHA_INESPERADA, useBiblioteca } from './biblioteca/useBiblioteca';
 import { BarraMenus } from './casca/BarraMenus';
@@ -37,6 +40,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
+  const [ofertas, setOfertas] = useState<readonly OfertaRecuperacao[]>([]);
   // Objeto novo a cada pedido, para focar de novo o mesmo cartão (ex.: ao fechar o painel).
   const [focarId, setFocarId] = useState<{ id: IdentificadorItem } | null>(null);
   const [focarTitulo, setFocarTitulo] = useState(0);
@@ -130,6 +134,67 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   );
 
   const { criar: criarNaBiblioteca, abrir: abrirNaBiblioteca } = bib;
+
+  // Ofertas de recuperação: listadas ao iniciar e depois de cada escolha. Falha na listagem não impede usar o app.
+  const listarOfertas = useCallback(async () => {
+    try {
+      return (await api.recuperacao.listar()).ofertas;
+    } catch {
+      return [];
+    }
+  }, [api]);
+  useEffect(() => {
+    let vivo = true;
+    void listarOfertas().then((o) => {
+      if (vivo) setOfertas(o);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [listarOfertas]);
+
+  const recuperar = useCallback(
+    (id: IdentificadorOferta) =>
+      exclusivo(async () => {
+        if (!(await liberarAtual())) return;
+        let r: ResultadoRecuperar;
+        try {
+          r = await api.recuperacao.recuperar(id);
+        } catch {
+          r = { ok: false, mensagem: FALHA_INESPERADA };
+        }
+        if (r.ok) {
+          // Instantâneo: o conteúdo ainda não está no arquivo; temporário e .bak já foram restaurados nele.
+          sessao.abrir(r.projeto, [avisoRecuperado(r.tipo, r.quando, new Date()), ...avisosDaAbertura(r.projeto)], {
+            naoSalvo: r.tipo === 'instantaneo',
+          });
+          setSaidaPedida(false);
+          irParaEscrever();
+          setFocarTitulo((n) => n + 1);
+        } else {
+          mostrarMensagem({ tipo: 'erro', texto: r.mensagem });
+        }
+        setOfertas(await listarOfertas());
+        if (r.ok && r.tipo !== 'instantaneo') void recarregar();
+      }),
+    [api, exclusivo, irParaEscrever, liberarAtual, listarOfertas, mostrarMensagem, recarregar, sessao],
+  );
+
+  const abrirSalvo = useCallback(
+    (id: IdentificadorOferta) =>
+      exclusivo(async () => {
+        if (!(await liberarAtual())) return;
+        let r: ResultadoAbrir;
+        try {
+          r = await api.recuperacao.abrirSalvo(id);
+        } catch {
+          r = { ok: false, motivo: 'ERRO', nomeArquivo: '', mensagem: FALHA_INESPERADA, erros: [] };
+        }
+        receberAbertura(r);
+        setOfertas(await listarOfertas());
+      }),
+    [api, exclusivo, liberarAtual, listarOfertas, receberAbertura],
+  );
 
   const criar = useCallback(
     () =>
@@ -347,6 +412,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoCriar={() => void criar()}
                 aoTentarDeNovo={() => void recarregar()}
                 aoEscolherPasta={() => comando('escolherPasta')}
+                ofertas={ofertas}
+                aoRecuperar={(id) => void recuperar(id)}
+                aoAbrirSalvo={(id) => void abrirSalvo(id)}
+                aoAdiar={(id) => setOfertas((os) => os.filter((o) => o.identificador !== id))}
               />
             ) : local.aba === 'escrever' ? (
               <AreaEscrever

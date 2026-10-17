@@ -495,3 +495,53 @@ técnicas no adendo do ADR-0005.
 - O título editado perde as marcas (itálico) até o editor rico do M2 [HIPÓTESE aceitável: nada no M1 cria marcas].
 - Seções, pré-visualização e zoom da barra superior continuam desativados mesmo com trabalho aberto (não há seções
   nem página no M1).
+
+## M1-T12 — Recuperação após encerramento inesperado
+
+**Implementado** (sessão principal):
+- `app/src/persistencia/recuperacao/recuperacao.ts`: instantâneos (`atual.bdp`/`anterior.bdp`), trava de sessão,
+  reserva de queda não decidida (`<id>~<carimbo>`), `recuperacao-antigos` com 7 dias contados do arquivamento, procura
+  de restos de gravação na pasta da biblioteca. `gravarAtomico` ganhou `semBak`; `SistemaArquivos` ganhou
+  `apagarPasta` e `definirModificacao`.
+- `app/src/principal/ipc/manipuladores-recuperacao.ts`: canais `instantaneo`, `listar`, `recuperar`, `abrirSalvo`;
+  sessões ativas; ganchos `antesDeGravar`/`aoGravar`/`aoFechar` nos manipuladores de projetos; fim da sessão no
+  `closed` da janela e espera da fila antes de sair. O registro dos projetos passou a guardar o id lido ao abrir.
+- `SessaoTrabalho`: instantâneo com limite de ~2 s (espaçado em documentos lentos), aviso em falha, abertura de versão
+  recuperada como "Alterações não salvas". Interface: ofertas como avisos da Biblioteca (padrão visual existente, sem
+  componente novo), aviso "Versão recuperada de HH:MM" na aba Escrever.
+- Instância única já existia (M1-T02). Decisões e desvios no adendo do M1-T12 no ADR-0004.
+
+**Revisão** (`revisor-seguranca`, somente leitura): 4 Alta, 5 Média e 4 Baixa.
+- A1 a cópia mantinha a data da origem, e o "prazo de 7 dias" apagaria na hora um instantâneo ou original antigo
+  arquivado → data do arquivamento aplicada ao arquivar (teste novo);
+- A2 "Decidir depois" + editar de novo arquivava a queda sem avisar → reserva `<id>~<carimbo>`, continua oferecida;
+- A3 o salvamento podia apagar um instantâneo mais novo que ele → marca antes de gravar; só apaga se nada chegou;
+- A4 restaurar tirava o original da pasta se a gravação falhasse, e substituía o `.bak` íntegro se o arquivamento
+  falhasse → aborta sem guardar; devolve o original em falha;
+- M1 id do projeto vinha do renderer → id registrado pelo principal; M2 caminho com outro trabalho → sem destino;
+  M3 nada é arquivado por comparação de datas; M4 restos com mais de 10 min e no máximo 100 por listagem;
+  M5 instantâneos espaçados (4 × a duração do último) — **não medido** com 25 MB;
+- B1 limpeza no `closed`; B3 trabalho aberto não é recuperado por cima; B2 (UNC na trava) e B4 (restos fora da
+  biblioteca) aceitos e registrados no ADR.
+
+**Verificação executada:**
+- `npm run verificar:tudo`: typecheck OK, 18 arquivos, **711/711** (45 novos), `found 0 vulnerabilities`, build OK.
+  `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+- Mutação (script no scratchpad): **27/27** detectadas, entre elas: apagar sem conferir a marca, fechar sem limpar,
+  sessão ativa oferecida, arquivar em vez de reservar, restaurar sem guardar/sem devolver, sem reconferência, origem
+  sempre aceita, sem conferir trabalho aberto, id do pacote aceito, oferta de outra janela, restos sem idade mínima ou
+  do próprio processo, arquivamento sem data, `.bak` nos instantâneos, espera que recomeça, instantâneo sem alteração,
+  automático não agendado na versão recuperada, espaçamento ausente.
+- Fumaça no Electron 44.8.0 (build `app://`, `LOCALAPPDATA` e biblioteca em pasta temporária, CDP; script no
+  scratchpad): **20/20** — instantâneo ~1,2 s depois da alteração, trava criada, arquivo intacto; processo encerrado
+  com `taskkill /F /T`; reabrir → oferta com o texto do ADR-0004 e os três botões; Recuperar → título da memória,
+  "Alterações não salvas", aviso; Ctrl+S grava e apaga os instantâneos; segunda queda → "Abrir o arquivo salvo" abre o
+  arquivo e guarda o instantâneo; fechamento normal apaga a trava e não deixa oferta; console sem erro nem CSP.
+  Captura da oferta conferida. (Uma execução cruzou a meia-noite e o texto passou, corretamente, a "16/10/2026 às
+  23:59"; a expressão da fumaça foi ajustada para os dois formatos.)
+
+**Limitações:**
+- Restaurar a partir de temporário ou `.bak` e a reserva de queda adiada só nos testes de unidade (disco real).
+- Desempenho do instantâneo com 25 MB não medido; o empacotamento roda no processo principal.
+- Não há tela para reabrir o que está em `recuperacao-antigos` (só pelo Explorer, por 7 dias).
+- A oferta aparece só com a Biblioteca carregada (se a pasta da biblioteca falha, a oferta de instantâneo não aparece).

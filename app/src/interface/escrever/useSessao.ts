@@ -21,6 +21,8 @@ export function useSessao(api: ApiBiblioDocs, aoSalvar: () => void) {
           return () => window.clearTimeout(t);
         },
         aoSalvar: () => refAoSalvar.current(),
+        // M1-T12: instantâneo de recuperação até ~2 s depois de cada alteração.
+        instantaneo: (identificador, pacote) => api.recuperacao.instantaneo(identificador, pacote),
       }),
   );
   useEffect(() => () => sessao.encerrar(), [sessao]);

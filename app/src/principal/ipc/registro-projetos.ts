@@ -15,6 +15,11 @@ interface Entrada {
   caminho: string;
   chave: string;
   dono: number;
+  /**
+   * Id do projeto conhecido pelo principal (lido do arquivo ou gravado por ele), ou `null`. A recuperação usa este id,
+   * nunca o que vem do renderer, para nomear as pastas de instantâneos (revisão do M1-T12, M1).
+   */
+  idProjeto: string | null;
 }
 
 const chaveDono = (dono: number, chave: string) => `${dono}\u0000${chave}`;
@@ -35,11 +40,11 @@ export class RegistroProjetos {
     if (this.#porDono.get(k) === id) this.#porDono.delete(k);
   }
 
-  registrar(caminho: string, dono: number): string {
+  registrar(caminho: string, dono: number, idProjeto: string | null = null): string {
     let id = this.#gerar();
     while (this.#entradas.has(id)) id = this.#gerar();
     const chave = chaveCaminho(caminho);
-    this.#entradas.set(id, { caminho, chave, dono });
+    this.#entradas.set(id, { caminho, chave, dono, idProjeto });
     this.#porDono.set(chaveDono(dono, chave), id);
     return id;
   }
@@ -56,10 +61,23 @@ export class RegistroProjetos {
     return e && e.dono === dono ? e.caminho : null;
   }
 
+  /** Id do projeto registrado com o identificador, se ele existe e pertence a `dono`. */
+  idProjeto(id: string, dono: number): string | null {
+    const e = this.#entradas.get(id);
+    return e && e.dono === dono ? e.idProjeto : null;
+  }
+
   /** Se algum identificador (de qualquer janela) aponta para o caminho. */
   contem(caminho: string): boolean {
     const chave = chaveCaminho(caminho);
     for (const e of this.#entradas.values()) if (e.chave === chave) return true;
+    return false;
+  }
+
+  /** Se `dono` ainda tem algum identificador para o caminho. */
+  contemDe(caminho: string, dono: number): boolean {
+    const chave = chaveCaminho(caminho);
+    for (const e of this.#entradas.values()) if (e.dono === dono && e.chave === chave) return true;
     return false;
   }
 

@@ -60,3 +60,13 @@ export function criarConferencia(
     },
   };
 }
+
+/** Fila única: cada operação começa quando a anterior termina (com sucesso ou não). */
+export function criarFila() {
+  let fim: Promise<unknown> = Promise.resolve();
+  return <T>(tarefa: () => Promise<T>): Promise<T> => {
+    const p = fim.then(tarefa, tarefa);
+    fim = p.catch(() => undefined);
+    return p;
+  };
+}

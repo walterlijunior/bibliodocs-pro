@@ -53,7 +53,7 @@ import {
 } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerIdentificador, lerPacoteTransferivel, paraTransferivel } from './argumentos';
-import { criarConferencia, type Manipulador } from './chamada';
+import { criarConferencia, criarFila, type Manipulador } from './chamada';
 import { respostaAbrir } from './manipuladores-projetos';
 import type { RespostaLeitor } from './protocolo-leitor';
 import { RegistroProjetos } from './registro-projetos';
@@ -115,19 +115,11 @@ function falhaDisco(e: unknown, acao: string): FalhaBiblioteca {
   }
 }
 
-/** Fila única: cada operação começa quando a anterior termina (com sucesso ou não). */
-function criarFila() {
-  let fim: Promise<unknown> = Promise.resolve();
-  return <T>(tarefa: () => Promise<T>): Promise<T> => {
-    const p = fim.then(tarefa, tarefa);
-    fim = p.catch(() => undefined);
-    return p;
-  };
-}
-
 export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
   manipuladores: Readonly<Record<CanalBiblioteca, Manipulador>>;
   itens: RegistroProjetos;
+  /** Pasta atual da biblioteca (a recuperação procura nela os restos de gravação; M1-T12). */
+  pastaAtual: () => Promise<string>;
 } {
   const fs = dep.fs ?? SISTEMA_ARQUIVOS_NODE;
   const itens = dep.itens ?? new RegistroProjetos();
@@ -300,7 +292,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       return {
         ok: true,
         projeto: {
-          identificador: dep.projetos.registrar(destino, r.idConteudo),
+          identificador: dep.projetos.registrar(destino, r.idConteudo, novo.manifesto.id),
           nomeArquivo: nome,
           pacote: paraTransferivel(pacote),
           avisos: [],
@@ -438,5 +430,6 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       [CANAIS_BIBLIOTECA.excluir]: excluir,
     }),
     itens,
+    pastaAtual,
   };
 }

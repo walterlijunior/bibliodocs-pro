@@ -5,7 +5,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'n
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CANAIS_PROJETOS, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
+import { CANAIS_PROJETOS, CANAIS_RECUPERACAO, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
 import type { Manifesto } from '../src/dominio/esquemas';
 import type { Documento } from '../src/dominio/modelo';
 import { abrirProjeto, empacotarProjeto, salvarProjeto } from '../src/persistencia';
@@ -285,7 +285,24 @@ describe('preload (C-10)', () => {
     expect(chamadas.map((c) => c[0])).toEqual([CANAIS_PROJETOS.abrir, CANAIS_PROJETOS.salvar, CANAIS_PROJETOS.salvarComo, CANAIS_PROJETOS.fechar]);
     expect(chamadas.map((c) => c.length)).toEqual([1, 3, 2, 2]);
     expect(Object.isFrozen(api) && Object.isFrozen(api.projetos)).toBe(true);
-    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca']);
+    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao']);
+  });
+
+  it('recuperacao (M1-T12): cada função usa só o seu canal fixo', async () => {
+    const chamadas: unknown[][] = [];
+    const api = criarApiBiblioDocs(async (...a) => (chamadas.push(a), { ok: true }));
+    await api.recuperacao.instantaneo('id', pacote());
+    await api.recuperacao.listar();
+    await api.recuperacao.recuperar('of');
+    await api.recuperacao.abrirSalvo('of');
+    expect(chamadas.map((c) => c[0])).toEqual([
+      CANAIS_RECUPERACAO.instantaneo,
+      CANAIS_RECUPERACAO.listar,
+      CANAIS_RECUPERACAO.recuperar,
+      CANAIS_RECUPERACAO.abrirSalvo,
+    ]);
+    expect(chamadas.map((c) => c.length)).toEqual([3, 1, 2, 2]);
+    expect(Object.isFrozen(api.recuperacao)).toBe(true);
   });
 
   it('o preload expõe só `bibliodocs` e nunca o ipcRenderer', () => {

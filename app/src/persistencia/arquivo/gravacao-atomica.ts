@@ -80,6 +80,11 @@ export interface OpcoesGravacao {
   /** Sufixo aleatório dos temporários (injetável nos testes). */
   aleatorio?: () => string;
   agora?: () => number;
+  /**
+   * Não atualiza o `.bak` (passo 3): para arquivos do próprio app em `%LOCALAPPDATA%` (instantâneos de recuperação e
+   * travas de sessão, M1-T12), que não são o trabalho do usuário e não precisam de cópia anterior.
+   */
+  semBak?: boolean;
 }
 
 class FalhaTentativas extends Error {
@@ -212,7 +217,7 @@ async function executar(destino: string, bytes: Uint8Array, opcoes: OpcoesGravac
   // 3. Cópia de segurança do original; falha aqui só gera aviso.
   const avisos: string[] = [];
   let bak: string | null = null;
-  if (existe) {
+  if (existe && !opcoes.semBak) {
     const destinoBak = `${destino}.bak`;
     const temporarioBak = `${destinoBak}.tmp-${process.pid}-${aleatorio()}`;
     let copiado = false;

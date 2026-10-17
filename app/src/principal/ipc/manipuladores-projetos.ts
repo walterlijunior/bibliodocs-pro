@@ -39,6 +39,14 @@ export interface DependenciasProjetos {
   ler: (caminho: string) => Promise<RespostaLeitor>;
   salvar: (destino: string, pacote: PacoteProjeto) => Promise<ResultadoSalvamento>;
   registro?: RegistroProjetos;
+  /**
+   * Antes de gravar no arquivo do usuário: a recuperação devolve a marca dos instantâneos já gravados daquele projeto
+   * (M1-T12). Depois de gravar, `aoGravar` apaga os instantâneos só se nenhum outro chegou durante a gravação.
+   */
+  antesDeGravar?: (idProjeto: string) => number;
+  aoGravar?: (caminho: string, idProjeto: string, dono: number, marca: number) => Promise<void>;
+  /** Depois de fechar um arquivo: a sessão de recuperação dele termina (M1-T12). */
+  aoFechar?: (caminho: string, dono: number) => Promise<void>;
   /** Registro técnico (nunca vai ao renderer). */
   log?: (mensagem: string) => void;
 }
@@ -75,7 +83,7 @@ export function respostaAbrir(caminho: string, lido: RespostaLeitor, registro: R
   const nomeArquivo = basename(caminho);
   if (lido.ok) {
     // Arquivo aberto com outra extensão (filtro "*.*" no diálogo) não vira destino de `salvar` (S8-04).
-    const identificador = ehProjeto(caminho) ? registro.registrar(caminho, dono) : null;
+    const identificador = ehProjeto(caminho) ? registro.registrar(caminho, dono, lido.pacote.manifesto.id) : null;
     const atualizacao =
       lido.migracao.length > 0 && lido.nomeBackup !== null ? { versaoOrigem: lido.migracao[0]!, nomeBackup: lido.nomeBackup } : null;
     return { ok: true, projeto: { identificador, nomeArquivo, pacote: lido.pacote, avisos: lido.avisos, atualizacao } };
@@ -125,7 +133,12 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
       return { ok: false, motivo: 'ERRO', codigo: 'NAO_ABERTO', mensagem: MENSAGEM_NAO_ABERTO, erros: [] };
     }
     if (!p.ok) return erroPacote(p.erros);
-    return paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
+    // O id é o que o principal registrou ao abrir; o do pacote só vale se ainda não havia um (revisão do M1-T12, M1).
+    const idProjeto = registro.idProjeto(id, r.idConteudo) ?? p.valor.manifesto.id;
+    const marca = dep.antesDeGravar?.(idProjeto) ?? 0;
+    const s = paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
+    if (s.ok) await dep.aoGravar?.(destino, idProjeto, r.idConteudo, marca);
+    return s;
   };
 
   const salvarComo: Manipulador = async (r, argumentos): Promise<ResultadoSalvarComo> => {
@@ -139,15 +152,23 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     if (!ehProjeto(destino)) {
       return { ok: false, motivo: 'ERRO', codigo: 'EXTENSAO_INVALIDA', mensagem: MENSAGEM_EXTENSAO, erros: [] };
     }
+    const idProjeto = p.valor.manifesto.id;
+    const marca = dep.antesDeGravar?.(idProjeto) ?? 0;
     const s = paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
     if (!s.ok) return s;
-    return { ...s, identificador: registro.registrar(destino, r.idConteudo) };
+    await dep.aoGravar?.(destino, idProjeto, r.idConteudo, marca);
+    // O arquivo novo foi gravado pelo principal com este id.
+    return { ...s, identificador: registro.registrar(destino, r.idConteudo, idProjeto) };
   };
 
   const fechar: Manipulador = async (r, argumentos): Promise<void> => {
     const canal = CANAIS_PROJETOS.fechar;
     conferir(canal, r, argumentos, 1);
-    registro.esquecer(lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador'), r.idConteudo);
+    const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador');
+    const caminho = registro.caminho(id, r.idConteudo);
+    registro.esquecer(id, r.idConteudo);
+    // Outro identificador da mesma janela para o mesmo arquivo (abrir de novo) mantém a sessão de recuperação.
+    if (caminho !== null && !registro.contemDe(caminho, r.idConteudo)) await dep.aoFechar?.(caminho, r.idConteudo);
   };
 
   return {

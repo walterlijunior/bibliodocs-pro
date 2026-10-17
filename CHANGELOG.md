@@ -6,6 +6,14 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T12: recuperação após encerramento inesperado (ADR-0004, seção 4).
+  - Até cerca de 2 s depois de cada alteração, uma cópia de recuperação vai para
+    `%LOCALAPPDATA%\BiblioDocsPro\recuperacao\` (nunca para o arquivo do usuário), com trava de sessão.
+  - Ao iniciar, a Biblioteca oferece "Recuperar a versão de HH:MM?" com Recuperar, Abrir o arquivo salvo e Decidir
+    depois; também oferece restaurar um trabalho que não abre a partir de uma gravação interrompida ou do `.bak`.
+  - Nada da recuperação é apagado sem decisão: o que o usuário descarta fica 7 dias em `recuperacao-antigos`.
+  - Canal novo `window.bibliodocs.recuperacao` (`instantaneo`, `listar`, `recuperar`, `abrirSalvo`).
+  - 45 testes novos (total 711); 27/27 mutações detectadas; fumaça no Electron 20/20.
 - Etapa 5, M1-T11: fluxo criar → editar título → salvar → fechar → abrir.
   - Sessão de edição (`app/src/aplicacao/servicos/sessao-trabalho.ts`) com o salvamento automático escolhido no
     ADR-0004: grava ~30 s depois da última alteração, ao trocar de trabalho e ao fechar a janela; Ctrl+S grava na hora.

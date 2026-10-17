@@ -68,6 +68,8 @@ function comFalhas(ganchos: Partial<Record<keyof SistemaArquivos, (...args: stri
     criarPasta: async (c) => (await ganchos.criarPasta?.(c), fs.criarPasta(c)),
     listarPasta: async (c) => (await ganchos.listarPasta?.(c), fs.listarPasta(c)),
     vincular: async (a, b) => (await ganchos.vincular?.(a, b), fs.vincular(a, b)),
+    apagarPasta: async (c) => (await ganchos.apagarPasta?.(c), fs.apagarPasta(c)),
+    definirModificacao: async (c, ms) => (await ganchos.definirModificacao?.(c), fs.definirModificacao(c, ms)),
   };
 }
 

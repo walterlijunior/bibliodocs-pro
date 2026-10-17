@@ -10,12 +10,18 @@
  * - um salvamento por vez: pedido durante outro espera o primeiro e grava de novo só se houve alteração no meio;
  * - alteração feita durante a gravação mantém "Alterações não salvas" e reagenda o automático;
  * - trabalho de versão futura abre só para leitura: o tipo `PacoteSomenteLeituraTransferivel` nunca chega a `salvar`;
- * - arquivo sem identificador (não `.bdp`) só grava por "Salvar como…": o automático não abre diálogo.
+ * - arquivo sem identificador (não `.bdp`) só grava por "Salvar como…": o automático não abre diálogo;
+ * - recuperação (M1-T12): até cerca de 2 s depois de uma alteração, o pacote vai para o instantâneo de recuperação
+ *   (`%LOCALAPPDATA%`, nunca o arquivo do usuário). É um limite, não uma espera que recomeça a cada tecla: quem digita
+ *   sem parar também tem instantâneos. Um por vez; falha vira aviso, sem tirar o "Salvo"/"Alterações não salvas".
+ *   Documento que demora a empacotar e gravar espaça os instantâneos (4 × a duração do último), para não ocupar o
+ *   processo principal o tempo todo (revisão do M1-T12, M5).
  *
  * Puro (sem DOM e sem Node): a API, o relógio e o agendador entram por dependência, e os testes rodam em Node com
  * agendador manual (tests/sessao-trabalho.test.ts).
  */
 import type { Inline, TipoTrabalhoId } from '../../dominio/modelo';
+import type { ApiRecuperacao } from '../portas/recuperacao';
 import type {
   ApiProjetos,
   IdentificadorProjeto,
@@ -26,11 +32,17 @@ import type {
 
 /** Espera do salvamento automático depois da última alteração (decisão do usuário, ADR-0004). */
 export const ATRASO_SALVAMENTO_AUTOMATICO_MS = 30_000;
+/** Limite entre uma alteração e o instantâneo de recuperação (ADR-0004: "com espera de cerca de 2 s"). */
+export const ATRASO_INSTANTANEO_MS = 2_000;
+/** Instantâneos lentos (documento grande) espaçam os seguintes: atraso = máx(2 s, 4 × duração do último). */
+export const FATOR_ESPACAMENTO_INSTANTANEO = 4;
 
 export const MENSAGEM_FALHA_INESPERADA =
   'O aplicativo não conseguiu falar com o processo de gravação. Tente de novo; se continuar, use “Salvar como…”.';
 export const MENSAGEM_SEM_DESTINO =
   'Este arquivo não é um trabalho .bdp e não pode ser gravado no lugar. Use “Salvar como…” para guardar as alterações.';
+export const MENSAGEM_FALHA_INSTANTANEO =
+  'A cópia de recuperação não pôde ser gravada. O trabalho continua sendo salvo no arquivo; se puder, salve com Ctrl+S.';
 
 export type SalvamentoSessao =
   /** `em` = hora da última gravação nesta sessão; `null` logo depois de abrir. */
@@ -75,6 +87,17 @@ export interface DependenciasSessao {
   atrasoAutomaticoMs?: number;
   /** Chamado depois de cada gravação bem-sucedida (a biblioteca relê o índice). */
   aoSalvar?: () => void;
+  /** Instantâneo de recuperação (M1-T12). Sem ele, a sessão não grava instantâneos. */
+  instantaneo?: ApiRecuperacao['instantaneo'];
+  atrasoInstantaneoMs?: number;
+}
+
+export interface OpcoesAbrir {
+  /**
+   * Versão recuperada que ainda não está no arquivo (instantâneo): abre como "Alterações não salvas" e o automático
+   * a grava no arquivo em 30 s.
+   */
+  naoSalvo?: boolean;
 }
 
 type Aberto =
@@ -107,6 +130,10 @@ export class SessaoTrabalho {
   #revisaoSalva = 0;
   #gravacao: Promise<boolean> | null = null;
   #cancelarAutomatico: Cancelar | null = null;
+  #cancelarInstantaneo: Cancelar | null = null;
+  #instantaneoEmCurso = false;
+  /** Duração do último instantâneo (ms), para espaçar os seguintes em documentos grandes. */
+  #duracaoInstantaneo = 0;
   #estado: EstadoSessao = { trabalho: null, avisos: [] };
 
   constructor(dep: DependenciasSessao) {
@@ -181,15 +208,68 @@ export class SessaoTrabalho {
     }, this.#dep.atrasoAutomaticoMs ?? ATRASO_SALVAMENTO_AUTOMATICO_MS);
   }
 
+  // ---------- instantâneo de recuperação ----------
+
+  #pararInstantaneo(): void {
+    this.#cancelarInstantaneo?.();
+    this.#cancelarInstantaneo = null;
+  }
+
+  /** Agenda o instantâneo se nenhum estiver agendado ou em curso (limite, não espera que recomeça). */
+  #agendarInstantaneo(): void {
+    if (this.#dep.instantaneo === undefined || this.#cancelarInstantaneo !== null || this.#instantaneoEmCurso) return;
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao' || a.identificador === null) return;
+    this.#cancelarInstantaneo = this.#dep.agendar(() => {
+      this.#cancelarInstantaneo = null;
+      void this.#gravarInstantaneo(a);
+    }, Math.max(this.#dep.atrasoInstantaneoMs ?? ATRASO_INSTANTANEO_MS, FATOR_ESPACAMENTO_INSTANTANEO * this.#duracaoInstantaneo));
+  }
+
+  async #gravarInstantaneo(a: Extract<Aberto, { modo: 'edicao' }>): Promise<void> {
+    const enviar = this.#dep.instantaneo;
+    const identificador = a.identificador;
+    // Já gravado no arquivo (o salvamento apaga os instantâneos): nada a guardar.
+    if (enviar === undefined || identificador === null || this.#aberto !== a || !this.#temAlteracoes()) return;
+    const revisao = this.#revisao;
+    this.#instantaneoEmCurso = true;
+    const inicio = this.#dep.agora().getTime();
+    let ok: boolean;
+    try {
+      ok = (await enviar(identificador, a.pacote)).ok;
+    } catch {
+      ok = false;
+    }
+    this.#duracaoInstantaneo = Math.max(0, this.#dep.agora().getTime() - inicio);
+    this.#instantaneoEmCurso = false;
+    if (this.#aberto !== a) return;
+    const tinhaAviso = this.#avisos.some((x) => x.texto === MENSAGEM_FALHA_INSTANTANEO);
+    if (!ok && !tinhaAviso) {
+      this.#avisar({ nivel: 'alerta', texto: MENSAGEM_FALHA_INSTANTANEO, acoes: [] });
+      this.#emitir();
+    } else if (ok && tinhaAviso) {
+      this.#avisos = this.#avisos.filter((x) => x.texto !== MENSAGEM_FALHA_INSTANTANEO);
+      this.#emitir();
+    }
+    // Alteração feita durante o envio: outro instantâneo.
+    if (this.#revisao !== revisao) this.#agendarInstantaneo();
+  }
+
   // ---------- abrir e fechar ----------
 
   /** Passa a editar `projeto`. O trabalho anterior é liberado sem gravar: chame `garantirSalvo` antes. */
-  abrir(projeto: ProjetoAberto, avisos: AvisoSessao[] = []): void {
+  abrir(projeto: ProjetoAberto, avisos: AvisoSessao[] = [], opcoes: OpcoesAbrir = {}): void {
     this.#liberar();
-    this.#aberto = { modo: 'edicao', identificador: projeto.identificador, nomeArquivo: projeto.nomeArquivo, pacote: projeto.pacote };
+    const a: Aberto = { modo: 'edicao', identificador: projeto.identificador, nomeArquivo: projeto.nomeArquivo, pacote: projeto.pacote };
+    this.#aberto = a;
     this.#salvamento = { tipo: 'salvo', em: null };
     this.#avisos = [...avisos];
     if (projeto.identificador === null) this.#avisar({ nivel: 'alerta', texto: MENSAGEM_SEM_DESTINO, acoes: ['salvarComo'] });
+    if (opcoes.naoSalvo) {
+      this.#revisao = 1;
+      this.#salvamento = { tipo: 'naoSalvo' };
+      this.#agendarAutomatico();
+    }
     this.#emitir();
   }
 
@@ -204,6 +284,8 @@ export class SessaoTrabalho {
 
   #liberar(): void {
     this.#pararAutomatico();
+    this.#pararInstantaneo();
+    this.#instantaneoEmCurso = false;
     const a = this.#aberto;
     if (a?.modo === 'edicao' && a.identificador !== null) {
       // Esquecer o identificador não pode falhar de um jeito que importe: no pior caso ele morre com a janela.
@@ -265,6 +347,7 @@ export class SessaoTrabalho {
     // "Salvar como…" aberto ainda não há gravação no disco: a alteração aparece como não salva.)
     if (this.#salvamento.tipo !== 'salvando') this.#salvamento = { tipo: 'naoSalvo' };
     this.#agendarAutomatico();
+    this.#agendarInstantaneo();
     this.#emitir();
   }
 
@@ -387,7 +470,8 @@ export class SessaoTrabalho {
     this.#revisaoSalva = revisao;
     this.#salvamento = this.#revisao === revisao ? { tipo: 'salvo', em: this.#dep.agora() } : { tipo: 'naoSalvo' };
     // Avisos do `.bak` não bloqueiam "Salvo" (ADR-0004; pendência do M1-T06).
-    this.#avisos = this.#avisos.filter((x) => x.nivel !== 'erro');
+    // O aviso do instantâneo também sai: o conteúdo está no arquivo.
+    this.#avisos = this.#avisos.filter((x) => x.nivel !== 'erro' && x.texto !== MENSAGEM_FALHA_INSTANTANEO);
     for (const texto of avisos) this.#avisar({ nivel: 'alerta', texto, acoes: [] });
     this.#emitir();
     this.#dep.aoSalvar?.();
@@ -396,5 +480,6 @@ export class SessaoTrabalho {
   /** Para o agendamento (desmontar a interface). */
   encerrar(): void {
     this.#pararAutomatico();
+    this.#pararInstantaneo();
   }
 }

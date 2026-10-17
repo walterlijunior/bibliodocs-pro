@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T11 concluído (fluxo criar → editar → salvar → fechar → abrir).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T11 concluídos; próximo T12).
+**Última atualização:** 2026-10-17 — M1-T12 concluído (recuperação após encerramento inesperado).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T12 concluídos; próximo T13).
 
 ## Etapas
 
@@ -15,16 +15,16 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T12** (recuperação: instantâneos em
-`%LOCALAPPDATA%\BiblioDocsPro\recuperacao\<id>\`, trava de sessão, oferta de recuperação na inicialização) (ver
-`docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina com
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T13** (E2E Playwright: FUN-01 criar → fechar → reabrir
+idêntico, RNF-04 matar e recuperar, UI-01 parcial, zero requisições de rede) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`).
+**Instala dependência local nova** (Playwright): informar antes. Todo incremento termina com
 `cd app; npm run verificar` passando.
 
 ## Pendências do usuário
@@ -37,6 +37,19 @@ Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T12** (recuperação: i
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Recuperação (M1-T12):
+  - Disco em `app/src/persistencia/recuperacao/`; regras e ganchos em `app/src/principal/ipc/manipuladores-recuperacao.ts`;
+    decisões e desvios no adendo do M1-T12 no ADR-0004. Regra: nada da recuperação é apagado sem decisão do usuário
+    (descartado → `recuperacao-antigos`, 7 dias do arquivamento).
+  - Gravação nova no arquivo do usuário → passar por `antesDeGravar`/`aoGravar` (senão os instantâneos não são apagados,
+    ou um instantâneo mais novo é apagado). Registro de projeto novo → `registrar(caminho, dono, idProjeto)` com o id
+    conhecido pelo principal.
+  - Edição nova do documento (M2) → além de somar revisão, chamar `#agendarInstantaneo()` (como `alterarTitulo`).
+  - **Para o M1-T13:** E2E RNF-04 pode partir da fumaça do T12 (relatório do M1): `taskkill /F /T` na árvore, reabrir,
+    conferir a oferta (texto aceita "HH:MM" e "DD/MM/AAAA às HH:MM"). `LOCALAPPDATA` redirecionado isola os dados.
+  - Pendentes: medir o instantâneo com 25 MB e, se travar a interface, empacotar fora do principal (antes do editor do
+    M2); tela para reabrir `recuperacao-antigos`; oferta visível mesmo com a Biblioteca em erro; backups rotativos
+    (`backups\<id>\`, 10 + 1/dia por 7 dias, ADR-0004 §4) ainda não implementados (não constavam do T12).
 - Sessão de edição (M1-T11):
   - `SessaoTrabalho` em `app/src/aplicacao/servicos/sessao-trabalho.ts`; hook em `interface/escrever/useSessao.ts`;
     decisões no adendo do M1-T11 no ADR-0004. Toda gravação passa pela fila (`#enfileirar`); nada grava fora dela.
@@ -190,4 +203,5 @@ Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T12** (recuperação: i
 | 2026-10-16 | 5 (M1-T08) | IPC tipado pela sessão principal: contrato `window.bibliodocs.projetos` (abrir, salvar, salvarComo, fechar) em `aplicacao/portas`; preload com 4 funções de canal fixo; principal confere remetente (webContents, quadro principal, origem) e argumentos (zod estrito, limites) antes de qualquer diálogo; identificadores opacos por janela; só nomes de arquivo ao renderer; leitura do `.bdp` num `utilityProcess`. `revisor-seguranca`: 0 Alta, S8-01/S8-02 (Média) e S8-03–S8-07 corrigidos (sandbox do leitor → Etapa 7). 8/8 mutações detectadas. Fumaça no Electron 44.8.0: `Uint8Array` atravessa `contextBridge` e `utilityProcess`; 25 MB × 20 leituras, 307–408 ms. `verificar` 492/492, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `0c0acad` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T09) | Biblioteca pela sessão principal: contrato `window.bibliodocs.biblioteca` (7 canais); pasta padrão `Documentos\BiblioDocs Pro\Trabalhos` configurável (`preferencias.json`); índice-cache `biblioteca.json` recriável, com resumo no processo leitor em lotes; criar, renomear (link físico, nunca sobrescreve), duplicar (id novo), excluir para a Lixeira com confirmação do principal; aviso de OneDrive. `revisor-seguranca`: A1 (Alta, listagem quadrática ~40 s com 5 000 itens), M1–M4, B1–B4 e B6 corrigidos; B5 aceito; 2 resíduos registrados no adendo do ADR-0004. 19/19 mutações detectadas. Fumaça no Electron 44.8.0: resumo real em 233 ms; `shell.trashItem` → arquivo na Lixeira do Windows (conferido por `Shell.Application`). `verificar` 594/594, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `cc5c6ed` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T10) | Casca da interface pela sessão principal, após o usuário aprovar o protótipo (todos os `[PROPOSTA]` aceitos; `docs/GUIA_VISUAL.md`). Quatro faixas, menus ARIA, abas, Voltar/Avançar, biblioteca real (grade, lateral, detalhes, estados, aviso de OneDrive), criar trabalho, escolher pasta; janela mínima 1024×700; menu nativo nulo também no dev (F12). Sem dependência nova. `verificar:tudo` 630/630, 0 vulnerabilidades, build OK; 10/10 mutações; fumaça no Electron 44.8.0 por CDP 21/21 (achou e corrigiu Alt+Seta duplicado nas abas); kit 0 falhas. Commit `3040a9a` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M1-T12) | Recuperação pela sessão principal: instantâneo ~2 s depois de cada alteração em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao\<id>\` (atual + anterior, sem `.bak`), trava de sessão, oferta na Biblioteca (Recuperar / Abrir o arquivo salvo / Decidir depois), restaurar a partir de temporário ou `.bak` de arquivo que não abre, `recuperacao-antigos` por 7 dias. `revisor-seguranca`: 4 Alta (prazo pela data errada, queda adiada arquivada, salvamento apagando instantâneo mais novo, restauração que tirava o original), 5 Média e 2 Baixa corrigidas; B2/B4 aceitas. 27/27 mutações. Fumaça no Electron 44.8.0 por CDP 20/20 (`taskkill` e reabrir oferece a versão). `verificar:tudo` 711/711, 0 vulnerabilidades, build OK; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |

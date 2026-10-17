@@ -3,7 +3,7 @@
  * que os testes injetem falhas (EPERM, ENOSPC, queda entre passos) sem tocar no código de produção.
  */
 import { constants } from 'node:fs';
-import { chmod, copyFile, link, lstat, mkdir, open, readdir, rename, unlink } from 'node:fs/promises';
+import { chmod, copyFile, link, lstat, mkdir, open, readdir, rename, rmdir, unlink, utimes } from 'node:fs/promises';
 
 export interface ArquivoAberto {
   /** Tamanho atual pelo próprio descritor (não pelo caminho, que pode ter mudado). */
@@ -36,6 +36,8 @@ export interface InfoCaminho {
 export interface EntradaPasta {
   nome: string;
   arquivoComum: boolean;
+  /** Pasta (sem seguir link). */
+  pasta: boolean;
   link: boolean;
 }
 
@@ -59,6 +61,10 @@ export interface SistemaArquivos {
   criarPasta(caminho: string): Promise<void>;
   /** Entradas diretas da pasta (sem descer em subpastas). */
   listarPasta(caminho: string): Promise<EntradaPasta[]>;
+  /** Apaga uma pasta **vazia** (falha com ENOTEMPTY se houver algo dentro; nunca apaga em cascata). */
+  apagarPasta(caminho: string): Promise<void>;
+  /** Muda a data de modificação (ms desde 1970). A cópia mantém a data da origem; o arquivamento precisa da sua. */
+  definirModificacao(caminho: string, ms: number): Promise<void>;
 }
 
 async function embrulhar(caminho: string, flags: string | number): Promise<ArquivoAberto> {
@@ -107,7 +113,9 @@ export const SISTEMA_ARQUIVOS_NODE: SistemaArquivos = {
   apagar: (caminho) => unlink(caminho),
   criarPasta: async (caminho) => void (await mkdir(caminho, { recursive: true })),
   listarPasta: async (caminho) =>
-    (await readdir(caminho, { withFileTypes: true })).map((d) => ({ nome: d.name, arquivoComum: d.isFile(), link: d.isSymbolicLink() })),
+    (await readdir(caminho, { withFileTypes: true })).map((d) => ({ nome: d.name, arquivoComum: d.isFile(), pasta: d.isDirectory(), link: d.isSymbolicLink() })),
+  apagarPasta: (caminho) => rmdir(caminho),
+  definirModificacao: (caminho, ms) => utimes(caminho, ms / 1000, ms / 1000),
 };
 
 /** Código de erro do Node (`EPERM`, `ENOENT`...) ou `undefined`. */

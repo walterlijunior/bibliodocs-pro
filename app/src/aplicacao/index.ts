@@ -6,7 +6,7 @@
  * - Não importa interface/, principal/ nem electron. Sem DOM e sem Node (checado por tsconfig.puro.json).
  *
  * Marcador criado no M1-T01; contrato da API de projetos (IPC) no M1-T08; biblioteca e criação de trabalho no M1-T09;
- * sessão de edição (trabalho aberto e salvamento automático) no M1-T11.
+ * sessão de edição (trabalho aberto e salvamento automático) no M1-T11; recuperação (instantâneos) no M1-T12.
  */
 export {
   CANAIS_PROJETOS,
@@ -41,10 +41,24 @@ export {
   type ResultadoItem,
   type ResultadoListar,
 } from './portas/biblioteca';
+export {
+  CANAIS_RECUPERACAO,
+  type ApiRecuperacao,
+  type CanalRecuperacao,
+  type IdentificadorOferta,
+  type OfertaRecuperacao,
+  type ResultadoInstantaneo,
+  type ResultadoListarRecuperacao,
+  type ResultadoRecuperar,
+  type TipoOferta,
+} from './portas/recuperacao';
 export { criarTrabalhoVazio, PERFIL_PADRAO, type DadosNovoTrabalho, type TrabalhoNovo } from './servicos/criar-trabalho';
 export {
+  ATRASO_INSTANTANEO_MS,
   ATRASO_SALVAMENTO_AUTOMATICO_MS,
+  FATOR_ESPACAMENTO_INSTANTANEO,
   MENSAGEM_FALHA_INESPERADA,
+  MENSAGEM_FALHA_INSTANTANEO,
   MENSAGEM_SEM_DESTINO,
   SessaoTrabalho,
   textoDoTitulo,
@@ -54,6 +68,7 @@ export {
   type Cancelar,
   type DependenciasSessao,
   type EstadoSessao,
+  type OpcoesAbrir,
   type SalvamentoSessao,
   type TrabalhoDaSessao,
 } from './servicos/sessao-trabalho';

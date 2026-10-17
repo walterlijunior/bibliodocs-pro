@@ -15,7 +15,11 @@ import { AreaEscrever, type PropsAreaEscrever } from '../../src/interface/escrev
 const naoUsar = (): never => {
   throw new Error('a renderização estática não deve chamar a API');
 };
-const api = { projetos: new Proxy({}, { get: naoUsar }), biblioteca: new Proxy({}, { get: naoUsar }) } as unknown as ApiBiblioDocs;
+const api = {
+  projetos: new Proxy({}, { get: naoUsar }),
+  biblioteca: new Proxy({}, { get: naoUsar }),
+  recuperacao: new Proxy({}, { get: naoUsar }),
+} as unknown as ApiBiblioDocs;
 
 const contarOcorrencias = (html: string, trecho: string): number => html.split(trecho).length - 1;
 

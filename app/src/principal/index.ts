@@ -12,10 +12,12 @@
  *   desenvolvimento pela origem exata de ELECTRON_RENDERER_URL (só loopback) com CSP de dev;
  * - C-5/C-6/C-7/C-8 em seguranca/endurecimento.ts (navegação, links externos, permissões, rede);
  * - C-15 menu nulo no app empacotado (sem item nem atalho de DevTools);
- * - C-22 (parte 1) instância única: a segunda instância só foca a janela existente.
+ * - C-22 (parte 1) instância única: a segunda instância só foca a janela existente. Com ela, uma trava de sessão
+ *   (`sessao\<id>.lock`, M1-T12) que não pertence a uma sessão ativa deste processo é sempre órfã.
  * M1-T08 — IPC tipado (C-10–C-12) em ipc/: só a janela principal chama a API, pela origem da interface.
  * Ficam para depois: C-13/C-14/C-16/C-17 (empacotamento, M1-T14),
- * C-18/C-19/C-20 (verificação de dependências e varreduras, M1-T03), trava por projeto (persistência).
+ * C-18/C-19/C-20 (verificação de dependências e varreduras, M1-T03).
+ * M1-T12 — recuperação (instantâneos, trava de sessão, restos de gravação) em ipc/manipuladores-recuperacao.ts.
  */
 import { join } from 'node:path';
 import { app, BrowserWindow, Menu, session } from 'electron';
@@ -101,8 +103,10 @@ function iniciar(): void {
   let ipc: ReturnType<typeof registrarIpcProjetos> | null = null;
   const abrirJanela = (): void => {
     janelaPrincipal = criarJanelaPrincipal(urlInicial);
+    const idConteudo = janelaPrincipal.webContents.id;
     ipc?.vigiar(janelaPrincipal.webContents);
     janelaPrincipal.on('closed', () => {
+      ipc?.encerrarJanela(idConteudo);
       janelaPrincipal = null;
     });
   };
@@ -134,7 +138,9 @@ function iniciar(): void {
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform === 'darwin') return;
+    // A limpeza da recuperação (instantâneos descartados, trava de sessão) termina antes de sair (M1-T12).
+    void (ipc?.aguardarRecuperacao() ?? Promise.resolve()).finally(() => app.quit());
   });
 }
 

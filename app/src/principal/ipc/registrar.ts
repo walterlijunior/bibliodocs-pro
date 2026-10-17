@@ -1,18 +1,19 @@
 /**
- * Liga os manipuladores das APIs `projetos` e `biblioteca` ao Electron: `ipcMain.handle`, diálogos nativos, Lixeira e
+ * Liga os manipuladores das APIs `projetos`, `biblioteca` e `recuperacao` ao Electron: `ipcMain.handle`, diálogos nativos, Lixeira e
  * o processo leitor. As decisões ficam nos módulos puros desta pasta; aqui só se traduz o evento e se escolhe a
  * implementação real.
  */
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
-import { CANAIS_BIBLIOTECA, CANAIS_PROJETOS } from '../../aplicacao';
+import { CANAIS_BIBLIOTECA, CANAIS_PROJETOS, CANAIS_RECUPERACAO } from '../../aplicacao';
 import { salvarProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
+import { criarManipuladoresRecuperacao, pastasRecuperacao } from './manipuladores-recuperacao';
 import type { InfoRemetente } from './remetente';
 
 const FILTROS = [{ name: 'Trabalho do BiblioDocs Pro', extensions: [EXTENSAO_PROJETO.slice(1)] }];
@@ -56,6 +57,8 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   const dadosLocais = pastaDadosLocais();
   const pastaBackups = join(dadosLocais, 'backups');
   const ler = (caminho: string) => lerIsolado(entradaLeitor, { caminho, pastaBackups });
+  // Criada depois (precisa do registro dos projetos e da pasta da biblioteca); os ganchos só rodam depois disso.
+  let recuperacao: ReturnType<typeof criarManipuladoresRecuperacao> | null = null;
 
   const { manipuladores, registro } = criarManipuladoresProjetos({
     origem,
@@ -84,6 +87,9 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     },
     ler,
     salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    antesDeGravar: (idProjeto) => recuperacao?.antesDeGravar(idProjeto) ?? 0,
+    aoGravar: async (caminho, idProjeto, dono, marca) => recuperacao?.aoGravar(caminho, idProjeto, dono, marca),
+    aoFechar: async (caminho, dono) => recuperacao?.aoFechar(caminho, dono),
   });
 
   const biblioteca = criarManipuladoresBiblioteca({
@@ -128,8 +134,23 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     appVersao: app.getVersion(),
   });
 
+  recuperacao = criarManipuladoresRecuperacao({
+    origem,
+    conteudosPermitidos,
+    pastas: pastasRecuperacao(dadosLocais),
+    projetos: registro,
+    pastaBiblioteca: () => biblioteca.pastaAtual(),
+    ler,
+    resumir: (caminhos) => resumirIsolado(entradaLeitor, caminhos),
+    salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    pid: process.pid,
+    agora: () => new Date(),
+  });
+  const rec = recuperacao;
+
   const log = (m: string) => console.warn(m);
-  for (const [canal, manipulador] of [...Object.entries(manipuladores), ...Object.entries(biblioteca.manipuladores)]) {
+  const todos = [...Object.entries(manipuladores), ...Object.entries(biblioteca.manipuladores), ...Object.entries(rec.manipuladores)];
+  for (const [canal, manipulador] of todos) {
     const protegido = blindar(canal, manipulador, log);
     ipcMain.handle(canal, (evento, ...argumentos: unknown[]) => protegido(infoRemetente(evento), argumentos));
   }
@@ -137,19 +158,31 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   return {
     vigiar(conteudo: WebContents): void {
       const id = conteudo.id;
-      const esquecer = () => {
+      // `limpo`: a janela fechou normalmente (o renderer já gravou ou o usuário descartou); senão, a página caiu ou
+      // recarregou com o trabalho na memória, e os instantâneos ficam para a recuperação (M1-T12).
+      const esquecer = (limpo: boolean) => {
+        void rec.encerrarDono(id, limpo);
         registro.esquecerDono(id);
         biblioteca.itens.esquecerDono(id);
       };
-      conteudo.once('destroyed', esquecer);
-      conteudo.on('render-process-gone', esquecer);
+      conteudo.once('destroyed', () => esquecer(true));
+      conteudo.on('render-process-gone', () => esquecer(false));
       // Recarga ou navegação para outro documento: a página nova não herda os arquivos abertos (S8-03).
       conteudo.on('did-start-navigation', (detalhes) => {
-        if (detalhes.isMainFrame && !detalhes.isSameDocument) esquecer();
+        if (detalhes.isMainFrame && !detalhes.isSameDocument) esquecer(false);
       });
     },
+    /**
+     * A janela fechou normalmente (evento `closed`, que vem antes do `window-all-closed`): termina as sessões de
+     * recuperação dela já aqui, para a limpeza entrar na fila antes de `aguardarRecuperacao` (revisão do M1-T12, B1).
+     */
+    encerrarJanela: (idConteudo: number): void => void rec.encerrarDono(idConteudo, true),
+    /** Espera as gravações da recuperação terminarem (antes de o app sair). */
+    aguardarRecuperacao: (): Promise<void> => rec.aguardar(),
     remover(): void {
-      for (const canal of [...Object.values(CANAIS_PROJETOS), ...Object.values(CANAIS_BIBLIOTECA)]) ipcMain.removeHandler(canal);
+      for (const canal of [...Object.values(CANAIS_PROJETOS), ...Object.values(CANAIS_BIBLIOTECA), ...Object.values(CANAIS_RECUPERACAO)]) {
+        ipcMain.removeHandler(canal);
+      }
     },
   };
 }

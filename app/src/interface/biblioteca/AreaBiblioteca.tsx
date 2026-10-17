@@ -1,7 +1,9 @@
 // Conteúdo da aba Biblioteca: cabeçalho, avisos da pasta e os estados carregando, erro, vazio, sem resultado e cheio.
-import type { IdentificadorItem, ItemBiblioteca } from '../../aplicacao';
+// M1-T12: as ofertas de recuperação aparecem no topo dos avisos, com Recuperar, Abrir o arquivo salvo e Decidir depois.
+import type { IdentificadorItem, IdentificadorOferta, ItemBiblioteca, OfertaRecuperacao } from '../../aplicacao';
 import { Icone, Pequi } from '../Icones';
 import { GradeTrabalhos } from './GradeTrabalhos';
+import { rotuloRecuperar, textoOferta } from './recuperacao';
 import type { EstadoBiblioteca, MensagemAcao } from './useBiblioteca';
 
 export const AVISO_NUVEM =
@@ -26,6 +28,13 @@ export interface PropsAreaBiblioteca {
   aoCriar: () => void;
   aoTentarDeNovo: () => void;
   aoEscolherPasta: () => void;
+  /** Ofertas de recuperação (M1-T12). */
+  ofertas?: readonly OfertaRecuperacao[];
+  /** Data de hoje, para escrever "15:42" ou "14/10/2026 às 15:42". */
+  hoje?: Date;
+  aoRecuperar?: (id: IdentificadorOferta) => void;
+  aoAbrirSalvo?: (id: IdentificadorOferta) => void;
+  aoAdiar?: (id: IdentificadorOferta) => void;
 }
 
 export function AreaBiblioteca(p: PropsAreaBiblioteca) {
@@ -68,6 +77,8 @@ export function AreaBiblioteca(p: PropsAreaBiblioteca) {
   }
 
   const { pasta, itens: todos, avisos } = p.estado;
+  const ofertas = p.ofertas ?? [];
+  const hoje = p.hoje ?? new Date();
   return (
     <>
       <div className="principal__cab">
@@ -79,7 +90,28 @@ export function AreaBiblioteca(p: PropsAreaBiblioteca) {
         )}
       </div>
 
-      <ul className="avisos" aria-label="Avisos" hidden={!pasta.naNuvem && avisos.length === 0 && p.mensagem === null}>
+      <ul className="avisos" aria-label="Avisos" hidden={ofertas.length === 0 && !pasta.naNuvem && avisos.length === 0 && p.mensagem === null}>
+        {ofertas.map((o) => (
+          <li key={o.identificador} className="aviso">
+            <Icone nome="alerta" />
+            <span className="aviso__texto" role="status">
+              {textoOferta(o, hoje)}
+            </span>
+            <span className="aviso__acoes">
+              <button type="button" className="btn-secundario" onClick={() => p.aoRecuperar?.(o.identificador)} disabled={p.ocupado}>
+                {rotuloRecuperar(o.tipo)}
+              </button>
+              {o.tipo === 'instantaneo' && o.arquivoSalvoExiste && (
+                <button type="button" className="btn-secundario" onClick={() => p.aoAbrirSalvo?.(o.identificador)} disabled={p.ocupado}>
+                  Abrir o arquivo salvo
+                </button>
+              )}
+              <button type="button" className="btn-secundario" onClick={() => p.aoAdiar?.(o.identificador)}>
+                Decidir depois
+              </button>
+            </span>
+          </li>
+        ))}
         {pasta.naNuvem && <Aviso texto={AVISO_NUVEM} />}
         {avisos.map((a) => (
           <Aviso key={a} texto={a} />

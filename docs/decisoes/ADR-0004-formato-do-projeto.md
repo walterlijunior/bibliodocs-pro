@@ -499,3 +499,50 @@ documento.
   M1-T09).
 - **Título editado** vira um trecho sem marcas até o editor rico (M2); sem alteração, o original é preservado.
 - **Recuperação** (instantâneos de ~2 s, trava de sessão) continua no M1-T12.
+
+## Adendo técnico — recuperação (M1-T12, 2026-10-17)
+Decisões técnicas da sessão principal, revisadas pelo `revisor-seguranca` (relatório do M1; achados A1–A4, M1–M4, B1 e
+B3 incorporados abaixo). Não mudam o resultado do documento. Código: `app/src/persistencia/recuperacao/`,
+`app/src/principal/ipc/manipuladores-recuperacao.ts` e `app/src/aplicacao/servicos/sessao-trabalho.ts`.
+- **Instantâneo:** até cerca de 2 s depois de uma alteração, o renderer manda o pacote pelo canal
+  `recuperacao.instantaneo`; o principal empacota e grava `recuperacao\<id>\atual.bdp` (o anterior vira
+  `anterior.bdp`) pelo procedimento atômico, sem `.bak` (opção `semBak`). **Desvio:** "cerca de 2 s" é um limite, não
+  uma espera que recomeça a cada tecla (quem digita sem parar também tem instantâneos). Um por vez; instantâneo lento
+  espaça os seguintes (máx(2 s, 4 × a duração do último); revisão M5). Falha vira aviso na aba Escrever.
+- **Id:** a pasta usa o id registrado pelo principal ao abrir ou gravar o arquivo; pacote de outro id é recusado
+  (revisão M1).
+- **Trava** `sessao\<id>.lock` (JSON estrito: PID, início, caminho do arquivo). **Desvio:** nasce no primeiro
+  instantâneo, não ao abrir (sem alteração não há o que recuperar). Com instância única, trava sem sessão ativa neste
+  processo é órfã; "projeto aberto por outra instância → só leitura" não se aplica.
+- **Fim da sessão:** salvar no arquivo apaga os instantâneos, **se nenhum instantâneo chegou durante a gravação**
+  (marca tirada antes de gravar; revisão A3). Fechar o trabalho ou a janela normalmente leva o que sobrou (alterações
+  descartadas pelo usuário) para `recuperacao-antigos` e apaga a trava. Janela que cai ou recarrega e processo morto não
+  limpam nada: os instantâneos viram oferta. A limpeza do fechamento entra na fila no evento `closed` da janela, antes
+  do `window-all-closed` (revisão B1).
+- **Nada da queda some sem decisão do usuário:** se o projeto volta a ser editado antes da escolha ("Decidir depois"),
+  os instantâneos da queda são reservados como `recuperacao\<id>~<AAAAMMDD-HHMMSS>\` e continuam oferecidos (revisão
+  A2). Instantâneo ilegível fica onde está. Instantâneo mais velho que o arquivo também é oferecido (relógio,
+  sincronização; revisão M3).
+- **`recuperacao-antigos`:** o que o usuário descartou ("Abrir o arquivo salvo", fechar sem salvar), temporários órfãos
+  e o original danificado substituído numa restauração. Apagado 7 dias depois **do arquivamento** (a data é aplicada ao
+  arquivar; revisão A1). **Desvio:** o ADR só previa apagar ao salvar; não há tela para reabrir esses arquivos.
+- **Oferta** na Biblioteca, ao iniciar (e a cada montagem da tela): "O BiblioDocs Pro foi fechado inesperadamente com
+  “título” (arquivo) aberto. Recuperar a versão de HH:MM?", com Recuperar, Abrir o arquivo salvo e Decidir depois.
+  Recuperar abre a versão em "Alterações não salvas" (o automático a grava no arquivo em 30 s). O caminho de origem
+  só recebe a versão se o arquivo falta, não abre ou é o mesmo projeto; outro projeto no lugar → só "Salvar como…"
+  (revisão M2). Trabalho aberto no app não é recuperado por cima (revisão B3).
+- **Restos na pasta da biblioteca** (só o primeiro nível; **desvio**: a cada listagem, não só ao iniciar), com mais de
+  10 min (gravação em curso em outro PC sincronizado; revisão M4) e no máximo 100 por listagem; restos de arquivo aberto
+  no app e temporários do próprio processo ficam de fora:
+  - `*.bdp.bak.tmp-*` → apagado na hora (cópia do original; **desvio** registrado no adendo do M1-T06);
+  - `*.bdp.tmp-*` com original que abre, ou incompleto → `recuperacao-antigos`; completo com original que falta ou não
+    abre → oferta "Restaurar";
+  - `*.bdp.bak` íntegro com original que existe e não abre → oferta "Restaurar" (original ausente = excluído pelo
+    usuário, nada a oferecer).
+  - Restaurar confere de novo que o original não abre, guarda o danificado em `recuperacao-antigos` (se não conseguir,
+    nada muda) e grava a versão íntegra; se a gravação falha, o danificado volta ao lugar (revisão A4). O `.bak` íntegro
+    nunca é substituído pelo danificado.
+- **Resíduos aceitos [HIPÓTESE de baixo impacto]:** caminho UNC na trava gera acesso à rede ao listar (B2); restos ao
+  lado de arquivos abertos fora da pasta da biblioteca não são procurados (B4); o empacotamento do instantâneo roda no
+  processo principal (com 25 MB, estimado pela medição do M1-T06 em 0,2–0,8 s; não medido para o instantâneo) — mover
+  para um processo à parte quando o editor do M2 produzir documentos grandes.
