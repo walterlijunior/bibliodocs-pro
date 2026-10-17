@@ -6,7 +6,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 |---|---|---|
 | M2-T01 Desempenho do instantâneo e do salvamento | CONCLUÍDA | 2026-10-17 |
 | M2-T03 Numeração e operações sobre a árvore de seções | CONCLUÍDA | 2026-10-17 |
-| M2-T02, M2-T04 a M2-T12 | PENDENTE | — |
+| M2-T04 Alíneas, citação longa e nota no modelo | CONCLUÍDA | 2026-10-17 |
+| M2-T02, M2-T05 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -156,3 +157,40 @@ Sem erro de correção nos casos válidos; RN-038, RN-039, RN-041 e RN-028 confe
 | B4 | Baixa | Seção inserida compartilha a referência do chamador | Documentado no cabeçalho do módulo |
 | B5 | Info | Desempenho: mover ~2 ms, inserir ~16 ms, `mapaIndicativos` ~37 ms com 111 000 seções | Memorizar no M2-T07 se necessário |
 
+## M2-T04 — Alíneas, citação longa e nota de rodapé no modelo
+
+**Implementação:** sessão principal. **Revisão:** `especialista-documento`, somente leitura. As decisões estão no adendo
+do M2-T04 no ADR-0007, que também anota o ADR-0005.
+
+**Modelo**
+- Bloco `alineas` com `subalineas` (RN-023, RN-026, RN-028).
+- Bloco `citacaoLonga` (RN-004, RN-084).
+- Inline `nota` com conteúdo, no ponto da chamada (RN-100).
+- Tipos nomeados `InlineDeNota` e `InlineDeTitulo`.
+- O rótulo da alínea é derivado: `rotuloAlinea` em `dominio/numeracao`, com `aa), bb)` pela decisão C-A6.
+- Ids únicos de seções, blocos e notas, na leitura e no `inserirSecao`.
+- JSON Schema regenerado com `$defs` nomeados.
+
+**Aceite** [VERIFICADO 2026-10-17]
+- As fixtures válidas passam idênticas e voltam idênticas pelo `.bdp`: empacotar → ler, comparando também o
+  `JSON.stringify`.
+- As 14 fixtures inválidas são recusadas com o caminho e a mensagem pt-BR esperados.
+- `npm run esquemas:gerar` regravou os esquemas, e o teste confere arquivo = gerado.
+
+**Testes** [VERIFICADO 2026-10-17]
+- `npm run verificar:tudo`: typecheck dos 4 projetos, 825/825 testes (eram 790), 0 vulnerabilidades, build OK e
+  E2E 9/9.
+- Mutações: 16/16 detectadas. Cobrem a conferência de id de nota, as subalíneas no percurso, `min(1)` e `max` das
+  listas, a nota em título, a mensagem própria, o objeto estrito, o rótulo dobrado, a posição negativa e o texto plano.
+
+**Revisão** (0 Alta)
+- Média 1, adendo citado mas ausente: escrito no ADR-0007 e anotado no ADR-0005.
+- Média 2, ids repetidos na colagem tornam o arquivo ilegível: registrada para o M2-T05 e no R38.
+- Média 3, conteúdo de nota preso a `InlineTexto`: corrigida com `InlineDeNota` e `InlineDeTitulo`.
+- Baixas B4 a B7: registradas como pendências no adendo.
+- O revisor aprovou as decisões 1 a 7.
+
+**Incidente do processo:** um `prettier --write` sem configuração do projeto reformatou 10 arquivos. O `git checkout`
+foi bloqueado pela política de permissões. Os arquivos foram copiados para o scratchpad e reescritos a partir do HEAD só
+com as edições do incremento. O diff final contém apenas o M2-T04. **O projeto não usa Prettier:** não rodar formatador
+automático.

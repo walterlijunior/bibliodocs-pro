@@ -4,7 +4,7 @@
  * profundidade da árvore de seções → ids únicos.
  */
 import { z } from 'zod';
-import type { Documento, Secao } from '../modelo';
+import type { Bloco, Documento, Inline, Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
 import { esquemaDocumentoV1, esquemaManifestoV1, type Manifesto } from './projeto-v1';
 
@@ -65,7 +65,23 @@ function secaoAlemDoLimite(corpo: Secao[], limite: number): readonly PropertyKey
   return null;
 }
 
-/** Primeiro id de seção ou bloco repetido no documento, sem recursão. */
+/** Conteúdos do bloco com o caminho de cada um a partir do bloco (alínea, depois as suas subalíneas). */
+function conteudosComCaminho(b: Bloco): { conteudo: readonly Inline[]; caminho: PropertyKey[] }[] {
+  switch (b.tipo) {
+    case 'paragrafo':
+    case 'citacaoLonga':
+      return [{ conteudo: b.conteudo, caminho: ['conteudo'] }];
+    case 'alineas':
+      return b.itens.flatMap((item, i) => [
+        { conteudo: item.conteudo, caminho: ['itens', i, 'conteudo'] },
+        ...(item.subalineas ?? []).map((sub, j) => ({ conteudo: sub, caminho: ['itens', i, 'subalineas', j] })),
+      ]);
+    case 'quebraPagina':
+      return [];
+  }
+}
+
+/** Primeiro id de seção, bloco ou nota repetido no documento, em ordem de leitura e sem recursão. */
 function idRepetido(corpo: Secao[]): readonly PropertyKey[] | null {
   const vistos = new Set<string>();
   const pilha: { s: Secao; caminho: PropertyKey[] }[] = corpo.map((s, i) => ({ s, caminho: ['corpo', i] })).reverse();
@@ -76,6 +92,13 @@ function idRepetido(corpo: Secao[]): readonly PropertyKey[] | null {
     for (const [i, b] of s.blocos.entries()) {
       if (vistos.has(b.id)) return [...caminho, 'blocos', i, 'id'];
       vistos.add(b.id);
+      for (const c of conteudosComCaminho(b)) {
+        for (const [k, inline] of c.conteudo.entries()) {
+          if (inline.tipo !== 'nota') continue;
+          if (vistos.has(inline.id)) return [...caminho, 'blocos', i, ...c.caminho, k, 'id'];
+          vistos.add(inline.id);
+        }
+      }
     }
     for (let i = s.subsecoes.length - 1; i >= 0; i--) pilha.push({ s: s.subsecoes[i]!, caminho: [...caminho, 'subsecoes', i] });
   }

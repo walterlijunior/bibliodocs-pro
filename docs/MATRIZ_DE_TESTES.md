@@ -107,12 +107,14 @@ diálogos nativos, Lixeira, salvamento automático de 30 s, erro de gravação, 
 
 ## Grupo MOD — modelo e numeração (aplicativo, desde o M2-T03)
 
-Executar: `cd app; npm run verificar`. Testes em `app/tests/secoes-operacoes.test.ts`.
+Executar: `cd app; npm run verificar`. Testes em `app/tests/secoes-operacoes.test.ts` e `app/tests/modelo-m2.test.ts`.
 
 | ID | Caso | Fonte do esperado | Status |
 |---|---|---|---|
 | MOD-01 | Numeração progressiva derivada: 1, 1.1 ... 1.1.1.1.1 sem saltos, em algarismos arábicos; seção além da quinária marcada; 64 níveis sem recursão | RN-038, RN-039, RN-041 | PASSOU (M2-T03, 2026-10-17) |
 | MOD-02 | Operações da árvore: mover a seção 3 para antes da 2 renumera tudo; recuar além da quinária recusado com mensagem que orienta usar alíneas; promover como o Word (ordem do texto igual); limite de 1000 por nível; inverso montado à mão não fura os limites; propriedade com 400 sequências (numeração, níveis, entrada intacta, desfazer e refazer) | RF-03; RN-028, RN-039, RN-041; decisão do usuário de 2026-10-17 (adendo do M2-T03 no ADR-0007) | PASSOU (M2-T03, 2026-10-17): 20 testes; 40/40 mutações detectadas |
+| MOD-03 | Modelo M2: alíneas e subalíneas, citação longa e nota de rodapé. Fixtures válidas (`documento-valido.json`, `documento-bordas-m2.json`) passam idênticas e voltam idênticas do `.bdp`. As 14 fixtures de `invalidos/` são recusadas com o caminho e a mensagem pt-BR esperados: alíneas vazias, subalíneas vazias ou aninhadas, rótulo ou número gravado, nota em nota ou em título, id de nota repetido, citação com `chamada`, controle no texto da nota. Limites de 1000 alíneas e subalíneas; estrutura mais funda dentro do aninhamento JSON; ids de nota conferidos por `inserirSecao` | RN-004, RN-023, RN-026, RN-028, RN-100; plano M2-T04 | PASSOU (M2-T04, 2026-10-17): 16/16 mutações detectadas |
+| MOD-04 | Rótulo das alíneas: a) … z), aa), bb) … zz), aaa); únicos até 1000; posição inválida recusada | RN-023; RN-025 com C-A6 (provisório, P-03) | PASSOU (M2-T04, 2026-10-17) |
 
 ## Grupo FUN — funcionalidades (aplicativo)
 

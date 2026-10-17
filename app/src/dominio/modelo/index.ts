@@ -5,21 +5,29 @@
  * - Base do domínio: não importa nenhum outro submódulo (regra 2).
  * - Sem números armazenados e sem HTML.
  *
- * Tipos mínimos do formato v1 criados no M1-T04; operações estruturais da árvore de seções no M2-T03.
+ * Tipos mínimos do formato v1 criados no M1-T04; operações estruturais da árvore de seções no M2-T03; alíneas, citação
+ * longa e nota de rodapé no M2-T04.
  */
 export type {
   Bloco,
+  BlocoAlineas,
+  BlocoCitacaoLonga,
   BlocoParagrafo,
   BlocoQuebraPagina,
   Documento,
   Id,
   Inline,
+  InlineDeNota,
+  InlineDeTitulo,
+  InlineNota,
   InlineTexto,
+  ItemAlinea,
   MarcaTexto,
   Metadados,
   Secao,
   TipoTrabalhoId,
 } from './tipos';
+export { conteudosDoBloco, idsDoBloco } from './percorrer';
 export { textoPlano } from './texto-plano';
 export {
   alturaSecao,

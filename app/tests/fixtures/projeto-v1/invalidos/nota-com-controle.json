@@ -1,0 +1,215 @@
+{
+  "descricao": "Texto de nota com caractere de controle",
+  "erros": [
+    {
+      "caminho": "documento.corpo[1].blocos[0].conteudo[1].conteudo[0].texto",
+      "mensagem": "o texto contém caractere de controle ou inválido (só tabulação e quebra de linha são aceitas)"
+    }
+  ],
+  "documento": {
+    "id": "prj_Exemplo01",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Ocorrência de "
+        },
+        {
+          "tipo": "texto",
+          "texto": "Caryocar brasiliense",
+          "marcas": [
+            "italico"
+          ]
+        },
+        {
+          "tipo": "texto",
+          "texto": " no Tocantins"
+        }
+      ],
+      "subtitulo": [
+        {
+          "tipo": "texto",
+          "texto": "um estudo de caso"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_Introducao",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Introdução"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_000000001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Texto com "
+              },
+              {
+                "tipo": "texto",
+                "texto": "ênfase",
+                "marcas": [
+                  "negrito"
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": " e m"
+              },
+              {
+                "tipo": "texto",
+                "texto": "2",
+                "marcas": [
+                  "sobrescrito"
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": "."
+              }
+            ]
+          },
+          {
+            "tipo": "quebraPagina",
+            "id": "qbr_000000001"
+          }
+        ],
+        "subsecoes": [
+          {
+            "id": "sec_Objetivos",
+            "titulo": [
+              {
+                "tipo": "texto",
+                "texto": "Objetivos"
+              }
+            ],
+            "blocos": [],
+            "subsecoes": []
+          }
+        ]
+      },
+      {
+        "id": "sec_Conclusao",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Conclusão"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_000000002",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "A coleta seguiu três etapas"
+              },
+              {
+                "tipo": "nota",
+                "id": "nta_000000001",
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "a\u0007b"
+                  },
+                  {
+                    "tipo": "texto",
+                    "texto": "Fulano de Tal",
+                    "marcas": [
+                      "negrito"
+                    ]
+                  },
+                  {
+                    "tipo": "texto",
+                    "texto": " em 2026."
+                  }
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": ":"
+              }
+            ]
+          },
+          {
+            "tipo": "alineas",
+            "id": "aln_000000001",
+            "itens": [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "levantamento das áreas;"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "coleta dos frutos:"
+                  }
+                ],
+                "subalineas": [
+                  [
+                    {
+                      "tipo": "texto",
+                      "texto": "na estação chuvosa;"
+                    }
+                  ],
+                  [
+                    {
+                      "tipo": "texto",
+                      "texto": "na estação seca"
+                    },
+                    {
+                      "tipo": "nota",
+                      "id": "nta_000000002",
+                      "conteudo": [
+                        {
+                          "tipo": "texto",
+                          "texto": "De maio a setembro."
+                        }
+                      ]
+                    },
+                    {
+                      "tipo": "texto",
+                      "texto": ";"
+                    }
+                  ]
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "análise em laboratório."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tipo": "citacaoLonga",
+            "id": "cit_000000001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "O pequizeiro é árvore típica do Cerrado, de fruto oleoso e aromático, cuja polpa amarela é consumida cozida, e cujas folhas largas lembram mãos abertas ao sol (FULANO, 2020, p. 12)."
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

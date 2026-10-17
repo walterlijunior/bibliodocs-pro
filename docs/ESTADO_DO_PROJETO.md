@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M2-T03 concluído (numeração progressiva e operações sobre a árvore de seções).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔).
+**Última atualização:** 2026-10-17 — M2-T04 concluído (alíneas, citação longa e nota de rodapé no modelo).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔).
 
 ## Etapas
 
@@ -15,15 +15,16 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T02 e T04–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T02 e T05–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T04** (alíneas, citação longa e nota no modelo; destravado pelo T03), **M2-T02** (tipos de trabalho) ou
-   **M2-T10** (backups rotativos). Recomendado: T04, que segue o caminho T05 → T06 (editor).
+1. **M2-T05** (núcleo do editor ProseMirror; **informar antes** a instalação das dependências do ADR-0007),
+   **M2-T02** (tipos de trabalho) ou **M2-T10** (backups rotativos). Recomendado: T05, que segue o caminho até o
+   editor (T06).
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Decisões da preparação do M2 (2026-10-17, delegadas pelo usuário à sessão principal)
@@ -53,11 +54,34 @@ O usuário escreveu: "deixo essas decisões para você".
 - (Opcional) Abrir `analise/amostras/linha_base_tcc.docx` no Microsoft Word e informar se aparece aviso
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
+## Decisões do M2-T04 (2026-10-17, delegadas pelo usuário: "deixo você tomar as decisões")
+- Nota de rodapé no título do trabalho continua recusada (sem RN que a exija; RN-116 põe o artigo-TCC no formato de
+  trabalho acadêmico). Commit do M2-T04 autorizado.
+
 ## Decisão do M2-T03 (2026-10-17, do usuário)
 - **Promover como o Word:** a seção vira a irmã logo depois da mãe e as irmãs seguintes passam a ser subseções dela; a
   ordem do texto não muda (adendo do M2-T03 no ADR-0007).
 
 ## Instruções para etapas futuras
+- **Não rodar Prettier nem outro formatador automático:** o projeto não tem configuração, e o estilo (aspas simples,
+  ~120 colunas) é manual. Em 2026-10-17, um `--write` reformatou 10 arquivos (ver o relatório do M2, M2-T04).
+- Modelo M2 (M2-T04; adendo no ADR-0007, que **substitui** o esboço do ADR-0005 §3 e do ADR-0007 §2):
+  - nota embutida `{ tipo:'nota', id, conteudo: InlineDeNota[] }`, sem `Documento.notas`; `citacaoLonga` sem
+    `chamada`; `alineas.itens[].subalineas` (omitido quando vazio);
+  - para alargar o conteúdo de nota ou de título (M4 citação, M6 remissiva e sigla), mexer em `InlineDeNota` e
+    `InlineDeTitulo` (`tipos.ts`) e em `conteudoSoTexto` (`projeto-v1.ts`);
+  - rótulo da alínea só por `rotuloAlinea` (`dominio/numeracao`); percorrer conteúdos ou ids de bloco por
+    `conteudosDoBloco` e `idsDoBloco`;
+  - **para o M2-T05:** colar (inclusive dentro do app) e dividir bloco dão ids novos a blocos **e a notas**, porque um
+    id repetido torna o `.bdp` ilegível (R38); a conversão é validada com `validarDocumentoV1` nos testes; as fixtures
+    de ida e volta são `documento-valido.json` e `documento-bordas-m2.json`;
+  - **para o M3:** nota, citação e alínea vazias são válidas no modelo (não exportar `w:footnote` vazia; avisar); nota
+    é de um parágrafo; numeração das notas segue pendente (RN-102, PENDENTE-FONTE);
+  - **para o M4:** repetir o teste "estrutura mais funda" quando a `citacao` entrar na nota (139 dos 144 níveis
+    JSON hoje);
+  - nota no título do trabalho: **recusada** (decisão de 2026-10-17, delegada pelo usuário). Nenhuma RN a exige, e o artigo
+    como TCC segue o formato de trabalho acadêmico (RN-116). Se surgir fonte ou pedido, alargar `InlineDeTitulo`
+    (mudança aditiva).
 - Árvore de seções (M2-T03):
   - Numeração só por `numerarSecoes`/`mapaIndicativos` (`dominio/numeracao`); nunca gravar número no modelo.
   - Mudança estrutural só pelas operações de `dominio/modelo/operacoes.ts`; mostrar `mensagem` da recusa como texto.
@@ -297,4 +321,5 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T01) | Desempenho pela sessão principal: gerador do documento grande (≈150 páginas, 25 MiB) e E2E-07 no Electron 44.8.0. Medido antes: manipuladores do instantâneo e do salvar 224–292 ms síncronos no principal, travadas de 244–406 ms, tecla de até 328 ms. Corrigido com empacotador em `worker_threads`, mídias uma vez por identificador (`PacoteEnvio`, `MIDIA_AUSENTE` com reenvio) e `SharedArrayBuffer`; depois: p95 da tecla 6–12 ms, travada ≤ ~60 ms, abrir 0,45–1,43 s, pico 700–760 MB. `revisor-seguranca`: 0 Alta, F1/F2 (Médias: mídia guardada antes da conferência, acúmulo) corrigidos, comentários F3–F5 corrigidos, F6/F7 documentados e guarda da tecla mais lenta < 150 ms; S1 conferido com o `app.asar` do `dist:pasta`. 13/14 mutações (1 equivalente). `verificar:tudo` 770/770 + E2E 9/9, 0 vulnerabilidades. Commit `4cb58b9` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T03) | Numeração progressiva e operações da árvore de seções pela sessão principal: `numerarSecoes` derivada (RN-038/039, `alemDoLimite` para RN-041) e operações puras inserir/remover/mover/recuar/promover com inverso, limite de 5 níveis (mensagem orienta alíneas, RN-028) e de 1000 por nível. `especialista-documento`: 0 Alta, M1–M3 e B1, B3 corrigidas, B2 → T07/T08. Decisão do usuário: promover como o Word (ordem do texto igual). 40/40 mutações. `verificar:tudo` 790/790 + E2E 9/9, 0 vulnerabilidades; kit 0 falhas. Commit `5998fed` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M2-T04) | Modelo M2 pela sessão principal: blocos `alineas` (com `subalineas`) e `citacaoLonga`, inline `nota` com conteúdo embutido, rótulo derivado `a)…z), aa), bb)` (C-A6), ids únicos também para notas, mensagens pt-BR próprias, JSON Schema com `$defs` nomeados; 2 fixtures válidas e 14 inválidas. `especialista-documento`: 0 Alta, M1 (adendo) e M3 (tipos nomeados) corrigidas, M2 (ids na colagem) para o M2-T05, B4–B7 registradas. 16/16 mutações. `verificar:tudo` 825/825 + E2E 9/9, 0 vulnerabilidades. Incidente: `prettier --write` reformatou 10 arquivos; desfeito reescrevendo a partir do HEAD (o `git checkout` foi bloqueado pela permissão). Decisão delegada: nota no título continua recusada. Commit autorizado pelo usuário. |
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |

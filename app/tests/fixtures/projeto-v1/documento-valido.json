@@ -39,7 +39,51 @@
     {
       "id": "sec_Conclusao",
       "titulo": [{ "tipo": "texto", "texto": "Conclusão" }],
-      "blocos": [],
+      "blocos": [
+        {
+          "tipo": "paragrafo",
+          "id": "par_000000002",
+          "conteudo": [
+            { "tipo": "texto", "texto": "A coleta seguiu três etapas" },
+            {
+              "tipo": "nota",
+              "id": "nta_000000001",
+              "conteudo": [
+                { "tipo": "texto", "texto": "Informação fornecida por " },
+                { "tipo": "texto", "texto": "Fulano de Tal", "marcas": ["negrito"] },
+                { "tipo": "texto", "texto": " em 2026." }
+              ]
+            },
+            { "tipo": "texto", "texto": ":" }
+          ]
+        },
+        {
+          "tipo": "alineas",
+          "id": "aln_000000001",
+          "itens": [
+            { "conteudo": [{ "tipo": "texto", "texto": "levantamento das áreas;" }] },
+            {
+              "conteudo": [{ "tipo": "texto", "texto": "coleta dos frutos:" }],
+              "subalineas": [
+                [{ "tipo": "texto", "texto": "na estação chuvosa;" }],
+                [
+                  { "tipo": "texto", "texto": "na estação seca" },
+                  { "tipo": "nota", "id": "nta_000000002", "conteudo": [{ "tipo": "texto", "texto": "De maio a setembro." }] },
+                  { "tipo": "texto", "texto": ";" }
+                ]
+              ]
+            },
+            { "conteudo": [{ "tipo": "texto", "texto": "análise em laboratório." }] }
+          ]
+        },
+        {
+          "tipo": "citacaoLonga",
+          "id": "cit_000000001",
+          "conteudo": [
+            { "tipo": "texto", "texto": "O pequizeiro é árvore típica do Cerrado, de fruto oleoso e aromático, cuja polpa amarela é consumida cozida, e cujas folhas largas lembram mãos abertas ao sol (FULANO, 2020, p. 12)." }
+          ]
+        }
+      ],
       "subsecoes": []
     }
   ]

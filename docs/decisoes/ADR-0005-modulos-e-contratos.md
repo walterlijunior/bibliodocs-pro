@@ -396,3 +396,9 @@ Decisões técnicas da sessão principal; as escolhas visíveis são do usuário
   Achado da fumaça: sem isso, Alt+Seta numa aba trocava de aba e voltava no histórico ao mesmo tempo.
 - **Criar no M1-T10:** sem editor, o trabalho criado é fechado logo após `biblioteca.criar` (o identificador de gravação
   não fica preso) e aparece selecionado. O M1-T11 passa a mantê-lo aberto.
+
+## Adendo técnico — alíneas, citação longa e nota (M2-T04, 2026-10-17)
+
+Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no inline
+(`{ tipo:'nota', id, conteudo }`), sem `Documento.notas`. A `citacaoLonga` não tem campo `chamada`. As alíneas usam
+`subalineas` (e não `subitens`). Decisões e motivos estão no adendo do M2-T04 no ADR-0007.

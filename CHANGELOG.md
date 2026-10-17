@@ -6,6 +6,16 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T04: alíneas, citação longa e nota de rodapé no modelo de documento (RN-004, RN-023, RN-025, RN-026,
+  RN-100).
+  - `app/src/dominio/modelo/tipos.ts`: blocos `alineas` (com `subalineas`) e `citacaoLonga`, inline `nota` com
+    conteúdo embutido; títulos e metadados só com texto (`InlineDeTitulo`).
+  - `app/src/dominio/numeracao/alineas.ts`: rótulo derivado a) … z), aa), bb) (decisão C-A6).
+  - Esquemas zod com mensagens próprias, ids únicos também para notas, JSON Schema regenerado com `$defs` nomeados.
+  - Fixtures: `documento-bordas-m2.json` e 14 inválidas em `tests/fixtures/projeto-v1/invalidos/`.
+  - Revisão do `especialista-documento`: 0 Alta, 3 Médias (2 corrigidas, 1 registrada para o M2-T05), 4 Baixas
+    registradas. Adendo M2-T04 no ADR-0007. 16/16 mutações detectadas.
+
 - Etapa 5, M2-T03: numeração progressiva e operações sobre a árvore de seções (RF-03; RN-028, RN-038, RN-039, RN-041).
   - `app/src/dominio/numeracao/secoes.ts`: numeração derivada (1, 1.1 ... 1.1.1.1.1), nunca gravada.
   - `app/src/dominio/modelo/operacoes.ts`: inserir, remover, mover, recuar e promover, puras e com inverso para

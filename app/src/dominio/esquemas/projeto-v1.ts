@@ -49,21 +49,63 @@ export const esquemaInlineTexto = z
     if (marcas.includes('sobrescrito') && marcas.includes('subscrito')) {
       ctx.addIssue({ code: 'custom', path: ['marcas'], message: 'sobrescrito e subscrito não podem ser usados juntos' });
     }
-  });
+  })
+  .meta({ id: 'InlineTexto' });
 
-export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto]);
+/**
+ * Lista de trechos só de texto com marcas. Nota nesse lugar recebe `mensagemNota` (o resto cai no mapa de mensagens
+ * da validação).
+ */
+function conteudoSoTexto(mensagemNota: string) {
+  const ehNota = (v: unknown) => typeof v === 'object' && v !== null && (v as { tipo?: unknown }).tipo === 'nota';
+  const trecho = z.discriminatedUnion('tipo', [esquemaInlineTexto], {
+    error: (issue) => (ehNota(issue.input) ? mensagemNota : undefined),
+  });
+  return z.array(trecho).max(LIMITES_V1.inlinesPorConteudo);
+}
+
+/** Títulos e metadados. */
+const conteudoTitulo = conteudoSoTexto('nota de rodapé não é permitida em título');
+
+/** Nota de rodapé no ponto da chamada (RN-100); sem nota dentro de nota. */
+export const esquemaInlineNota = z
+  .strictObject({ tipo: z.literal('nota'), id, conteudo: conteudoSoTexto('nota de rodapé não pode conter outra nota') })
+  .meta({ id: 'InlineNota' });
+
+export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota]).meta({ id: 'Inline' });
 
 const conteudoInline = z.array(esquemaInline).max(LIMITES_V1.inlinesPorConteudo);
 
+/** Alínea (RN-023) com subalíneas opcionais (RN-026); lista vazia de subalíneas é recusada (forma única). */
+export const esquemaItemAlinea = z
+  .strictObject({
+    conteudo: conteudoInline,
+    subalineas: z
+      .array(conteudoInline)
+      .min(1, { error: 'lista de subalíneas vazia: omita o campo quando não houver subalíneas' })
+      .max(LIMITES_V1.subalineasPorAlinea)
+      .optional(),
+  })
+  .meta({ id: 'ItemAlinea' });
+
 export const esquemaBloco = z.discriminatedUnion('tipo', [
   z.strictObject({ tipo: z.literal('paragrafo'), id, conteudo: conteudoInline }),
+  z.strictObject({
+    tipo: z.literal('alineas'),
+    id,
+    itens: z
+      .array(esquemaItemAlinea)
+      .min(1, { error: 'a lista de alíneas precisa de pelo menos uma alínea' })
+      .max(LIMITES_V1.itensPorAlineas),
+  }),
+  z.strictObject({ tipo: z.literal('citacaoLonga'), id, conteudo: conteudoInline }),
   z.strictObject({ tipo: z.literal('quebraPagina'), id }),
 ]);
 
 export const esquemaSecao = z
   .strictObject({
     id,
-    titulo: conteudoInline,
+    titulo: conteudoTitulo,
     blocos: z.array(esquemaBloco).max(LIMITES_V1.blocosPorSecao),
     get subsecoes() {
       return z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel);
@@ -75,8 +117,8 @@ export const esquemaDocumentoV1 = z.strictObject({
   id,
   tipoTrabalho: z.enum(['generico']),
   metadados: z.strictObject({
-    titulo: conteudoInline,
-    subtitulo: conteudoInline.optional(),
+    titulo: conteudoTitulo,
+    subtitulo: conteudoTitulo.optional(),
   }),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),
 });
@@ -138,6 +180,6 @@ export const RESTRICOES_SO_NO_CODIGO = [
   'maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo)',
   'caminho da mídia coerente com sha256 e tipo',
   'sha256 único na lista de mídias do manifesto',
-  'ids únicos no documento (seções e blocos)',
+  'ids únicos no documento (seções, blocos e notas)',
   'sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas)',
 ] as const;

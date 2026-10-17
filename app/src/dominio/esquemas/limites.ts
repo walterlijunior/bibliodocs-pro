@@ -20,6 +20,9 @@ export const LIMITES_V1 = {
   /** Trechos (`Inline`) num título, parágrafo ou metadado. */
   inlinesPorConteudo: 10_000,
   blocosPorSecao: 10_000,
+  /** Alíneas numa lista e subalíneas numa alínea (M2-T04). */
+  itensPorAlineas: 1_000,
+  subalineasPorAlinea: 1_000,
   /** Mesmo valor que as operações de `dominio/modelo` respeitam (M2-T03). */
   secoesPorNivel: MAXIMO_SECOES_POR_NIVEL,
   /** 5.000 entradas do ZIP menos as entradas fixas do pacote. */

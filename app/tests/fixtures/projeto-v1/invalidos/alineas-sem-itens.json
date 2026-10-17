@@ -1,0 +1,162 @@
+{
+  "descricao": "Lista de alíneas sem nenhuma alínea",
+  "erros": [
+    {
+      "caminho": "documento.corpo[1].blocos[1].itens",
+      "mensagem": "a lista de alíneas precisa de pelo menos uma alínea"
+    }
+  ],
+  "documento": {
+    "id": "prj_Exemplo01",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Ocorrência de "
+        },
+        {
+          "tipo": "texto",
+          "texto": "Caryocar brasiliense",
+          "marcas": [
+            "italico"
+          ]
+        },
+        {
+          "tipo": "texto",
+          "texto": " no Tocantins"
+        }
+      ],
+      "subtitulo": [
+        {
+          "tipo": "texto",
+          "texto": "um estudo de caso"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_Introducao",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Introdução"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_000000001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Texto com "
+              },
+              {
+                "tipo": "texto",
+                "texto": "ênfase",
+                "marcas": [
+                  "negrito"
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": " e m"
+              },
+              {
+                "tipo": "texto",
+                "texto": "2",
+                "marcas": [
+                  "sobrescrito"
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": "."
+              }
+            ]
+          },
+          {
+            "tipo": "quebraPagina",
+            "id": "qbr_000000001"
+          }
+        ],
+        "subsecoes": [
+          {
+            "id": "sec_Objetivos",
+            "titulo": [
+              {
+                "tipo": "texto",
+                "texto": "Objetivos"
+              }
+            ],
+            "blocos": [],
+            "subsecoes": []
+          }
+        ]
+      },
+      {
+        "id": "sec_Conclusao",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Conclusão"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_000000002",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "A coleta seguiu três etapas"
+              },
+              {
+                "tipo": "nota",
+                "id": "nta_000000001",
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Informação fornecida por "
+                  },
+                  {
+                    "tipo": "texto",
+                    "texto": "Fulano de Tal",
+                    "marcas": [
+                      "negrito"
+                    ]
+                  },
+                  {
+                    "tipo": "texto",
+                    "texto": " em 2026."
+                  }
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": ":"
+              }
+            ]
+          },
+          {
+            "tipo": "alineas",
+            "id": "aln_000000001",
+            "itens": []
+          },
+          {
+            "tipo": "citacaoLonga",
+            "id": "cit_000000001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "O pequizeiro é árvore típica do Cerrado, de fruto oleoso e aromático, cuja polpa amarela é consumida cozida, e cujas folhas largas lembram mãos abertas ao sol (FULANO, 2020, p. 12)."
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

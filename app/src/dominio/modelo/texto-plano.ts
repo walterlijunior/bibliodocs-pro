@@ -4,10 +4,13 @@
  */
 import type { Inline } from './tipos';
 
-/** Junta os textos; tabulação e quebra de linha manual viram espaço, e espaços repetidos viram um só. */
+/**
+ * Junta os textos; tabulação e quebra de linha manual viram espaço, e espaços repetidos viram um só. A nota de rodapé
+ * fica de fora (não é parte da frase em que está).
+ */
 export function textoPlano(conteudo: readonly Inline[]): string {
   return conteudo
-    .map((i) => i.texto)
+    .map((i) => (i.tipo === 'texto' ? i.texto : ''))
     .join('')
     .replace(/\s+/gu, ' ')
     .trim();

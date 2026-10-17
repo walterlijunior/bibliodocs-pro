@@ -62,9 +62,11 @@ describe.each(arquivos)('JSON Schema %s', (nome) => {
   });
 
   it('as uniões de tipo usam oneOf com discriminador constante', () => {
+    const defs = (esquema.$defs ?? {}) as Record<string, No>;
+    const resolver = (opcao: No): No => (typeof opcao.$ref === 'string' ? defs[opcao.$ref.replace('#/$defs/', '')]! : opcao);
     visitar(esquema, '$', (no, caminho) => {
       for (const opcao of (no.oneOf as No[] | undefined) ?? []) {
-        expect((opcao.properties as No | undefined)?.tipo, caminho).toHaveProperty('const');
+        expect((resolver(opcao).properties as No | undefined)?.tipo, caminho).toHaveProperty('const');
       }
     });
   });
@@ -76,8 +78,8 @@ it('documento.schema.json exige marcas únicas e texto apto a XML 1.0', () => {
   expect(texto).toContain('\\\\p{Cs}');
 });
 
-it('documento.schema.json define Secao como $defs recursiva', () => {
+it('documento.schema.json define Secao como $defs recursiva e nomeia os trechos e a alínea', () => {
   const defs = gerados['documento.schema.json'].$defs as Record<string, No>;
-  expect(Object.keys(defs)).toEqual(['Secao']);
+  expect(Object.keys(defs).sort()).toEqual(['Inline', 'InlineNota', 'InlineTexto', 'ItemAlinea', 'Secao']);
   expect(JSON.stringify(defs.Secao)).toContain('"$ref":"#/$defs/Secao"');
 });

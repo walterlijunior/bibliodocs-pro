@@ -1,0 +1,344 @@
+{
+  "id": "prj_BordasM2",
+  "tipoTrabalho": "generico",
+  "metadados": {
+    "titulo": [
+      {
+        "tipo": "texto",
+        "texto": "Casos de borda do modelo M2"
+      }
+    ]
+  },
+  "corpo": [
+    {
+      "id": "sec_Bordas01",
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Bordas"
+        }
+      ],
+      "blocos": [
+        {
+          "tipo": "paragrafo",
+          "id": "par_bordas001",
+          "conteudo": [
+            {
+              "tipo": "nota",
+              "id": "nta_bordas001",
+              "conteudo": []
+            }
+          ]
+        },
+        {
+          "tipo": "paragrafo",
+          "id": "par_bordas002",
+          "conteudo": [
+            {
+              "tipo": "texto",
+              "texto": "duas notas seguidas"
+            },
+            {
+              "tipo": "nota",
+              "id": "nta_bordas002",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "primeira"
+                }
+              ]
+            },
+            {
+              "tipo": "nota",
+              "id": "nta_bordas003",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "segunda\ncom quebra",
+                  "marcas": [
+                    "italico"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tipo": "alineas",
+          "id": "aln_bordas001",
+          "itens": [
+            {
+              "conteudo": []
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 2;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 3;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 4;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 5;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 6;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 7;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 8;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 9;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 10;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 11;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 12;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 13;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 14;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 15;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 16;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 17;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 18;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 19;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 20;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 21;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 22;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 23;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 24;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 25;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 26;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "item 27;"
+                }
+              ]
+            },
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "último item."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tipo": "alineas",
+          "id": "aln_bordas002",
+          "itens": [
+            {
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "só uma alínea"
+                }
+              ],
+              "subalineas": [
+                []
+              ]
+            }
+          ]
+        },
+        {
+          "tipo": "citacaoLonga",
+          "id": "cit_bordas001",
+          "conteudo": []
+        },
+        {
+          "tipo": "citacaoLonga",
+          "id": "cit_bordas002",
+          "conteudo": [
+            {
+              "tipo": "texto",
+              "texto": "linha 1\nlinha 2\tcom tabulação "
+            },
+            {
+              "tipo": "texto",
+              "texto": "grifo nosso",
+              "marcas": [
+                "italico"
+              ]
+            },
+            {
+              "tipo": "nota",
+              "id": "nta_bordas004",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "Tradução livre."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "subsecoes": []
+    }
+  ]
+}

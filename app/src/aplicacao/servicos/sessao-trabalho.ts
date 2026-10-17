@@ -23,7 +23,7 @@
  * Puro (sem DOM e sem Node): a API, o relógio e o agendador entram por dependência, e os testes rodam em Node com
  * agendador manual (tests/sessao-trabalho.test.ts).
  */
-import type { Inline, TipoTrabalhoId } from '../../dominio/modelo';
+import type { InlineDeTitulo, TipoTrabalhoId } from '../../dominio/modelo';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import {
   CODIGO_MIDIA_AUSENTE,
@@ -117,16 +117,16 @@ type Aberto =
   | { modo: 'leitura'; nomeArquivo: string; pacote: PacoteSomenteLeituraTransferivel };
 
 /** Texto editável de um título: os trechos juntos, como foram digitados. */
-export function textoDoTitulo(titulo: readonly Inline[]): string {
+export function textoDoTitulo(titulo: readonly InlineDeTitulo[]): string {
   return titulo.map((i) => i.texto).join('');
 }
 
 /**
- * Título digitado → `Inline[]`. Sem alteração no texto, devolve o original (preserva itálico de nome científico).
+ * Título digitado → `InlineDeTitulo[]`. Sem alteração no texto, devolve o original (preserva itálico de nome científico).
  * Com alteração, vira um trecho só, sem marcas: o editor de texto rico chega no M2 [HIPÓTESE aceitável no M1: nenhum
  * caminho do M1 cria título com marcas].
  */
-export function tituloDoTexto(texto: string, atual: readonly Inline[]): Inline[] {
+export function tituloDoTexto(texto: string, atual: readonly InlineDeTitulo[]): InlineDeTitulo[] {
   if (texto === textoDoTitulo(atual)) return [...atual];
   return texto === '' ? [] : [{ tipo: 'texto', texto }];
 }

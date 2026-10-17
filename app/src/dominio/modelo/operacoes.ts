@@ -18,6 +18,7 @@
  * - um inverso só pula os limites quando é o próprio objeto devolvido por uma operação aceita (registro interno, não
  *   um campo que o chamador possa montar); por isso o histórico guarda o inverso como recebeu, sem copiar.
  */
+import { idsDoBloco } from './percorrer';
 import type { Bloco, Id, Secao } from './tipos';
 
 /**
@@ -131,14 +132,18 @@ export function alturaSecao(secao: Secao): number {
   return altura;
 }
 
-/** Ids de seções e blocos; devolve quantos foram vistos (com repetição). */
+/** Ids de seções, blocos e notas; devolve quantos foram vistos (com repetição). */
 function idsDaSecao(secao: Secao, ids: Set<Id>): number {
   let vistos = 0;
   const pilha: Secao[] = [secao];
   for (let s = pilha.pop(); s !== undefined; s = pilha.pop()) {
     ids.add(s.id);
-    for (const b of s.blocos as readonly Bloco[]) ids.add(b.id);
-    vistos += 1 + s.blocos.length;
+    vistos += 1;
+    for (const b of s.blocos as readonly Bloco[]) {
+      const doBloco = idsDoBloco(b);
+      for (const id of doBloco) ids.add(id);
+      vistos += doBloco.length;
+    }
     pilha.push(...s.subsecoes);
   }
   return vistos;

@@ -13,7 +13,7 @@
  */
 import { createHash } from 'node:crypto';
 import { IDENTIFICADOR_FORMATO, VERSAO_FORMATO_ATUAL, type Manifesto } from '../../src/dominio/esquemas';
-import type { Bloco, Documento, Inline, Secao } from '../../src/dominio/modelo';
+import type { Bloco, Documento, InlineTexto, Secao } from '../../src/dominio/modelo';
 import type { PacoteProjeto } from '../../src/persistencia';
 
 export const CARACTERES_POR_PAGINA = 2_200;
@@ -98,7 +98,7 @@ export function gerarDocumentoGrande(opcoes: OpcoesDocumentoGrande = {}): Docume
 
   /** Parágrafo de ~700 caracteres; um em cada quatro com trecho em itálico e um em cada sete com negrito. */
   const paragrafo = (): Bloco => {
-    const conteudo: Inline[] = [{ tipo: 'texto', texto: `${frase(300)} ` }];
+    const conteudo: InlineTexto[] = [{ tipo: 'texto', texto: `${frase(300)} ` }];
     if (paragrafos % 4 === 0) conteudo.push({ tipo: 'texto', texto: 'Caryocar brasiliense', marcas: ['italico'] });
     if (paragrafos % 7 === 0) conteudo.push({ tipo: 'texto', texto: ' resultado principal', marcas: ['negrito'] });
     conteudo.push({ tipo: 'texto', texto: ` ${frase(380)}` });

@@ -11,6 +11,8 @@ export {
   esquemaBloco,
   esquemaDocumentoV1,
   esquemaInline,
+  esquemaInlineNota,
+  esquemaItemAlinea,
   esquemaManifestoV1,
   esquemaMidia,
   esquemaSecao,

@@ -548,3 +548,48 @@ do texto não muda. Exemplo: em `2 Método` com `2.1 Coleta` e `2.2 Análise`, p
 - memorizar `mapaIndicativos` pela identidade do `corpo` se o editor recalcular a cada transação (B5: 37 ms com
   111 000 seções).
 
+## Adendo do M2-T04 (2026-10-17) — alíneas, citação longa e nota no modelo
+
+Código: `app/src/dominio/modelo/tipos.ts`, `percorrer.ts`, `app/src/dominio/numeracao/alineas.ts` e
+`app/src/dominio/esquemas/projeto-v1.ts`. Testes em `app/tests/modelo-m2.test.ts`. As fixtures ficam em
+`app/tests/fixtures/projeto-v1/`: `documento-valido.json`, `documento-bordas-m2.json` e `invalidos/*.json`, cada uma com
+os erros esperados.
+
+**Decisões técnicas (sessão principal; revisão do `especialista-documento`).** Elas mudam o esboço da seção 2 deste ADR
+e da seção 3 do ADR-0005. Vale o que está aqui.
+
+| Esboço anterior | Modelo do M2-T04 | Motivo |
+|---|---|---|
+| `nota ↔ { tipo:'nota', notaId }` + `Documento.notas[notaId]` | `{ tipo:'nota', id, conteudo: InlineDeNota[] }` embutido no ponto da chamada (RN-100) | Não há nota órfã nem chamada sem nota. Desfazer e apagar levam a nota junto. Casa 1:1 com o nó atômico com conteúdo do ProseMirror. O `id` fica para as remissivas (M6) |
+| `citacaoLonga attrs { id, chamada }` | `{ tipo:'citacaoLonga', id, conteudo: Inline[] }` | A chamada fica no próprio bloco ou no parágrafo anterior (RN-084). O inline `citacao` do M4 entra no conteúdo, sem migração |
+| `alineas { itens: { conteudo, subitens? } }` | `{ tipo:'alineas', id, itens: { conteudo, subalineas? }[] }` | Pelo menos 1 alínea. `subalineas` é omitido quando vazio (a lista vazia é recusada), para haver uma forma só. Um só nível de subalínea (RN-026). Os itens não têm id |
+
+- **Sem números gravados.** O rótulo da alínea vem de `rotuloAlinea(i)`: `a)` a `z)`, depois `aa)`, `bb)`… `zz)`
+  (RN-023; RN-025 pela decisão C-A6). Depois de `zz)` vem `aaa)` [HIPÓTESE]. A marca da subalínea (travessão ou hífen,
+  C-A5) é forma e fica com o motor do M3.
+- **Onde a nota é aceita.** Nota não contém nota. Título de seção, título e subtítulo do trabalho aceitam só
+  `InlineDeTitulo` (hoje só texto). Cada caso recusado tem a sua mensagem.
+- **Pontos únicos para alargar.** `InlineDeNota` e `InlineDeTitulo` (tipos), mais `conteudoSoTexto` (esquema), são o
+  único lugar onde o M4 e o M6 alargam esses conteúdos (achado M3 da revisão).
+- **Ids únicos.** A leitura (`validar.ts`) e as operações de seção (`idsDoBloco`) conferem seções, blocos e notas
+  juntos. Notas em parágrafo, alínea, subalínea e citação longa entram na conferência.
+- **Limites [HIPÓTESE].** 1000 alíneas por lista e 1000 subalíneas por alínea.
+- **JSON Schema.** `$defs` nomeados: `InlineTexto`, `Inline`, `InlineNota`, `ItemAlinea` e `Secao`.
+
+**Para o M2-T05 (achado M2 da revisão, risco R38):** um id repetido faz a leitura recusar o arquivo inteiro. Por isso, a
+colagem (inclusive do próprio app) e o Enter que divide um bloco devem dar ids novos aos blocos **e às notas**
+(`transformPasted` mais o `appendTransaction` da seção 2). Além disso, a sessão valida o documento com
+`validarDocumentoV1` nos testes de conversão antes de gravar.
+
+**Pendências registradas (Baixas da revisão):**
+- B4, aninhamento JSON: a estrutura mais funda do M2 usa 139 dos 144 níveis. O M4 repete o teste "estrutura mais
+  funda" quando a `citacao` entrar na nota.
+- B5: subalínea dentro de subalínea recebe "tipo desconhecido". Fica aceito, porque a mensagem genérica basta para um
+  arquivo adulterado.
+- B6: nota, citação longa e alínea vazias são aceitas (o editor precisa delas). O M3 e o M7 devem avisar, ou não
+  exportar `w:footnote` vazia.
+- B7: nota de um só parágrafo; `
+` é quebra de linha. Fica como limitação para o M3.
+- **Nota no título do trabalho:** continua recusada (decisão de 2026-10-17, delegada pelo usuário à sessão principal).
+  Nenhuma RN a exige, e o artigo como TCC segue o formato de trabalho acadêmico (RN-116). Alargar `InlineDeTitulo` é
+  mudança aditiva, se um dia for preciso.
