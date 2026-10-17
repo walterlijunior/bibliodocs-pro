@@ -36,6 +36,7 @@ seção M2-T06; técnicas no adendo do M2-T06 no ADR-0007):
 - A chamada da nota aparece como a marca "nota" (sem número, RN-102 PENDENTE-FONTE); o texto abre num quadro abaixo.
 - Inserir nota com texto selecionado põe a chamada no fim da seleção, sem apagar (como no Word).
 - Menu Editar ligado, com "Colar sem formatação" (Ctrl+Shift+V).
+- Commit do M2-T06: `9906213` (sem `git push`).
 
 ## Decisões do M2-T05 (2026-10-17, delegadas pelo usuário: "Deixo você fazer essa decisão")
 - Colagem: a quebra simples do texto puro vira espaço; `&nbsp;` fica inseparável; o estilo "Citação" do Word continua
