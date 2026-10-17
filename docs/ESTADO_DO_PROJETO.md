@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M1-T14 concluído (empacotamento de fumaça).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T14 concluídos; próximo T15).
+**Última atualização:** 2026-10-17 — M1-T15 concluído (fechamento do marco M1).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído** (T01–T15); próximo: preparação do M2.
 
 ## Etapas
 
@@ -15,17 +15,24 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔, T15 ✔ — **M1 CONCLUÍDO**; M2 a detalhar) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T15** (fechamento do marco M1): `app/README.md` com os comandos,
-`docs/MATRIZ_DE_TESTES.md` com os grupos ARQ, PER e E2E, revisão `revisao-seguranca-qualidade` e relatório do marco a
-partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina com
-`cd app; npm run verificar:tudo` passando.
+1. Antes do M2: ADR do editor de texto rico (com o `especialista-interface`) e o detalhamento das tarefas do M2 em
+   `docs/PLANO_DE_IMPLEMENTACAO.md`, começando pelo M2-T01 (medição do instantâneo, R-M1-01). As pendências do
+   fechamento do M1 já estão listadas lá.
+2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do fechamento do M1 (2026-10-17, delegadas pelo usuário à sessão principal)
+- **R-M1-01 (Alta, desempenho):** aceito para fechar o M1; vira **M2-T01**, obrigatório antes de ligar o editor
+  (medir; se passar da meta, instantâneo incremental e empacotamento fora do principal). O M1 não tem conteúdo que
+  dispare o problema.
+- **R-M1-02 (`.bak`):** ao excluir, o `.bak` vai para a Lixeira junto; ao renomear, é renomeado junto. Implementar no
+  M2 com teste (tarefa no plano).
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -37,6 +44,13 @@ partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.m
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Fechamento do M1 (M1-T15):
+  - Revisão do marco em `docs/relatorios/REVISAO_M1.md` (R-M1-01..13, checklist C-1..C-22 final, licenças,
+    desempenho, onde o texto do usuário fica no disco). Riscos novos R36 e R37.
+  - `app/README.md` cobre todos os comandos (13 conferidos em 2026-10-17), as partes do T06 ao T14, os E2E e a
+    situação final da segurança. Comando novo ou parte nova → atualizar o README no mesmo incremento.
+  - Matriz de testes: grupo E2E (E2E-01..06) criado; caso E2E novo → linha nova ali, ligada ao caso funcional.
+  - Fim de cada marco: repetir a skill `revisao-seguranca-qualidade` e gerar `REVISAO_M<n>.md`.
 - Empacotamento (M1-T14):
   - Configuração em `app/electron-builder.config.cjs` (não há YAML); ganchos em `app/empacotamento/`; decisões e
     medidas no adendo do M1-T14 no ADR-0003. `npm run dist` (instalador), `dist:pasta`, `dist:fumaca`.
@@ -188,12 +202,12 @@ partir de `templates/RELATORIO_DE_TESTES.md` (ver `docs/PLANO_DE_IMPLEMENTACAO.m
   adendo do ADR-0005. Pasta nova em `src/` precisa entrar no mapa do analisador (`app/tests/apoio/analisador-fontes.ts`),
   senão o teste falha. Pendentes: inventário de licenças (C-19) e `npm audit signatures` no `verificar` (C-18).
 - Segurança do runtime (M1-T02): decisões em funções puras `app/src/principal/seguranca/` (`politica-urls`,
-  `protocolo-caminho`, `csp`); só `endurecimento.ts` e `index.ts` importam `electron`. Recurso novo servido pelo
+  `protocolo-caminho`, `csp`); só cinco arquivos importam `electron` (lista no `app/README.md`, seção Segurança). Recurso novo servido pelo
   `app://` precisa constar em `TIPOS_MIME` (senão 404). Link externo novo → host em `HOSTS_EXTERNOS_PERMITIDOS` com o
   requisito que o exige. LanguageTool (após M7): o filtro `webRequest` também pega `net.fetch` do principal → usar
   sessão dedicada endurecida ou exceção explícita (achado B-3). M1-T13 deve ter E2E de segurança (achado M-1).
 - App (M1-T01; Electron 44.8.0 desde o T02): `cd app; npm install; npm run typecheck; npm test; npm run build; npm run dev`. `typecheck` roda
-  3 projetos (`tsconfig.node/puro/web.json`); `puro` = `dominio/` + `aplicacao/` sem DOM nem Node. Preload sai como
+  4 projetos (`tsconfig.node/puro/web/e2e.json`); `puro` = `dominio/` + `aplicacao/` sem DOM nem Node. Preload sai como
   CommonJS (`out/preload/index.cjs`), por isso o `package.json` não tem `"type": "module"`. O Electron 44 baixa o binário
   sob demanda (`node node_modules/electron/install.js`). `node_modules` = 478 MB (368 MB do Electron) [VERIFICADO].
 - Insumos da Etapa 3 em `analise/` (recriáveis): `normas_txt/` (`pdftotext -enc UTF-8 -layout` + marcadores

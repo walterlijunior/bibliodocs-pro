@@ -21,6 +21,9 @@ Status: `NÃO EXECUTADO` (inicial) → `PASSOU` / `FALHOU` / `BLOQUEADO`, sempre
 
 Executar: `cd app; npm run verificar`. Testes em `app/tests/arquitetura-*.test.ts` e `app/tests/apoio/analisador-fontes.ts`.
 
+**Fechamento do M1 (M1-T15, 2026-10-17):** grupo inteiro reexecutado em `npm run verificar:tudo` → PASSOU
+(Vitest 20 arquivos, 742/742). ARQ-03 não foi repetido (é uma prova manual de mutação).
+
 | ID | Caso | Fonte do esperado | Status |
 |---|---|---|---|
 | ARQ-01 | Nenhum import de `src/` viola as regras 1–6 de dependência (código real) | ADR-0005 §2 + adendo M1-T03 | PASSOU (2026-10-16; 258/258; reexecutado no M1-T04 com zod em `dominio/esquemas`: 310/310) |
@@ -32,7 +35,11 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/arquitetura-*.test.t
 
 ## Grupo PER — formato e persistência (aplicativo, desde o M1-T04)
 
-Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`; fixtures em `app/tests/fixtures/projeto-v1/`.
+Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`, `persistencia-*.test.ts`,
+`biblioteca.test.ts` e `recuperacao.test.ts`; fixtures em `app/tests/fixtures/`.
+
+**Fechamento do M1 (M1-T15, 2026-10-17):** grupo inteiro reexecutado em `npm run verificar:tudo` → PASSOU (742/742,
+incluindo PER-16, que só roda no win32). As provas de mutação registradas nos casos não foram repetidas.
 
 | ID | Caso | Fonte do esperado | Status |
 |---|---|---|---|
@@ -61,6 +68,25 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`;
 | PER-23 | Recuperação, persistência: instantâneo guarda só o atual e o anterior, sem `.bak`; id fora do padrão nunca vira pasta; trava ida e volta e recusa conteúdo inválido/campo extra/caminho relativo; arquivar não sobrescreve e conta 7 dias da data do arquivamento; restos separados (temporário, cópia do `.bak`, `.bak`), sem os do próprio processo, com mais de 10 min e no máximo 100 | ADR-0004 §4 e adendo M1-T12 | PASSOU (2026-10-17; `tests/recuperacao.test.ts`) |
 | PER-24 | Recuperação, instantâneo do trabalho aberto: processo morto → oferta com o título da memória e sem caminho; recuperar abre sem mudar o arquivo, salvar apaga os instantâneos; anterior usado quando o atual não abre; salvar normal → sem oferta; fechar normal ou descartar → `recuperacao-antigos`; janela que cai → oferta na mesma instância; instantâneo depois do fechamento não grava; instantâneo durante a gravação sobrevive (A3); arquivo mais novo ainda é oferecido (M3); "Abrir o arquivo salvo"; arquivo sumido; queda adiada fica reservada e continua oferecida (A2); pacote de outro id recusado (M1); caminho com outro trabalho → sem destino (M2); trabalho aberto não é recuperado por cima (B3) | ADR-0004 §4; revisão M1-T12 | PASSOU (2026-10-17; 27/27 mutações detectadas) |
 | PER-25 | Recuperação, restos na biblioteca: temporário com original íntegro → guardado; original danificado + temporário completo → "Restaurar" grava e guarda o danificado; temporário incompleto → guardado; `.bak` íntegro com original danificado → oferta, original ausente → nada; restaurar confere de novo; falha ao guardar o danificado não muda nada e o `.bak` continua; falha ao gravar devolve o original (A4); cópia do `.bak` apagada; restos de arquivo aberto intocados | ADR-0004 §4 (b) e (c) | PASSOU (2026-10-17) |
+
+## Grupo E2E — Electron real (aplicativo, desde o M1-T13)
+
+Executar: `cd app; npm run test:e2e` (ou `npm run verificar:tudo`). Testes em `app/e2e/*.spec.ts`; apoio em
+`app/e2e/apoio/app.ts`. Rodam sobre o build (`out/`), não sobre o pacote: os fuses do pacote impedem o Playwright de
+dirigir o `.exe` (adendo M1-T13 do ADR-0006). Cada caso confere também que não houve erro de console, exceção nem
+violação de CSP. **Repetir a cada troca de Electron.**
+
+| ID | Caso | Arquivo | Casos cobertos | Status |
+|---|---|---|---|---|
+| E2E-01 | Criar, salvar, fechar e reabrir (também depois de reiniciar o app) mantém o trabalho idêntico | `e2e/fluxo-trabalho.spec.ts` | FUN-01, UI-03 (parte) | PASSOU (M1-T13, 2026-10-17; reexecutado no M1-T15, 2026-10-17) |
+| E2E-02 | Encerrar o processo durante a edição e recuperar a última alteração | `e2e/recuperacao.spec.ts` | FUN-10 (RNF-04) | PASSOU (idem) |
+| E2E-03 | Faixas da janela da largura mínima à maximizada, em 100%, 125% e 150% (3 testes) | `e2e/casca.spec.ts` | UI-01 | PASSOU (idem) |
+| E2E-04 | Ctrl+F foca a busca, foco de teclado visível, sem marca de terceiros | `e2e/casca.spec.ts` | UI-01, UI-02 | PASSOU (idem) |
+| E2E-05 | Zero atividade de rede num uso completo (net-log) | `e2e/rede-e-seguranca.spec.ts` | SEG-08 | PASSOU (idem) |
+| E2E-06 | CSP, `eval`, rede, navegação, janelas, protocolo `app://` e instância única | `e2e/rede-e-seguranca.spec.ts` | SEG-03 | PASSOU (idem) |
+
+Reexecução no M1-T15: `npm run verificar:tudo` → `8 passed (23.5s)`. Fora do E2E (só fumaça manual ou unidade):
+diálogos nativos, Lixeira, salvamento automático de 30 s, erro de gravação, pacote empacotado.
 
 ## Grupo SEG — runtime (aplicativo, desde o M1-T02)
 

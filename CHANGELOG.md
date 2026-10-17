@@ -6,6 +6,16 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T15: fechamento do marco M1.
+  - `docs/relatorios/REVISAO_M1.md`: revisão de segurança e qualidade do marco, com 0 Crítica, 1 Alta (R-M1-01,
+    instantâneo síncrono; aceito como M2-T01), 3 Médias, 6 Baixas e 3 Info, mais o checklist C-1..C-22 final,
+    licenças (nenhuma copyleft) e medições de desempenho.
+  - Grupo E2E (E2E-01..06) em `docs/MATRIZ_DE_TESTES.md`; ARQ e PER reexecutados.
+  - **Marco M1 concluído.** Decisões delegadas pelo usuário: R-M1-01 vira M2-T01; o `.bak` acompanha o trabalho ao
+    excluir e renomear (M2).
+  - Relatório de testes do marco em `docs/relatorios/M1_RELATORIO_MARCO.md`; riscos R36 e R37; pendências do M2 no
+    plano.
+
 - Etapa 5, M1-T14: instalador do Windows (fumaça) com electron-builder 26.15.3 (só desenvolvimento).
   - `npm run dist` gera `release/BiblioDocsPro-Instalador-0.1.0.exe` (111,8 MB; meta < 200 MB): por usuário, sem
     administrador, sem atualização automática, sem assinatura (Etapa 7). Não distribuir.
@@ -181,6 +191,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   páginas, versões do `docx`, downgrade de formato).
 
 ### Alterado
+- `app/README.md`: estado do M1, `npm ci`, partes do M1-T06 ao M1-T14, testes E2E, estrutura e situação final da
+  segurança (antes parada no M1-T02). Os 13 comandos documentados foram executados e funcionam.
+- `docs/ESTADO_DO_PROJETO.md`: o `typecheck` roda 4 projetos, e 5 arquivos importam `electron` (corrigido).
 - Kit: a busca de segredos de `scripts/validar-kit.ps1` e `tests/test_estrutura_kit.py` ignora pastas geradas e
   ignoradas pelo git (`node_modules`, `out`, `release`, `release-fumaca`). READMEs de dependências trazem exemplos de chave.
 - M1-T13: ao iniciar, o Chromium procurava proxy automático (consulta DNS `wpad` na rede local) e testava o IPv6,

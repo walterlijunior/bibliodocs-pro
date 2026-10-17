@@ -11,6 +11,15 @@ Relatório vivo do marco: cada tarefa M1-Txx acrescenta a sua seção. Plano: `d
 | M1-T05 Contêiner `.bdp` | CONCLUÍDA | 2026-10-16 |
 | M1-T06 Salvamento atômico | CONCLUÍDA | 2026-10-16 |
 | M1-T07 Migrações | CONCLUÍDA | 2026-10-16 |
+| M1-T08 IPC tipado | CONCLUÍDA | 2026-10-16 |
+| M1-T09 Biblioteca de trabalhos | CONCLUÍDA | 2026-10-16 |
+| M1-T10 Casca da interface | CONCLUÍDA | 2026-10-16 |
+| M1-T11 Criar → editar → salvar → fechar → abrir | CONCLUÍDA | 2026-10-16 |
+| M1-T12 Recuperação | CONCLUÍDA | 2026-10-17 |
+| M1-T13 E2E com Playwright | CONCLUÍDA | 2026-10-17 |
+| M1-T14 Empacotamento de fumaça | CONCLUÍDA | 2026-10-17 |
+| M1-T15 Fechamento do marco | CONCLUÍDA (R-M1-01 aceito como M2-T01) | 2026-10-17 |
+| **Marco M1** | **CONCLUÍDO** | 2026-10-17 |
 
 ## M1-T02 — Endurecimento do runtime (checklist C-1..C-22)
 
@@ -660,3 +669,68 @@ técnicas no adendo do ADR-0005.
   `.exe` do app e do instalador pelo `System.Drawing.Icon.ExtractAssociatedIcon`. Instalador: 111 915 440 bytes.
 - Decisão do desinstalador: nunca apagar dados do usuário (adendo do ADR-0003).
 - Associação `.bdp` ainda não existe. Quando existir, registrar `"...exe" -- "%1"`.
+
+## M1-T15 — Fechamento do marco (relatório de testes)
+
+- **Data:** 2026-10-17
+- **Versão/commit testado:** `222824e` com as mudanças de documentação do M1-T15 (nenhum código do app mudou)
+- **Ambiente:** Windows 11 Home 10.0.26300; Node 24.21.0, npm 11.19.0; Electron 44.8.0; sem Word nem LibreOffice
+  (não há DOCX até o M3)
+- **Executado por:** sessão principal (testes e comandos) e `revisor-seguranca` (revisão, `docs/relatorios/REVISAO_M1.md`)
+
+### Resumo
+
+| Executados | Passaram | Falharam | Bloqueados | Não executados |
+|---|---|---|---|---|
+| 750 automatizados (742 Vitest + 8 E2E) e 13 comandos do `app/README.md` | 750 e 13/13 | 0 | 0 | Grupos DOC e FUN-02..09 (M2 em diante); KIT-08 (manual) |
+
+### Comandos executados
+
+```text
+npm run verificar:tudo        → typecheck OK (4 projetos); Vitest 20 arquivos, 742/742; npm audit --omit=dev: 0;
+                                build OK; Playwright 8 passed (23.5s). Total 35 s. EXIT=0
+npm run esquemas:gerar        → 12/12; JSON Schema regravado sem diferença no git
+npm run icone:gerar           → icone.ico 16–256 px, 39 766 bytes; sem diferença no git
+npm run dev / npm run preview → janela "BiblioDocs Pro" em ~1,6 s; encerrada pelo script
+npm run dist                  → EXIT=0 em 39 s; release/BiblioDocsPro-Instalador-0.1.0.exe, 111 915 440 bytes
+npm run dist:pasta            → EXIT=0 em 8 s; release/win-unpacked abre sem argumentos (janela em 1,1 s)
+npm run dist:fumaca           → EXIT=0 em 8 s (artefato não executado: Controle Inteligente de Aplicativos, M1-T14)
+npx vitest run tests/persistencia-salvamento.test.ts tests/biblioteca.test.ts → 139/139; medições na REVISAO_M1
+scripts/validar-kit.ps1       → 0 falha(s), 0 aviso(s); python tests/test_estrutura_kit.py → 9 OK
+```
+
+`npm install`, `npm run typecheck` e `npm test` não foram rodados à parte: os dois últimos estão dentro do
+`verificar`, e o `npm install` mudaria o `node_modules` sem necessidade.
+
+### Resultados por caso
+
+Os grupos ARQ, PER, SEG, E2E, UI-03, FUN-01 e FUN-10 foram reexecutados pelo `verificar:tudo` e continuam PASSOU
+(`docs/MATRIZ_DE_TESTES.md`). O grupo E2E (E2E-01..06) entrou na matriz neste incremento. As provas de mutação
+das tarefas não foram repetidas.
+
+### Aceite do marco (`docs/PLANO_DE_IMPLEMENTACAO.md`, M1)
+
+| Critério | Evidência | Situação |
+|---|---|---|
+| App abre no Windows em modo desenvolvimento com um comando documentado | `npm run dev` → janela em ~1,6 s | Cumprido |
+| Layout "biblioteca" com tema provisório | UI-01 (E2E em 3 escalas), UI-02 | Cumprido |
+| Criar, salvar e abrir trabalho vazio no formato versionado | FUN-01 (E2E), PER-01..25 | Cumprido |
+| Suíte de testes executa com um comando | `npm run verificar:tudo` | Cumprido |
+| RF-01 parcial; teste de ida e volta do arquivo passa | PER-07, PER-15, FUN-01 | Cumprido |
+
+### Falhas
+
+Nenhuma.
+
+### Verificações manuais
+
+Janela do `dev`, do `preview` e do pacote `win-unpacked` detectadas pelo título da janela (script PowerShell), sem
+inspeção visual nesta sessão. A conferência visual do ícone e das faixas foi feita no M1-T10 e no M1-T14.
+
+### Limitações conhecidas
+
+- **Achado Alto R-M1-01** (instantâneo síncrono no principal): não afeta o M1, mas tem de ser medido antes do editor.
+  Aceito em 2026-10-17 (decisão delegada pelo usuário) como M2-T01; o marco está fechado.
+- Pacote empacotado: o fluxo funcional não foi reexecutado depois da correção A-1 do M1-T14 (bloqueio do Windows).
+- Instalação limpa, Windows 10, atualização por cima e assinatura: Etapa 7.
+- Leitor de tela, escala real por monitor e axe-core: M2 e Etapa 6.

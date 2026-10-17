@@ -4,8 +4,10 @@ Aplicativo desktop (Windows) para elaborar e formatar trabalhos acadêmicos conf
 Normalização da UFT e as normas ABNT. Tecnologia: Electron 44 + electron-vite 6 (Vite 8) + React 19 +
 TypeScript 7 + Vitest 5 (ADR-0003, ADR-0006). Módulos e regras de dependência: ADR-0005.
 
-Estado: esqueleto do M1-T01 com o runtime endurecido no M1-T02. Ainda não há funcionalidade; a janela só
-mostra o nome do aplicativo.
+Estado: **marco M1 (esqueleto executável) concluído** (M1-T01 a M1-T15). O app abre a janela no layout da biblioteca
+e cria, renomeia, duplica, exclui (Lixeira), abre, edita o título, salva (manual e automático) e reabre trabalhos `.bdp`.
+Depois de um encerramento inesperado, oferece recuperar o trabalho. O conteúdo do documento (seções, parágrafos,
+pré-textuais) chega no M2, e a exportação DOCX no M3. Relatório do marco: `docs/relatorios/M1_RELATORIO_MARCO.md`.
 
 ## Requisitos
 
@@ -18,6 +20,7 @@ mostra o nome do aplicativo.
 | Comando | O que faz |
 |---|---|
 | `npm install` | Instala as dependências locais com as versões exatas do `package.json` (`.npmrc` tem `save-exact=true`). O binário do Electron é baixado no primeiro `npm run dev`, ou antes com `node node_modules/electron/install.js` |
+| `npm ci` | Instala exatamente o que está no `package-lock.json`, sem alterá-lo. Prefira-o para reproduzir um build |
 | `npm run dev` | Abre o aplicativo em desenvolvimento (servidor Vite com recarga do renderer) |
 | `npm run build` | Gera `out/principal`, `out/preload` e `out/interface` |
 | `npm run preview` | Abre o aplicativo a partir do build em `out/` |
@@ -104,6 +107,37 @@ Uma mensagem de falha tem esta forma: `src/dominio/modelo/x.ts:2 — import 'ele
 - O `fflate` só é usado para **escrever** (`zipSync`).
 - Os pacotes maliciosos dos testes são montados por `tests/apoio/zip-bruto.ts`.
 
+### Do salvamento ao pacote (M1-T06 a M1-T14)
+
+As decisões e os desvios de cada parte estão no adendo indicado. As regras para mexer em cada parte ficam em
+`docs/ESTADO_DO_PROJETO.md`, na seção "Instruções para etapas futuras".
+
+| Parte | Onde | Testes | Decisões |
+|---|---|---|---|
+| Salvamento atômico (temporário → `fsync` → `.bak` → troca, com tentativas no Windows) e abertura do disco | `src/persistencia/arquivo/` | `tests/persistencia-salvamento.test.ts` | ADR-0004, adendo M1-T06 |
+| Migrações de formato (funções puras, backup antes de migrar, versão futura só leitura) | `src/dominio/esquemas/`, `src/persistencia/arquivo/projeto-em-disco.ts` | `tests/persistencia-migracoes.test.ts`, `tests/fixtures/migracoes/` | ADR-0004, adendo M1-T07 |
+| IPC tipado (remetente conferido, identificadores opacos, caminho só por diálogo, leitura no processo `leitor-projeto`) | `src/aplicacao/portas/`, `src/principal/ipc/`, `src/preload/` | `tests/ipc-projetos.test.ts` | ADR-0005, adendo M1-T08 |
+| Biblioteca (pasta de trabalhos, índice-cache recriável, criar/renomear/duplicar/excluir) | `src/persistencia/biblioteca/`, `src/principal/ipc/manipuladores-biblioteca.ts` | `tests/biblioteca.test.ts` | ADR-0004, adendo M1-T09 |
+| Casca da interface (visor com pequi, menus, abas, barra lateral, grade), tokens e teclado | `src/interface/casca/`, `src/interface/biblioteca/`, `src/interface/estilos/` | `tests/interface/casca.test.tsx`, `tests/interface-logica.test.ts`, `tests/interface-tokens.test.ts` | ADR-0005, adendo M1-T10; `docs/GUIA_VISUAL.md` |
+| Sessão de edição (fila única de gravação, automático ~30 s depois da última alteração, estado no visor) | `src/aplicacao/servicos/sessao-trabalho.ts`, `src/interface/escrever/` | `tests/sessao-trabalho.test.ts` | ADR-0004, adendo M1-T11 |
+| Recuperação (instantâneo ~2 s, trava de sessão, restos de gravação, `recuperacao-antigos`) | `src/persistencia/recuperacao/`, `src/principal/ipc/manipuladores-recuperacao.ts` | `tests/recuperacao.test.ts` | ADR-0004, adendo M1-T12 |
+| E2E no Electron real | `e2e/` (apoio em `e2e/apoio/app.ts`) | ver abaixo | ADR-0006, adendo M1-T13 |
+| Empacotamento (NSIS por usuário, fuses, ASAR íntegro, recusa de chaves de linha de comando) | `electron-builder.config.cjs`, `empacotamento/`, `src/principal/seguranca/argumentos.ts` | `tests/empacotamento.test.ts`, `tests/seguranca-argumentos.test.ts` | ADR-0003, adendo M1-T14 |
+
+### Testes E2E (M1-T13)
+
+`npm run test:e2e` roda 8 testes, um Electron por vez:
+
+| Arquivo | O que verifica | Casos da matriz |
+|---|---|---|
+| `e2e/fluxo-trabalho.spec.ts` | Criar, salvar, fechar e reabrir (também depois de reiniciar o app): título idêntico e `.bdp` não regravado ao abrir | FUN-01 |
+| `e2e/recuperacao.spec.ts` | Encerrar o processo com `taskkill /F /T` durante a edição, recuperar, salvar, segunda queda e "Abrir o arquivo salvo" | FUN-10 (RNF-04) |
+| `e2e/casca.spec.ts` | As quatro faixas da janela da largura mínima à maximizada, em 100%, 125% e 150% (3 testes); Ctrl+F, foco visível, sem marca de terceiros | UI-01, UI-02 |
+| `e2e/rede-e-seguranca.spec.ts` | Zero atividade de rede pelo net-log do Chromium; CSP, `eval`, navegação, `window.open`, travessia do `app://` e instância única | SEG-08, SEG-03 |
+
+Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um teste novo deve usar `criarAmbiente`,
+`abrirApp` e `fechar`/`matar` do apoio e conferir que `x.problemas` termina vazio (console, exceções e CSP).
+
 ## Estrutura
 
 ```text
@@ -111,9 +145,15 @@ app/
 ├─ electron.vite.config.mts   build dos três alvos (principal, preload, renderer)
 ├─ vitest.config.mts          testes em Node
 ├─ tsconfig.base.json         opções estritas comuns
+├─ tsconfig.json              referência dos projetos abaixo (para o editor)
 ├─ tsconfig.node.json         principal, preload, persistencia, integracoes, exportacao, importacao, testes
 ├─ tsconfig.puro.json         dominio e aplicacao: sem DOM e sem Node (ADR-0005, regras 1 e 3)
 ├─ tsconfig.web.json          interface (renderer, DOM, JSX)
+├─ tsconfig.e2e.json          testes E2E (e2e/)
+├─ playwright.config.ts       E2E no Electron real, um por vez
+├─ electron-builder.config.cjs instalador NSIS e pasta do pacote (M1-T14)
+├─ empacotamento/             ganchos do pacote (afterPack, script NSIS) e gerador do ícone
+├─ recursos-build/            ícone do app (SVG de origem e .ico gerado)
 ├─ esquemas/projeto-v1/       JSON Schema gerado do formato .bdp v1 (versionado)
 ├─ perfis/uft-2022/           perfil normativo em dados (JSON, a partir do M3)
 ├─ src/
@@ -128,7 +168,8 @@ app/
 │  └─ dominio/                TypeScript puro
 │     ├─ modelo/  numeracao/  bibliografia/  visuais/
 │     ├─ normas/  verificador/  esquemas/
-└─ tests/                     testes Vitest
+├─ tests/                     testes Vitest
+└─ e2e/                       testes E2E (Playwright)
 ```
 
 Cada pasta de `src/` tem um `index.ts` que descreve o módulo e as regras de dependência dele. As
@@ -137,8 +178,9 @@ fronteiras entre módulos são verificadas por `tests/arquitetura-fronteiras.tes
 ## Segurança
 
 Checklist C-1 a C-22: `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` (raiz do repositório). O M1-T02 cobre os
-itens do runtime. As decisões ficam em funções puras testadas sem Electron; só
-`src/principal/seguranca/endurecimento.ts` e `src/principal/index.ts` importam `electron`.
+itens do runtime. As decisões ficam em funções puras testadas sem Electron. Só cinco arquivos importam `electron`:
+`src/principal/index.ts`, `src/principal/seguranca/endurecimento.ts`, `src/principal/ipc/registrar.ts`,
+`src/principal/ipc/leitor-isolado.ts` e `src/preload/index.ts`.
 
 | Item | O que está feito | Onde |
 |---|---|---|
@@ -146,7 +188,7 @@ itens do runtime. As decisões ficam em funções puras testadas sem Electron; s
 | C-3 | Produção servida por `app://interface/` (`registerSchemesAsPrivileged` antes do ready + `protocol.handle`) a partir de `out/interface`; nada de `loadFile`/`file://`. Recusa `..`, `%2e%2e`, `\`, `%5c`, `%2f`, `%00`, `:`, codificação dupla, host diferente, métodos que não sejam GET/HEAD e extensões sem tipo MIME conhecido | `seguranca/protocolo-caminho.ts`, `seguranca/endurecimento.ts` |
 | C-4 | CSP de produção idêntica ao checklist, no cabeçalho de toda resposta do `app://` (com `nosniff`). CSP de desenvolvimento separada (ver abaixo) | `seguranca/csp.ts` |
 | C-5 | `will-navigate`, `will-redirect`, `will-frame-navigate` bloqueiam tudo fora da origem; `setWindowOpenHandler` → `deny`; `will-attach-webview` bloqueado; aplicado a todo webContents por `web-contents-created` | `seguranca/politica-urls.ts`, `seguranca/endurecimento.ts` |
-| C-6 | `abrirLinkExterno` só no principal: `https:`, porta padrão, sem credenciais, host exato de `HOSTS_EXTERNOS_PERMITIDOS` (vazia no M1), com confirmação por `dialog.showMessageBox`. Ainda não é chamada (sem IPC até o M1-T08) | idem |
+| C-6 | `abrirLinkExterno` só no principal: `https:`, porta padrão, sem credenciais, host exato de `HOSTS_EXTERNOS_PERMITIDOS` (vazia no M1), com confirmação por `dialog.showMessageBox`. Nenhum canal de IPC a chama no M1 | idem |
 | C-7 | `setPermissionRequestHandler`, `setPermissionCheckHandler` e `setDevicePermissionHandler` negam tudo | `seguranca/endurecimento.ts` |
 | C-8 | `webRequest.onBeforeRequest` cancela tudo fora de `app://interface`, `data:` só como imagem e `blob:` da origem só como imagem ou xhr/fetch; em desenvolvimento, também a origem http exata do Vite, o `ws://` do mesmo host:porta e `devtools:` | idem |
 | C-9 | `spellcheck:false` na janela e `setSpellCheckerEnabled(false)` na sessão; `crashReporter` não é iniciado (teste estático) | `src/principal/index.ts`, `seguranca/endurecimento.ts` |
@@ -170,10 +212,26 @@ query ou fragmento, para não expor dados do usuário.
 `ELECTRON_RENDERER_URL` de loopback definida no shell entra no modo de desenvolvimento. Não afeta o instalador,
 porque o controle `app.isPackaged` vem antes.
 
-**Fica para outras tarefas:** C-10 a C-12 (IPC tipado, validação de `sender`, caminhos por diálogo) no M1-T08;
-C-18 a C-20 cobertos no M1-T03 (`npm run verificar` com `npm audit`; lockfile, `html2canvas`/`jspdf` e varreduras de `innerHTML`/rede em `tests/arquitetura-varreduras.test.ts`), exceto o inventário de licenças (RNF-15) e `npm audit signatures`, que continuam pendentes; C-13, C-14, C-16 e C-17 (fuses,
-integridade do ASAR, NSIS por usuário, sem auto-update) no M1-T14; trava por projeto aberto (C-22, parte 2) na
-persistência (M1-T12); C-1 (política de atualização do Electron) é processo, não código.
+**Itens feitos depois do M1-T02** (situação conferida na revisão de fechamento do M1, `docs/relatorios/REVISAO_M1.md`):
 
-Testes: `tests/seguranca-politica-urls.test.ts`, `tests/seguranca-protocolo-caminho.test.ts` e
-`tests/seguranca-runtime.test.ts` (CSP e verificação estática do processo principal).
+| Item | O que está feito | Onde |
+|---|---|---|
+| C-10 a C-12 | API nomeada no preload; remetente e argumentos conferidos (zod estrito e limites); identificadores opacos; caminho de destino só por diálogo (M1-T08) | `src/preload/api.ts`, `src/principal/ipc/` |
+| C-13, C-14 | Fuses e integridade do ASAR (M1-T14) | `electron-builder.config.cjs` |
+| C-16, C-17 | NSIS por usuário, sem elevação; sem atualização automática (`publish: null`) (M1-T14) | idem |
+| C-18 a C-20 | Lockfile em sincronia, versões exatas, `npm audit --omit=dev` no `verificar`, varreduras de `innerHTML`/`eval`/rede (M1-T03) | `tests/arquitetura-varreduras.test.ts` |
+| C-22 (parte 2) | Trava de sessão por trabalho aberto, válida dentro desta instalação (M1-T12) | `src/persistencia/recuperacao/` |
+
+**Pendentes:**
+- C-1: a atualização do Electron é processo (rodada mensal com `test:e2e` e a fumaça do pacote);
+- inventário de licenças e `TERCEIROS.txt` (C-19, RNF-15);
+- `npm audit signatures` no `verificar` (C-18);
+- assinatura de código (Etapa 7);
+- a trava de sessão não protege o mesmo `.bdp` aberto de outro computador (OneDrive, pasta de rede).
+
+**Logs (limitação).** Algumas mensagens de erro do sistema de arquivos vão ao console com `e.message`, que pode
+conter o caminho completo (achado R-M1-07). O log só vai para o stdout; nada é gravado em disco.
+
+Testes de segurança: `tests/seguranca-politica-urls.test.ts`, `tests/seguranca-protocolo-caminho.test.ts`,
+`tests/seguranca-runtime.test.ts` (CSP e verificação estática do processo principal), `tests/ipc-projetos.test.ts`,
+`tests/seguranca-argumentos.test.ts`, `tests/empacotamento.test.ts` e `e2e/rede-e-seguranca.spec.ts`.

@@ -63,6 +63,20 @@ Comandos rodam em `app/`. Cada tarefa termina com teste e registro; "Informar an
 - PoC DOCX integrada ao exportador (M3).
 - LanguageTool e PDF via LibreOffice: após o M7, conforme a decisão do usuário.
 
+#### Pendências do fechamento do M1 (revisão `docs/relatorios/REVISAO_M1.md`)
+
+- **M2-T01 (decidido em 2026-10-17), antes do editor:** medir o instantâneo de recuperação e o
+  salvamento com 25 MB de mídia e um documento de 150 páginas (tempo no principal, latência de teclado, RSS). Se passar
+  da meta, fazer o instantâneo incremental e empacotar fora do principal (R-M1-01, R36).
+- Backups rotativos `backups\<id>\` (ADR-0004 §4), junto com o editor (R-M1-03).
+- `.bak` ao excluir (vai para a Lixeira junto) e ao renomear (renomeado junto), com teste (R-M1-02, R37; decidido em 2026-10-17).
+- Inventário de licenças, `TERCEIROS.txt` no pacote e teste contra licença copyleft em produção; `npm audit signatures`
+  no `verificar` (R-M1-04, R-M1-05). Tela "Sobre": especialista-interface.
+- Electron 44.9.0 na rodada mensal, com `test:e2e` e a fumaça do pacote (R-M1-06).
+- Logs sem `e.message` com caminho completo (R-M1-07).
+- Tela para reabrir `recuperacao-antigos`; oferta de recuperação mesmo com a Biblioteca em erro; axe-core (RNF-09).
+  Diálogos nativos e Lixeira em E2E: Etapa 6 (R-M1-10).
+
 
 ### M2 — Modelo de documento e editor
 - Seis tipos de trabalho com elementos e ordem da matriz; seções com numeração automática; parágrafos,
