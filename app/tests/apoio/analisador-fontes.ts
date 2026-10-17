@@ -685,3 +685,46 @@ export function varrerOpenExternal(arquivos: readonly ArquivoFonte[]): Violacao[
     (arquivo) => arquivo === ARQUIVO_OPEN_EXTERNAL,
   );
 }
+
+// ---------------------------------------------------------------------------------------------------------
+// 6. Regras do editor (ADR-0007, seção 6; M2-T05)
+// ---------------------------------------------------------------------------------------------------------
+
+/** Pasta do editor: único lugar com pacotes `prosemirror-*`. */
+export const PASTA_EDITOR = 'src/interface/editor/';
+/** Único arquivo com `DOMParser` (o documento inerte da colagem). */
+export const ARQUIVO_DOMPARSER = 'src/interface/editor/colagem.ts';
+
+/** Arquivos do editor que rodam em Node nos testes: sem `prosemirror-view` (só `import type`). */
+export const ehEditorPuro = (arquivo: string): boolean =>
+  /^src\/interface\/editor\/(esquema|conversao|ids|html-colado)\.ts$/.test(arquivo) ||
+  arquivo.startsWith('src/interface/editor/plugins/');
+
+/**
+ * E1: `prosemirror-*` só em `src/interface/editor/`. E2: os arquivos puros do editor não importam `prosemirror-view`
+ * (exceto tipos). E3: `DOMParser` (o do navegador e o do `prosemirror-model`) só em `colagem.ts`.
+ */
+export function verificarEditor(arquivos: readonly ArquivoFonte[]): Violacao[] {
+  const saida: Violacao[] = [];
+  for (const { arquivo, conteudo } of arquivos) {
+    for (const imp of extrairImportacoes(conteudo)) {
+      const d = classificarDestino(arquivo, imp);
+      if (d.tipo !== 'pacote' || !d.nome.startsWith('prosemirror-')) continue;
+      const importacao = `'${imp.especificador ?? imp.trecho}'`;
+      if (!arquivo.startsWith(PASTA_EDITOR)) {
+        saida.push({ arquivo, linha: imp.linha, importacao, regra: 'ADR-0007 regra E1', motivo: `pacote do editor fora de ${PASTA_EDITOR}` });
+      } else if (d.nome === 'prosemirror-view' && !imp.somenteTipo && ehEditorPuro(arquivo)) {
+        saida.push({ arquivo, linha: imp.linha, importacao, regra: 'ADR-0007 regra E2', motivo: 'arquivo puro do editor (testado em Node) não importa prosemirror-view' });
+      }
+    }
+  }
+  saida.push(
+    ...varrer(
+      arquivos,
+      [{ nome: 'DOMParser', codigo: /\bDOMParser\b/, comStrings: colchetes('DOMParser') }],
+      'ADR-0007 regra E3 (DOMParser só em colagem.ts)',
+      (arquivo) => arquivo === ARQUIVO_DOMPARSER,
+    ),
+  );
+  return saida;
+}

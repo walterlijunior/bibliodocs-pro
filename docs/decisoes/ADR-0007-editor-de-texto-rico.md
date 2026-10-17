@@ -593,3 +593,120 @@ colagem (inclusive do próprio app) e o Enter que divide um bloco devem dar ids 
 - **Nota no título do trabalho:** continua recusada (decisão de 2026-10-17, delegada pelo usuário à sessão principal).
   Nenhuma RN a exige, e o artigo como TCC segue o formato de trabalho acadêmico (RN-116). Alargar `InlineDeTitulo` é
   mudança aditiva, se um dia for preciso.
+
+## Adendo do M2-T05 (2026-10-17) — núcleo do editor: esquema, conversão, ids e colagem
+
+Código em `app/src/interface/editor/`: `esquema.ts`, `conversao.ts`, `ids.ts`, `plugins/ids-unicos.ts`,
+`html-colado.ts` e `colagem.ts`. Testes em `app/tests/editor-conversao.test.ts`, `editor-ids.test.ts` e
+`editor-colagem.test.ts`. As regras E1 a E3 estão em `tests/apoio/analisador-fontes.ts`.
+
+**Dependências instaladas** (o usuário foi informado antes, como manda o ADR): as 7 da lista acima, com versões exatas,
+mais as 3 transitivas previstas. São 10 pacotes, todos MIT [VERIFICADO: `package.json` de cada um em `node_modules`].
+- `npm ls prosemirror-model` mostra **uma** cópia, deduplicada.
+- `npm audit --omit=dev` dá 0 vulnerabilidades.
+- O `npm audit` completo mostra 8 moderadas, todas de desenvolvimento, na cadeia `electron-builder` → `@electron/get` →
+  `global-agent` → `roarr`. Nenhuma vem do ProseMirror.
+- Os pacotes ficam fora do ASAR (`electron-builder.config.cjs`), porque o Vite os embute no bundle da interface, como
+  faz com o React.
+
+**Decisões técnicas (sessão principal).**
+- **Esquema.** Nomes finais dos nós:
+  - `secaoDoc` (`titulo bloco*`) e `titulo` (`textual*`);
+  - `paragrafo`, `alineas` → `alinea` (`linhaAlinea subalinea*`), `citacaoLonga` e `quebraPagina`;
+  - `quebraLinha` (`\n`) e `nota` (inline atômico com `textual*`).
+
+  `citacaoLonga` não tem `chamada` (adendo do M2-T04). Os grupos são `inline` (texto, quebra e nota) e `textual`
+  (texto e quebra). Título e nota só aceitam `textual`, então uma nota dentro de título ou de nota não pode existir no
+  editor. Sobrescrito e subscrito se excluem pelo `excludes`. Os `parseDOM` só servem à leitura do DOM ao digitar.
+- **Forma canônica.** `normalizarConteudo` faz quatro coisas:
+  - junta textos vizinhos com as mesmas marcas e remove o texto vazio;
+  - ordena as marcas pela ordem do esquema;
+  - omite `marcas` quando a lista fica vazia, e `subalineas` quando não há subalínea;
+  - **divide o texto acima de 100 000 caracteres** (o limite do v1), sem partir um par substituto.
+
+  O ProseMirror junta os nós de texto, então sem a divisão um parágrafo colado gigante deixaria o arquivo
+  impossível de salvar.
+- **Quebra de linha com marcas.** O `\n` dentro de um texto com marcas vira um `quebraLinha` com as mesmas marcas. Na
+  volta ele vira `\n` com essas marcas, e a ida e volta é exata.
+- **Ids.** `<prefixo>_<16 base64url>`, com `crypto.getRandomValues` e prefixos `par`, `aln`, `cit`, `qbr` e `nta`.
+  - O plugin `appendTransaction` dá id novo ao nó sem id válido e às cópias de um id repetido.
+  - Quem fica com o id antigo é o nó cuja posição antiga **+ 1** (início do conteúdo) a transação mapeia para ele.
+    Dividir no meio ou no fim mantém o id na primeira parte. No Enter no começo, o id fica com a parte que tem o texto,
+    e não com o parágrafo vazio novo. Colar uma cópia antes do original também não tira o id do original.
+  - A conversão lança `ErroConversao` diante de um nó sem id (defeito, não entrada do usuário).
+- **Colagem própria, sem o `DOMParser` do ProseMirror.** A seção 5 previa `DOMParser.fromSchema(...).parseSlice`.
+  Ficou assim:
+  - `html-colado.ts` percorre uma árvore mínima (`NoHtml`: `nodeType`, `nodeName`, `nodeValue`, `childNodes`,
+    `getAttribute`) e produz **blocos do modelo** com ids novos;
+  - `blocosParaSlice` os converte para uma fatia;
+  - `colagem.ts` é o único arquivo com `DOMParser` (regra E3).
+
+  Motivos:
+  - a leitura fica testável em Node, sem happy-dom: os testes montam a árvore com `tests/apoio/html-minimo.ts`;
+  - a saída é tipada como `Bloco[]` e validada com `validarDocumentoV1` nos testes;
+  - as listas e as notas do Word, que o `parseSlice` não entende, viram alíneas e notas.
+- **O que a colagem faz** (aplica a decisão 3 dos itens visíveis):
+  - marcas por tag (`b`, `strong`, `i`, `em`, `cite`, `sup`, `sub`) e por `style` (`font-weight`, `font-style`,
+    `vertical-align`). O valor de dentro vence, e por isso o `<b style="font-weight:normal">` do Google Docs não põe
+    negrito em tudo;
+  - `ul`/`ol` e `mso-list` viram alíneas, e o 2.º nível vira subalínea. Os níveis mais fundos ficam no 2.º, com aviso;
+  - `blockquote` vira citação longa. `h1`–`h6` viram parágrafos, com aviso (seção nova só pela árvore);
+  - as notas de rodapé e de fim do Word (`mso-footnote-id` e `mso-element:footnote`) viram `nota` no ponto da chamada.
+    A nota de vários parágrafos fica com `\n` (B7). Uma chamada sem o texto da nota é descartada, com aviso;
+  - imagens (inclusive VML), tabelas, `iframe`, `object` e `script` são descartados com aviso ou em silêncio, e nada é
+    carregado: o `Document` do `DOMParser` é inerte;
+  - os caracteres que o XML 1.0 recusa são removidos (cópia de `PADRAO_TEXTO_XML`, conferida por teste). Os brancos
+    colapsam como no HTML, `pre` preserva os brancos, e as linhas vazias ou só com `&nbsp;` são descartadas;
+  - acima de 256 níveis de aninhamento, o resto vira texto sem recursão.
+- **Texto puro (Ctrl+Shift+V ou sem HTML).** Uma linha em branco separa parágrafos, e a quebra simples **vira espaço**.
+  Assim, o texto copiado de PDF não chega quebrado em cada linha. É a única escolha visível nova (decisão abaixo).
+- **Soltar (drop).** Arrastar dentro do editor fica com o ProseMirror (`view.dragging`). O que vem de fora segue o
+  caminho da colagem na posição do cursor do mouse.
+- **Cópias de constantes do domínio** (a interface só importa tipos): `PADRAO_ID_EDITOR`, `LIMITE_TEXTO_INLINE` e
+  `CARACTERES_FORA_DO_XML`. Um teste confere cada uma contra o original.
+
+**Regras de fronteira novas** (no teste de arquitetura, com casos negativos):
+- **E1:** `prosemirror-*` só em `src/interface/editor/`;
+- **E2:** `esquema`, `conversao`, `ids`, `html-colado` e `plugins/` não importam `prosemirror-view`, a não ser
+  `import type`;
+- **E3:** `DOMParser`, o do navegador ou o do `prosemirror-model`, só em `colagem.ts`.
+
+**Para o M2-T06 (pendências deste incremento):**
+- E2E da colagem com a área de transferência real do Word, do LibreOffice e do Chrome. As fixtures em
+  `tests/fixtures/colagem/` foram escritas à mão no formato conhecido [HIPÓTESE de fidelidade]. Conferir também no
+  net-log que colar `<img src=https://…>` não gera requisição, e que o aviso aparece;
+- NodeView da nota (editor aninhado) e colagem dentro da nota;
+- mostrar `MENSAGENS_AVISO` na interface (`aoAvisar`);
+- instalar no `EditorState` os três plugins: `pluginIdsUnicos`, `pluginLimites` e `pluginColagem`. Sem eles, o
+  editor pode gravar id nulo ou repetido, ou passar dos limites;
+- achados M5, M6 e B2 a B5 da revisão (abaixo).
+
+**Revisão do `especialista-documento` (somente leitura; 2 Altas, 6 Médias e 5 Baixas).**
+
+| Achado | O que era | Situação |
+|---|---|---|
+| A1 | Limites de quantidade do v1 não aplicados: 10 001 parágrafos colados ou 10 001 trechos geravam arquivo recusado na leitura | Corrigido: `plugins/limites.ts` (`filterTransaction` com teto conservador; cópias de `LIMITES_V1` conferidas por teste). A colagem confere antes e avisa (`limite`) |
+| A2 | Caractere de controle digitado (`insertText`, IME, releitura do DOM) chegava ao modelo | Corrigido: a forma canônica remove `CARACTERES_FORA_DO_XML` (que passou para `conversao.ts`) |
+| M1 | A regra genérica `p` vinha antes de `p.bd-linha-alinea`/`p.bd-subalinea` no `parseDOM` | Corrigido: prioridade 60; teste confere a ordem |
+| M2 | Nota de rodapé do LibreOffice (`sdfootnoteanc`/`div#sdfootnote1`) virava "1" solto e parágrafo no fim | Corrigido, com nota na fixture [HIPÓTESE do formato exato] |
+| M3 | Título numerado do Word (`h1` com `mso-list`) virava alínea | Corrigido: título continua parágrafo, com aviso |
+| M4 | Âncora de comentário do Word (`[WJ1]`) entrava no texto | Corrigido: `MsoCommentReference`, `msocomanchor` e `mso-special-character:comment` descartados |
+| M5 | Recortar e colar dentro do app troca os ids, o que quebrará as remissivas do M6 | Pendente (M2-T06 ou M6): reaproveitar `data-id` do próprio app quando ainda estiver livre |
+| M6 | Marca aplicada sobre a chamada entra no conteúdo da nota | Pendente (M2-T06, com o NodeView da nota): não deixar `AddMarkStep` atravessar a nota |
+| B1 | `<br>` no fim do parágrafo virava `\n` final | Corrigido |
+| B2 | `&nbsp;` e `mso-tab-count` do Word: tabulação vira NBSP | Pendente. A política de NBSP muda o texto visível e é decisão do usuário |
+| B3 | `white-space:pre` em `span` (Google Docs) ignorado | Pendente |
+| B4 | `<li>um<p>dois</p></li>` vira 2 alíneas; duas listas seguidas viram uma; `MsoQuote` não vira citação | Pendente. `MsoQuote` → citação é decisão editorial |
+| B5 | "Colar sem formatação" pelo menu não passa pela tecla Shift | Pendente (M2-T06, menu Editar) |
+
+**Decisões dos itens visíveis da colagem (2026-10-17, delegadas pelo usuário à sessão principal).** O usuário escreveu:
+"Deixo você fazer essa decisão". As três propostas foram mantidas:
+1. **Texto puro colado:** a quebra simples vira espaço, e só a linha em branco separa parágrafos. Motivo: o caso mais
+   comum é copiar uma citação de um PDF, e uma linha por parágrafo picaria o texto. Com o Word e o navegador, o HTML
+   já traz os parágrafos, e esta regra não se aplica.
+2. **`&nbsp;` colado:** fica como espaço inseparável. Motivo: no Word ele costuma ser intencional ("p. 23", "art. 5º"),
+   e trocá-lo mudaria o texto do usuário. A tabulação do Word escrita com `&nbsp;` (`mso-tab-count`, B2) será tratada
+   à parte.
+3. **Estilo "Citação" do Word (`MsoQuote`):** continua parágrafo comum. Motivo: citação longa é a de mais de três linhas
+   (RN-004), e o estilo do Word não garante isso. Converter sozinho poderia marcar como citação o que não é. O usuário
+   converte o bloco no editor.

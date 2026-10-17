@@ -9,6 +9,7 @@ import {
   extrairImportacoes,
   formatarViolacao,
   moduloDoCaminho,
+  verificarEditor,
   verificarFronteiras,
   type ArquivoFonte,
 } from './apoio/analisador-fontes';
@@ -231,6 +232,40 @@ const POSITIVOS: readonly ArquivoFonte[] = [
 describe('ARQ — casos positivos (sem falso positivo)', () => {
   it('importações permitidas pelo ADR-0005 não geram violação', () => {
     const violacoes = verificarFronteiras(POSITIVOS).map(formatarViolacao);
+    expect(violacoes, violacoes.join('\n')).toEqual([]);
+  });
+});
+
+describe('ARQ — regras do editor (ADR-0007, seção 6: E1, E2 e E3)', () => {
+  it('o código real de src/ respeita as três regras', () => {
+    const violacoes = verificarEditor(fontes).map(formatarViolacao);
+    expect(violacoes, violacoes.join('\n')).toEqual([]);
+    expect(fontes.some((f) => f.arquivo === 'src/interface/editor/colagem.ts' && /\bDOMParser\b/.test(f.conteudo))).toBe(true);
+  });
+
+  it.each([
+    ['src/aplicacao/e1.ts', "import { Schema } from 'prosemirror-model';", 'regra E1'],
+    ['src/interface/escrever/e1b.tsx', "import { EditorView } from 'prosemirror-view';", 'regra E1'],
+    ['src/dominio/modelo/e1c.ts', "import type { Node } from 'prosemirror-model';", 'regra E1'],
+    ['src/interface/editor/conversao.ts', "import { EditorView } from 'prosemirror-view';", 'regra E2'],
+    ['src/interface/editor/plugins/p.ts', "import { Decoration } from 'prosemirror-view';", 'regra E2'],
+    ['src/interface/editor/esquema.ts', "import { DOMParser } from 'prosemirror-model';", 'regra E3'],
+    ['src/interface/editor/EditorSecao.tsx', 'const d = new DOMParser();', 'regra E3'],
+    ['src/interface/escrever/x.tsx', "const d = new window['DOMParser']();", 'regra E3'],
+  ])('%s: %s → %s', (arquivo, conteudo, regra) => {
+    const violacoes = verificarEditor([{ arquivo, conteudo }]);
+    expect(violacoes.length, `esperava violação (${regra})`).toBeGreaterThan(0);
+    expect(formatarViolacao(violacoes[0]!)).toContain(regra);
+  });
+
+  it('permitidos: view no componente e na colagem, tipos da view nos plugins, DOMParser na colagem', () => {
+    const permitidos: ArquivoFonte[] = [
+      { arquivo: 'src/interface/editor/EditorSecao.tsx', conteudo: "import { EditorView } from 'prosemirror-view';" },
+      { arquivo: 'src/interface/editor/colagem.ts', conteudo: "import type { EditorView } from 'prosemirror-view';\nconst d = new DOMParser();" },
+      { arquivo: 'src/interface/editor/plugins/p.ts', conteudo: "import type { EditorView } from 'prosemirror-view';\nimport { Plugin } from 'prosemirror-state';" },
+      { arquivo: 'src/interface/editor/x.ts', conteudo: "// DOMParser só em colagem.ts\nconst t = 'DOMParser';" },
+    ];
+    const violacoes = verificarEditor(permitidos).map(formatarViolacao);
     expect(violacoes, violacoes.join('\n')).toEqual([]);
   });
 });

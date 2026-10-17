@@ -141,6 +141,26 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um teste novo deve usar `criarAmbiente`,
 `abrirApp` e `fechar`/`matar` do apoio e conferir que `x.problemas` termina vazio (console, exceções e CSP).
 
+### Núcleo do editor (M2-T05)
+
+Em `src/interface/editor/` (ADR-0007, adendo do M2-T05). Ainda não está na tela: o componente `EditorSecao` é do M2-T06.
+
+| Arquivo | Papel | Testável em Node |
+|---|---|---|
+| `esquema.ts` | `Schema` do ProseMirror espelhando `Bloco`/`Inline`; `toDOM` só com classe e `data-*` | Sim |
+| `conversao.ts` | `secaoParaDoc`, `docParaSecao`, forma canônica (`normalizarSecao`), `blocosParaSlice` | Sim |
+| `ids.ts`, `plugins/ids-unicos.ts` | ids novos para cópias e nós sem id (o nó que já existia mantém o seu) | Sim |
+| `plugins/limites.ts` | recusa a transação que passaria dos limites de quantidade do v1 | Sim |
+| `html-colado.ts` | HTML colado (Word, LibreOffice, navegador, o próprio app) e texto puro → `Bloco[]` com avisos | Sim (árvore de `tests/apoio/html-minimo.ts`) |
+| `colagem.ts` | `DOMParser` inerte e `paste`/`drop`; único arquivo com `DOMParser` | Não (E2E no M2-T06) |
+
+- Todo `EditorState` do app precisa de `pluginIdsUnicos`, `pluginLimites` e `pluginColagem`.
+- `prosemirror-*` só pode ser importado dentro desta pasta, e os arquivos testáveis em Node não importam
+  `prosemirror-view` (regras E1–E3 em `tests/arquitetura-fronteiras.test.ts`).
+- Constantes copiadas do domínio (`PADRAO_ID_EDITOR`, `LIMITE_TEXTO_INLINE`, `CARACTERES_FORA_DO_XML`,
+  `LIMITES_EDITOR`) têm teste que as compara com o original. Mudou o formato v1 → atualizar as cópias.
+- Fixtures de colagem em `tests/fixtures/colagem/*.html`, escritas à mão no formato de cada origem.
+
 ## Estrutura
 
 ```text

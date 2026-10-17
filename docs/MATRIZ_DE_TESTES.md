@@ -116,6 +116,20 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/secoes-operacoes.tes
 | MOD-03 | Modelo M2: alíneas e subalíneas, citação longa e nota de rodapé. Fixtures válidas (`documento-valido.json`, `documento-bordas-m2.json`) passam idênticas e voltam idênticas do `.bdp`. As 14 fixtures de `invalidos/` são recusadas com o caminho e a mensagem pt-BR esperados: alíneas vazias, subalíneas vazias ou aninhadas, rótulo ou número gravado, nota em nota ou em título, id de nota repetido, citação com `chamada`, controle no texto da nota. Limites de 1000 alíneas e subalíneas; estrutura mais funda dentro do aninhamento JSON; ids de nota conferidos por `inserirSecao` | RN-004, RN-023, RN-026, RN-028, RN-100; plano M2-T04 | PASSOU (M2-T04, 2026-10-17): 16/16 mutações detectadas |
 | MOD-04 | Rótulo das alíneas: a) … z), aa), bb) … zz), aaa); únicos até 1000; posição inválida recusada | RN-023; RN-025 com C-A6 (provisório, P-03) | PASSOU (M2-T04, 2026-10-17) |
 
+## Grupo EDT — núcleo do editor (aplicativo, desde o M2-T05)
+
+Executar: `cd app; npm run verificar`. Testes em `app/tests/editor-conversao.test.ts`, `editor-ids.test.ts`,
+`editor-colagem.test.ts` e `editor-limites.test.ts` (Node, sem view). O E2E da colagem entra no M2-T06.
+
+| ID | Caso | Fonte do esperado | Status |
+|---|---|---|---|
+| EDT-01 | Ida e volta modelo → editor → modelo: `documento-valido.json` e `documento-bordas-m2.json` idênticas; documento grande e 300 seções aleatórias com semente voltam na forma canônica (idempotente), passam no `Node.check()` e no `validarDocumentoV1`; todos os nós e marcas exercitados; texto acima de 100 000 caracteres dividido sem partir par substituto; memo por identidade de nó | Plano M2-T05; ADR-0007 §2–3; R38, R39 | PASSOU (M2-T05, 2026-10-17) |
+| EDT-02 | Esquema: título e nota não aceitam nota; alíneas vazias recusadas; sobrescrito exclui subscrito; só as 4 marcas; `toDOM` só com `class` e `data-*` (sem `style` nem `on*`); cópias de `PADRAO_ID`, do limite de texto e da regra de caracteres XML iguais às do domínio | ADR-0007 §2 e §6 | PASSOU (M2-T05, 2026-10-17) |
+| EDT-03 | Ids únicos por transação real: dividir no meio, no começo, desfazer e refazer; colar cópia antes do original (original mantém blocos e notas); colar duas vezes; nó novo sem id ganha id no formato; transação sem mudança não passa pelo plugin | Adendo M2-T04 (achado M2); R38 | PASSOU (M2-T05, 2026-10-17) |
+| EDT-04 | Colagem: HTML do Word, LibreOffice, Chrome, Google Docs e do próprio app vira só `Bloco`/`Inline` válido, com ids novos; marcas por tag e `style`; listas → alíneas/subalíneas; notas do Word e do LibreOffice no ponto da chamada; título numerado do Word continua parágrafo; comentários do Word e `<br>` final descartados; imagens, tabelas, script e iframe descartados com aviso; controles XML removidos; HTML de 2 000 níveis sem estourar a pilha; texto puro por parágrafos; colar no meio de um parágrafo e no título dá documento válido | Plano M2-T05; ADR-0007 §5; R40 | PASSOU (M2-T05, 2026-10-17) em Node, com fixtures escritas à mão [HIPÓTESE de fidelidade]; E2E com área de transferência real: PENDENTE (M2-T06) |
+| EDT-05 | O editor nunca produz o que o v1 recusa: no limite exato (trechos, trechos na nota e no título, blocos, alíneas, subalíneas) a seção é válida, e um a mais é detectado; texto longo conta a divisão; a transação acima do limite é recusada e a seção fica como estava; `insertText` com controles, `\r`, U+FFFE e substituto solto dá seção válida; regras de alínea antes da de parágrafo no `parseDOM` | Revisão do M2-T05 (A1, A2, M1); LIMITES_V1 | PASSOU (M2-T05, 2026-10-17) |
+| ARQ-E | Regras E1 (`prosemirror-*` só em `interface/editor`), E2 (arquivos puros sem `prosemirror-view`) e E3 (`DOMParser` só em `colagem.ts`), com 8 casos negativos e 4 positivos | ADR-0007 §6 | PASSOU (M2-T05, 2026-10-17) |
+
 ## Grupo FUN — funcionalidades (aplicativo)
 
 | ID | Requisito | Caso | Status |

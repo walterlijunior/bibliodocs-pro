@@ -6,6 +6,17 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T05: núcleo do editor ProseMirror (ADR-0007), ainda sem tela.
+  - Dependências: 7 pacotes `prosemirror-*` com versões exatas (10 com as transitivas, todos MIT), fora do ASAR.
+  - `app/src/interface/editor/`: esquema espelhando o modelo do M2-T04, conversão modelo ↔ editor com forma canônica,
+    plugins de ids únicos e de limites do v1, leitura do HTML colado (Word, LibreOffice, Chrome, Google Docs, o próprio
+    app e texto puro) e tratador de colar e soltar sem o `innerHTML` da biblioteca.
+  - Regras de fronteira E1–E3 (`prosemirror-*` só no editor; arquivos puros sem `prosemirror-view`; `DOMParser` só
+    em `colagem.ts`).
+  - Testes: ida e volta nas fixtures, no documento grande e em 300 seções aleatórias; ids por transação real; colagem
+    sobre 5 fixtures HTML; limites e controles. 891 testes no total.
+  - Revisão do `especialista-documento`: 2 Altas e 4 Médias corrigidas, M5, M6 e 4 Baixas registradas.
+
 - Etapa 5, M2-T04: alíneas, citação longa e nota de rodapé no modelo de documento (RN-004, RN-023, RN-025, RN-026,
   RN-100).
   - `app/src/dominio/modelo/tipos.ts`: blocos `alineas` (com `subalineas`) e `citacaoLonga`, inline `nota` com

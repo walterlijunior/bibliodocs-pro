@@ -10,8 +10,9 @@ module.exports = {
 
   directories: { output: 'release', buildResources: 'recursos-build' },
 
-  // Só o build do electron-vite e o package.json. As dependências de produção entram sozinhas; React e react-dom já
-  // vão embutidos no bundle da interface, então ficam fora. Só zod e fflate são carregados pelo principal em execução.
+  // Só o build do electron-vite e o package.json. As dependências de produção entram sozinhas; React, react-dom e o
+  // ProseMirror (com as 3 dependências dele, M2-T05) já vão embutidos no bundle da interface, então ficam fora. Só zod
+  // e fflate são carregados pelo principal em execução.
   files: [
     'out/**/*',
     'package.json',
@@ -19,6 +20,10 @@ module.exports = {
     '!node_modules/react/**',
     '!node_modules/react-dom/**',
     '!node_modules/scheduler/**',
+    '!node_modules/prosemirror-*/**',
+    '!node_modules/orderedmap/**',
+    '!node_modules/rope-sequence/**',
+    '!node_modules/w3c-keyname/**',
     '!node_modules/**/src/**',
     '!node_modules/**/*.{ts,mts,cts}',
   ],

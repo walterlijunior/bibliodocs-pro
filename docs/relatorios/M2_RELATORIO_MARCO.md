@@ -7,7 +7,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T01 Desempenho do instantâneo e do salvamento | CONCLUÍDA | 2026-10-17 |
 | M2-T03 Numeração e operações sobre a árvore de seções | CONCLUÍDA | 2026-10-17 |
 | M2-T04 Alíneas, citação longa e nota no modelo | CONCLUÍDA | 2026-10-17 |
-| M2-T02, M2-T05 a M2-T12 | PENDENTE | — |
+| M2-T05 Núcleo do editor: esquema, conversão, ids e colagem | CONCLUÍDA | 2026-10-17 |
+| M2-T02, M2-T06 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -194,3 +195,60 @@ do M2-T04 no ADR-0007, que também anota o ADR-0005.
 foi bloqueado pela política de permissões. Os arquivos foram copiados para o scratchpad e reescritos a partir do HEAD só
 com as edições do incremento. O diff final contém apenas o M2-T04. **O projeto não usa Prettier:** não rodar formatador
 automático.
+
+## M2-T05 — Núcleo do editor: esquema, conversão, ids e colagem
+
+**Implementação:** sessão principal. **Revisão:** `especialista-documento`, somente leitura. As decisões estão no adendo
+do M2-T05 no ADR-0007.
+
+**Dependências** (o usuário foi informado antes da instalação): 7 pacotes do ProseMirror com versões exatas e 3
+transitivas, 10 MIT. Há uma cópia só do `prosemirror-model`, e o `npm audit --omit=dev` dá 0. Os pacotes ficam fora do
+ASAR, porque o Vite os embute no bundle da interface. O `npm audit` completo mostra 8 moderadas, todas de
+desenvolvimento (`electron-builder` → `roarr`), alheias ao ProseMirror.
+
+**Código** (`app/src/interface/editor/`)
+- `esquema.ts`: nós e marcas que espelham o modelo do M2-T04. Título e nota não aceitam nota, e o `toDOM` só emite
+  classe e `data-*`.
+- `conversao.ts`: `secaoParaDoc`, `docParaSecao`, a forma canônica, memo por nó e `blocosParaSlice`.
+- `ids.ts` e `plugins/ids-unicos.ts`: ids novos para cópias e nós sem id. O nó que já existia mantém o id.
+- `plugins/limites.ts`: recusa a transação que passaria dos limites de quantidade do v1.
+- `html-colado.ts`: leitura do HTML colado sobre uma árvore mínima, em Node. Cobre Word, LibreOffice, Chrome,
+  Google Docs e o próprio app, mais o texto puro.
+- `colagem.ts`: `DOMParser` inerte e `paste`/`drop`, com aviso.
+
+**Aceite** [VERIFICADO 2026-10-17]
+- Ida e volta modelo → editor → modelo:
+  - **idêntica** em `documento-valido.json` e `documento-bordas-m2.json`;
+  - na forma canônica no documento grande e em 300 seções aleatórias com semente;
+  - todos os resultados passam no `Node.check()` e no `validarDocumentoV1`.
+- HTML colado do Word e das outras quatro origens vira só `Bloco`/`Inline` válido, com ids novos. Isso foi conferido
+  com fixtures **escritas à mão** no formato conhecido [HIPÓTESE de fidelidade]. A captura real da área de
+  transferência fica para o E2E do M2-T06, quando o editor estiver na tela.
+
+**Testes** [VERIFICADO 2026-10-17]
+- `npm run verificar:tudo` passou:
+  - typecheck dos 4 projetos;
+  - 891/891 testes (eram 825; 66 novos em 4 arquivos `editor-*` e nas regras E1–E3);
+  - 0 vulnerabilidades em produção;
+  - build e E2E 9/9.
+- A latência do E2E de desempenho não mudou: p95 de 9 ms por tecla. O editor ainda não está na tela; a medição com o
+  editor é do M2-T06.
+- Matriz de testes: EDT-01 a EDT-05 e ARQ-E.
+
+**Revisão:** 2 Altas, 6 Médias e 5 Baixas.
+- Corrigidas: A1 (limites), A2 (controles digitados), M1 (ordem do `parseDOM`), M2 (notas do LibreOffice), M3
+  (títulos numerados do Word), M4 (comentários do Word) e B1 (`<br>` final). Cada uma tem teste.
+- Pendentes, com destino no adendo do ADR: M5 (recortar e colar troca ids), M6 (marca sobre a chamada entra na nota) e
+  B2 a B5.
+
+**Itens visíveis da colagem (2026-10-17, decisão delegada pelo usuário: "Deixo você fazer essa decisão").** As três
+propostas foram mantidas:
+1. **Texto puro colado:** a quebra simples vira espaço, e só a linha em branco separa parágrafos. Motivo: o caso mais
+   comum é copiar uma citação de um PDF, e uma linha por parágrafo picaria o texto. Com o Word e o navegador, o HTML
+   já traz os parágrafos, e esta regra não se aplica.
+2. **`&nbsp;` colado:** fica como espaço inseparável. Motivo: no Word ele costuma ser intencional ("p. 23", "art. 5º"),
+   e trocá-lo mudaria o texto do usuário. A tabulação do Word escrita com `&nbsp;` (`mso-tab-count`, B2) será tratada
+   à parte.
+3. **Estilo "Citação" do Word (`MsoQuote`):** continua parágrafo comum. Motivo: citação longa é a de mais de três linhas
+   (RN-004), e o estilo do Word não garante isso. Converter sozinho poderia marcar como citação o que não é. O usuário
+   converte o bloco no editor.
