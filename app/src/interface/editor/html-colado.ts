@@ -90,10 +90,30 @@ interface Contexto {
   pre: boolean;
 }
 
+/**
+ * Nome que o atributo `style` recebe antes do `DOMParser` (`neutralizarEstilos`). No Chromium o documento do
+ * `DOMParser` herda a CSP da página, e cada `style` do HTML colado gerava um relatório "Applying inline style violates
+ * … style-src" (E2E do M2-T06), mesmo sem nada ser aplicado.
+ */
+export const ATRIBUTO_ESTILO = 'data-bd-estilo';
+
+/**
+ * Prepara o HTML da área de transferência para o `DOMParser`: tira as folhas `<style>` (a leitura já as ignora) e troca
+ * o nome dos atributos `style` dentro das tags por `ATRIBUTO_ESTILO`. Texto do documento nunca contém `<` cru (seria
+ * `&lt;`), então só a marcação é tocada. Uma tag com `>` dentro de um valor de atributo pode ficar com o `style`
+ * original: a leitura aceita os dois nomes, e o pior caso é o relatório de CSP voltar (nada é aplicado).
+ */
+export function neutralizarEstilos(html: string): string {
+  return html
+    // `(?=[\s>/])`: não casa com elementos personalizados como `<style-x>` (revisão do M2-T06, B5).
+    .replace(/<style(?=[\s>/])[^>]*>[\s\S]*?<\/style\s*>/gi, '')
+    .replace(/<[A-Za-z][^>]*>/g, (tag) => tag.replace(/(\s)style(\s*=)/gi, `$1${ATRIBUTO_ESTILO}$2`));
+}
+
 /** Propriedades de `style`, em minúsculas e sem `!important`. */
 function lerEstilo(el: ElementoHtml): Map<string, string> {
   const mapa = new Map<string, string>();
-  const estilo = el.getAttribute('style');
+  const estilo = el.getAttribute(ATRIBUTO_ESTILO) ?? el.getAttribute('style');
   if (!estilo) return mapa;
   for (const declaracao of estilo.split(';')) {
     const doisPontos = declaracao.indexOf(':');

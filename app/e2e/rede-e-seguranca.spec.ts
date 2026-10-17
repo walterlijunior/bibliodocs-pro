@@ -64,7 +64,7 @@ test('SEG-03: CSP, rede, navegação, janelas, protocolo app:// e instância ún
     module: typeof (globalThis as Record<string, unknown>)['module'],
     api: Object.keys((globalThis as unknown as { bibliodocs: object }).bibliodocs).sort(),
   }));
-  expect(globais).toEqual({ require: 'undefined', process: 'undefined', module: 'undefined', api: ['biblioteca', 'projetos', 'recuperacao'] });
+  expect(globais).toEqual({ require: 'undefined', process: 'undefined', module: 'undefined', api: ['biblioteca', 'edicao', 'projetos', 'recuperacao'] });
 
   // C-4: a CSP de produção vem no cabeçalho do protocolo; script inline e eval são bloqueados.
   const sondasCsp = await p.evaluate(async () => {

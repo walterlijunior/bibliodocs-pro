@@ -6,6 +6,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T06: editor de texto na aba Escrever, ligado à sessão de trabalho (ADR-0007, seção 3 e adendo M2-T06).
+  - Aba Escrever: lista das seções numeradas pela posição, "Nova seção" e o editor da seção escolhida, com barra de
+    formatação (itálico, negrito, sobrescrito, subscrito, nota de rodapé) e os atalhos do Word.
+  - Cada tecla vai para `SessaoTrabalho.alterarSecao`: salvar, fechar e o instantâneo sempre têm o texto digitado; a
+    casca só re-renderiza quando o visor ou a lista mudam.
+  - Nota de rodapé com editor aninhado (Ctrl+Alt+F); a marca aplicada no texto não entra na nota (M6 do M2-T05).
+  - Menu Editar ligado (Desfazer, Refazer, Recortar, Copiar, Colar e o novo "Colar sem formatação") pelo canal IPC
+    `edicao`; Inserir › Nota de rodapé.
+  - Testes: `sessao-secoes`, `editor-comandos`, casos novos de colagem e IPC (915 no total); `e2e/editor.spec.ts` com a
+    área de transferência real (E2E 11/11). Latência com o editor no documento de 150 páginas: p95 8–15 ms.
+  - Revisão do `especialista-documento`: 3 Médias e 5 Baixas, todas corrigidas (nota em só leitura, nota recusada pelos
+    limites, papel `doc-noteref`, canal `edicao` só com gesto do usuário, entre outras).
+
 - Etapa 5, M2-T05: núcleo do editor ProseMirror (ADR-0007), ainda sem tela.
   - Dependências: 7 pacotes `prosemirror-*` com versões exatas (10 com as transitivas, todos MIT), fora do ASAR.
   - `app/src/interface/editor/`: esquema espelhando o modelo do M2-T04, conversão modelo ↔ editor com forma canônica,
@@ -241,6 +254,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - `docs/MATRIZ_DE_RISCOS.md`: riscos R20–R33 (suporte do runtime, assinatura de código, auto-update, rede implícita,
   salvamento com EPERM, arquivo malicioso, LibreOffice, chaves, LanguageTool, TS 7, Playwright, estimativa de
   páginas, versões do `docx`, downgrade de formato).
+
+### Corrigido
+- M2-T06: colar HTML com `style` gerava relatórios de violação da CSP (o `DOMParser` herda a CSP da página); a CSP
+  continua a mesma e os estilos são neutralizados antes da leitura.
+- M2-T06: inserir nota com texto selecionado apagava o texto; agora a chamada vai para o fim da seleção.
 
 ### Alterado
 - `app/README.md`: estado do M1, `npm ci`, partes do M1-T06 ao M1-T14, testes E2E, estrutura e situação final da

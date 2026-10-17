@@ -251,3 +251,68 @@ button:disabled { opacity: 0.45; cursor: default; }
 @media (forced-colors: active) {
   .aba[aria-selected="true"], .lateral button[aria-current="true"], .cartao[aria-selected="true"] { outline: 2px solid CanvasText; }
 }
+
+/* ---------- Aba Escrever: lista de seções e editor (M2-T06) ----------
+   Aparência neutra (decisão da preparação do M2): a forma final do texto (fonte, recuos, espaçamento do perfil) aparece
+   na Pré-visualização do M3, não aqui. */
+.formulario--compacto { margin-bottom: var(--esp-3); }
+.escrever { display: grid; grid-template-columns: minmax(180px, var(--largura-lateral)) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
+.escrever__secoes { display: grid; gap: var(--esp-2); }
+.escrever__secoes h2, .escrever__numero { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
+.lista-secoes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lista-secoes__botao {
+  display: flex; gap: var(--esp-2); width: 100%; text-align: left; padding: var(--esp-1) var(--esp-2);
+  background: transparent; color: var(--cor-texto); border: 1px solid transparent; border-radius: var(--raio); cursor: pointer;
+}
+.lista-secoes__botao:hover { background: var(--cor-superficie); }
+.lista-secoes__botao[aria-current="true"] { background: var(--cor-superficie); border-color: var(--cor-borda-controle); font-weight: 600; }
+.lista-secoes__numero { color: var(--cor-texto-sec); min-width: 2.5em; }
+.lista-secoes__titulo { overflow-wrap: anywhere; }
+.lista-secoes__item--nivel2 { padding-left: var(--esp-3); }
+.lista-secoes__item--nivel3 { padding-left: calc(2 * var(--esp-3)); }
+.lista-secoes__item--nivel4 { padding-left: calc(3 * var(--esp-3)); }
+.lista-secoes__item--nivel5 { padding-left: calc(4 * var(--esp-3)); }
+.escrever__texto { display: grid; gap: var(--esp-2); min-width: 0; }
+
+.editor-secao { display: grid; gap: var(--esp-2); }
+.barra-formatacao { display: flex; flex-wrap: wrap; gap: var(--esp-1); align-items: center; }
+.btn-formato {
+  min-width: 32px; padding: var(--esp-1) var(--esp-2); background: var(--cor-fundo); color: var(--cor-texto);
+  border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); cursor: pointer;
+}
+.btn-formato:disabled { color: var(--cor-texto-sec); cursor: default; }
+.btn-formato[aria-pressed="true"] { background: var(--cor-superficie); border-color: var(--cor-destaque); box-shadow: inset 0 -3px 0 var(--cor-destaque); }
+.btn-formato--italico { font-style: italic; }
+.btn-formato--negrito { font-weight: 700; }
+.barra-formatacao__separador { width: 1px; align-self: stretch; background: var(--cor-borda); margin: 0 var(--esp-1); }
+
+.bd-editor {
+  min-height: 240px; padding: var(--esp-3) var(--esp-4); background: var(--cor-fundo); color: var(--cor-texto);
+  border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); line-height: 1.5; overflow-wrap: anywhere;
+}
+.bd-editor:focus-visible, .bd-editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+.bd-editor[contenteditable="false"] { background: var(--cor-superficie); }
+.bd-titulo { font-size: var(--tam-grande); font-weight: 600; margin: 0 0 var(--esp-3); }
+/* Título vazio: o convite aparece sem entrar no documento (só o `br` final do ProseMirror está lá). */
+.bd-titulo:has(> br.ProseMirror-trailingBreak:only-child)::before { content: "Título da seção"; color: var(--cor-texto-sec); font-weight: 400; pointer-events: none; }
+.bd-paragrafo, .bd-linha-alinea, .bd-subalinea { margin: 0 0 var(--esp-2); }
+.bd-alineas { margin: 0 0 var(--esp-2); padding-left: var(--esp-5); }
+.bd-subalinea { padding-left: var(--esp-4); }
+.bd-citacao-longa { margin: 0 0 var(--esp-2) var(--esp-5); padding-left: var(--esp-3); border-left: 3px solid var(--cor-borda); }
+.bd-quebra-pagina { border: 0; border-top: 1px dashed var(--cor-borda-controle); margin: var(--esp-3) 0; }
+
+/* Nota de rodapé: a chamada mostra "nota" (o número é do documento e ainda é PENDENTE-FONTE, RN-102). */
+.bd-nota { position: relative; cursor: pointer; }
+.bd-nota::before {
+  content: "nota"; font-size: var(--tam-peq); vertical-align: super; line-height: 1; padding: 0 3px;
+  border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); color: var(--cor-destaque-texto);
+}
+.bd-nota.ProseMirror-selectednode { outline: none; }
+.bd-nota.ProseMirror-selectednode::before { border-color: var(--cor-foco); background: var(--cor-superficie); }
+.bd-nota__painel {
+  position: absolute; left: 0; top: 1.6em; z-index: 2; width: min(420px, 60vw); padding: var(--esp-2);
+  background: var(--cor-fundo); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio);
+  box-shadow: 0 4px 12px var(--cor-sombra); cursor: text;
+}
+.bd-nota__editor { min-height: 2.5em; outline: none; white-space: pre-wrap; }
+.bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

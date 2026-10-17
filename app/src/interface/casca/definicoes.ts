@@ -13,7 +13,15 @@ export type ComandoMenu =
   | 'escolherPasta'
   | 'atualizarBiblioteca'
   | 'sair'
-  | 'buscar';
+  | 'buscar'
+  // M2-T06: menu Editar e Inserir › Nota de rodapé.
+  | 'desfazer'
+  | 'refazer'
+  | 'recortar'
+  | 'copiar'
+  | 'colar'
+  | 'colarSemFormatacao'
+  | 'inserirNota';
 
 export interface ItemMenu {
   rotulo: string;
@@ -50,12 +58,14 @@ export const MENUS: readonly Menu[] = [
   {
     rotulo: 'Editar',
     itens: [
-      { rotulo: 'Desfazer', atalho: 'Ctrl+Z' }, // M2
-      { rotulo: 'Refazer', atalho: 'Ctrl+Y' }, // M2
+      { rotulo: 'Desfazer', atalho: 'Ctrl+Z', comando: 'desfazer' },
+      { rotulo: 'Refazer', atalho: 'Ctrl+Y', comando: 'refazer' },
       'separador',
-      { rotulo: 'Recortar', atalho: 'Ctrl+X' },
-      { rotulo: 'Copiar', atalho: 'Ctrl+C' },
-      { rotulo: 'Colar', atalho: 'Ctrl+V' },
+      { rotulo: 'Recortar', atalho: 'Ctrl+X', comando: 'recortar' },
+      { rotulo: 'Copiar', atalho: 'Ctrl+C', comando: 'copiar' },
+      { rotulo: 'Colar', atalho: 'Ctrl+V', comando: 'colar' },
+      // Cola só o texto, sem itálico, listas ou notas (B5 da revisão do M2-T05).
+      { rotulo: 'Colar sem formatação', atalho: 'Ctrl+Shift+V', comando: 'colarSemFormatacao' },
       'separador',
       { rotulo: 'Buscar', atalho: 'Ctrl+F', comando: 'buscar' },
     ],
@@ -70,7 +80,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C' }, // M6
       { rotulo: 'Tabela de planilha…' }, // M5
       { rotulo: 'Figura…' }, // M5
-      { rotulo: 'Nota de rodapé' }, // M2
+      { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
       { rotulo: 'Sigla…' }, // M2
     ],
   },
@@ -94,12 +104,14 @@ export const MENUS: readonly Menu[] = [
 /**
  * Comandos que não se aplicam ao trabalho aberto agora (M1-T11): sem trabalho não há o que salvar nem fechar; versão
  * futura não grava. Num arquivo sem `.bdp`, "Salvar" continua ativo para mostrar o aviso que leva ao "Salvar como…".
+ * Os itens de edição (Desfazer, Copiar, Colar…) ficam sempre ativos: valem também nos campos de texto da casca.
  */
 export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar' | 'somenteLeitura'> | null): ReadonlySet<ComandoMenu> {
   const d = new Set<ComandoMenu>();
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvarComo');
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
   if (trabalho === null) d.add('fecharTrabalho');
+  if (trabalho === null || trabalho.somenteLeitura) d.add('inserirNota');
   return d;
 }
 

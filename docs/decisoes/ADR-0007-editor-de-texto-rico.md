@@ -691,13 +691,13 @@ mais as 3 transitivas previstas. São 10 pacotes, todos MIT [VERIFICADO: `packag
 | M2 | Nota de rodapé do LibreOffice (`sdfootnoteanc`/`div#sdfootnote1`) virava "1" solto e parágrafo no fim | Corrigido, com nota na fixture [HIPÓTESE do formato exato] |
 | M3 | Título numerado do Word (`h1` com `mso-list`) virava alínea | Corrigido: título continua parágrafo, com aviso |
 | M4 | Âncora de comentário do Word (`[WJ1]`) entrava no texto | Corrigido: `MsoCommentReference`, `msocomanchor` e `mso-special-character:comment` descartados |
-| M5 | Recortar e colar dentro do app troca os ids, o que quebrará as remissivas do M6 | Pendente (M2-T06 ou M6): reaproveitar `data-id` do próprio app quando ainda estiver livre |
-| M6 | Marca aplicada sobre a chamada entra no conteúdo da nota | Pendente (M2-T06, com o NodeView da nota): não deixar `AddMarkStep` atravessar a nota |
+| M5 | Recortar e colar dentro do app troca os ids, o que quebrará as remissivas do M6 | Pendente (M6): reaproveitar `data-id` do próprio app quando ainda estiver livre |
+| M6 | Marca aplicada sobre a chamada entra no conteúdo da nota | **Corrigido no M2-T06** (`alternarMarca` aplica a marca fora do conteúdo das notas; teste) |
 | B1 | `<br>` no fim do parágrafo virava `\n` final | Corrigido |
 | B2 | `&nbsp;` e `mso-tab-count` do Word: tabulação vira NBSP | Pendente. A política de NBSP muda o texto visível e é decisão do usuário |
 | B3 | `white-space:pre` em `span` (Google Docs) ignorado | Pendente |
 | B4 | `<li>um<p>dois</p></li>` vira 2 alíneas; duas listas seguidas viram uma; `MsoQuote` não vira citação | Pendente. `MsoQuote` → citação é decisão editorial |
-| B5 | "Colar sem formatação" pelo menu não passa pela tecla Shift | Pendente (M2-T06, menu Editar) |
+| B5 | "Colar sem formatação" pelo menu não passa pela tecla Shift | **Corrigido no M2-T06** (`colarSemFormatacaoNaProxima` + canal `edicao`; E2E) |
 
 **Decisões dos itens visíveis da colagem (2026-10-17, delegadas pelo usuário à sessão principal).** O usuário escreveu:
 "Deixo você fazer essa decisão". As três propostas foram mantidas:
@@ -710,3 +710,61 @@ mais as 3 transitivas previstas. São 10 pacotes, todos MIT [VERIFICADO: `packag
 3. **Estilo "Citação" do Word (`MsoQuote`):** continua parágrafo comum. Motivo: citação longa é a de mais de três linhas
    (RN-004), e o estilo do Word não garante isso. Converter sozinho poderia marcar como citação o que não é. O usuário
    converte o bloco no editor.
+
+## Adendo do M2-T06 (2026-10-17) — editor na aba Escrever ligado à sessão
+
+Código: `app/src/interface/editor/EditorSecao.tsx`, `estado.ts`, `comandos.ts` e `nota-view.ts`;
+`app/src/aplicacao/servicos/sessao-trabalho.ts` (`alterarSecao`, `inserirSecaoNoFim`, `secao`); canal `edicao`
+(`app/src/aplicacao/portas/edicao.ts`, `app/src/principal/ipc/manipuladores-edicao.ts`). Testes: `tests/sessao-secoes`,
+`tests/editor-comandos`, `e2e/editor.spec.ts`; medição em `e2e/desempenho.spec.ts`. Relatório: M2, seção M2-T06.
+
+**Contrato da seção 3 implementado como proposto**, com estes detalhes:
+- `alterarSecao` recebe os arrays da conversão e os guarda sem copiar (a conversão cria objetos novos a cada
+  transação). O índice id → caminho é refeito só quando a estrutura muda; alterar o texto não muda caminhos.
+- `#emitir()` só quando o visor muda (`salvo` → `naoSalvo`) ou quando o título de uma seção na lista muda. Medido: p95
+  de 8–15 ms por tecla no documento de 150 páginas, sem precisar de conversão adiada nem do `descarregar()` do item 5.
+- `geracao` no estado da sessão: muda a cada `abrir`/`abrirSomenteLeitura`. A `MemoriaEditores` (estados guardados por
+  seção) se esvazia quando a geração muda. Assim reabrir, recuperar ou trocar de trabalho nunca mostra o estado antigo
+  (item 7).
+- O plugin de colagem dos estados guardados chama `memoria.avisar`, uma função estável; quem mostra o aviso é o
+  componente montado agora (o estado guardado sobrevive ao componente que o criou).
+
+**Desfazer (seção 4): só o histórico de texto por seção, neste incremento.** O `HistoricoEdicao` único (texto +
+estrutura) vai para o M2-T07, junto das operações estruturais na interface. Hoje a única operação estrutural é "Nova
+seção", que não se desfaz. Motivo: o histórico único sem operações estruturais seria código sem uso nem teste real.
+
+**Nota de rodapé no editor.**
+- NodeView com editor aninhado (exemplo de notas do ProseMirror): os passos do editor da nota são deslocados para dentro
+  do nó e despachados no editor da seção. Histórico, ids, limites e conversão são os da seção.
+- Se a seção recusar os passos da nota (plugin de limites, ou posição perdida), o editor da nota volta ao estado
+  anterior e o aviso de limite aparece: a nota nunca mostra texto que não está no modelo (revisão do M2-T06, M2).
+- Trabalho só leitura: a chamada pode ser selecionada, mas o texto da nota não abre (M1). A chamada tem
+  `role="doc-noteref"` para o `aria-label` valer (M3).
+- Colar na nota cola só o texto (sem `readHTML`); soltar é recusado.
+- Inserir nota com texto selecionado põe a chamada **no fim da seleção, sem apagar** (antes, `replaceSelectionWith`
+  apagava a palavra; achado do E2E).
+
+**Menu Editar: canal IPC `edicao`.** Recortar, copiar e colar pelo menu pedem ao principal
+`webContents.cut()/copy()/paste()`, os mesmos comandos das teclas. O `paste` dispara o evento `paste` com a área de
+transferência real, e a colagem passa pelo mesmo tratador (R40). Alternativas descartadas:
+- `navigator.clipboard`: exigiria liberar a permissão de área de transferência à página (hoje todas são negadas);
+- `document.execCommand('paste')`: o Chromium não permite à página [HIPÓTESE, não testada; a opção escolhida dispensa].
+
+Desfazer e Refazer pelo menu: no editor de seção, vão ao `prosemirror-history`; nos campos comuns, a
+`webContents.undo()/redo()`. "Colar sem formatação" marca a próxima colagem do editor como só texto
+(`colarSemFormatacaoNaProxima`) e pede o `paste()`. Canal com um argumento conferido contra `ACOES_EDICAO` e remetente
+conferido (C-11); testes de recusa em `tests/ipc-projetos.test.ts`. O preload só invoca o canal com ativação do
+usuário em curso (`navigator.userActivation.isActive`), porque o `paste()` do principal não exige gesto (revisão, B1).
+
+**CSP e `DOMParser`** [VERIFICADO no E2E]. O documento do `DOMParser` herda a CSP da página no Chromium. Cada atributo
+`style` do HTML colado gerava um relatório de violação (nada era aplicado). A CSP não foi afrouxada: `neutralizarEstilos`
+tira `<style>` e renomeia `style=` para `data-bd-estilo=` dentro das tags antes de montar o documento, e a leitura aceita
+os dois nomes. Texto do usuário nunca tem `<` cru (seria `&lt;`), então só a marcação muda; o teste confere que as cinco
+fixtures dão leitura idêntica.
+
+**Teclas.** Ctrl+Alt+F está ligado como `Mod-Alt-f` e `Mod-Alt-F`: com Caps Lock o Windows manda "F", e o
+`prosemirror-keymap` não tenta o código da tecla quando Ctrl e Alt estão juntos (AltGr).
+
+**Regra E2.** `comandos.ts` e `estado.ts` entram na lista de arquivos puros do editor (testados em Node, sem
+`prosemirror-view`). `colagem.ts` declara tipos estruturais para `DataTransfer` e `DOMParser`, porque agora também é
+compilado no projeto de Node (o estado inclui o plugin de colagem).

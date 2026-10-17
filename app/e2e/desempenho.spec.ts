@@ -2,9 +2,10 @@
  * RNF-06 / RNF-07 (M2-T01, R-M1-01, R36): o documento grande (≈150 páginas, 25 MiB de mídia) no Electron real.
  *
  * - abrir pela Biblioteca em menos de 3 s;
- * - digitar 200 caracteres no título (uma tecla a cada 60 ms), com instantâneos de recuperação a cada ~2 s e um
- *   Ctrl+S no meio, com p95 abaixo de 50 ms por tecla (RNF-06; gatilho do ADR-0007). O título é o único campo editável até o editor do M2-T06; o caminho
- *   alteração → instantâneo/salvar → principal é o mesmo;
+ * - digitar 200 caracteres no editor da primeira seção (uma tecla a cada 60 ms), com instantâneos de recuperação a
+ *   cada ~2 s e um Ctrl+S no meio, com p95 abaixo de 50 ms por tecla (RNF-06; gatilho do ADR-0007). Desde o M2-T06 a
+ *   tecla passa pelo ProseMirror, pela conversão editor → modelo e pela `SessaoTrabalho.alterarSecao` (no M2-T01 era o
+ *   campo do título);
  * - travadas do processo principal: no Electron, o JS do principal roda na thread que encaminha o teclado ao
  *   renderer, então travar o principal atrasa a tecla. Antes do M2-T01 eram 250–400 ms por instantâneo;
  * - menos de 800 MB somando todos os processos do app, numa fase à parte (o `getAppMetrics` roda no principal e
@@ -17,6 +18,7 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
+import { textoPlano, type Documento } from '../src/dominio/modelo';
 import { empacotarProjeto } from '../src/persistencia';
 import { gerarDocumentoGrande } from '../tests/apoio/documento-grande';
 import { abrirApp, criarAmbiente, lerDocumento, type Ambiente } from './apoio/app';
@@ -77,23 +79,28 @@ test('RNF-06/07: documento de 150 páginas e 25 MiB — abrir, digitar com insta
   await expect(campo).toHaveValue('Documento grande', { timeout: 20_000 });
   const abrirMs = Date.now() - inicioAbrir;
 
-  // 2. Digitar: a página anota, por tecla, o quadro seguinte ao `input`.
-  await campo.focus();
-  await campo.press('End');
+  // 2. Digitar no fim do texto da seção 1.1.1 (os capítulos e as secundárias só têm título; o texto fica nas terciárias,
+  // ~1/48 do documento cada): a página anota, por tecla, o quadro seguinte ao `input`.
+  await p.locator('.lista-secoes__botao', { has: p.locator('.lista-secoes__numero', { hasText: /^1\.1\.1$/ }) }).click();
+  const editor = p.getByRole('textbox', { name: 'Texto da seção 1.1.1' });
+  await editor.click();
+  await p.keyboard.press('Control+End');
   await p.evaluate(() => {
     const g = globalThis as unknown as { __quadros: number[] };
     g.__quadros = [];
-    document.getElementById('campo-titulo')!.addEventListener('input', () => {
+    document.querySelector('.bd-editor')!.addEventListener('input', () => {
       requestAnimationFrame(() => g.__quadros.push(Date.now()));
     });
   });
   await travadasPrincipal(); // descarta as da abertura
 
   const envios: number[] = [];
+  let digitado = '';
   for (let i = 0; i < TECLAS; i++) {
     const inicio = Date.now();
     envios.push(inicio);
     await p.keyboard.press(i % 10 === 4 ? 'Space' : 'a');
+    digitado += i % 10 === 4 ? ' ' : 'a';
     // Salvamento no meio da digitação (o automático de 30 s faz o mesmo); Ctrl+S não gera `input`.
     if (i === TECLAS / 2) await p.keyboard.press('Control+S');
     const espera = INTERVALO_TECLAS_MS - (Date.now() - inicio);
@@ -123,8 +130,10 @@ test('RNF-06/07: documento de 150 páginas e 25 MiB — abrir, digitar com insta
   await expect(visor).toHaveText(/^Salvo às/, { timeout: 20_000 });
   memoriaPico = Math.max(memoriaPico, await memoriaMb());
 
-  // 4. O arquivo tem o que foi digitado.
-  expect(lerDocumento(arquivo).titulo).toBe(await campo.inputValue());
+  // 4. O arquivo tem o que foi digitado, no fim da seção 1.1.1.
+  const corpo = (JSON.parse(lerDocumento(arquivo).json) as Documento).corpo;
+  const ultimo = corpo[0]!.subsecoes[0]!.subsecoes[0]!.blocos.at(-1)!;
+  expect(ultimo.tipo === 'paragrafo' && textoPlano(ultimo.conteudo).endsWith(`${digitado}b`)).toBe(true);
 
   const resumo = {
     paginas: grande.paginasEstimadas,
@@ -142,7 +151,7 @@ test('RNF-06/07: documento de 150 páginas e 25 MiB — abrir, digitar com insta
     .map(([k, v]) => `${k}=${Math.round(v)}`)
     .join(' ');
   const lentas = latencias.flatMap((l, i) => (l > 40 ? [`${i}:${l}`] : [])).join(',');
-  console.log(`[M2-T01] ${texto} lentas=${lentas}`);
+  console.log(`[M2-T06] ${texto} lentas=${lentas}`);
   test.info().annotations.push({ type: 'desempenho', description: `${texto} lentas=${lentas}` });
 
   await p.keyboard.press('Control+W');

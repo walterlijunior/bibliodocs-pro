@@ -55,6 +55,7 @@ export {
   type ResultadoRecuperar,
   type TipoOferta,
 } from './portas/recuperacao';
+export { ACOES_EDICAO, CANAIS_EDICAO, type AcaoEdicao, type ApiEdicao, type CanalEdicao } from './portas/edicao';
 export { criarTrabalhoVazio, PERFIL_PADRAO, type DadosNovoTrabalho, type TrabalhoNovo } from './servicos/criar-trabalho';
 export {
   ATRASO_INSTANTANEO_MS,
@@ -62,17 +63,22 @@ export {
   FATOR_ESPACAMENTO_INSTANTANEO,
   MENSAGEM_FALHA_INESPERADA,
   MENSAGEM_FALHA_INSTANTANEO,
+  MENSAGEM_NAO_EDITAVEL,
   MENSAGEM_SEM_DESTINO,
   paraEnvio,
+  resumirSecoes,
   SessaoTrabalho,
   textoDoTitulo,
   tituloDoTexto,
   type AcaoAviso,
   type AvisoSessao,
   type Cancelar,
+  type ConteudoDaSecao,
   type DependenciasSessao,
   type EstadoSessao,
   type OpcoesAbrir,
+  type ResultadoInserirSecao,
+  type ResumoSecao,
   type SalvamentoSessao,
   type TrabalhoDaSessao,
 } from './servicos/sessao-trabalho';

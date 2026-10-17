@@ -4,8 +4,18 @@
 // automático do ADR-0004 (sessão de edição em aplicacao/servicos/sessao-trabalho.ts).
 // M1-T12: ao iniciar, a Biblioteca mostra o que há para recuperar (instantâneo de um trabalho que estava aberto quando o
 // app foi fechado inesperadamente, gravação interrompida, `.bak` íntegro de um arquivo que não abre).
+// M2-T06: o editor de seção na aba Escrever e os menus Editar e Inserir › Nota de rodapé.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AcaoAviso, ApiBiblioDocs, IdentificadorItem, IdentificadorOferta, OfertaRecuperacao, ResultadoAbrir, ResultadoRecuperar } from '../aplicacao';
+import type {
+  AcaoAviso,
+  AcaoEdicao,
+  ApiBiblioDocs,
+  IdentificadorItem,
+  IdentificadorOferta,
+  OfertaRecuperacao,
+  ResultadoAbrir,
+  ResultadoRecuperar,
+} from '../aplicacao';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
@@ -18,6 +28,7 @@ import { ABAS, COLECOES, comandosDesativados, type ComandoMenu, type IdAba, type
 import { ID_PAINEL, idDaAba, Navegacao } from './casca/Navegacao';
 import { acaoDoAtalho, avancar, iniciarHistorico, navegar, voltar } from './casca/teclado';
 import { visorDoTrabalho } from './casca/visor';
+import type { ControleEditor } from './editor/EditorSecao';
 import { avisoSomenteLeitura, avisosDaAbertura, mensagemVersaoFutura } from './escrever/aberturas';
 import { AreaEscrever, ID_CAMPO_TITULO } from './escrever/AreaEscrever';
 import { useSessao } from './escrever/useSessao';
@@ -29,6 +40,9 @@ interface Local {
   colecao: IdColecao;
   filtro: Filtro;
 }
+
+/** O comando do menu Editar não chegou ao principal (o atalho do teclado não depende dele). */
+export const MENSAGEM_FALHA_EDICAO = 'O comando de edição não pôde ser executado. Tente o atalho do teclado (Ctrl+C, Ctrl+V…).';
 
 const mesmoLocal = (a: Local, b: Local): boolean => a.aba === b.aba && a.colecao === b.colecao && mesmoFiltro(a.filtro, b.filtro);
 
@@ -52,6 +66,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const trocando = useRef(false);
   const saindo = useRef(false);
   const refBusca = useRef<HTMLInputElement>(null);
+  const refEditor = useRef<ControleEditor | null>(null);
+  // Último campo de texto com foco: o menu tira o foco dele, e os itens de edição o devolvem antes de agir.
+  const ultimoCampo = useRef<HTMLElement | null>(null);
   const local = historico.atual;
   const trabalho = sessaoEstado.trabalho;
 
@@ -294,9 +311,54 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     return () => window.removeEventListener('beforeunload', antesDeSair);
   }, [sairDepoisDeSalvar, sessao]);
 
+  useEffect(() => {
+    const aoFocar = (e: FocusEvent) => {
+      const alvo = e.target;
+      if (alvo instanceof HTMLInputElement || alvo instanceof HTMLTextAreaElement || (alvo instanceof HTMLElement && alvo.isContentEditable)) {
+        ultimoCampo.current = alvo;
+      }
+    };
+    window.addEventListener('focusin', aoFocar);
+    return () => window.removeEventListener('focusin', aoFocar);
+  }, []);
+
+  /**
+   * Itens do menu Editar. No editor de seção, Desfazer e Refazer vão ao histórico da seção (o do navegador não conhece o
+   * ProseMirror); o resto, e tudo nos outros campos, é o comando do Chromium pedido ao principal (`api.edicao`), o mesmo
+   * das teclas: a colagem passa pelo tratador do editor (R40).
+   */
+  const editar = useCallback(
+    (acao: AcaoEdicao | 'colarSemFormatacao') => {
+      const campo = ultimoCampo.current;
+      if (campo?.isConnected) campo.focus();
+      const editor = refEditor.current;
+      const noEditor = editor !== null && editor.temFoco();
+      if (noEditor && acao === 'desfazer') return void editor.desfazer();
+      if (noEditor && acao === 'refazer') return void editor.refazer();
+      if (acao === 'colarSemFormatacao') {
+        if (noEditor) editor.colarSemFormatacao();
+        // Nos campos de uma linha só há texto: colar é o mesmo que colar sem formatação.
+        acao = 'colar';
+      }
+      api.edicao.executar(acao).catch(() => mostrarMensagem({ tipo: 'erro', texto: MENSAGEM_FALHA_EDICAO }));
+    },
+    [api, mostrarMensagem],
+  );
+
   const comando = useCallback(
     (c: ComandoMenu) => {
       switch (c) {
+        case 'desfazer':
+        case 'refazer':
+        case 'recortar':
+        case 'copiar':
+        case 'colar':
+        case 'colarSemFormatacao':
+          editar(c);
+          return;
+        case 'inserirNota':
+          refEditor.current?.inserirNota();
+          return;
         case 'novoTrabalho':
           void criar();
           return;
@@ -327,10 +389,15 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           return;
       }
     },
-    [abrirPorDialogo, acaoDoAviso, criar, escolherPasta, fecharTrabalho, focarBusca, recarregar, sessao],
+    [abrirPorDialogo, acaoDoAviso, criar, editar, escolherPasta, fecharTrabalho, focarBusca, recarregar, sessao],
   );
 
-  const desativados = useMemo(() => comandosDesativados(trabalho), [trabalho]);
+  // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
+  const desativados = useMemo(() => {
+    const d = new Set(comandosDesativados(trabalho));
+    if (local.aba !== 'escrever') d.add('inserirNota');
+    return d;
+  }, [trabalho, local.aba]);
 
   // Atalhos globais (Ctrl+F, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+W, Alt+setas, F5).
   useEffect(() => {
@@ -432,6 +499,13 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoCriar={() => void criar()}
                 aoAbrir={() => void abrirPorDialogo()}
                 aoIrParaBiblioteca={() => ir({ aba: 'biblioteca', colecao: 'trabalhos' })}
+                lerSecao={(id) => sessao.secao(id)}
+                aoAlterarSecao={(id, conteudo) => {
+                  setSaidaPedida(false);
+                  sessao.alterarSecao(id, conteudo);
+                }}
+                aoNovaSecao={() => sessao.inserirSecaoNoFim()}
+                controleEditor={refEditor}
               />
             ) : (
               <div className="estado">

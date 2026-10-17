@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { validarDocumentoV1 } from '../src/dominio/esquemas';
 import { idsDoBloco, type Bloco, type Documento, type Inline } from '../src/dominio/modelo';
 import { blocosParaSlice, docParaSecao, secaoParaDoc } from '../src/interface/editor/conversao';
-import { lerHtmlColado, lerTextoColado, MENSAGENS_AVISO, type AvisoColagem } from '../src/interface/editor/html-colado';
+import { ATRIBUTO_ESTILO, lerHtmlColado, lerTextoColado, MENSAGENS_AVISO, neutralizarEstilos, type AvisoColagem } from '../src/interface/editor/html-colado';
 import { pluginIdsUnicos } from '../src/interface/editor/plugins/ids-unicos';
 import { lerHtmlMinimo } from './apoio/html-minimo';
 
@@ -303,5 +303,28 @@ describe('EDT — leitor de HTML mínimo dos testes', () => {
     const p = raiz.childNodes[3] as unknown as { getAttribute(n: string): string | null; childNodes: { nodeValue: string | null; nodeName: string }[] };
     expect([p.getAttribute('class'), p.getAttribute('id'), p.getAttribute('title')]).toEqual(['a', 'b', 'c']);
     expect(p.childNodes.map((n) => n.nodeValue ?? n.nodeName)).toEqual(['x&yéA ', 'BR', 'z']);
+  });
+});
+
+describe('estilos neutralizados antes do DOMParser (M2-T06: CSP sem relatório)', () => {
+  it('em todas as fixtures, a leitura do HTML neutralizado é idêntica à do original', () => {
+    for (const nome of ['word', 'libreoffice', 'chrome', 'google-docs', 'app']) {
+      const html = lerFixture(nome);
+      const neutro = neutralizarEstilos(html);
+      expect(colar(neutro), nome).toEqual(colar(html));
+      expect(neutro).not.toMatch(/<style\b/i);
+      for (const tag of neutro.match(/<[A-Za-z][^>]*>/g) ?? []) expect(tag).not.toMatch(/\sstyle\s*=/i);
+    }
+  });
+
+  it('só a marcação muda: texto com "style=" e entidades fica igual', () => {
+    expect(neutralizarEstilos('<p STYLE="font-weight:bold" class=x>a style=b &lt;i style=c&gt;</p>')).toBe(
+      `<p ${ATRIBUTO_ESTILO}="font-weight:bold" class=x>a style=b &lt;i style=c&gt;</p>`,
+    );
+    expect(neutralizarEstilos('<head><style type="text/css">p{color:red}</style></head><p>x</p>')).toBe('<head></head><p>x</p>');
+    // Elemento personalizado com nome começado por "style" não é folha de estilo: o texto fica (revisão do M2-T06, B5).
+    expect(neutralizarEstilos('<style-x>texto do usuário</style><p>y</p>')).toBe('<style-x>texto do usuário</style><p>y</p>');
+    expect(neutralizarEstilos('<STYLE>a{}</STYLE ><style/>')).toBe('<style/>');
+    expect(colar(`<p><span ${ATRIBUTO_ESTILO}="font-style:italic">i</span></p>`).blocos[0]).toMatchObject({ conteudo: [{ texto: 'i', marcas: ['italico'] }] });
   });
 });

@@ -8,7 +8,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T03 Numeração e operações sobre a árvore de seções | CONCLUÍDA | 2026-10-17 |
 | M2-T04 Alíneas, citação longa e nota no modelo | CONCLUÍDA | 2026-10-17 |
 | M2-T05 Núcleo do editor: esquema, conversão, ids e colagem | CONCLUÍDA | 2026-10-17 |
-| M2-T02, M2-T06 a M2-T12 | PENDENTE | — |
+| M2-T06 Editor na aba Escrever ligado à sessão | CONCLUÍDA | 2026-10-17 |
+| M2-T02, M2-T07 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -252,3 +253,96 @@ propostas foram mantidas:
 3. **Estilo "Citação" do Word (`MsoQuote`):** continua parágrafo comum. Motivo: citação longa é a de mais de três linhas
    (RN-004), e o estilo do Word não garante isso. Converter sozinho poderia marcar como citação o que não é. O usuário
    converte o bloco no editor.
+
+## M2-T06 — Editor na aba Escrever ligado à sessão
+
+**Implementação:** sessão principal. **Revisão:** `especialista-documento`, somente leitura. As decisões técnicas estão
+no adendo do M2-T06 no ADR-0007. Nenhuma dependência nova.
+
+**Código**
+- `aplicacao/servicos/sessao-trabalho.ts`: `alterarSecao(id, { titulo, blocos })` troca a seção de forma imutável (só o
+  caminho até ela é copiado, com índice id → caminho), soma a revisão e agenda o automático e o instantâneo.
+  `inserirSecaoNoFim()` cria seção primária vazia (a árvore completa é do M2-T07). O estado ganhou `geracao` (muda a
+  cada trabalho aberto) e `secoes` (número calculado pela posição). **A sessão só emite quando o visor ou o título de
+  uma seção na lista mudam**: digitar no texto não re-renderiza a casca (R39).
+- `interface/editor/EditorSecao.tsx`: `EditorView` não controlado pelo React. Cada transação que muda o documento é
+  convertida na hora (`docParaSecao`, com memo por nó) e vai para a sessão: nenhuma alteração fica só no editor. O
+  `EditorState` de cada seção visitada fica guardado (o histórico sobrevive à troca de seção) até outro trabalho abrir.
+- `interface/editor/estado.ts`: todo estado de seção nasce com histórico, teclas, colagem, ids únicos e limites.
+- `interface/editor/comandos.ts`: Ctrl+I, Ctrl+B, Ctrl+Shift+= (sobrescrito), Ctrl+= (subscrito), Ctrl+Alt+F (nota),
+  Shift+Enter (quebra de linha), Ctrl+Z, Ctrl+Y e Ctrl+Shift+Z. A marca aplicada sobre uma seleção com nota **não entra
+  no texto da nota** (achado M6 do M2-T05, corrigido).
+- `interface/editor/nota-view.ts`: a chamada é um nó atômico; selecioná-la abre um editor aninhado do texto da nota
+  (exemplo de notas do ProseMirror). Esc ou Enter voltam ao texto. Colar na nota cola só texto, sem `innerHTML`.
+- Canal IPC novo `edicao` (`aplicacao/portas/edicao.ts`, `principal/ipc/manipuladores-edicao.ts`): os itens
+  Desfazer, Refazer, Recortar, Copiar e Colar do menu pedem ao principal o mesmo comando das teclas
+  (`webContents.paste()` etc.). Remetente e ação conferidos (C-11). A página não ganha acesso à área de transferência.
+- Menu Editar ligado, com "Colar sem formatação" (Ctrl+Shift+V; B5 do M2-T05) e Inserir › Nota de rodapé.
+- `html-colado.ts`: `neutralizarEstilos` tira `<style>` e renomeia `style=` dentro das tags antes do `DOMParser`.
+
+**Achados durante o E2E** [VERIFICADO 2026-10-17]
+1. **CSP:** no Chromium o documento do `DOMParser` herda a CSP da página. Colar o HTML do Word gerava ~35 relatórios
+   "Applying inline style violates … style-src" (nada era aplicado, mas o critério "CSP sem violação" falhava). Corrigido
+   sem afrouxar a CSP (`neutralizarEstilos`); a leitura das cinco fixtures é idêntica antes e depois (teste novo).
+2. **Electron 44:** `clipboard.write` passou a receber `ClipboardItem[]` (mudança do Electron; afetou só o teste).
+3. **Ctrl+Alt+F com Caps Lock** chegava como "F" e o `prosemirror-keymap` não tem a volta pelo código da tecla com
+   Ctrl+Alt (AltGr). As duas formas estão ligadas.
+4. **Inserir nota com texto selecionado apagava o texto** (`replaceSelectionWith`). Agora a chamada vai para o fim da
+   seleção, como no Word, e nada se apaga (teste novo). Apareceu como falha intermitente: com teclas na velocidade do
+   teste, a seleção do DOM ainda não tinha chegado ao ProseMirror.
+
+**Aceite** [VERIFICADO 2026-10-17]
+- Digitar, desfazer, salvar e reabrir idêntico (EDT-06): título e parágrafo com acentos pelo teclado, `insertText` e
+  composição de IME pelo CDP; itálico; desfazer e refazer; nota com Ctrl+Alt+F; Ctrl+S; o `documento.json` tem
+  exatamente os blocos esperados; fechar, reabrir e o arquivo não muda.
+- Colagem com a área de transferência real (EDT-07): fixtures do Word, LibreOffice e Chrome escritas pelo `clipboard`
+  do Electron e coladas com Ctrl+V; menu Colar e Colar sem formatação. Itálico, sub/sobrescrito, alíneas, citação
+  longa e notas no ponto da chamada; aviso das imagens; ids únicos; o net-log não tem a imagem remota
+  (`exemplo.invalid`) nem URL `http`/`file`.
+- `x.problemas` vazio em todos os E2E: nenhum erro de console, exceção ou violação de CSP.
+- Latência (RNF-06) com o editor, no documento de 150 páginas e 25 MiB, digitando na seção 1.1.1 com instantâneos e
+  Ctrl+S, em 7 rodadas: **p95 de 8–15 ms** (meta 50), tecla mais lenta 11–21 ms, nenhuma travada do principal, abrir
+  0,5–0,9 s. Não foi preciso mandar só as seções alteradas.
+- Memória: pico de **738–787 MB** (meta 800; no M2-T01, 700–760). A margem caiu para 2–8 % (risco R36/R39, rever no
+  M5 com figuras de verdade).
+
+**Testes** [VERIFICADO 2026-10-17]
+- `npm run verificar:tudo` passou duas vezes seguidas: typecheck dos 4 projetos; **915/915** testes (eram 891; novos
+  `sessao-secoes.test.ts`, `editor-comandos.test.ts` e casos em `editor-colagem` e `ipc-projetos`); 0 vulnerabilidades
+  em produção; build; **E2E 11/11** (novo `e2e/editor.spec.ts` com 2 testes).
+- Matriz de testes: EDT-04 (parte E2E), EDT-06, EDT-07, EDT-08, IPC-ED, E2E-08, E2E-09 e E2E-07 atualizado.
+
+**Decisões visíveis tomadas pela sessão principal** (o usuário delegou: "deixo todas ao seu julgamento", 2026-10-17):
+- Aba Escrever: título "Escrever"; dados do trabalho em cima; à esquerda a lista de seções (número + título, recuo por
+  nível) com "Nova seção"; à direita "Seção N", a barra de formatação e o editor.
+- Barra de formatação com I, N, x², x₂ e "Nota de rodapé"; os atalhos são os do Word.
+- A chamada da nota aparece como a marca "nota" (sem número: a numeração das notas é PENDENTE-FONTE, RN-102). O texto
+  da nota abre num quadro logo abaixo da chamada.
+- Trabalho sem seções mostra "Use “Nova seção” para começar o texto"; não se cria seção sozinho.
+- Inserir nota com seleção: a chamada vai para o fim da seleção (como no Word).
+
+**Pendente** (com destino)
+- Histórico **único** de texto e estrutura (`HistoricoEdicao`, ADR-0007 §4): vai com as operações estruturais na
+  interface (M2-T07). Hoje cada seção tem o seu histórico de texto; não há operação estrutural para desfazer além de
+  "Nova seção".
+- Conferir as fixtures de colagem contra a cópia real do Word e do LibreOffice [HIPÓTESE de fidelidade]: roteiro
+  manual, precisa do Word instalado (pendência do usuário, opcional).
+- Roteiro manual com teclado ABNT2 físico (R41) e com o NVDA (R42): a composição foi testada pelo CDP, não com teclas
+  mortas reais.
+- Nota em trabalho só leitura não abre para edição (correção M1 da revisão): sem E2E, porque o E2E ainda não monta um
+  arquivo de versão futura com nota; conferido por leitura do código.
+- O papel `doc-noteref` da chamada (M3) precisa ser ouvido no NVDA (roteiro R42).
+- M5 (recortar e colar troca ids): segue para o M6.
+
+**Revisão** (`especialista-documento`, somente leitura): 0 Alta, 3 Médias e 5 Baixas, **todas corrigidas**.
+- M1: a nota abria para edição num trabalho só leitura, e o texto ficava só na tela. Agora não abre.
+- M2: alteração na nota recusada pela seção (limites) deixava a nota mostrando texto fora do modelo. Agora o editor da
+  nota volta ao que era e aparece o aviso de limite.
+- M3: o `aria-label` da chamada num `span` sem papel tende a ser ignorado. A chamada ganhou `role="doc-noteref"`.
+- B1: o canal `edicao` deixava uma página comprometida colar num campo oculto sem gesto do usuário. O preload só chama o
+  canal com `navigator.userActivation.isActive` (o E2E do menu confirma que o clique conta como gesto).
+- B2: "Colar sem formatação" com o foco na nota deixava o pedido valendo para a colagem seguinte. Zerado no `blur`.
+- B3: Inserir › Nota de rodapé fora da aba Escrever se perdia. Fica desativado fora da aba.
+- B4: o texto do trabalho fechado ficava nos estados guardados. `MemoriaEditores.limpar()` ao fechar.
+- B5: `<style-x>` (elemento personalizado) perdia o texto em `neutralizarEstilos`. Expressão corrigida, com teste.
+- Depois das correções, `npm run verificar:tudo` passou de novo: 915/915, 0 vulnerabilidades, E2E 11/11 (p95 9 ms).

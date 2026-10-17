@@ -10,5 +10,9 @@ import { criarApiBiblioDocs } from './api';
 
 contextBridge.exposeInMainWorld(
   'bibliodocs',
-  criarApiBiblioDocs((canal, ...argumentos) => ipcRenderer.invoke(canal, ...argumentos)),
+  criarApiBiblioDocs(
+    (canal, ...argumentos) => ipcRenderer.invoke(canal, ...argumentos),
+    // Lido aqui, no mundo isolado do preload: a página não consegue trocar esta função.
+    () => (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation?.isActive === true,
+  ),
 );

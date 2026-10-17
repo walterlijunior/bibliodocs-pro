@@ -1,18 +1,19 @@
 /**
- * Liga os manipuladores das APIs `projetos`, `biblioteca` e `recuperacao` ao Electron: `ipcMain.handle`, diálogos nativos, Lixeira e
+ * Liga os manipuladores das APIs `projetos`, `biblioteca`, `recuperacao` e `edicao` ao Electron: `ipcMain.handle`, diálogos nativos, Lixeira e
  * o processo leitor. As decisões ficam nos módulos puros desta pasta; aqui só se traduz o evento e se escolhe a
  * implementação real.
  */
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
-import { CANAIS_BIBLIOTECA, CANAIS_PROJETOS, CANAIS_RECUPERACAO } from '../../aplicacao';
+import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
 import { salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
+import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
 import { criarManipuladoresRecuperacao, pastasRecuperacao } from './manipuladores-recuperacao';
 import type { InfoRemetente } from './remetente';
@@ -43,6 +44,15 @@ function infoRemetente(evento: IpcMainInvokeEvent): InfoRemetente {
     quadroPrincipal: quadro !== null && quadro.parent === null,
   };
 }
+
+/** Comando do Chromium para cada item do menu Editar (os mesmos das teclas). */
+const COMANDOS_EDICAO: Readonly<Record<AcaoEdicao, (c: WebContents) => void>> = {
+  desfazer: (c) => c.undo(),
+  refazer: (c) => c.redo(),
+  recortar: (c) => c.cut(),
+  copiar: (c) => c.copy(),
+  colar: (c) => c.paste(),
+};
 
 const janelaDe = (idConteudo: number): BrowserWindow | null => {
   const conteudo = webContents.fromId(idConteudo);
@@ -154,7 +164,21 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   const rec = recuperacao;
 
   const log = (m: string) => console.warn(m);
-  const todos = [...Object.entries(manipuladores), ...Object.entries(biblioteca.manipuladores), ...Object.entries(rec.manipuladores)];
+  const edicao = criarManipuladoresEdicao({
+    origem,
+    conteudosPermitidos,
+    executar: (id, acao) => {
+      const conteudo = webContents.fromId(id);
+      if (conteudo && !conteudo.isDestroyed()) COMANDOS_EDICAO[acao](conteudo);
+    },
+  });
+
+  const todos = [
+    ...Object.entries(manipuladores),
+    ...Object.entries(biblioteca.manipuladores),
+    ...Object.entries(rec.manipuladores),
+    ...Object.entries(edicao),
+  ];
   for (const [canal, manipulador] of todos) {
     const protegido = blindar(canal, manipulador, log);
     ipcMain.handle(canal, (evento, ...argumentos: unknown[]) => protegido(infoRemetente(evento), argumentos));
@@ -185,7 +209,8 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     /** Espera as gravações da recuperação terminarem (antes de o app sair). */
     aguardarRecuperacao: (): Promise<void> => rec.aguardar(),
     remover(): void {
-      for (const canal of [...Object.values(CANAIS_PROJETOS), ...Object.values(CANAIS_BIBLIOTECA), ...Object.values(CANAIS_RECUPERACAO)]) {
+      const canais = [CANAIS_PROJETOS, CANAIS_BIBLIOTECA, CANAIS_RECUPERACAO, CANAIS_EDICAO].flatMap((c) => Object.values(c));
+      for (const canal of canais) {
         ipcMain.removeHandler(canal);
       }
     },

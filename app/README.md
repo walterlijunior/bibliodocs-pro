@@ -126,9 +126,9 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | Documento grande de medição (≈150 páginas, 25 MiB de mídia, determinístico) | `tests/apoio/documento-grande.ts` | `tests/documento-grande.test.ts` | relatório do M2 (M2-T01) |
 | Empacotamento (NSIS por usuário, fuses, ASAR íntegro, recusa de chaves de linha de comando) | `electron-builder.config.cjs`, `empacotamento/`, `src/principal/seguranca/argumentos.ts` | `tests/empacotamento.test.ts`, `tests/seguranca-argumentos.test.ts` | ADR-0003, adendo M1-T14 |
 
-### Testes E2E (M1-T13; desempenho no M2-T01)
+### Testes E2E (M1-T13; desempenho no M2-T01; editor no M2-T06)
 
-`npm run test:e2e` roda 9 testes, um Electron por vez:
+`npm run test:e2e` roda 11 testes, um Electron por vez:
 
 | Arquivo | O que verifica | Casos da matriz |
 |---|---|---|
@@ -136,14 +136,16 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | `e2e/recuperacao.spec.ts` | Encerrar o processo com `taskkill /F /T` durante a edição, recuperar, salvar, segunda queda e "Abrir o arquivo salvo" | FUN-10 (RNF-04) |
 | `e2e/casca.spec.ts` | As quatro faixas da janela da largura mínima à maximizada, em 100%, 125% e 150% (3 testes); Ctrl+F, foco visível, sem marca de terceiros | UI-01, UI-02 |
 | `e2e/rede-e-seguranca.spec.ts` | Zero atividade de rede pelo net-log do Chromium; CSP, `eval`, navegação, `window.open`, travessia do `app://` e instância única | SEG-08, SEG-03 |
-| `e2e/desempenho.spec.ts` | Documento grande (150 páginas, 25 MiB): abrir < 3 s, p95 por tecla < 50 ms com instantâneos e Ctrl+S, travada do principal < 100 ms, memória < 800 MB. As medidas saem no console (`[M2-T01] ...`) e na anotação do teste | DES-01 (RNF-06, RNF-07) |
+| `e2e/desempenho.spec.ts` | Documento grande (150 páginas, 25 MiB): abrir < 3 s, p95 por tecla < 50 ms **digitando no editor da seção 1.1.1** com instantâneos e Ctrl+S, travada do principal < 100 ms, memória < 800 MB. As medidas saem no console (`[M2-T06] ...`) e na anotação do teste | DES-01 (RNF-06, RNF-07) |
+| `e2e/editor.spec.ts` | Editor de seção: acentos (teclado, `insertText`, IME pelo CDP), itálico, desfazer/refazer, nota, salvar e reabrir idêntico; colagem com a área de transferência real (`clipboard.write([new ClipboardItem(...)])`) e pelo menu Editar; net-log sem a imagem remota (2 testes) | E2E-08, E2E-09 |
 
 Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um teste novo deve usar `criarAmbiente`,
 `abrirApp` e `fechar`/`matar` do apoio e conferir que `x.problemas` termina vazio (console, exceções e CSP).
 
-### Núcleo do editor (M2-T05)
+### Núcleo do editor (M2-T05) e editor na tela (M2-T06)
 
-Em `src/interface/editor/` (ADR-0007, adendo do M2-T05). Ainda não está na tela: o componente `EditorSecao` é do M2-T06.
+Em `src/interface/editor/` (ADR-0007, adendos do M2-T05 e do M2-T06). Na aba Escrever, a lista de seções e o editor da
+seção escolhida (`escrever/AreaEscrever.tsx`).
 
 | Arquivo | Papel | Testável em Node |
 |---|---|---|
@@ -152,9 +154,16 @@ Em `src/interface/editor/` (ADR-0007, adendo do M2-T05). Ainda não está na tel
 | `ids.ts`, `plugins/ids-unicos.ts` | ids novos para cópias e nós sem id (o nó que já existia mantém o seu) | Sim |
 | `plugins/limites.ts` | recusa a transação que passaria dos limites de quantidade do v1 | Sim |
 | `html-colado.ts` | HTML colado (Word, LibreOffice, navegador, o próprio app) e texto puro → `Bloco[]` com avisos | Sim (árvore de `tests/apoio/html-minimo.ts`) |
-| `colagem.ts` | `DOMParser` inerte e `paste`/`drop`; único arquivo com `DOMParser` | Não (E2E no M2-T06) |
+| `colagem.ts` | `DOMParser` inerte (com `neutralizarEstilos` antes, por causa da CSP herdada) e `paste`/`drop`; único arquivo com `DOMParser`; `colarSemFormatacaoNaProxima` para o menu | Não (`e2e/editor.spec.ts`) |
+| `comandos.ts` | marcas (fora do texto das notas), nota, quebra de linha, desfazer/refazer, mapa de teclas | Sim |
+| `estado.ts` | `criarEstadoSecao`: o único jeito de criar o `EditorState` de uma seção (histórico, teclas e os três plugins) | Sim |
+| `nota-view.ts` | NodeView da nota com o editor aninhado do texto dela | Não (E2E) |
+| `EditorSecao.tsx` | `EditorView` não controlado; cada transação vai para `SessaoTrabalho.alterarSecao`; `MemoriaEditores` por geração; barra de formatação | Não (E2E) |
 
-- Todo `EditorState` do app precisa de `pluginIdsUnicos`, `pluginLimites` e `pluginColagem`.
+- Todo `EditorState` do app nasce em `criarEstadoSecao` (que põe `pluginIdsUnicos`, `pluginLimites` e `pluginColagem`).
+- A sessão só emite quando o visor ou a lista de seções mudam; não passe a emitir por tecla (R39, medido no E2E-07).
+- Menu Editar: Recortar, Copiar e Colar vão pelo canal `edicao` (`src/principal/ipc/manipuladores-edicao.ts`), que pede
+  ao principal o mesmo comando das teclas. A página nunca lê a área de transferência por API.
 - `prosemirror-*` só pode ser importado dentro desta pasta, e os arquivos testáveis em Node não importam
   `prosemirror-view` (regras E1–E3 em `tests/arquitetura-fronteiras.test.ts`).
 - Constantes copiadas do domínio (`PADRAO_ID_EDITOR`, `LIMITE_TEXTO_INLINE`, `CARACTERES_FORA_DO_XML`,

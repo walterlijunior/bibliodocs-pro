@@ -197,6 +197,10 @@ describe('aba Escrever (M1-T11)', () => {
       aoCriar: nada,
       aoAbrir: nada,
       aoIrParaBiblioteca: nada,
+      lerSecao: () => null,
+      aoAlterarSecao: nada,
+      aoNovaSecao: () => ({ ok: false, mensagem: 'não usado' }),
+      controleEditor: { current: null },
       ...p,
     };
     return renderToStaticMarkup(<AreaEscrever {...props} />);
@@ -208,6 +212,8 @@ describe('aba Escrever (M1-T11)', () => {
     somenteLeitura: false,
     podeSalvar: true,
     salvamento: { tipo: 'naoSalvo' },
+    geracao: 1,
+    secoes: [],
   } as const;
 
   it('sem trabalho: convite para criar ou abrir', () => {

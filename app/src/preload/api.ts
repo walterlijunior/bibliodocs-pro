@@ -1,9 +1,10 @@
 /**
  * API exposta em `window.bibliodocs` (C-10): funções nomeadas, cada uma presa a um canal fixo de `CANAIS_PROJETOS`,
- * `CANAIS_BIBLIOTECA` ou `CANAIS_RECUPERACAO`. O renderer nunca recebe o `ipcRenderer` nem escolhe o canal; os argumentos seguem como vieram
+ * `CANAIS_BIBLIOTECA`, `CANAIS_RECUPERACAO` ou `CANAIS_EDICAO`. O renderer nunca recebe o `ipcRenderer` nem escolhe o canal; os argumentos seguem como vieram
  * e são validados no principal (C-11). Separada do `index.ts` para ser testada sem o Electron.
  */
 import { CANAIS_BIBLIOTECA, type ApiBiblioteca } from '../aplicacao/portas/biblioteca';
+import { CANAIS_EDICAO, type ApiEdicao } from '../aplicacao/portas/edicao';
 import { CANAIS_PROJETOS, type ApiBiblioDocs } from '../aplicacao/portas/projetos';
 import { CANAIS_RECUPERACAO, type ApiRecuperacao } from '../aplicacao/portas/recuperacao';
 
@@ -12,7 +13,12 @@ export type Invocar = (canal: string, ...argumentos: unknown[]) => Promise<unkno
 
 type RetornoBiblioteca<K extends keyof ApiBiblioteca> = ReturnType<ApiBiblioteca[K]>;
 
-export function criarApiBiblioDocs(invocar: Invocar): ApiBiblioDocs {
+/**
+ * `gestoDoUsuario`: há ativação do usuário em curso (`navigator.userActivation.isActive`). Sem ela, `edicao.executar`
+ * não chega ao principal: o `paste()` do principal não exige gesto, e uma página comprometida poderia colar num campo
+ * oculto e ler a área de transferência (revisão do M2-T06, B1). Os itens do menu sempre rodam num clique ou tecla.
+ */
+export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boolean = () => false): ApiBiblioDocs {
   // As conversões de tipo confiam no contrato; o principal é quem valida o que recebe.
   const projetos: ApiBiblioDocs['projetos'] = {
     abrir: () => invocar(CANAIS_PROJETOS.abrir) as ReturnType<ApiBiblioDocs['projetos']['abrir']>,
@@ -41,9 +47,16 @@ export function criarApiBiblioDocs(invocar: Invocar): ApiBiblioDocs {
     recuperar: (oferta) => invocar(cr.recuperar, oferta) as RetornoRecuperacao<'recuperar'>,
     abrirSalvo: (oferta) => invocar(cr.abrirSalvo, oferta) as RetornoRecuperacao<'abrirSalvo'>,
   };
+  const edicao: ApiEdicao = {
+    executar: async (acao) => {
+      if (!gestoDoUsuario()) return;
+      await invocar(CANAIS_EDICAO.executar, acao);
+    },
+  };
   return Object.freeze({
     projetos: Object.freeze(projetos),
     biblioteca: Object.freeze(biblioteca),
     recuperacao: Object.freeze(recuperacao),
+    edicao: Object.freeze(edicao),
   });
 }

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M2-T05 concluído (núcleo do editor ProseMirror: esquema, conversão, ids, limites e colagem).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔, T05 ✔).
+**Última atualização:** 2026-10-17 — M2-T06 concluído (editor na aba Escrever ligado à sessão; menu Editar; nota de rodapé).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔).
 
 ## Etapas
 
@@ -15,17 +15,27 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T05 ✔, T02 e T06–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T02 e T07–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T06** (editor na tela: `EditorSecao`, `SessaoTrabalho.alterarSecao`, E2E de digitação, colagem real, CSP e
-   latência), **M2-T02** (tipos de trabalho) ou **M2-T10** (backups rotativos). Recomendado: T06, que liga o núcleo do
-   T05 à interface.
+1. **M2-T07** (árvore de seções na interface: inserir, renomear, mover, recuar/promover, com o `HistoricoEdicao` único
+   de texto e estrutura), **M2-T02** (tipos de trabalho) ou **M2-T10** (backups rotativos). Recomendado: T07, que
+   completa a edição começada no T06.
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T06 (2026-10-17, delegadas pelo usuário: "deixo todas ao seu julgamento")
+O usuário delegou todas as confirmações à sessão principal. Decisões visíveis tomadas (motivos no relatório do M2,
+seção M2-T06; técnicas no adendo do M2-T06 no ADR-0007):
+- Aba Escrever: dados do trabalho em cima; lista de seções à esquerda (número + título, recuo por nível) com "Nova
+  seção"; editor da seção escolhida à direita com barra I, N, x², x₂ e "Nota de rodapé"; atalhos do Word.
+- Trabalho sem seção não ganha seção sozinho: aparece "Use “Nova seção” para começar o texto".
+- A chamada da nota aparece como a marca "nota" (sem número, RN-102 PENDENTE-FONTE); o texto abre num quadro abaixo.
+- Inserir nota com texto selecionado põe a chamada no fim da seleção, sem apagar (como no Word).
+- Menu Editar ligado, com "Colar sem formatação" (Ctrl+Shift+V).
 
 ## Decisões do M2-T05 (2026-10-17, delegadas pelo usuário: "Deixo você fazer essa decisão")
 - Colagem: a quebra simples do texto puro vira espaço; `&nbsp;` fica inseparável; o estilo "Citação" do Word continua
@@ -68,13 +78,22 @@ O usuário escreveu: "deixo essas decisões para você".
 
 ## Instruções para etapas futuras
 - Núcleo do editor (M2-T05; adendo do M2-T05 no ADR-0007; `app/README.md`, "Núcleo do editor"):
-  - **Para o M2-T06:**
-    - todo `EditorState` com `pluginIdsUnicos`, `pluginLimites` e `pluginColagem` (com `aoAvisar` mostrando
-      `MENSAGENS_AVISO` como texto);
-    - E2E da colagem com a área de transferência real (Word, LibreOffice, Chrome), net-log sem requisição ao colar
-      `<img src=https://…>` e as fixtures de `tests/fixtures/colagem/` conferidas contra a captura real;
-    - NodeView da nota (editor aninhado) e o achado M6 (marca sobre a chamada não deve entrar na nota);
-    - "Colar sem formatação" no menu Editar (B5); medir a latência com o editor (`e2e/desempenho.spec.ts`).
+  - **Feito no M2-T06** (adendo do M2-T06 no ADR-0007): todo `EditorState` nasce em `criarEstadoSecao`; E2E de colagem
+    real e net-log; NodeView da nota; M6 e B5 corrigidos; latência medida com o editor.
+  - **Para o M2-T07:**
+    - o `HistoricoEdicao` único (texto + estrutura, ADR-0007 §4) entra com as operações estruturais; hoje cada seção tem
+      só o histórico de texto (`MemoriaEditores` em `EditorSecao.tsx`), e "Nova seção" não se desfaz;
+    - operação estrutural na sessão: refazer `#caminhos` e `#secoes` (como `inserirSecaoNoFim`); a geração **não** muda
+      (senão a `MemoriaEditores` perde os históricos); seção excluída → guardar o `EditorState` no inverso;
+    - o `rotulo` do `EditorSecao` ("Texto da seção N") já acompanha a renumeração por `setProps`.
+  - **Pendências do M2-T06 sem marco:** conferir as fixtures de colagem com a cópia real do Word e do LibreOffice
+    (roteiro manual); roteiro com teclado ABNT2 físico (R41) e NVDA (R42, inclusive o `role="doc-noteref"` da chamada);
+    E2E de nota em trabalho só leitura (precisa de um arquivo de versão futura com nota).
+  - Menu Editar: Recortar, Copiar e Colar só pelo canal `edicao` (`webContents.cut/copy/paste`); nunca dar à página
+    permissão de área de transferência. Ação nova → `ACOES_EDICAO` + `COMANDOS_EDICAO` em `registrar.ts` + teste. O
+    preload só chama o canal com gesto do usuário (`userActivation`); não tirar essa condição.
+  - Colagem: `neutralizarEstilos` antes do `DOMParser` (a CSP é herdada); não afrouxar a CSP por causa de colagem.
+  - E2E: selecionar texto pelo DOM (`Range`), não por setas atravessando a chamada da nota (o número de passos varia).
   - **Para o M6:** recortar e colar dentro do app troca os ids (M5 da revisão); reaproveitar o `data-id` livre antes
     das remissivas.
   - Pendências de colagem sem marco: `mso-tab-count` e NBSP (B2, decisão do usuário), `white-space:pre` em `span`
@@ -119,10 +138,9 @@ O usuário escreveu: "deixo essas decisões para você".
     tudo. Canal novo que grava pacote de um identificador → `PacoteEnvio` + `lerPacoteTransferivel(v, registro.midias(...)
     ?? new Map())` + `trocarMidias` **só depois** de o empacotamento dar certo (revisão F1). Nunca guardar bytes
     vindos do renderer antes disso.
-  - **M2-T06 (editor):** medir de novo com `e2e/desempenho.spec.ts` digitando no editor (trocar o campo do título pelo
-    editor de uma seção do documento grande). Se o p95 passar de 50 ms, o próximo passo é mandar só as seções alteradas
-    (o principal ainda desserializa o `documento.json` inteiro, ~5 ms com 150 páginas).
-  - Memória perto da meta (pico 700–760 MB de 800): rever no M5, com figuras de verdade.
+  - **Medido no M2-T06 com o editor** (seção 1.1.1 do documento grande): p95 8–15 ms. Se um dia passar de 50 ms, o
+    próximo passo é mandar só as seções alteradas (o principal ainda desserializa o `documento.json` inteiro).
+  - Memória perto da meta (pico 738–787 MB de 800 no M2-T06; 700–760 no M2-T01): rever no M5, com figuras de verdade.
   - Worker dentro do ASAR: conferido com o `app.asar` do `dist:pasta` (E2E-01 e E2E-07 com o `out/` escondido). Na
     próxima fumaça do pacote (Etapa 7 ou troca de Electron), conferir também no `.exe` com os fuses.
 - Fechamento do M1 (M1-T15):

@@ -5,12 +5,13 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'n
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CANAIS_PROJETOS, CANAIS_RECUPERACAO, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
+import { ACOES_EDICAO, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
 import type { Manifesto } from '../src/dominio/esquemas';
 import type { Documento } from '../src/dominio/modelo';
 import { abrirProjeto, empacotarProjeto, salvarProjeto } from '../src/persistencia';
 import { criarManipuladoresProjetos, ErroIpcRecusado, nomeSugerido, type DependenciasProjetos } from '../src/principal/ipc/manipuladores-projetos';
 import { lerPacoteTransferivel } from '../src/principal/ipc/argumentos';
+import { criarManipuladoresEdicao } from '../src/principal/ipc/manipuladores-edicao';
 import { lerPedidoLeitor, lerRespostaLeitor, paraRespostaLeitor } from '../src/principal/ipc/protocolo-leitor';
 import { remetentePermitido, type InfoRemetente } from '../src/principal/ipc/remetente';
 import { ORIGEM_PRODUCAO } from '../src/principal/seguranca/politica-urls';
@@ -285,7 +286,23 @@ describe('preload (C-10)', () => {
     expect(chamadas.map((c) => c[0])).toEqual([CANAIS_PROJETOS.abrir, CANAIS_PROJETOS.salvar, CANAIS_PROJETOS.salvarComo, CANAIS_PROJETOS.fechar]);
     expect(chamadas.map((c) => c.length)).toEqual([1, 3, 2, 2]);
     expect(Object.isFrozen(api) && Object.isFrozen(api.projetos)).toBe(true);
-    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao']);
+    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao']);
+  });
+
+  it('edicao (M2-T06): `executar` usa só o seu canal, manda só a ação e só com gesto do usuário', async () => {
+    const chamadas: unknown[][] = [];
+    let gesto = true;
+    const api = criarApiBiblioDocs(async (...a) => (chamadas.push(a), undefined), () => gesto);
+    await api.edicao.executar('colar');
+    expect(chamadas).toEqual([[CANAIS_EDICAO.executar, 'colar']]);
+    gesto = false;
+    await api.edicao.executar('colar');
+    expect(chamadas).toHaveLength(1);
+    // Sem a função do preload, nada passa.
+    const semGesto: unknown[][] = [];
+    await criarApiBiblioDocs(async (...a) => (semGesto.push(a), undefined)).edicao.executar('copiar');
+    expect(semGesto).toEqual([]);
+    expect(Object.isFrozen(api.edicao)).toBe(true);
   });
 
   it('recuperacao (M1-T12): cada função usa só o seu canal fixo', async () => {
@@ -350,5 +367,40 @@ describe('protocolo do processo leitor', () => {
     const resposta = paraRespostaLeitor({ ok: true, pacote: r.valor, avisos: [], migracao: [0, 1], backupMigracao: join(pasta, 'id', 'x-formato-v0.bdp') });
     expect(resposta).toMatchObject({ ok: true, nomeBackup: 'x-formato-v0.bdp' });
     expect(JSON.stringify(resposta)).not.toContain(pasta);
+  });
+});
+
+describe('canal edicao (M2-T06): menu Editar', () => {
+  function montarEdicao() {
+    const feitos: [number, AcaoEdicao][] = [];
+    const m = criarManipuladoresEdicao({
+      origem: ORIGEM_PRODUCAO,
+      conteudosPermitidos: () => new Set([JANELA]),
+      executar: (id, acao) => feitos.push([id, acao]),
+      log: () => {},
+    });
+    return { executar: m[CANAIS_EDICAO.executar]!, feitos };
+  }
+
+  it('cada ação conhecida vai para o webContents de quem chamou', async () => {
+    const { executar, feitos } = montarEdicao();
+    for (const acao of ACOES_EDICAO) expect(await executar(LEGITIMO, [acao])).toBeUndefined();
+    expect(feitos).toEqual(ACOES_EDICAO.map((a) => [JANELA, a]));
+  });
+
+  it('recusa remetente estranho, ação fora da lista e quantidade errada de argumentos', async () => {
+    const { executar, feitos } = montarEdicao();
+    const recusas: [InfoRemetente, unknown[]][] = [
+      [{ ...LEGITIMO, idConteudo: 99 }, ['colar']],
+      [{ ...LEGITIMO, quadroPrincipal: false }, ['colar']],
+      [{ ...LEGITIMO, urlQuadro: 'https://exemplo.com/' }, ['copiar']],
+      [LEGITIMO, ['colarEspecial']],
+      [LEGITIMO, ['selectAll']],
+      [LEGITIMO, [{ toString: () => 'colar' }]],
+      [LEGITIMO, ['colar', 'extra']],
+      [LEGITIMO, []],
+    ];
+    for (const [r, args] of recusas) await expect(executar(r, args)).rejects.toBeInstanceOf(ErroIpcRecusado);
+    expect(feitos).toEqual([]);
   });
 });

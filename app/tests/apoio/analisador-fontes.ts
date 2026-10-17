@@ -697,7 +697,7 @@ export const ARQUIVO_DOMPARSER = 'src/interface/editor/colagem.ts';
 
 /** Arquivos do editor que rodam em Node nos testes: sem `prosemirror-view` (só `import type`). */
 export const ehEditorPuro = (arquivo: string): boolean =>
-  /^src\/interface\/editor\/(esquema|conversao|ids|html-colado)\.ts$/.test(arquivo) ||
+  /^src\/interface\/editor\/(esquema|conversao|ids|html-colado|comandos|estado)\.ts$/.test(arquivo) ||
   arquivo.startsWith('src/interface/editor/plugins/');
 
 /**

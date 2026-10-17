@@ -4,14 +4,17 @@
  * de colagem do `prosemirror-view` (`readHTML`, que usa `innerHTML`) nunca roda: `handleDOMEvents` vem antes dele e
  * encerra o evento.
  *
- * Ctrl+Shift+V cola só o texto. Arrastar dentro do próprio editor fica com o ProseMirror (é mover, não colar).
+ * Ctrl+Shift+V cola só o texto; pelo menu, "Colar sem formatação" chama `colarSemFormatacaoNaProxima` antes de pedir a
+ * colagem ao principal (B5 da revisão do M2-T05). Arrastar dentro do próprio editor fica com o ProseMirror (é mover,
+ * não colar).
  *
- * Só testável com DOM: o E2E entra com o editor na tela (M2-T06). A leitura em si é testada em Node.
+ * Só testável com DOM: o E2E com a área de transferência real está em `e2e/editor.spec.ts`. A leitura em si é testada
+ * em Node.
  */
-import { Plugin, PluginKey } from 'prosemirror-state';
+import { Plugin, PluginKey, type EditorState } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
 import { blocosParaSlice } from './conversao';
-import { lerHtmlColado, lerTextoColado, type AvisoColagem, type ResultadoColagem } from './html-colado';
+import { lerHtmlColado, lerTextoColado, neutralizarEstilos, type AvisoColagem, type NoHtml, type ResultadoColagem } from './html-colado';
 import { gerarId as gerarIdPadrao, type GeradorId } from './ids';
 import { excedeLimites } from './plugins/limites';
 
@@ -23,10 +26,22 @@ export interface OpcoesColagem {
   aoAvisar?: (avisos: readonly AvisoColagem[]) => void;
 }
 
-function lerTransferencia(dados: DataTransfer, soTexto: boolean, gerar: GeradorId): ResultadoColagem | null {
+/**
+ * O que se usa do `DataTransfer` e do `DOMParser`, como tipos estruturais: o arquivo também é compilado para Node (o
+ * estado do editor, testado em Node, inclui o plugin de colagem), onde não há a lib DOM. No renderer valem os do
+ * navegador.
+ */
+interface Transferencia {
+  getData(formato: string): string;
+  readonly files: { readonly length: number };
+  readonly types: readonly string[];
+}
+declare const DOMParser: new () => { parseFromString(html: string, tipo: 'text/html'): { body: NoHtml } };
+
+function lerTransferencia(dados: Transferencia, soTexto: boolean, gerar: GeradorId): ResultadoColagem | null {
   const html = soTexto ? '' : dados.getData('text/html');
   if (html) {
-    const documento = new DOMParser().parseFromString(html, 'text/html');
+    const documento = new DOMParser().parseFromString(neutralizarEstilos(html), 'text/html');
     return lerHtmlColado(documento.body, gerar);
   }
   const texto = dados.getData('text/plain');
@@ -62,8 +77,17 @@ export function pluginColagem(opcoes: OpcoesColagem = {}): Plugin {
 
   return new Plugin({
     key: chaveColagem,
+    proximaSemFormatacao: () => {
+      soTexto = true;
+    },
     props: {
       handleDOMEvents: {
+        // Foco saiu (por exemplo, para o editor de uma nota): o pedido do menu não vale para a colagem seguinte
+        // (revisão do M2-T06, B2).
+        blur: () => {
+          soTexto = false;
+          return false;
+        },
         keydown: (_view, evento) => {
           if (evento.key.toLowerCase() === 'v' && (evento.ctrlKey || evento.metaKey)) soTexto = evento.shiftKey;
           return false;
@@ -76,6 +100,7 @@ export function pluginColagem(opcoes: OpcoesColagem = {}): Plugin {
           return true;
         },
         drop: (view, evento) => {
+          soTexto = false;
           if (view.dragging || !evento.dataTransfer) return false; // mover dentro do editor
           evento.preventDefault();
           const alvo = view.posAtCoords({ left: evento.clientX, top: evento.clientY });
@@ -85,4 +110,10 @@ export function pluginColagem(opcoes: OpcoesColagem = {}): Plugin {
       },
     },
   });
+}
+
+/** A próxima colagem neste editor fica só com o texto (o item "Colar sem formatação" do menu Editar). */
+export function colarSemFormatacaoNaProxima(estado: EditorState): void {
+  const spec = chaveColagem.get(estado)?.spec as { proximaSemFormatacao?: () => void } | undefined;
+  spec?.proximaSemFormatacao?.();
 }

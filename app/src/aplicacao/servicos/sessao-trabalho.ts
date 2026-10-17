@@ -20,10 +20,15 @@
  *   identificador (as do arquivo aberto e as enviadas antes com sucesso); se ele responder `MIDIA_AUSENTE`, o mesmo
  *   pedido volta com os bytes de todas.
  *
+ * - texto das seções (M2-T06; ADR-0007, seção 3): o editor manda cada alteração na hora (`alterarSecao`), e a sessão
+ *   só avisa a interface quando muda o que ela mostra (estado do visor, título de uma seção na lista): uma emissão por
+ *   tecla re-renderizaria a casca inteira (R39).
+ *
  * Puro (sem DOM e sem Node): a API, o relógio e o agendador entram por dependência, e os testes rodam em Node com
  * agendador manual (tests/sessao-trabalho.test.ts).
  */
-import type { InlineDeTitulo, TipoTrabalhoId } from '../../dominio/modelo';
+import { inserirSecao, type Id, type InlineDeTitulo, type Secao, type TipoTrabalhoId } from '../../dominio/modelo';
+import { numerarSecoes } from '../../dominio/numeracao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import {
   CODIGO_MIDIA_AUSENTE,
@@ -66,7 +71,25 @@ export interface AvisoSessao {
   acoes: AcaoAviso[];
 }
 
+/** Seção na lista da aba Escrever: o número vem da posição (nunca do modelo, RN-039). */
+export interface ResumoSecao {
+  id: Id;
+  /** Ex.: "2.1". */
+  indicativo: string;
+  /** 1 = primária. */
+  nivel: number;
+  titulo: string;
+}
+
+/** O que o editor de uma seção edita (as subseções ficam na árvore). */
+export type ConteudoDaSecao = Pick<Secao, 'titulo' | 'blocos'>;
+
 export interface TrabalhoDaSessao {
+  /**
+   * Muda a cada trabalho aberto (também ao reabrir o mesmo arquivo ou recuperar): o editor descarta o que guardou do
+   * anterior (ADR-0007, seção 3, item 7).
+   */
+  geracao: number;
   nomeArquivo: string;
   /** Título como texto editável (concatenação dos trechos, sem marcas). */
   titulo: string;
@@ -75,6 +98,8 @@ export interface TrabalhoDaSessao {
   /** Pode gravar no próprio arquivo (tem identificador e não é só leitura). */
   podeSalvar: boolean;
   salvamento: SalvamentoSessao;
+  /** Seções do corpo em ordem de leitura. */
+  secoes: readonly ResumoSecao[];
 }
 
 export interface EstadoSessao {
@@ -95,7 +120,13 @@ export interface DependenciasSessao {
   /** Instantâneo de recuperação (M1-T12). Sem ele, a sessão não grava instantâneos. */
   instantaneo?: ApiRecuperacao['instantaneo'];
   atrasoInstantaneoMs?: number;
+  /** Id de seção nova (`sec_` + 16 caracteres, dentro do `PADRAO_ID`). Sem ele, a sessão não cria seções. */
+  gerarIdSecao?: () => string;
 }
+
+export type ResultadoInserirSecao = { ok: true; id: Id } | { ok: false; mensagem: string };
+
+export const MENSAGEM_NAO_EDITAVEL = 'Este trabalho não pode ser alterado.';
 
 export interface OpcoesAbrir {
   /**
@@ -131,6 +162,46 @@ export function tituloDoTexto(texto: string, atual: readonly InlineDeTitulo[]): 
   return texto === '' ? [] : [{ tipo: 'texto', texto }];
 }
 
+/** Lista da aba Escrever, em ordem de leitura. */
+export function resumirSecoes(corpo: readonly Secao[]): ResumoSecao[] {
+  return numerarSecoes(corpo).map((n) => ({ id: n.secao.id, indicativo: n.indicativo, nivel: n.nivel, titulo: textoDoTitulo(n.secao.titulo) }));
+}
+
+/** Troca a seção do `caminho` por `nova`, copiando só o caminho até ela. */
+function trocarSecao(lista: readonly Secao[], caminho: readonly number[], nova: Secao): Secao[] {
+  const [i, ...resto] = caminho as [number, ...number[]];
+  const copia = [...lista];
+  const atual = copia[i]!;
+  copia[i] = resto.length === 0 ? nova : { ...atual, subsecoes: trocarSecao(atual.subsecoes, resto, nova) };
+  return copia;
+}
+
+/** Caminho (posições base 0) de cada seção. Iterativo: a árvore lida de arquivo pode ter até 64 níveis. */
+function caminhosDasSecoes(corpo: readonly Secao[]): Map<Id, number[]> {
+  const mapa = new Map<Id, number[]>();
+  const pilha: { lista: readonly Secao[]; caminho: number[] }[] = [{ lista: corpo, caminho: [] }];
+  for (let item = pilha.pop(); item !== undefined; item = pilha.pop()) {
+    const { lista, caminho: prefixo } = item;
+    lista.forEach((s, i) => {
+      const caminho = [...prefixo, i];
+      mapa.set(s.id, caminho);
+      if (s.subsecoes.length > 0) pilha.push({ lista: s.subsecoes, caminho });
+    });
+  }
+  return mapa;
+}
+
+function secaoNoCaminho(corpo: readonly Secao[], caminho: readonly number[]): Secao | undefined {
+  let lista = corpo;
+  let s: Secao | undefined;
+  for (const i of caminho) {
+    s = lista[i];
+    if (s === undefined) return undefined;
+    lista = s.subsecoes;
+  }
+  return s;
+}
+
 const chavesDasMidias = (p: PacoteTransferivel | null): Set<string> => new Set(p?.midias.map((m) => m.sha256));
 
 /** As mídias em `conhecidas` vão só com a chave. */
@@ -154,6 +225,11 @@ export class SessaoTrabalho {
   /** Duração do último instantâneo (ms), para espaçar os seguintes em documentos grandes. */
   #duracaoInstantaneo = 0;
   #estado: EstadoSessao = { trabalho: null, avisos: [] };
+  #geracao = 0;
+  /** Caminho de cada seção do corpo aberto; refeito só quando a estrutura muda (alterar o texto não muda caminhos). */
+  #caminhos = new Map<Id, number[]>();
+  /** Lista de seções da interface, refeita só quando um título ou a estrutura mudam. */
+  #secoes: readonly ResumoSecao[] = [];
 
   constructor(dep: DependenciasSessao) {
     this.#dep = dep;
@@ -190,12 +266,14 @@ export class SessaoTrabalho {
         a === null
           ? null
           : {
+              geracao: this.#geracao,
               nomeArquivo: a.nomeArquivo,
               titulo: textoDoTitulo(a.pacote.documento.metadados.titulo),
               tipoTrabalho: a.pacote.manifesto.tipoTrabalho,
               somenteLeitura: a.modo === 'leitura',
               podeSalvar: a.modo === 'edicao' && a.identificador !== null,
               salvamento: this.#salvamento,
+              secoes: this.#secoes,
             },
       avisos: this.#avisos,
     };
@@ -288,6 +366,7 @@ export class SessaoTrabalho {
       midiasNoPrincipal: chavesDasMidias(projeto.identificador === null ? null : projeto.pacote),
     };
     this.#aberto = a;
+    this.#novaGeracao(projeto.pacote.documento.corpo);
     this.#salvamento = { tipo: 'salvo', em: null };
     this.#avisos = [...avisos];
     if (projeto.identificador === null) this.#avisar({ nivel: 'alerta', texto: MENSAGEM_SEM_DESTINO, acoes: ['salvarComo'] });
@@ -303,9 +382,16 @@ export class SessaoTrabalho {
   abrirSomenteLeitura(nomeArquivo: string, pacote: PacoteSomenteLeituraTransferivel, avisos: AvisoSessao[] = []): void {
     this.#liberar();
     this.#aberto = { modo: 'leitura', nomeArquivo, pacote };
+    this.#novaGeracao(pacote.documento.corpo);
     this.#salvamento = { tipo: 'somenteLeitura' };
     this.#avisos = [...avisos];
     this.#emitir();
+  }
+
+  #novaGeracao(corpo: readonly Secao[]): void {
+    this.#geracao += 1;
+    this.#caminhos = caminhosDasSecoes(corpo);
+    this.#secoes = resumirSecoes(corpo);
   }
 
   #liberar(): void {
@@ -318,6 +404,8 @@ export class SessaoTrabalho {
       this.#dep.api.fechar(a.identificador).catch(() => {});
     }
     this.#aberto = null;
+    this.#caminhos = new Map();
+    this.#secoes = [];
     this.#revisao = 0;
     this.#revisaoSalva = 0;
     this.#gravacao = null;
@@ -368,13 +456,72 @@ export class SessaoTrabalho {
       ...a.pacote,
       documento: { ...a.pacote.documento, metadados: { ...a.pacote.documento.metadados, titulo: tituloDoTexto(texto, atual) } },
     };
+    this.#marcarAlteracao();
+    this.#emitir();
+  }
+
+  /**
+   * Conta uma alteração e agenda o automático e o instantâneo. `true` = o visor mudou (é preciso emitir).
+   * Durante a gravação o visor continua em "Salvando…"; o resultado decide o próximo estado. (Com o diálogo do
+   * "Salvar como…" aberto ainda não há gravação no disco: a alteração aparece como não salva.)
+   */
+  #marcarAlteracao(): boolean {
     this.#revisao += 1;
-    // Durante a gravação o visor continua em "Salvando…"; o resultado decide o próximo estado. (Com o diálogo do
-    // "Salvar como…" aberto ainda não há gravação no disco: a alteração aparece como não salva.)
-    if (this.#salvamento.tipo !== 'salvando') this.#salvamento = { tipo: 'naoSalvo' };
+    const tipo = this.#salvamento.tipo;
+    if (tipo !== 'salvando') this.#salvamento = { tipo: 'naoSalvo' };
     this.#agendarAutomatico();
     this.#agendarInstantaneo();
+    return tipo !== 'salvando' && tipo !== 'naoSalvo';
+  }
+
+  /** Seção do trabalho aberto (também em só leitura), ou `null`. */
+  secao(id: Id): Secao | null {
+    const a = this.#aberto;
+    const caminho = this.#caminhos.get(id);
+    if (a === null || caminho === undefined) return null;
+    return secaoNoCaminho(a.pacote.documento.corpo, caminho) ?? null;
+  }
+
+  /**
+   * Texto da seção vindo do editor, uma chamada por transação que muda o documento (ADR-0007, seção 3). Os arrays
+   * recebidos passam a pertencer ao modelo: quem chama não os altera depois. Só emite quando o visor ou o título da
+   * seção na lista mudam.
+   */
+  alterarSecao(id: Id, conteudo: ConteudoDaSecao): void {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return;
+    const caminho = this.#caminhos.get(id);
+    const corpo = a.pacote.documento.corpo;
+    const atual = caminho === undefined ? undefined : secaoNoCaminho(corpo, caminho);
+    if (caminho === undefined || atual === undefined) return;
+    if (atual.titulo === conteudo.titulo && atual.blocos === conteudo.blocos) return;
+    const nova: Secao = { ...atual, titulo: conteudo.titulo, blocos: conteudo.blocos };
+    a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: trocarSecao(corpo, caminho, nova) } };
+    let emitir = this.#marcarAlteracao();
+    const texto = textoDoTitulo(nova.titulo);
+    if (texto !== textoDoTitulo(atual.titulo)) {
+      this.#secoes = this.#secoes.map((s) => (s.id === id ? { ...s, titulo: texto } : s));
+      emitir = true;
+    }
+    if (emitir) this.#emitir();
+  }
+
+  /** Acrescenta uma seção primária vazia no fim do corpo (a árvore, com mover e recuar, é do M2-T07). */
+  inserirSecaoNoFim(): ResultadoInserirSecao {
+    const a = this.#aberto;
+    const gerar = this.#dep.gerarIdSecao;
+    if (a?.modo !== 'edicao' || gerar === undefined) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const corpo = a.pacote.documento.corpo;
+    let id = gerar();
+    while (this.#caminhos.has(id)) id = gerar();
+    const r = inserirSecao(corpo, { id, titulo: [], blocos: [], subsecoes: [] }, { paiId: null, indice: corpo.length });
+    if (!r.ok) return { ok: false, mensagem: r.mensagem };
+    a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: r.corpo } };
+    this.#caminhos = caminhosDasSecoes(r.corpo);
+    this.#secoes = resumirSecoes(r.corpo);
+    this.#marcarAlteracao();
     this.#emitir();
+    return { ok: true, id };
   }
 
   // ---------- gravação ----------
