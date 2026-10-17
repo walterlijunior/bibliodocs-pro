@@ -93,6 +93,10 @@ function iniciar(): void {
   }
 
   app.enableSandbox();
+  // C-8/R23 (M1-T13): sem detecção automática de proxy. Sem esta chave o Chromium procura o WPAD (DNS `wpad` na
+  // rede local) e testa o IPv6 logo ao iniciar, mesmo sem nenhuma requisição; o E2E de rede confere pelo net-log.
+  // Quando houver função on-line (LanguageTool, após o M7), rever o proxy junto com o achado B-3.
+  app.commandLine.appendSwitch('no-proxy-server');
   registrarEsquemaApp(); // C-3: precisa ser antes do ready.
 
   const { contexto, urlInicial } = decidirContexto();

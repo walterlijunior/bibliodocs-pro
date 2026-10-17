@@ -110,3 +110,35 @@ Lint: sem typescript-eslint no M1, porque o TypeScript 7 não tem API (R29). Se 
 - No M1: `cd app && npm run verificar` passa; um teste de fronteira propositalmente violado falha (caso negativo registrado).
 - `npm run test:e2e` executa FUN-01.
 - No M3: `npm run verificar:tudo` gera o relatório com a contagem por camada, a partir de `templates/RELATORIO_DE_TESTES.md`.
+
+## Adendo técnico — E2E do Electron (M1-T13, 2026-10-17)
+
+- **Versões:** `@playwright/test` 1.64.1 (Apache-2.0, só desenvolvimento, sem navegadores baixados: só `_electron`)
+  sobre Electron 44.8.0 [VERIFICADO: `npm ls`, `process.versions.electron` no teste].
+- **Onde:** `app/e2e/*.spec.ts`, apoio em `app/e2e/apoio/app.ts`, `app/playwright.config.ts` (1 worker por causa
+  da instância única), typecheck próprio em `tsconfig.e2e.json` (Node + DOM, porque as funções do `page.evaluate`
+  rodam na página). `npm run test:e2e` = build + Playwright; `verificar:tudo` passa a incluir o E2E.
+- **Isolamento:** cada teste usa uma pasta temporária com `LOCALAPPDATA` redirecionado, `preferencias.json`
+  apontando a biblioteca para ela e `--user-data-dir` (perfil do Chromium e trava da instância única). A pasta
+  `Documentos` real só é usada como pasta inicial dos diálogos, que o E2E não abre.
+- **Rede:** medida pelo net-log do Chromium (`--log-net-log`): nenhuma resolução de nome, socket ou URL, com
+  controle positivo (`PROXY_CONFIG_CHANGED`/`DNS_CONFIG_CHANGED`). As URLs `app://` não aparecem no net-log; a
+  carga da página é conferida por `performance.getEntriesByType('resource')`, porque o ouvinte `request` do
+  Playwright entra depois do carregamento.
+- **Armadilhas medidas (para quem escrever E2E novo):**
+  - `eval` dentro de `page.evaluate` não é bloqueado pela CSP: o CDP liga `allowUnsafeEvalBlockedByCSP` por padrão.
+    Sondas de CSP chamam o `eval` num `setTimeout`.
+  - Como `app` é esquema padrão, o Chromium resolve `%2e%2e` antes do pedido: a travessia é impossível a partir da
+    página, e as checagens de `..`/raiz do `protocolo-caminho.ts` ficam como defesa em profundidade (unidade, SEG-01).
+  - O app barra a navegação já no `will-frame-navigate`; `will-navigate` nem é emitido, e `did-start-navigation`
+    dispara mesmo assim para https. A prova é o `defaultPrevented` visto por um ouvinte registrado depois.
+  - Janela mínima medida em 1026×700 (a borda do quadro soma 2 px); espessura do contorno arredondada para pixels do
+    dispositivo (2 px em 125% = 1,6 px CSS).
+- **Correção no app achada pelo E2E:** o Chromium procurava proxy automático (DNS `wpad` na rede local) e testava
+  IPv6 ao iniciar. `app.commandLine.appendSwitch('no-proxy-server')` em `principal/index.ts` zera isso. Efeito
+  colateral aceito: todo proxy do sistema é ignorado, inclusive o manual. Hoje não importa (o app é offline e o
+  `webRequest` bloqueia tudo), mas, quando houver função on-line (LanguageTool, após o M7, junto com o achado B-3),
+  rever: proxy do sistema só para a sessão dessa função.
+- **Desvio da decisão:** o `@axe-core/playwright` (contraste e teclado, RNF-09) não entrou no M1-T13. O contraste já
+  é conferido nos tokens (`tests/interface-tokens.test.ts`); o axe entra quando houver o editor (M2), com dependência
+  informada antes.

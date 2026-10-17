@@ -56,6 +56,7 @@ describe('processo principal (verificação estática)', () => {
     'devTools: !app.isPackaged',
     'app.enableSandbox()',
     'app.requestSingleInstanceLock()',
+    "app.commandLine.appendSwitch('no-proxy-server')",
     "app.on('second-instance'",
     'Menu.setApplicationMenu(null)',
     'registrarEsquemaApp()',

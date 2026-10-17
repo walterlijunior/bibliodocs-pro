@@ -6,6 +6,14 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T13: testes E2E no Electron real com Playwright (`@playwright/test` 1.64.1, só desenvolvimento).
+  - `npm run test:e2e` (build + E2E); `npm run verificar:tudo` passa a rodá-los.
+  - FUN-01: criar → salvar → fechar → reabrir (também depois de reiniciar o app) com o título idêntico e o arquivo
+    sem regravação; RNF-04: matar o processo com `taskkill /F /T` e recuperar; UI-01: quatro faixas da janela
+    mínima à maximizada em 100%, 125% e 150%; zero atividade de rede pelo net-log; defesas do runtime (CSP, `eval`,
+    rede, `app://`, navegação, `window.open`, instância única).
+  - Cada teste roda isolado numa pasta temporária (dados locais, biblioteca e perfil do Chromium).
+  - 8 testes E2E; 4 de 5 mutações detectadas (a quinta é inalcançável pela página e fica nos testes de unidade).
 - Etapa 5, M1-T12: recuperação após encerramento inesperado (ADR-0004, seção 4).
   - Até cerca de 2 s depois de cada alteração, uma cópia de recuperação vai para
     `%LOCALAPPDATA%\BiblioDocsPro\recuperacao\` (nunca para o arquivo do usuário), com trava de sessão.
@@ -162,6 +170,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   páginas, versões do `docx`, downgrade de formato).
 
 ### Alterado
+- M1-T13: ao iniciar, o Chromium procurava proxy automático (consulta DNS `wpad` na rede local) e testava o IPv6,
+  mesmo sem nenhuma requisição. O app agora inicia com `no-proxy-server` e não faz nenhuma atividade de rede
+  (RNF-03).
 - Electron 44.7.2 → **44.8.0** (correções de segurança do Chromium 152.0.7977.167/.169 e V8; recomendação do
   `revisor-seguranca`, autorizada pelo usuário). Lock e SHA-256 do binário conferidos.
 - `scripts/validar-kit.ps1` e `tests/test_estrutura_kit.py`: esperam `app/README.md` no lugar de `app/LEIA-ME.md`.

@@ -545,3 +545,46 @@ técnicas no adendo do ADR-0005.
 - Desempenho do instantâneo com 25 MB não medido; o empacotamento roda no processo principal.
 - Não há tela para reabrir o que está em `recuperacao-antigos` (só pelo Explorer, por 7 dias).
 - A oferta aparece só com a Biblioteca carregada (se a pasta da biblioteca falha, a oferta de instantâneo não aparece).
+
+## M1-T13 — E2E com Playwright
+
+**Implementado** (sessão principal; `@playwright/test` 1.64.1, dependência local informada; Electron 44.8.0):
+- `app/e2e/fluxo-trabalho.spec.ts` (FUN-01), `recuperacao.spec.ts` (RNF-04/FUN-10), `casca.spec.ts` (UI-01 parcial e
+  UI-02), `rede-e-seguranca.spec.ts` (zero rede, SEG-08; defesas do runtime, SEG-03 do achado M-1).
+- `app/e2e/apoio/app.ts`: ambiente isolado (`LOCALAPPDATA`, biblioteca e `--user-data-dir` numa pasta temporária),
+  fechar como o usuário, matar com `taskkill /F /T`, leitura do net-log e do `documento.json`; limpeza encerra o que
+  uma falha deixou aberto.
+- `npm run test:e2e`; `verificar:tudo` agora roda os E2E; quarto projeto de typecheck (`tsconfig.e2e.json`).
+- **Correção no app:** `no-proxy-server` (o net-log mostrou consulta DNS `wpad` e checagem de IPv6 na abertura).
+  Decisões e armadilhas no adendo do M1-T13 no ADR-0006.
+
+**Revisão** (`engenheiro-qualidade`, somente leitura): 1 Alta, 4 Média e 7 Baixa.
+- A1 travessia com alvo inexistente (`out/package.json`) daria 404 mesmo vulnerável → alvos que existem fora da raiz,
+  controle 200, e conferência da URL normalizada. Medido: o Chromium resolve `%2e%2e` antes do pedido; `%5c` e
+  `%252e` chegam ao manipulador e dão 400. A mutação das checagens de `..`/raiz **não** é detectada pelo E2E (inalcançáveis
+  a partir da página); ficam na unidade (SEG-01);
+- M1 perfil do Chromium real do usuário → `--user-data-dir` por teste; M2 Electron órfão se a janela não abrisse →
+  registro logo após o `launch` e `taskkill` na falha; M3 laços de rede vazios → controle positivo do net-log e
+  recursos da carga pela `performance` (o laço antigo de `requisicoes` não conferia nada: o ouvinte entra depois do
+  carregamento); M4 corrida no `taskkill` → tolerada;
+- Baixas corrigidas: atraso do instantâneo pelo `mtime` (limite 3 s, valor anotado); navegação provada pelo
+  `defaultPrevented` (e também `file:`); cor do anel lida dos tokens, inclusive o da busca; segunda instância
+  restaura a janela minimizada; segunda instância encerrada com `taskkill /T`. Aceitas e registradas: espera fixa de
+  3 s no teste de rede (heurística), escala por `--force-device-scale-factor` (não é a escala real do Windows),
+  efeito do `no-proxy-server` (ADR-0006).
+
+**Verificação executada:**
+- `npm run verificar:tudo`: typecheck OK (4 projetos), vitest 18 arquivos **712/712** (1 novo: chave de proxy),
+  `found 0 vulnerabilities`, build OK, **E2E 8/8** (~25 s). `npx playwright test --repeat-each=3` 24/24 (antes da
+  revisão) e `--repeat-each=2` 16/16 (depois). `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+- Medidas: instantâneo gravado 1992 ms depois da alteração; janela mínima 1026×700; abertura do app ~0,4 s.
+- Mutação (build refeito a cada uma): sem `no-proxy-server` → 6 resoluções de nome; `webRequest` com `cancel: false`
+  → `net.fetch` do principal passa; sem instância única → segunda instância não sai; sem as guardas de navegação →
+  a página navega; checagens de `..`/raiz removidas → **não detectada** (ver A1). 4 de 5.
+
+**Limitações:**
+- Diálogos nativos (Abrir…, Salvar como…, escolher pasta, confirmar exclusão) e a Lixeira continuam sem E2E.
+- Automático de 30 s, erro de gravação, versão futura só leitura e restauração de temporário/`.bak` só na unidade e
+  nas fumaças.
+- Escala real do Windows por monitor, leitor de tela e axe-core não exercitados.
+- O E2E abre janelas na tela e precisa de sessão gráfica (não roda em CI sem área de trabalho).

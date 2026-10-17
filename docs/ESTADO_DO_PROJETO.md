@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M1-T12 concluído (recuperação após encerramento inesperado).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T12 concluídos; próximo T13).
+**Última atualização:** 2026-10-17 — M1-T13 concluído (E2E com Playwright).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T13 concluídos; próximo T14).
 
 ## Etapas
 
@@ -15,17 +15,18 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T13** (E2E Playwright: FUN-01 criar → fechar → reabrir
-idêntico, RNF-04 matar e recuperar, UI-01 parcial, zero requisições de rede) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`).
-**Instala dependência local nova** (Playwright): informar antes. Todo incremento termina com
-`cd app; npm run verificar` passando.
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T14** (empacotamento de fumaça: electron-builder NSIS
+`oneClick`, `perMachine: false`, fuses, sem atualização automática; medir instalador e tamanho instalado contra a
+meta de 200 MB do RNF-08) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). **Instala dependência local nova**
+(electron-builder): informar antes. Instalar/desinstalar nesta máquina pede confirmação do usuário. Todo incremento
+termina com `cd app; npm run verificar:tudo` passando (agora inclui os E2E).
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -37,6 +38,18 @@ idêntico, RNF-04 matar e recuperar, UI-01 parcial, zero requisições de rede) 
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- E2E (M1-T13):
+  - `app/e2e/`; apoio em `e2e/apoio/app.ts` (`criarAmbiente`, `abrirApp`, `fechar`, `matar`, `atividadeDeRede`,
+    `lerDocumento`). Decisões e armadilhas medidas no adendo do M1-T13 no ADR-0006 (eval no `page.evaluate`, `%2e%2e`
+    normalizado, `will-frame-navigate`, janela mínima 1026×700). Sempre fechar/matar pelo apoio (a limpeza encerra
+    o que ficou aberto).
+  - Novo fluxo de interface → um cenário E2E; conferir `x.problemas` vazio (console, exceções, CSP).
+  - **Rodar `npm run test:e2e` a cada troca de Electron** (SEG-03, SEG-08).
+  - **Para o M1-T14:** o pacote liga fuses (ex.: `EnableNodeCliInspectArguments` desligado) que impedem o
+    Playwright de dirigir o `.exe`; o E2E continua sobre o build (`out/`). Conferir no pacote, à mão, a chave
+    `no-proxy-server` (net-log) e a ausência de DevTools.
+  - Pendentes: diálogos nativos e Lixeira sem E2E; axe-core (RNF-09) no M2; escala real por monitor; a chave
+    `no-proxy-server` ignora proxy manual — rever junto com o LanguageTool (B-3).
 - Recuperação (M1-T12):
   - Disco em `app/src/persistencia/recuperacao/`; regras e ganchos em `app/src/principal/ipc/manipuladores-recuperacao.ts`;
     decisões e desvios no adendo do M1-T12 no ADR-0004. Regra: nada da recuperação é apagado sem decisão do usuário
@@ -204,4 +217,5 @@ idêntico, RNF-04 matar e recuperar, UI-01 parcial, zero requisições de rede) 
 | 2026-10-16 | 5 (M1-T09) | Biblioteca pela sessão principal: contrato `window.bibliodocs.biblioteca` (7 canais); pasta padrão `Documentos\BiblioDocs Pro\Trabalhos` configurável (`preferencias.json`); índice-cache `biblioteca.json` recriável, com resumo no processo leitor em lotes; criar, renomear (link físico, nunca sobrescreve), duplicar (id novo), excluir para a Lixeira com confirmação do principal; aviso de OneDrive. `revisor-seguranca`: A1 (Alta, listagem quadrática ~40 s com 5 000 itens), M1–M4, B1–B4 e B6 corrigidos; B5 aceito; 2 resíduos registrados no adendo do ADR-0004. 19/19 mutações detectadas. Fumaça no Electron 44.8.0: resumo real em 233 ms; `shell.trashItem` → arquivo na Lixeira do Windows (conferido por `Shell.Application`). `verificar` 594/594, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `cc5c6ed` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T10) | Casca da interface pela sessão principal, após o usuário aprovar o protótipo (todos os `[PROPOSTA]` aceitos; `docs/GUIA_VISUAL.md`). Quatro faixas, menus ARIA, abas, Voltar/Avançar, biblioteca real (grade, lateral, detalhes, estados, aviso de OneDrive), criar trabalho, escolher pasta; janela mínima 1024×700; menu nativo nulo também no dev (F12). Sem dependência nova. `verificar:tudo` 630/630, 0 vulnerabilidades, build OK; 10/10 mutações; fumaça no Electron 44.8.0 por CDP 21/21 (achou e corrigiu Alt+Seta duplicado nas abas); kit 0 falhas. Commit `3040a9a` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M1-T12) | Recuperação pela sessão principal: instantâneo ~2 s depois de cada alteração em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao\<id>\` (atual + anterior, sem `.bak`), trava de sessão, oferta na Biblioteca (Recuperar / Abrir o arquivo salvo / Decidir depois), restaurar a partir de temporário ou `.bak` de arquivo que não abre, `recuperacao-antigos` por 7 dias. `revisor-seguranca`: 4 Alta (prazo pela data errada, queda adiada arquivada, salvamento apagando instantâneo mais novo, restauração que tirava o original), 5 Média e 2 Baixa corrigidas; B2/B4 aceitas. 27/27 mutações. Fumaça no Electron 44.8.0 por CDP 20/20 (`taskkill` e reabrir oferece a versão). `verificar:tudo` 711/711, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `abbe147` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M1-T13) | E2E pela sessão principal com `@playwright/test` 1.64.1 (dependência local informada) no Electron 44.8.0: FUN-01 (reabrir idêntico, também após reiniciar; SHA-256 do arquivo igual), RNF-04 (`taskkill /F /T`, instantâneo 1992 ms, Recuperar, "Abrir o arquivo salvo"), UI-01 (faixas de 1024×700 a maximizada em 100/125/150%), zero rede pelo net-log e SEG-03. O net-log achou WPAD + checagem de IPv6 ao iniciar → `no-proxy-server` no principal. `engenheiro-qualidade`: 1 Alta (travessia com alvo inexistente), 4 Média (perfil do Chromium real, órfão, laços vazios, corrida no `taskkill`) e 7 Baixa; corrigidas, exceto 3 Baixas aceitas. 4/5 mutações (a de `..` é inalcançável pela página). `verificar:tudo` 712/712 + E2E 8/8, 0 vulnerabilidades; repetições 24/24 e 16/16; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |

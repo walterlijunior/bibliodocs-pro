@@ -1,0 +1,9 @@
+{
+  "//": "Testes E2E (M1-T13): Node (Playwright, fs) e DOM (funções passadas ao page.evaluate rodam na página).",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["playwright.config.ts", "e2e/**/*.ts"]
+}

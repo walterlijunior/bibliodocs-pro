@@ -13,10 +13,11 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.puro.json && tsc --noEmit -p tsconfig.web.json",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.puro.json && tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.e2e.json",
     "test": "vitest run",
     "verificar": "npm run typecheck && vitest run && npm audit --omit=dev --audit-level=high",
-    "verificar:tudo": "npm run verificar && npm run build",
+    "verificar:tudo": "npm run verificar && npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test",
     "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

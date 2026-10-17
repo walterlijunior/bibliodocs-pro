@@ -21,11 +21,12 @@ mostra o nome do aplicativo.
 | `npm run dev` | Abre o aplicativo em desenvolvimento (servidor Vite com recarga do renderer) |
 | `npm run build` | Gera `out/principal`, `out/preload` e `out/interface` |
 | `npm run preview` | Abre o aplicativo a partir do build em `out/` |
-| `npm run typecheck` | `tsc --noEmit` nos três projetos TypeScript (node, puro e web) |
+| `npm run typecheck` | `tsc --noEmit` nos quatro projetos TypeScript (node, puro, web e e2e) |
 | `npm test` | `vitest run` (testes em `tests/`) |
 | `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --omit=dev --audit-level=high`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
 | `npm run esquemas:gerar` | Regrava o JSON Schema de `esquemas/projeto-v1/` a partir dos esquemas zod. Rode depois de mudar `src/dominio/esquemas/projeto-v1.ts`; o `verificar` falha enquanto o arquivo versionado estiver diferente |
-| `npm run verificar:tudo` | Por enquanto, `verificar` + `build`. As camadas E2E (Playwright, M1-T13), OOXML e LibreOffice (M3) entram aqui quando existirem |
+| `npm run test:e2e` | `build` + E2E do Playwright no Electron real (`e2e/`): fluxo do trabalho, recuperação após `taskkill`, casca em 3 escalas, zero rede (net-log) e defesas do runtime. Abre janelas na tela (~25 s). Dados, biblioteca e perfil do Chromium ficam numa pasta temporária apagada no fim; roda mesmo com o app aberto |
+| `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
 
 O instalador (`release/`) entra num marco posterior.
 

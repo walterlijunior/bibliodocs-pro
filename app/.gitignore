@@ -3,6 +3,9 @@ out/
 dist/
 release/
 *.log
+# Saída do Playwright (E2E, M1-T13)
+test-results/
+playwright-report/
 
 # Segredos e certificados de assinatura (C-21, docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md)
 *.pfx
