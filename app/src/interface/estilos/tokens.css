@@ -1,0 +1,97 @@
+/*
+ * Tokens de tema do BiblioDocs Pro (M1-T10). Componentes usam só estas variáveis: nenhuma cor ou medida solta.
+ *
+ * Cores: paleta A — Cerrado claro, escolhida pelo usuário em 2026-10-16 (docs/GUIA_VISUAL.md), copiada do protótipo
+ * analise/poc-ui/tokens.css. O contraste (WCAG 2.2, 1.4.3 e 1.4.11) é conferido por tests/interface-tokens.test.ts;
+ * mudou uma cor, rode `npm test`.
+ *
+ * Tema escuro: os tokens já existem, mas nada liga `data-tema="escuro"` no M1 (decisão do usuário: só claro no M1).
+ */
+:root {
+  --cor-fundo: #FFFFFF;
+  --cor-superficie: #F7F6F2;
+  --cor-barras: #ECEAE4;
+  --cor-texto-barras: #1E2320;
+  --cor-borda: #D6D3CA;
+  --cor-borda-controle: #8A8578;
+  --cor-borda-barras: #8A8578;
+  --cor-texto: #1E2320;
+  --cor-texto-sec: #585E59;
+  --cor-destaque: #B35400;
+  --cor-sobre-destaque: #FFFFFF;
+  --cor-destaque-hover: #8F4300;
+  --cor-destaque-texto: #A04B00;
+  --cor-indicador-ativo: #B35400;
+  --cor-secundaria: #2F6B3A;
+  --cor-sobre-secundaria: #FFFFFF;
+  --cor-foco: #1F5FBF;
+  --cor-foco-barras: #1F5FBF;
+  --cor-sucesso: #22703A;
+  --cor-alerta: #8A5B00;
+  --cor-erro: #B3261E;
+}
+
+:root[data-tema="escuro"] {
+  --cor-fundo: #1A1C1A;
+  --cor-superficie: #232622;
+  --cor-barras: #2C302B;
+  --cor-texto-barras: #ECEDE7;
+  --cor-borda: #3E433D;
+  --cor-borda-controle: #8C9289;
+  --cor-borda-barras: #8C9289;
+  --cor-texto: #ECEDE7;
+  --cor-texto-sec: #B3B8AF;
+  --cor-destaque: #F0A23A;
+  --cor-sobre-destaque: #1A1C1A;
+  --cor-destaque-hover: #F7BB66;
+  --cor-destaque-texto: #F2AC4E;
+  --cor-indicador-ativo: #F0A23A;
+  --cor-secundaria: #7FBF7A;
+  --cor-sobre-secundaria: #1A1C1A;
+  --cor-foco: #8AB4FF;
+  --cor-foco-barras: #8AB4FF;
+  --cor-sucesso: #7CCB86;
+  --cor-alerta: #F2C94C;
+  --cor-erro: #FF8A80;
+}
+
+/* Ilustração do pequi e da página (decorativos; fora do cálculo de contraste) e medidas. */
+:root {
+  --cor-pequi-casca: #4E7A2E;
+  --cor-pequi-casca-escura: #34561D;
+  --cor-pequi-miolo: #FFF3D1;
+  --cor-pequi-polpa: #F5A623;
+  --cor-pequi-polpa-escura: #D9800B;
+  --cor-pequi-brilho: #FFE29A;
+  --cor-pagina: #FFFFFF;
+  --cor-pagina-texto: #111111;
+  --cor-sombra: rgba(0, 0, 0, 0.18);
+
+  /* Tipografia da interface (a do documento é outra e vem do perfil normativo). */
+  --fonte-ui: "Segoe UI", system-ui, "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  --fonte-capa: "Times New Roman", Times, serif;
+  --tam-base: 14px;
+  --tam-peq: 12px;
+  --tam-grande: 17px;
+  --tam-titulo: 22px;
+  --tam-capa: 6.5px;
+
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --raio: 4px;
+  --raio-grande: 8px;
+  --anel: 2px;
+
+  --altura-barra-superior: 64px;
+  --largura-lateral: 220px;
+  --largura-capa: 150px;
+  --largura-detalhes: 300px;
+  --largura-busca: 240px;
+  --largura-colecao: 170px;
+  --largura-zoom: 110px;
+  --lado-botao-icone: 34px;
+  --lado-icone-estado: 96px;
+}

@@ -48,9 +48,11 @@ muito espaço em branco; grade de capas como forma principal de navegar pela bib
 
 **Decisão do usuário (2026-10-16):** paleta **A — Cerrado claro** (destaque laranja queimado `#B35400` com texto
 branco; verde da casca como secundária), escolhida no protótipo `analise/poc-ui/prototipo.html`; 138 pares de
-contraste conferidos, 0 reprovados (`python -I analise/poc-ui/contraste.py`). Os demais itens `[PROPOSTA]` (botões
-da barra superior, conteúdo do visor, menus, abas, capa em miniatura, tema escuro, cor do foco) são confirmados
-com o usuário no M1-T10.
+contraste conferidos, 0 reprovados (`python -I analise/poc-ui/contraste.py`).
+
+**Decisão do usuário (2026-10-16, M1-T10):** os itens `[PROPOSTA]` da tabela acima foram aceitos como estão (botões
+seção anterior / pré-visualizar / próxima + zoom; visor com os cinco itens; menus e abas como listados; capa em
+miniatura; só tema claro no M1; pequi colorido; foco azul). Registro completo em `docs/GUIA_VISUAL.md`.
 
 ## 3. Regras de uso da referência
 1. **Inspiração de organização e ritmo visual, não cópia.** Não usar logotipo, ícones, nomes,

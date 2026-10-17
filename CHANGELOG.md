@@ -6,6 +6,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M1-T10: casca da interface (decisões do usuário em `docs/GUIA_VISUAL.md`).
+  - Quatro faixas no estilo da referência: barra superior (seção anterior / pré-visualizar / próxima + zoom,
+    desativados sem trabalho; visor com o pequi; grade/lista; busca com Ctrl+F), barra de menus no padrão ARIA
+    `menubar`, navegação (Voltar/Avançar com Alt+setas, seletor de coleção, 5 abas) e conteúdo.
+  - Biblioteca real pela API do M1-T09: barra lateral (Recentes, Todos, Por tipo), grade de capas em miniatura com
+    setas em 2D, busca sem acento, painel de detalhes, estados carregando/erro/vazio/sem resultado, aviso de OneDrive,
+    avisos da listagem e cartões de arquivo de versão futura ou ilegível. "Novo trabalho" (e Ctrl+N) cria o arquivo e o
+    seleciona; "Escolher pasta da biblioteca…" e "Atualizar biblioteca" (F5) no menu Arquivo.
+  - Tokens da paleta A (claro e escuro preparado) em `app/src/interface/estilos/`; ícones SVG próprios.
+  - Janela com mínimo de 1024×700; o menu nativo deixa de existir também no desenvolvimento (DevTools com F12 só
+    fora do app empacotado).
+  - 36 testes novos (lógica pura, contraste WCAG dos tokens, renderização com `react-dom/server`, UI-02); 10 de 10
+    mutações detectadas; total de 630 testes.
 - Etapa 5, M1-T09: biblioteca de trabalhos.
   - Contrato `window.bibliodocs.biblioteca` (`listar`, `escolherPasta`, `criar`, `abrir`, `renomear`, `duplicar`,
     `excluir`) em `app/src/aplicacao/portas/biblioteca.ts`. Cada arquivo da lista tem um identificador opaco por

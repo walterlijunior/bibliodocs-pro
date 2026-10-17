@@ -47,6 +47,10 @@ function criarJanelaPrincipal(urlInicial: string): BrowserWindow {
     title: TITULO,
     width: 1280,
     height: 800,
+    // UI-01: a casca (M1-T10) funciona de 1024×700 até tela cheia.
+    minWidth: 1024,
+    minHeight: 700,
+    backgroundColor: '#ECEAE4', // --cor-barras (tokens.css), evita o clarão branco antes do primeiro quadro
     show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
@@ -70,6 +74,11 @@ function criarJanelaPrincipal(urlInicial: string): BrowserWindow {
   });
 
   janela.once('ready-to-show', () => janela.show());
+  if (!app.isPackaged) {
+    janela.webContents.on('before-input-event', (_evento, entrada) => {
+      if (entrada.type === 'keyDown' && entrada.key === 'F12') janela.webContents.toggleDevTools();
+    });
+  }
   void janela.loadURL(urlInicial);
   return janela;
 }
@@ -109,8 +118,10 @@ function iniciar(): void {
     if (!contexto.desenvolvimento) {
       registrarProtocoloApp(session.defaultSession, join(__dirname, '../interface'));
     }
-    // C-15: no app empacotado não há menu (logo, nem item nem atalho de DevTools). Menus reais: M1-T10.
-    if (app.isPackaged) Menu.setApplicationMenu(null);
+    // C-15: no app empacotado não há menu (logo, nem item nem atalho de DevTools). Os menus do app são desenhados
+    // pela interface (M1-T10, barra de menus no estilo da referência), então o menu nativo também some no
+    // desenvolvimento; ali as DevTools abrem com F12 (abaixo).
+    Menu.setApplicationMenu(null);
 
     ipc = registrarIpcProjetos(contexto.origem, () =>
       janelaPrincipal && !janelaPrincipal.isDestroyed() ? new Set([janelaPrincipal.webContents.id]) : new Set<number>(),

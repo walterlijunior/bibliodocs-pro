@@ -378,3 +378,21 @@ Decisões técnicas da sessão principal, revisadas pelo `revisor-seguranca` (ac
   resultado `ok: false` com mensagem pt-BR. A lista de erros devolvida tem o limite `LIMITES_V1.errosRelatados`.
 - **Limite de tamanho (C-11):** o Electron desserializa antes do manipulador; o limite (mídias, total até 1 GB) é
   conferido logo depois. Aceito enquanto o renderer for só a interface do próprio app.
+
+## Adendo técnico — casca da interface (M1-T10, 2026-10-16)
+Decisões técnicas da sessão principal; as escolhas visíveis são do usuário (`docs/GUIA_VISUAL.md`).
+- **Organização de `src/interface/`:** `casca/` (faixas, menus, abas, visor), `biblioteca/` (grade, barra lateral,
+  detalhes, hook de estado), `estilos/` (tokens e layout) e `Icones.tsx`. Regras de teclado, filtros e textos ficam em
+  arquivos `.ts` puros (`casca/teclado.ts`, `casca/visor.ts`, `biblioteca/selecao.ts`), testados em Node.
+- **Testes de componente sem dependência nova:** `tests/interface/*.test.tsx` renderiza com `react-dom/server` em Node
+  e é checado pelo `tsconfig.web.json` (sem tipos do Node), para valer a mesma restrição do renderer. Interação real
+  (foco, clique) fica para o E2E do M1-T13; até lá, fumaça com o Electron dirigido por CDP (roteiro no relatório).
+- **API injetada:** `Aplicativo` recebe `api: ApiBiblioDocs` por propriedade (`main.tsx` passa `window.bibliodocs`),
+  para ser renderizado nos testes sem `window`.
+- **Menus desenhados pela interface:** a barra de menus faz parte do layout de referência, então o menu nativo do
+  Electron fica nulo também no desenvolvimento (antes só no app empacotado, C-15). Fora do app empacotado, F12 abre as
+  DevTools (`before-input-event`); no empacotado `devTools: false` continua valendo.
+- **Teclas com Ctrl/Alt/Windows** pertencem aos atalhos globais; grade, abas e menus as ignoram (`temModificador`).
+  Achado da fumaça: sem isso, Alt+Seta numa aba trocava de aba e voltava no histórico ao mesmo tempo.
+- **Criar no M1-T10:** sem editor, o trabalho criado é fechado logo após `biblioteca.criar` (o identificador de gravação
+  não fica preso) e aparece selecionado. O M1-T11 passa a mantê-lo aberto.

@@ -6,5 +6,6 @@
     "types": [],
     "jsx": "react-jsx"
   },
-  "include": ["src/interface/**/*.ts", "src/interface/**/*.tsx"]
+  "//testes": "tests/interface/ renderiza componentes (react-dom/server) e é checado como renderer: sem tipos do Node.",
+  "include": ["src/interface/**/*.ts", "src/interface/**/*.tsx", "tests/interface/**/*.tsx"]
 }

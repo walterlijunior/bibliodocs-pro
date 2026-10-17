@@ -102,8 +102,8 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/esquemas-*.test.ts`;
 
 | ID | Caso | Fonte do esperado | Status |
 |---|---|---|---|
-| UI-01 | Janela com barra superior (visor com pequi + busca), menus, navegação com abas, barra lateral e grade de trabalhos | `docs/REFERENCIA_DE_LAYOUT.md`, seção 4 | NÃO EXECUTADO |
-| UI-02 | Nenhum elemento de marca de terceiros na interface e nos ícones | `docs/REFERENCIA_DE_LAYOUT.md`, seção 3 | NÃO EXECUTADO |
+| UI-01 | Janela com barra superior (visor com pequi + busca), menus, navegação com abas, barra lateral e grade de trabalhos | `docs/REFERENCIA_DE_LAYOUT.md`, seção 4 | PARCIAL (M1-T10, 2026-10-16): `tests/interface/casca.test.tsx` (faixas, papéis ARIA, estados) e fumaça no Electron 44.8.0 com CDP, 21/21 (faixas inteiras e sem rolagem horizontal em 1008×661 e 1920×1017, Ctrl+F, setas na grade/abas/menus, Esc, foco azul visível, sem erro de CSP). E2E → M1-T13 |
+| UI-02 | Nenhum elemento de marca de terceiros na interface e nos ícones | `docs/REFERENCIA_DE_LAYOUT.md`, seção 3 | PASSOU (M1-T10): varredura de `src/interface` em `tests/interface-tokens.test.ts`; ícones e pequi são SVG próprios |
 
 ## Grupos DES (desempenho) e DIST (distribuição)
 Definidos nas Etapas 4 e 6: demais fluxos essenciais por teclado (UI), metas RNF-06/07 (DES), instalação

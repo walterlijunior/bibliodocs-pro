@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-16 — M1-T09 concluído (biblioteca de trabalhos).
-**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T09 concluídos; próximo T10).
+**Última atualização:** 2026-10-16 — M1-T10 concluído (casca da interface).
+**Etapa atual:** Etapa 5 — Implementação, marco M1 (`EM ANDAMENTO`: T01–T10 concluídos; próximo T11).
 
 ## Etapas
 
@@ -15,17 +15,16 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T10** (casca da interface) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`).
-**Antes de codificar, o T10 exige o protótipo aprovado pelo usuário** (skill `interface-desktop`, passo 1; partir de
-`analise/poc-ui/`), com as decisões `[PROPOSTA]` do layout listadas em "Decisões aguardando o usuário". Todo incremento
-termina com `cd app; npm run verificar` passando.
+Executar `/iniciar-projeto` → Etapa 5, incremento **M1-T11** (fluxo criar → editar título → salvar → fechar → abrir,
+com o estado de salvamento no visor) (ver `docs/PLANO_DE_IMPLEMENTACAO.md`). Todo incremento termina com
+`cd app; npm run verificar` passando.
 
 ## Pendências do usuário
 - Nenhum material ausente (Etapa 1: 14/14 itens presentes, SHA-256 registrados no inventário).
@@ -37,6 +36,22 @@ termina com `cd app; npm run verificar` passando.
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Interface (M1-T10):
+  - Decisões visuais em `docs/GUIA_VISUAL.md`; decisões técnicas no adendo do M1-T10 no ADR-0005.
+  - Cor/medida nova → token em `app/src/interface/estilos/tokens.css` (o teste recusa cor solta e confere contraste).
+  - Regra de teclado/filtro/texto nova → função pura em `casca/` ou `biblioteca/` com teste em Node; componente →
+    `tests/interface/*.test.tsx` (`react-dom/server`, sem tipos do Node).
+  - Controles com setas ignoram Ctrl/Alt/Windows (`temModificador`); atalhos globais ficam em `acaoDoAtalho`.
+  - **Para o M1-T11:**
+    - `BarraSuperior` recebe `visor`: passar `{ tipo: 'trabalho', ... }` com `salvamento` (`casca/visor.ts` já tem os 4
+      textos); ligar os botões de seção, zoom e os itens de menu Abrir/Salvar/Fechar (hoje sem `comando`);
+    - `useBiblioteca.criar` hoje fecha o identificador logo após criar: passar a manter o trabalho aberto no editor;
+    - Enter/duplo clique no cartão e "Abrir" no painel de detalhes; renomear/duplicar/excluir na interface;
+    - `ABERTO_NO_APP` → orientar a fechar o trabalho.
+  - **Para o M1-T13:** E2E das faixas (o CDP do Electron não redimensiona a janela: usar a API do Playwright) e do
+    `minWidth`; escala 125%/150%; roteiro da fumaça do T10 no relatório do M1 serve de base.
+  - Pendências sem marco: coleções do usuário na barra lateral (precisa de onde guardar), tema escuro (tokens prontos),
+    capa fiel (motor normativo, M3), rótulos dos seis tipos UFT em `ROTULOS_TIPO` (M2).
 - Biblioteca (M1-T09):
   - Contrato em `app/src/aplicacao/portas/biblioteca.ts`; manipuladores em `app/src/principal/ipc/manipuladores-biblioteca.ts`;
     disco em `app/src/persistencia/biblioteca/`. Decisões no adendo do M1-T09 no ADR-0004.
@@ -136,7 +151,6 @@ termina com `cd app; npm run verificar` passando.
 ## Decisões aguardando o usuário
 - (Antes do M2) ADR do editor de texto rico (recomendação do `especialista-interface`: TipTap só com núcleo MIT
   ou ProseMirror puro) e da biblioteca de componentes (React Aria Components ou Radix) — técnico, conferir versões.
-- (M1-T10) Itens `[PROPOSTA]` do layout: botões da barra superior, visor, menus/abas, capa em miniatura, tema escuro.
 - (M5) Margens da seção em paisagem: sem RN no Manual; decisão editorial.
 - (Etapa 7) Assinatura de código: certificado OV, MSIX na Microsoft Store ou sem assinatura.
 - (Etapa 5, antes de implementar a regra) 5 ambiguidades remanescentes: RN-025 (letras dobradas), RN-033
@@ -165,3 +179,4 @@ termina com `cd app; npm run verificar` passando.
 | 2026-10-16 | 5 (M1-T07) | Migrações pela sessão principal (retomado de sessão anterior com o código já escrito): cadeia pura `migrar_N_para_N+1`, registro de produção vazio, migração fictícia v0→v1 só nos testes com fixtures de entrada e saída; versão futura → `ok: false` com `PacoteSomenteLeitura`; backup obrigatório antes de migrar. `especialista-documento`: 0 Alta, M1/M2 (Média) e B1–B5 corrigidos; o teste novo da troca do backup revelou um temporário que sobrava, também corrigido. 27/28 mutações detectadas (1 equivalente). `verificar:tudo` 443/443, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `bdc9176` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T08) | IPC tipado pela sessão principal: contrato `window.bibliodocs.projetos` (abrir, salvar, salvarComo, fechar) em `aplicacao/portas`; preload com 4 funções de canal fixo; principal confere remetente (webContents, quadro principal, origem) e argumentos (zod estrito, limites) antes de qualquer diálogo; identificadores opacos por janela; só nomes de arquivo ao renderer; leitura do `.bdp` num `utilityProcess`. `revisor-seguranca`: 0 Alta, S8-01/S8-02 (Média) e S8-03–S8-07 corrigidos (sandbox do leitor → Etapa 7). 8/8 mutações detectadas. Fumaça no Electron 44.8.0: `Uint8Array` atravessa `contextBridge` e `utilityProcess`; 25 MB × 20 leituras, 307–408 ms. `verificar` 492/492, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `0c0acad` autorizado pelo usuário. |
 | 2026-10-16 | 5 (M1-T09) | Biblioteca pela sessão principal: contrato `window.bibliodocs.biblioteca` (7 canais); pasta padrão `Documentos\BiblioDocs Pro\Trabalhos` configurável (`preferencias.json`); índice-cache `biblioteca.json` recriável, com resumo no processo leitor em lotes; criar, renomear (link físico, nunca sobrescreve), duplicar (id novo), excluir para a Lixeira com confirmação do principal; aviso de OneDrive. `revisor-seguranca`: A1 (Alta, listagem quadrática ~40 s com 5 000 itens), M1–M4, B1–B4 e B6 corrigidos; B5 aceito; 2 resíduos registrados no adendo do ADR-0004. 19/19 mutações detectadas. Fumaça no Electron 44.8.0: resumo real em 233 ms; `shell.trashItem` → arquivo na Lixeira do Windows (conferido por `Shell.Application`). `verificar` 594/594, 0 vulnerabilidades; build OK; kit 0 falhas. Commit `cc5c6ed` autorizado pelo usuário. |
+| 2026-10-16 | 5 (M1-T10) | Casca da interface pela sessão principal, após o usuário aprovar o protótipo (todos os `[PROPOSTA]` aceitos; `docs/GUIA_VISUAL.md`). Quatro faixas, menus ARIA, abas, Voltar/Avançar, biblioteca real (grade, lateral, detalhes, estados, aviso de OneDrive), criar trabalho, escolher pasta; janela mínima 1024×700; menu nativo nulo também no dev (F12). Sem dependência nova. `verificar:tudo` 630/630, 0 vulnerabilidades, build OK; 10/10 mutações; fumaça no Electron 44.8.0 por CDP 21/21 (achou e corrigiu Alt+Seta duplicado nas abas); kit 0 falhas. Sem commit (aguarda autorização). |

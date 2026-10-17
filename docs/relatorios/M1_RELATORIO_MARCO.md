@@ -407,3 +407,39 @@ resíduos).
 - O aviso de OneDrive só chega como `naNuvem` na resposta; o texto do aviso na tela é do M1-T10/T11.
 - A miniatura do índice (ADR-0004, seção 5) não foi feita: ainda não existe miniatura nos projetos.
 - A fumaça deixou dois arquivos de teste (`bdp-fumaca-lixeira-*.bdp`) na Lixeira do usuário.
+
+## M1-T10 — Casca da interface
+
+**Pré-requisito:** protótipo `analise/poc-ui/prototipo.html` aprovado pelo usuário em 2026-10-16; todos os itens
+`[PROPOSTA]` aceitos como recomendados (registro em `docs/GUIA_VISUAL.md`).
+
+**Implementado** (sessão principal, `app/src/interface/`): quatro faixas (barra superior com visor do pequi e busca,
+menus, navegação com coleção e abas, conteúdo); biblioteca real pela API do M1-T09 (barra lateral, grade de capas,
+detalhes, estados, aviso de OneDrive e avisos da listagem, cartões `versaoFutura`/`invalido`); criar trabalho;
+escolher pasta; janela mínima 1024×700; menu nativo removido também no desenvolvimento (F12 para DevTools). Decisões
+técnicas no adendo do ADR-0005.
+
+**Verificação executada:**
+- `npm run verificar:tudo`: typecheck OK (3 projetos), 16 arquivos, **630/630** (36 novos), `found 0 vulnerabilities`,
+  build OK.
+- Mutação: 10 de 10 detectadas (contraste de token claro e escuro, cor solta no CSS, tabindex móvel, seta para baixo
+  na grade, busca com "alguma palavra", aviso de OneDrive, botão sem `disabled`, Ctrl+F com modificadores, limite de
+  Recentes).
+- Fumaça no Electron 44.8.0 com o build de produção (`app://`), dados locais e biblioteca numa pasta temporária
+  (`LOCALAPPDATA` redirecionado + `preferencias.json`), dirigida por CDP (script no scratchpad, fora do repositório):
+  **21/21** — arquivo ilegível com aviso; "Novo trabalho" e Ctrl+N criam 3 arquivos e o último fica selecionado com
+  foco; Ctrl+F foca a busca; setas e End na grade; Esc fecha o painel e devolve o foco; contorno de foco
+  `rgb(31, 95, 191)`; setas nas abas; Alt+Seta volta; menu por teclado (abrir, passar ao lado, Esc); faixas inteiras e
+  sem rolagem horizontal em 1008×661 (área útil da janela mínima) e 1920×1017; busca sem resultado e Esc limpa;
+  console sem erro, exceção ou violação de CSP. Capturas conferidas visualmente.
+- Defeito achado pela fumaça e corrigido: Alt+Seta com foco numa aba era tratado pela aba e pelo atalho global ao
+  mesmo tempo (a troca se desfazia). Teste novo para `temModificador`.
+- `scripts/validar-kit.ps1`: 0 falhas, 0 avisos.
+
+**Limitações:**
+- O Electron não implementa o domínio `Browser` do CDP: o tamanho foi emulado (`Emulation.setDeviceMetricsOverride`);
+  o limite `minWidth`/`minHeight` da janela não foi exercitado arrastando a borda.
+- Escala do Windows 125%/150% não foi medida no app (só no protótipo da Etapa 4).
+- Leitor de tela real (Narrador/NVDA) não foi usado; papéis e nomes ARIA conferidos no HTML renderizado.
+- Itens de menu sem função ficam desativados (`aria-disabled`); abas e coleções além de Biblioteca/Trabalhos mostram
+  "ainda não disponível".

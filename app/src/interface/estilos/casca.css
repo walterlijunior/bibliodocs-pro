@@ -1,0 +1,228 @@
+/*
+ * Casca da interface (M1-T10): quatro faixas — barra superior, barra de menus, navegação e conteúdo —
+ * conforme docs/REFERENCIA_DE_LAYOUT.md, seção 4, a partir do protótipo aprovado (analise/poc-ui/prototipo.html).
+ * Só usa tokens de tokens.css. A escala de exibição do Windows (125%/150%) é aplicada pelo Chromium.
+ */
+* { box-sizing: border-box; }
+html, body, #raiz { margin: 0; height: 100%; }
+body {
+  font-family: var(--fonte-ui); font-size: var(--tam-base); line-height: 1.4;
+  background: var(--cor-barras); color: var(--cor-texto);
+  overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+button:disabled { opacity: 0.45; cursor: default; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Foco visível em todos os controles. */
+:focus-visible { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+.barra :focus-visible, .menus :focus-visible, .nav :focus-visible { outline-color: var(--cor-foco-barras); }
+
+.app { height: 100%; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); min-width: 0; }
+
+/* ---------- Faixa 1: barra superior ---------- */
+.barra {
+  display: grid; grid-template-columns: 1fr minmax(280px, 46%) 1fr; align-items: center; gap: var(--esp-4);
+  height: var(--altura-barra-superior); padding: 0 var(--esp-4);
+  background: var(--cor-barras); color: var(--cor-texto-barras); border-bottom: 1px solid var(--cor-borda);
+}
+.barra__esq, .barra__dir { display: flex; align-items: center; gap: var(--esp-2); min-width: 0; }
+.barra__dir { justify-content: flex-end; }
+.btn-icone {
+  display: inline-grid; place-items: center; width: var(--lado-botao-icone); height: var(--lado-botao-icone); padding: 0;
+  background: transparent; border: 1px solid transparent; border-radius: var(--raio); color: var(--cor-texto-barras); cursor: pointer;
+}
+.btn-icone:hover:not(:disabled) { border-color: var(--cor-borda-controle); }
+.btn-icone svg { width: 60%; height: 60%; fill: currentColor; }
+.btn-icone--grande svg { width: 72%; height: 72%; }
+.zoom { display: inline-flex; align-items: center; gap: var(--esp-1); margin-left: var(--esp-2); font-size: var(--tam-peq); }
+.zoom input { width: var(--largura-zoom); accent-color: var(--cor-destaque); }
+
+.visor {
+  height: calc(100% - 10px); border-radius: var(--raio-grande);
+  background: var(--cor-superficie); color: var(--cor-texto); border: 1px solid var(--cor-borda);
+  display: grid; place-items: center; overflow: hidden; padding: 0 var(--esp-4); min-width: 0;
+}
+.visor__pequi { height: 80%; width: auto; }
+.visor__trabalho { width: 100%; display: grid; gap: 2px; text-align: center; font-size: var(--tam-peq); min-width: 0; }
+.visor__titulo { font-weight: 600; font-size: var(--tam-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.visor__linha { display: flex; justify-content: center; gap: var(--esp-3); color: var(--cor-texto-sec); flex-wrap: wrap; }
+.visor__linha .visor__erro { color: var(--cor-erro); font-weight: 600; }
+.visor__progresso { width: 100%; height: 4px; accent-color: var(--cor-destaque); }
+
+.busca {
+  display: flex; align-items: center; gap: var(--esp-1); padding: 0 var(--esp-2);
+  height: 30px; width: min(var(--largura-busca), 100%);
+  background: var(--cor-fundo); color: var(--cor-texto); border: 1px solid var(--cor-borda-barras); border-radius: var(--raio);
+}
+.busca:focus-within { outline: var(--anel) solid var(--cor-foco-barras); outline-offset: 2px; }
+.busca svg { width: 16px; height: 16px; fill: var(--cor-texto-sec); flex: none; }
+.busca input { border: 0; background: transparent; width: 100%; min-width: 0; }
+.busca input:focus-visible { outline: none; }
+.atalho { font-size: var(--tam-peq); color: var(--cor-texto-sec); white-space: nowrap; }
+
+/* ---------- Faixa 2: barra de menus ---------- */
+.menus {
+  display: flex; gap: 2px; margin: 0; padding: 2px var(--esp-2); position: relative; z-index: 5;
+  background: var(--cor-barras); color: var(--cor-texto-barras); border-bottom: 1px solid var(--cor-borda);
+}
+.menus > li { list-style: none; position: relative; }
+.menu-btn { background: transparent; border: 0; padding: 3px var(--esp-2); border-radius: var(--raio); cursor: default; color: var(--cor-texto-barras); }
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: var(--cor-destaque); color: var(--cor-sobre-destaque); }
+.submenu {
+  position: absolute; top: 100%; left: 0; min-width: 260px; margin: 2px 0 0; padding: var(--esp-1) 0;
+  background: var(--cor-fundo); color: var(--cor-texto); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio);
+  box-shadow: 0 6px 18px var(--cor-sombra); list-style: none;
+}
+.submenu button {
+  display: flex; justify-content: space-between; gap: var(--esp-4); width: 100%; text-align: left;
+  background: transparent; border: 0; padding: 5px var(--esp-3); color: var(--cor-texto);
+}
+.submenu button:hover:not([aria-disabled="true"]), .submenu button:focus:not([aria-disabled="true"]) {
+  background: var(--cor-destaque); color: var(--cor-sobre-destaque); outline: none;
+}
+.submenu button[aria-disabled="true"] { color: var(--cor-texto-sec); }
+.submenu button:focus { outline: none; }
+.submenu button:focus-visible { outline: var(--anel) solid var(--cor-foco); outline-offset: -2px; }
+.submenu kbd { font: inherit; font-size: var(--tam-peq); }
+.submenu hr { border: 0; border-top: 1px solid var(--cor-borda); margin: var(--esp-1) 0; }
+
+/* ---------- Faixa 3: navegação ---------- */
+.nav {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--esp-3);
+  padding: var(--esp-2) var(--esp-4); background: var(--cor-barras); color: var(--cor-texto-barras); border-bottom: 1px solid var(--cor-borda);
+}
+.nav__esq { display: flex; align-items: center; gap: var(--esp-2); }
+.par-setas { display: inline-flex; border: 1px solid var(--cor-borda-barras); border-radius: var(--raio); }
+.par-setas .btn-icone { width: 28px; height: 26px; border-radius: 0; }
+.colecao {
+  background: var(--cor-fundo); color: var(--cor-texto); border: 1px solid var(--cor-borda-barras);
+  border-radius: var(--raio); padding: 3px var(--esp-2); min-width: var(--largura-colecao);
+}
+.abas { display: flex; gap: var(--esp-1); flex-wrap: wrap; justify-content: center; }
+.aba {
+  background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: var(--raio);
+  padding: 4px var(--esp-3); color: var(--cor-texto-barras); cursor: pointer; font-size: var(--tam-grande);
+}
+.aba:hover { text-decoration: underline; }
+.aba[aria-selected="true"] { background: var(--cor-destaque); color: var(--cor-sobre-destaque); border-bottom-color: var(--cor-indicador-ativo); }
+
+/* ---------- Faixa 4: conteúdo ---------- */
+.conteudo {
+  display: grid; grid-template-columns: var(--largura-lateral) minmax(0, 1fr) auto; min-height: 0;
+  background: var(--cor-fundo); position: relative;
+}
+.lateral { background: var(--cor-superficie); border-right: 1px solid var(--cor-borda); overflow: auto; padding: var(--esp-3) 0; }
+.lateral h2 {
+  margin: var(--esp-3) var(--esp-4) var(--esp-1); font-size: var(--tam-peq); font-weight: 600;
+  color: var(--cor-texto-sec); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.lateral ul { list-style: none; margin: 0; padding: 0; }
+.lateral button {
+  display: flex; align-items: center; gap: var(--esp-2); width: 100%; text-align: left;
+  background: transparent; border: 0; border-left: 3px solid transparent; padding: 4px var(--esp-4);
+  color: var(--cor-texto); cursor: pointer;
+}
+.lateral button svg { width: 16px; height: 16px; fill: var(--cor-texto-sec); flex: none; }
+.lateral button:hover { text-decoration: underline; }
+.lateral button[aria-current="true"] { color: var(--cor-destaque-texto); font-weight: 600; border-left-color: var(--cor-destaque-texto); }
+.lateral button[aria-current="true"] svg { fill: var(--cor-destaque-texto); }
+.lateral .contagem { margin-left: auto; font-size: var(--tam-peq); color: var(--cor-texto-sec); }
+.lateral__pasta { margin: var(--esp-4) var(--esp-4) 0; font-size: var(--tam-peq); color: var(--cor-texto-sec); overflow-wrap: anywhere; }
+
+.principal { overflow: auto; padding: var(--esp-4) var(--esp-5); min-width: 0; }
+.principal:focus-visible { outline-offset: -2px; }
+.principal__cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--esp-3); flex-wrap: wrap; }
+.principal h1 { font-size: var(--tam-titulo); margin: 0 0 var(--esp-3); font-weight: 600; }
+.btn-principal {
+  background: var(--cor-destaque); color: var(--cor-sobre-destaque); border: 1px solid var(--cor-destaque-hover);
+  border-radius: var(--raio); padding: 6px var(--esp-4); cursor: pointer; font-weight: 600;
+}
+.btn-principal:hover:not(:disabled) { background: var(--cor-destaque-hover); }
+.btn-secundario {
+  background: var(--cor-fundo); color: var(--cor-texto); border: 1px solid var(--cor-borda-controle);
+  border-radius: var(--raio); padding: 6px var(--esp-4); cursor: pointer;
+}
+
+.avisos { list-style: none; margin: 0 0 var(--esp-4); padding: 0; display: grid; gap: var(--esp-2); }
+.aviso {
+  display: flex; gap: var(--esp-2); align-items: flex-start; padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--cor-alerta); border-left-width: 4px; border-radius: var(--raio);
+  background: var(--cor-superficie); color: var(--cor-texto);
+}
+.aviso svg { width: 16px; height: 16px; fill: var(--cor-alerta); flex: none; margin-top: 2px; }
+.aviso--erro { border-color: var(--cor-erro); }
+.aviso--info { border-color: var(--cor-sucesso); }
+.aviso--info svg { fill: var(--cor-sucesso); }
+.aviso--erro svg { fill: var(--cor-erro); }
+
+.grade {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--largura-capa), 1fr));
+  gap: var(--esp-5) var(--esp-4); list-style: none; margin: 0; padding: 0;
+}
+.grade--lista { grid-template-columns: 1fr; gap: var(--esp-1); }
+.cartao {
+  display: grid; gap: var(--esp-1); align-content: start; width: 100%; text-align: left;
+  background: transparent; border: 0; padding: var(--esp-1); border-radius: var(--raio-grande);
+  cursor: pointer; color: var(--cor-texto);
+}
+.cartao[aria-selected="true"] { background: var(--cor-superficie); box-shadow: inset 0 0 0 2px var(--cor-destaque-texto); }
+.capa {
+  aspect-ratio: 210 / 297; background: var(--cor-pagina); color: var(--cor-pagina-texto);
+  border: 1px solid var(--cor-borda); box-shadow: 0 2px 6px var(--cor-sombra);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: var(--esp-3);
+  text-align: center; padding: 10% 8%; overflow: hidden;
+  font-family: var(--fonte-capa); font-size: var(--tam-capa); line-height: 1.3;
+}
+.capa__titulo { font-weight: 700; font-size: 1.15em; text-transform: uppercase; overflow-wrap: anywhere; }
+.capa__rodape { margin-top: auto; }
+.capa--indisponivel { font-family: var(--fonte-ui); font-size: var(--tam-peq); color: var(--cor-texto-sec); background: var(--cor-superficie); }
+.capa--indisponivel svg { width: 32px; height: 32px; fill: var(--cor-alerta); }
+.grade--lista .capa { display: none; }
+.grade--lista .cartao { grid-template-columns: 2fr 1fr 1fr; align-items: center; padding: var(--esp-2); }
+.cartao__titulo { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.cartao__meta { display: flex; gap: var(--esp-2); align-items: center; flex-wrap: wrap; font-size: var(--tam-peq); color: var(--cor-texto-sec); }
+.selo { font-size: var(--tam-peq); padding: 0 6px; border-radius: 10px; background: var(--cor-secundaria); color: var(--cor-sobre-secundaria); }
+.status { font-size: var(--tam-peq); font-weight: 600; display: inline-flex; gap: 3px; align-items: center; }
+.status--alerta { color: var(--cor-alerta); }
+.status--erro { color: var(--cor-erro); }
+.status svg { width: 12px; height: 12px; fill: currentColor; }
+
+.estado { display: grid; justify-items: center; gap: var(--esp-3); text-align: center; padding: 10vh var(--esp-4); color: var(--cor-texto-sec); }
+.estado h2 { color: var(--cor-texto); margin: 0; font-size: var(--tam-grande); }
+.estado p { margin: 0; max-width: 60ch; }
+.estado > svg { width: var(--lado-icone-estado); height: var(--lado-icone-estado); }
+.estado--erro h2 { color: var(--cor-erro); }
+.estado--erro > svg { fill: var(--cor-erro); width: 56px; height: 56px; }
+.acoes { display: flex; gap: var(--esp-2); flex-wrap: wrap; justify-content: center; }
+.esqueleto {
+  aspect-ratio: 210 / 297; border-radius: var(--raio);
+  background: linear-gradient(90deg, var(--cor-superficie), var(--cor-borda), var(--cor-superficie));
+  background-size: 200% 100%; animation: brilho 1.4s linear infinite;
+}
+@keyframes brilho { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .esqueleto { animation: none; } }
+
+/* Painel de detalhes */
+.detalhes { width: var(--largura-detalhes); border-left: 1px solid var(--cor-borda); background: var(--cor-superficie); overflow: auto; padding: var(--esp-4); }
+.detalhes h2 { font-size: var(--tam-grande); margin: 0 0 var(--esp-2); overflow-wrap: anywhere; }
+.detalhes dl { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--esp-3); margin: 0 0 var(--esp-4); font-size: var(--tam-peq); }
+.detalhes dt { color: var(--cor-texto-sec); }
+.detalhes dd { margin: 0; overflow-wrap: anywhere; }
+.detalhes h3 { font-size: var(--tam-base); margin: var(--esp-3) 0 var(--esp-2); }
+.detalhes p { font-size: var(--tam-peq); color: var(--cor-texto-sec); }
+.detalhes .acoes { justify-content: flex-start; margin-top: var(--esp-4); }
+
+/* Telas menores (1024×700 até ~1100 px): o painel de detalhes sobrepõe o conteúdo. */
+@media (max-width: 1100px) {
+  .barra { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .zoom span, .atalho { display: none; }
+  .conteudo { grid-template-columns: var(--largura-lateral) minmax(0, 1fr); }
+  .detalhes { position: absolute; right: 0; top: 0; bottom: 0; box-shadow: -6px 0 18px var(--cor-sombra); }
+}
+@media (forced-colors: active) {
+  .aba[aria-selected="true"], .lateral button[aria-current="true"], .cartao[aria-selected="true"] { outline: 2px solid CanvasText; }
+}
