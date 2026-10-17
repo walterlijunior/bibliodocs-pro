@@ -6,12 +6,15 @@
 import { join } from 'node:path';
 import type { ErroValidacao, Migracao } from '../../dominio/esquemas';
 import { LIMITES_CONTEINER, type LimitesConteiner } from '../conteiner/limites';
-import { empacotarProjeto, lerProjeto, type PacoteProjeto, type ResultadoLeituraProjeto } from '../conteiner/pacote';
+import { empacotarProjeto, lerProjeto, type PacoteProjeto, type ResultadoEmpacotamento, type ResultadoLeituraProjeto } from '../conteiner/pacote';
 import { gravarAtomico, MENSAGENS_FALHA, type OpcoesGravacao, type ResultadoGravacao } from './gravacao-atomica';
 import { codigoErro, SISTEMA_ARQUIVOS_NODE, type ArquivoAberto, type SistemaArquivos } from './sistema-arquivos';
 
 /** Resultado do salvamento; em `PACOTE_INVALIDO` traz os erros de validação para o visor detalhar. */
 export type ResultadoSalvamento = ResultadoGravacao | (Extract<ResultadoGravacao, { ok: false }> & { erros: ErroValidacao[] });
+
+/** Empacotamento usado no salvamento; o principal passa o do worker (M2-T01), para não travar a própria thread. */
+export type Empacotar = (pacote: PacoteProjeto) => ResultadoEmpacotamento | Promise<ResultadoEmpacotamento>;
 
 /**
  * Empacota e grava. Se o pacote é recusado, nada é gravado e o documento em memória não é tocado: quem chamou
@@ -20,10 +23,10 @@ export type ResultadoSalvamento = ResultadoGravacao | (Extract<ResultadoGravacao
 export async function salvarProjeto(
   destino: string,
   pacote: PacoteProjeto,
-  opcoes: OpcoesGravacao & { limites?: LimitesConteiner } = {},
+  opcoes: OpcoesGravacao & { limites?: LimitesConteiner; empacotar?: Empacotar } = {},
 ): Promise<ResultadoSalvamento> {
   const inicio = performance.now();
-  const r = empacotarProjeto(pacote, opcoes.limites);
+  const r = opcoes.empacotar ? await opcoes.empacotar(pacote) : empacotarProjeto(pacote, opcoes.limites);
   if (!r.ok) {
     return {
       ok: false,

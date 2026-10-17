@@ -11,6 +11,7 @@
 import { basename } from 'node:path';
 import {
   CANAIS_PROJETOS,
+  CODIGO_MIDIA_AUSENTE,
   type CanalProjetos,
   type ResultadoAbrir,
   type ResultadoSalvar,
@@ -20,7 +21,7 @@ import { LIMITES_V1, type ErroValidacao } from '../../dominio/esquemas';
 import { textoPlano } from '../../dominio/modelo';
 import { ehArquivoProjeto, EXTENSAO_PROJETO, limparNomeArquivo, MENSAGENS_FALHA, type PacoteProjeto, type ResultadoSalvamento } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
-import { lerIdentificador, lerPacoteTransferivel } from './argumentos';
+import { lerIdentificador, lerPacoteTransferivel, mapaMidias } from './argumentos';
 import { criarConferencia, ErroIpcRecusado, type Manipulador } from './chamada';
 import type { RespostaLeitor } from './protocolo-leitor';
 import { RegistroProjetos } from './registro-projetos';
@@ -60,6 +61,8 @@ export function nomeSugerido(pacote: PacoteProjeto): string {
 
 const MENSAGEM_EXTENSAO = 'Não foi possível salvar: o nome do arquivo precisa terminar em .bdp.';
 const MENSAGEM_NAO_ABERTO = 'Não foi possível salvar: este trabalho não está mais aberto. Use “Salvar como…”.';
+/** Só aparece se o reenvio com todas as mídias também falhar (o renderer reenvia ao receber o código). */
+const MENSAGEM_MIDIA_AUSENTE = 'Não foi possível salvar: faltaram imagens do trabalho no processo de gravação. Tente de novo.';
 
 /** A lista de erros que volta ao renderer tem limite (revisão do M1-T08, S8-06). */
 const limitarErros = <T>(erros: readonly T[]): T[] => erros.slice(0, LIMITES_V1.errosRelatados);
@@ -83,7 +86,7 @@ export function respostaAbrir(caminho: string, lido: RespostaLeitor, registro: R
   const nomeArquivo = basename(caminho);
   if (lido.ok) {
     // Arquivo aberto com outra extensão (filtro "*.*" no diálogo) não vira destino de `salvar` (S8-04).
-    const identificador = ehProjeto(caminho) ? registro.registrar(caminho, dono, lido.pacote.manifesto.id) : null;
+    const identificador = ehProjeto(caminho) ? registro.registrar(caminho, dono, lido.pacote.manifesto.id, mapaMidias(lido.pacote.midias)) : null;
     const atualizacao =
       lido.migracao.length > 0 && lido.nomeBackup !== null ? { versaoOrigem: lido.migracao[0]!, nomeBackup: lido.nomeBackup } : null;
     return { ok: true, projeto: { identificador, nomeArquivo, pacote: lido.pacote, avisos: lido.avisos, atualizacao } };
@@ -110,8 +113,8 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
 
   const { conferir, recusarArgumento } = criarConferencia(dep.origem, dep.conteudosPermitidos, log);
 
-  const pacoteOuRecusa = (canal: CanalProjetos, valor: unknown) => {
-    const p = lerPacoteTransferivel(valor);
+  const pacoteOuRecusa = (canal: CanalProjetos, valor: unknown, conhecidas?: ReadonlyMap<string, Uint8Array>) => {
+    const p = lerPacoteTransferivel(valor, conhecidas);
     if (!p.ok && p.recusado) return recusarArgumento(canal, `pacote (${p.motivo})`);
     return p;
   };
@@ -127,16 +130,21 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     const canal = CANAIS_PROJETOS.salvar;
     conferir(canal, r, argumentos, 2);
     const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador');
-    const p = pacoteOuRecusa(canal, argumentos[1]);
+    // Identificador desconhecido: nenhuma mídia conhecida (referida vira ausente, e a resposta é NAO_ABERTO).
+    const p = pacoteOuRecusa(canal, argumentos[1], registro.midias(id, r.idConteudo) ?? new Map());
     const destino = registro.caminho(id, r.idConteudo);
     if (destino === null) {
       return { ok: false, motivo: 'ERRO', codigo: 'NAO_ABERTO', mensagem: MENSAGEM_NAO_ABERTO, erros: [] };
     }
+    if (!p.ok && p.midiaAusente) return { ok: false, motivo: 'ERRO', codigo: CODIGO_MIDIA_AUSENTE, mensagem: MENSAGEM_MIDIA_AUSENTE, erros: [] };
     if (!p.ok) return erroPacote(p.erros);
     // O id é o que o principal registrou ao abrir; o do pacote só vale se ainda não havia um (revisão do M1-T12, M1).
     const idProjeto = registro.idProjeto(id, r.idConteudo) ?? p.valor.manifesto.id;
     const marca = dep.antesDeGravar?.(idProjeto) ?? 0;
     const s = paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
+    // Fora `PACOTE_INVALIDO`, o pacote passou pelo empacotamento (conferido): as mídias dele viram as conhecidas, mesmo
+    // que a gravação no disco tenha falhado depois (revisão do M2-T01, F1).
+    if (s.ok || (s.motivo === 'ERRO' && s.codigo !== 'PACOTE_INVALIDO')) registro.trocarMidias(id, r.idConteudo, p.valor.midias);
     if (s.ok) await dep.aoGravar?.(destino, idProjeto, r.idConteudo, marca);
     return s;
   };
@@ -158,7 +166,7 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     if (!s.ok) return s;
     await dep.aoGravar?.(destino, idProjeto, r.idConteudo, marca);
     // O arquivo novo foi gravado pelo principal com este id.
-    return { ...s, identificador: registro.registrar(destino, r.idConteudo, idProjeto) };
+    return { ...s, identificador: registro.registrar(destino, r.idConteudo, idProjeto, p.valor.midias) };
   };
 
   const fechar: Manipulador = async (r, argumentos): Promise<void> => {

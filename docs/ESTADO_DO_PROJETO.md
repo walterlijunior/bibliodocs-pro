@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — preparação do M2 concluída (ADR-0007 ACEITO; tarefas M2-T01..T12 no plano; decisões delegadas registradas).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 pronto para começar pelo **M2-T01**.
+**Última atualização:** 2026-10-17 — M2-T01 concluído (empacotador em worker, mídias uma vez; DES-01 dentro das metas).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔).
 
 ## Etapas
 
@@ -15,15 +15,16 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔, T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T12 no plano, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T02–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T01** (medição do instantâneo e do salvamento com 25 MB e 150 páginas, R-M1-01). T02, T03 e T10 podem vir em
-   seguida ou em paralelo (arquivos diferentes).
+1. **M2-T02** (tipos de trabalho no domínio), **M2-T03** (numeração e operações sobre a árvore de seções) ou
+   **M2-T10** (backups rotativos e `.bak` ao excluir/renomear): tocam arquivos diferentes e podem vir em qualquer
+   ordem. Recomendado: T03, que destrava o T04 → T05 → T06 (editor).
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Decisões da preparação do M2 (2026-10-17, delegadas pelo usuário à sessão principal)
@@ -54,6 +55,21 @@ O usuário escreveu: "deixo essas decisões para você".
   de reparo ou diferença em relação ao PDF do LibreOffice.
 
 ## Instruções para etapas futuras
+- Desempenho (M2-T01):
+  - Todo `salvarProjeto` do principal passa pelo empacotador (`worker_threads`, `src/principal/empacotador.ts`):
+    chamada nova de gravação no principal → `salvar` de `registrar.ts` (com `{ empacotar }`), nunca `salvarProjeto`
+    direto. Nada de `empacotarProjeto` síncrono no principal.
+  - Projeto entregue ao renderer com identificador → registrar com as mídias **conferidas**
+    (`registro.registrar(caminho, dono, id, midias)`), senão o primeiro salvar paga um `MIDIA_AUSENTE` e o reenvio de
+    tudo. Canal novo que grava pacote de um identificador → `PacoteEnvio` + `lerPacoteTransferivel(v, registro.midias(...)
+    ?? new Map())` + `trocarMidias` **só depois** de o empacotamento dar certo (revisão F1). Nunca guardar bytes
+    vindos do renderer antes disso.
+  - **M2-T06 (editor):** medir de novo com `e2e/desempenho.spec.ts` digitando no editor (trocar o campo do título pelo
+    editor de uma seção do documento grande). Se o p95 passar de 50 ms, o próximo passo é mandar só as seções alteradas
+    (o principal ainda desserializa o `documento.json` inteiro, ~5 ms com 150 páginas).
+  - Memória perto da meta (pico 700–760 MB de 800): rever no M5, com figuras de verdade.
+  - Worker dentro do ASAR: conferido com o `app.asar` do `dist:pasta` (E2E-01 e E2E-07 com o `out/` escondido). Na
+    próxima fumaça do pacote (Etapa 7 ou troca de Electron), conferir também no `.exe` com os fuses.
 - Fechamento do M1 (M1-T15):
   - Revisão do marco em `docs/relatorios/REVISAO_M1.md` (R-M1-01..13, checklist C-1..C-22 final, licenças,
     desempenho, onde o texto do usuário fica no disco). Riscos novos R36 e R37.
@@ -265,4 +281,5 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (M1-T13) | E2E pela sessão principal com `@playwright/test` 1.64.1 (dependência local informada) no Electron 44.8.0: FUN-01 (reabrir idêntico, também após reiniciar; SHA-256 do arquivo igual), RNF-04 (`taskkill /F /T`, instantâneo 1992 ms, Recuperar, "Abrir o arquivo salvo"), UI-01 (faixas de 1024×700 a maximizada em 100/125/150%), zero rede pelo net-log e SEG-03. O net-log achou WPAD + checagem de IPv6 ao iniciar → `no-proxy-server` no principal. `engenheiro-qualidade`: 1 Alta (travessia com alvo inexistente), 4 Média (perfil do Chromium real, órfão, laços vazios, corrida no `taskkill`) e 7 Baixa; corrigidas, exceto 3 Baixas aceitas. 4/5 mutações (a de `..` é inalcançável pela página). `verificar:tudo` 712/712 + E2E 8/8, 0 vulnerabilidades; repetições 24/24 e 16/16; kit 0 falhas. Commit `c93933f` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M1-T14) | Empacotamento de fumaça pela sessão principal com electron-builder 26.15.3 (dependência local informada): NSIS por usuário, fuses e ASAR, `electronDist` local, `afterPack` e gancho NSIS. Instalador 111 841 150 bytes (< 200 MB, RNF-08), instalado 390 MB. `revisor-seguranca`: 0 Alta, A-1 (Média, `--remote-debugging-port` abria CDP no pacote) corrigido com recusa de argumentos; `elevate.exe`, comentários e afterPack corrigidos; assinatura, NSIS legado e cache para a Etapa 7. Instalar/desinstalar autorizado pelo usuário: 1.ª rodada achou a cópia de 112 MB em `bibliodocs-pro-updater` → corrigida, 2.ª limpa. Fumaça CDP 11/11 (antes do A-1), negativa 6/6; ASAR adulterado recusado. O Controle Inteligente de Aplicativos bloqueou o `.exe` do `dist:fumaca` (R34). `verificar:tudo` 741/741 + E2E 8/8, 0 vulnerabilidades; 10/10 mutações; kit 0 falhas (busca de segredos passa a ignorar `node_modules`/builds). Depois, a pedido do usuário: ícone próprio (pequi) e decisão delegada de nunca apagar dados ao desinstalar (742/742). Commits `1efbb74` e `e02ae4f` autorizados pelo usuário. |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M2-T01) | Desempenho pela sessão principal: gerador do documento grande (≈150 páginas, 25 MiB) e E2E-07 no Electron 44.8.0. Medido antes: manipuladores do instantâneo e do salvar 224–292 ms síncronos no principal, travadas de 244–406 ms, tecla de até 328 ms. Corrigido com empacotador em `worker_threads`, mídias uma vez por identificador (`PacoteEnvio`, `MIDIA_AUSENTE` com reenvio) e `SharedArrayBuffer`; depois: p95 da tecla 6–12 ms, travada ≤ ~60 ms, abrir 0,45–1,43 s, pico 700–760 MB. `revisor-seguranca`: 0 Alta, F1/F2 (Médias: mídia guardada antes da conferência, acúmulo) corrigidos, comentários F3–F5 corrigidos, F6/F7 documentados e guarda da tecla mais lenta < 150 ms; S1 conferido com o `app.asar` do `dist:pasta`. 13/14 mutações (1 equivalente). `verificar:tudo` 770/770 + E2E 9/9, 0 vulnerabilidades. Sem commit (aguarda autorização). |
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |

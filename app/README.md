@@ -28,7 +28,7 @@ pré-textuais) chega no M2, e a exportação DOCX no M3. Relatório do marco: `d
 | `npm test` | `vitest run` (testes em `tests/`) |
 | `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --omit=dev --audit-level=high`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
 | `npm run esquemas:gerar` | Regrava o JSON Schema de `esquemas/projeto-v1/` a partir dos esquemas zod. Rode depois de mudar `src/dominio/esquemas/projeto-v1.ts`; o `verificar` falha enquanto o arquivo versionado estiver diferente |
-| `npm run test:e2e` | `build` + E2E do Playwright no Electron real (`e2e/`): fluxo do trabalho, recuperação após `taskkill`, casca em 3 escalas, zero rede (net-log) e defesas do runtime. Abre janelas na tela (~25 s). Dados, biblioteca e perfil do Chromium ficam numa pasta temporária apagada no fim; roda mesmo com o app aberto |
+| `npm run test:e2e` | `build` + E2E do Playwright no Electron real (`e2e/`): fluxo do trabalho, recuperação após `taskkill`, casca em 3 escalas, zero rede (net-log), defesas do runtime e desempenho com o documento grande (150 páginas, 25 MiB). Abre janelas na tela (~50 s). Dados, biblioteca e perfil do Chromium ficam numa pasta temporária apagada no fim; roda mesmo com o app aberto |
 | `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
 | `npm run dist` | `build` + instalador NSIS por usuário em `release/BiblioDocsPro-Instalador-<versão>.exe` (M1-T14). Configuração em `electron-builder.config.cjs`; ganchos em `empacotamento/`. Sem assinatura até a Etapa 7: **não distribuir** |
 | `npm run dist:pasta` | Igual, mas só a pasta `release/win-unpacked/` (sem instalador) |
@@ -122,11 +122,13 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | Sessão de edição (fila única de gravação, automático ~30 s depois da última alteração, estado no visor) | `src/aplicacao/servicos/sessao-trabalho.ts`, `src/interface/escrever/` | `tests/sessao-trabalho.test.ts` | ADR-0004, adendo M1-T11 |
 | Recuperação (instantâneo ~2 s, trava de sessão, restos de gravação, `recuperacao-antigos`) | `src/persistencia/recuperacao/`, `src/principal/ipc/manipuladores-recuperacao.ts` | `tests/recuperacao.test.ts` | ADR-0004, adendo M1-T12 |
 | E2E no Electron real | `e2e/` (apoio em `e2e/apoio/app.ts`) | ver abaixo | ADR-0006, adendo M1-T13 |
+| Empacotador fora da thread do principal (`worker_threads` de vida longa) e mídias uma vez por identificador (`PacoteEnvio`, bytes guardados no `RegistroProjetos` em `SharedArrayBuffer`) | `src/principal/empacotador.ts`, `src/principal/ipc/empacotador-isolado.ts`, `src/principal/ipc/registro-projetos.ts` | `tests/empacotador.test.ts`, `tests/midias-uma-vez.test.ts`, `e2e/desempenho.spec.ts` | ADR-0004, adendo M2-T01 |
+| Documento grande de medição (≈150 páginas, 25 MiB de mídia, determinístico) | `tests/apoio/documento-grande.ts` | `tests/documento-grande.test.ts` | relatório do M2 (M2-T01) |
 | Empacotamento (NSIS por usuário, fuses, ASAR íntegro, recusa de chaves de linha de comando) | `electron-builder.config.cjs`, `empacotamento/`, `src/principal/seguranca/argumentos.ts` | `tests/empacotamento.test.ts`, `tests/seguranca-argumentos.test.ts` | ADR-0003, adendo M1-T14 |
 
-### Testes E2E (M1-T13)
+### Testes E2E (M1-T13; desempenho no M2-T01)
 
-`npm run test:e2e` roda 8 testes, um Electron por vez:
+`npm run test:e2e` roda 9 testes, um Electron por vez:
 
 | Arquivo | O que verifica | Casos da matriz |
 |---|---|---|
@@ -134,6 +136,7 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | `e2e/recuperacao.spec.ts` | Encerrar o processo com `taskkill /F /T` durante a edição, recuperar, salvar, segunda queda e "Abrir o arquivo salvo" | FUN-10 (RNF-04) |
 | `e2e/casca.spec.ts` | As quatro faixas da janela da largura mínima à maximizada, em 100%, 125% e 150% (3 testes); Ctrl+F, foco visível, sem marca de terceiros | UI-01, UI-02 |
 | `e2e/rede-e-seguranca.spec.ts` | Zero atividade de rede pelo net-log do Chromium; CSP, `eval`, navegação, `window.open`, travessia do `app://` e instância única | SEG-08, SEG-03 |
+| `e2e/desempenho.spec.ts` | Documento grande (150 páginas, 25 MiB): abrir < 3 s, p95 por tecla < 50 ms com instantâneos e Ctrl+S, travada do principal < 100 ms, memória < 800 MB. As medidas saem no console (`[M2-T01] ...`) e na anotação do teste | DES-01 (RNF-06, RNF-07) |
 
 Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um teste novo deve usar `criarAmbiente`,
 `abrirApp` e `fechar`/`matar` do apoio e conferir que `x.problemas` termina vazio (console, exceções e CSP).

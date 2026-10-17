@@ -2,18 +2,23 @@
 // API falsa e agendador manual: nenhuma espera real, nenhum Electron.
 import { describe, expect, it } from 'vitest';
 import {
+  ATRASO_INSTANTANEO_MS,
   ATRASO_SALVAMENTO_AUTOMATICO_MS,
   criarTrabalhoVazio,
   MENSAGEM_FALHA_INESPERADA,
+  CODIGO_MIDIA_AUSENTE,
   MENSAGEM_SEM_DESTINO,
+  paraEnvio,
   SessaoTrabalho,
   textoDoTitulo,
   tituloDoTexto,
   type ApiProjetos,
+  type PacoteEnvio,
   type PacoteSomenteLeituraTransferivel,
   type PacoteTransferivel,
   type ProjetoAberto,
   type ResultadoSalvar,
+  type ResultadoInstantaneo,
   type ResultadoSalvarComo,
 } from '../src/aplicacao';
 
@@ -45,8 +50,8 @@ const andar = async () => {
   for (let i = 0; i < 10; i++) await Promise.resolve();
 };
 
-function montar(opcoes: { salvar?: (id: string, p: PacoteTransferivel) => Promise<ResultadoSalvar>; salvarComo?: (p: PacoteTransferivel) => Promise<ResultadoSalvarComo> } = {}) {
-  const chamadas = { salvar: [] as { id: string; pacote: PacoteTransferivel }[], salvarComo: 0, fechar: [] as string[], aoSalvar: 0 };
+function montar(opcoes: { salvar?: (id: string, p: PacoteEnvio) => Promise<ResultadoSalvar>; salvarComo?: (p: PacoteTransferivel) => Promise<ResultadoSalvarComo> } = {}) {
+  const chamadas = { salvar: [] as { id: string; pacote: PacoteEnvio }[], salvarComo: 0, fechar: [] as string[], aoSalvar: 0 };
   const agendados: { acao: () => void; ms: number; cancelado: boolean }[] = [];
   let relogio = Date.UTC(2026, 9, 16, 13, 0, 0);
   const api: Pick<ApiProjetos, 'salvar' | 'salvarComo' | 'fechar'> = {
@@ -448,5 +453,66 @@ describe('sessão de edição: Salvar como, arquivo sem .bdp e versão futura', 
     sair();
     sessao.alterarTitulo('X');
     expect(avisos).toBe(1);
+  });
+});
+
+describe('mídias uma vez (M2-T01)', () => {
+  const M = { sha256: 'c'.repeat(64), bytes: new Uint8Array([1, 2, 3]) };
+  const N = { sha256: 'd'.repeat(64), bytes: new Uint8Array([4]) };
+  const comMidias = (identificador: string | null = ID) => projeto({ identificador, pacote: { ...pacote(), midias: [M] } });
+  const AUSENTE: ResultadoSalvar = { ok: false, motivo: 'ERRO', codigo: CODIGO_MIDIA_AUSENTE, mensagem: 'faltou', erros: [] };
+  const OK_SALVAR: ResultadoSalvar = { ok: true, nomeArquivo: 'Trabalho.bdp', avisos: [] };
+
+  it('paraEnvio troca pela chave só as mídias conhecidas', () => {
+    const p = { ...pacote(), midias: [M, N] };
+    expect(paraEnvio(p, new Set([M.sha256])).midias).toEqual([{ sha256: M.sha256 }, N]);
+    expect(p.midias).toEqual([M, N]); // não altera o pacote da sessão
+  });
+
+  it('salvar manda só a chave das mídias do arquivo aberto; MIDIA_AUSENTE → reenvia com os bytes uma vez', async () => {
+    const respostas = [AUSENTE, OK_SALVAR, OK_SALVAR];
+    const { sessao, chamadas } = montar({ salvar: async () => respostas.shift()! });
+    sessao.abrir(comMidias());
+    sessao.alterarTitulo('Um');
+    expect(await sessao.salvar()).toBe(true);
+    expect(chamadas.salvar.map((c) => c.pacote.midias)).toEqual([[{ sha256: M.sha256 }], [M]]);
+    expect(salvamento(sessao)).toMatchObject({ tipo: 'salvo' });
+    sessao.alterarTitulo('Dois');
+    expect(await sessao.salvar()).toBe(true);
+    expect(chamadas.salvar[2]!.pacote.midias).toEqual([{ sha256: M.sha256 }]);
+  });
+
+  it('arquivo sem identificador: o "Salvar como…" leva os bytes, e o identificador novo passa a receber só as chaves', async () => {
+    const { sessao, chamadas } = montar();
+    sessao.abrir(comMidias(null));
+    sessao.alterarTitulo('Um');
+    expect(await sessao.salvarComo()).toBe(true);
+    sessao.alterarTitulo('Dois');
+    expect(await sessao.salvar()).toBe(true);
+    expect(chamadas.salvar).toEqual([{ id: ID_NOVO, pacote: expect.objectContaining({ midias: [{ sha256: M.sha256 }] }) }]);
+  });
+
+  it('instantâneo: MIDIA_AUSENTE → reenvia com os bytes; o seguinte vai só com a chave', async () => {
+    const enviados: PacoteEnvio[] = [];
+    const respostas: ResultadoInstantaneo[] = [{ ok: false, codigo: 'MIDIA_AUSENTE' }, { ok: true }, { ok: true }];
+    const agendados: (() => void)[] = [];
+    const sessao = new SessaoTrabalho({
+      api: { salvar: async () => OK_SALVAR, salvarComo: async () => ({ ok: false, motivo: 'CANCELADO' }), fechar: async () => undefined },
+      agora: () => new Date(),
+      agendar: (acao, ms) => {
+        if (ms === ATRASO_INSTANTANEO_MS) agendados.push(acao);
+        return () => undefined;
+      },
+      instantaneo: async (_id, p) => (enviados.push(p), respostas.shift()!),
+    });
+    sessao.abrir(comMidias());
+    sessao.alterarTitulo('Um');
+    agendados.shift()!();
+    await andar();
+    sessao.alterarTitulo('Dois');
+    agendados.shift()!();
+    await andar();
+    expect(enviados.map((p) => p.midias)).toEqual([[{ sha256: M.sha256 }], [M], [{ sha256: M.sha256 }]]);
+    expect(sessao.obterEstado().avisos).toEqual([]);
   });
 });

@@ -546,3 +546,46 @@ B3 incorporados abaixo). Não mudam o resultado do documento. Código: `app/src/
   lado de arquivos abertos fora da pasta da biblioteca não são procurados (B4); o empacotamento do instantâneo roda no
   processo principal (com 25 MB, estimado pela medição do M1-T06 em 0,2–0,8 s; não medido para o instantâneo) — mover
   para um processo à parte quando o editor do M2 produzir documentos grandes.
+
+## Adendo técnico — desempenho do instantâneo e do salvamento (M2-T01, 2026-10-17)
+
+Pendência R-M1-01 / R36 (resíduo do adendo do M1-T12: "o empacotamento do instantâneo roda no processo principal").
+Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/documento-grande.ts`: ≈150 páginas estimadas,
+469 parágrafos, 78 seções, 25 mídias de 1 MiB incompressíveis) pelo E2E `app/e2e/desempenho.spec.ts`
+[VERIFICADO 2026-10-17]:
+
+- **Antes:** o manipulador do instantâneo e o do salvar ficavam 230–290 ms síncronos no principal (o
+  `empacotarProjeto`: zod, SHA-256 das mídias, ZIP, releitura), mais ~50 ms para desserializar os 25 MB que chegavam
+  pelo IPC a cada ~2 s. Travadas do principal de 244 a 406 ms por instantâneo; uma tecla chegou a 275 ms. No Electron,
+  o JS do principal roda na thread que encaminha o teclado ao renderer: travar o principal atrasa a digitação.
+- **Decisões:**
+  1. **Empacotador num `worker_threads` de vida longa** (`src/principal/empacotador.ts`; cliente em
+     `src/principal/ipc/empacotador-isolado.ts`), não num `utilityProcess`: o conteúdo é do próprio app e já foi
+     validado no principal (não há o que isolar), e o worker devolve os bytes do `.bdp` por transferência, sem cópia (o
+     `utilityProcess.postMessage` não transfere `ArrayBuffer`). Um pedido por vez, na ordem de chegada; falha do worker
+     (erro, saída, resposta fora do protocolo, 60 s sem resposta) vira `ok: false` com mensagem para os pendentes, e o
+     próximo pedido cria outro worker. Usado por todo `salvarProjeto` do principal (salvar, "Salvar como…", criar e
+     duplicar da biblioteca, restaurar) e pelo instantâneo. No instantâneo, o empacotamento entra na fila da
+     recuperação (ordem de chegada, como quando era síncrono). Carregar o worker de dentro do ASAR foi conferido com o
+     `app.asar` do `dist:pasta` (E2E-01 e E2E-07 passaram com o `out/` escondido), no Electron do projeto; com os fuses
+     do `.exe`, só na próxima fumaça do pacote (R34).
+  2. **Mídias uma vez por identificador:** contrato `PacoteEnvio` (`salvar` e `instantaneo`), em que cada mídia vai
+     com os bytes ou só como `{ sha256 }`. O `RegistroProjetos` guarda, por identificador, os bytes das mídias do último
+     pacote **conferido**: o lido do arquivo ao abrir, o do "Salvar como…" e da recuperação, ou o que passou pelo
+     empacotamento numa gravação (sha256, tamanho, tipo e declaração no manifesto). Nada do renderer entra antes da
+     conferência, e a mídia que sai do pacote sai do registro (revisão do M2-T01, F1 e F2).
+     Referida desconhecida → código `MIDIA_AUSENTE` (não é recusa da chamada) e a `SessaoTrabalho` reenvia o mesmo
+     pedido com os bytes de todas. O `salvarComo` continua exigindo os bytes. Uma mídia removida e referida de novo
+     (desfazer) recebe `MIDIA_AUSENTE` e volta com os bytes.
+  3. **Mídias guardadas em `SharedArrayBuffer`** (uma cópia, ao guardar): o `postMessage` ao worker não copia os
+     25 MB a cada pedido (medido no Electron: 17–24 ms → ~0 ms). Só o principal e o worker veem essa memória.
+- **Depois** (5 rodadas sem amostrar a memória durante a digitação): p95 por tecla 6–10 ms, tecla mais lenta
+  11–30 ms; no máximo uma travada do principal acima de 45 ms (48–59 ms, no primeiro instantâneo, com o JIT ainda
+  frio). Abrir pela Biblioteca 0,45–1,4 s (meta 3 s). Memória somada dos processos com instantâneo e salvamento
+  durante as amostras: pico de 700–760 MB (meta 800 MB; o `workingSetSize` conta as páginas compartilhadas em cada
+  processo, então superestima). Ver o relatório do M2.
+- **Resíduos aceitos:** a memória fica perto da meta (o renderer, o principal e o worker têm cópias das mídias, e o
+  resumo da biblioteca relê o arquivo num processo leitor depois de salvar) — rever quando o M5 trouxer figuras de
+  verdade; o principal ainda desserializa o `documento.json` a cada instantâneo (~5 ms com 150 páginas), o que cresce
+  com o texto — se o editor do M2-T06 passar da meta, mandar só as seções alteradas; mídia removida fica na memória até
+  fechar o trabalho. Corrigido na revisão: mídia removida sai do registro no envio aceito seguinte.

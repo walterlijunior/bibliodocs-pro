@@ -21,6 +21,7 @@ export {
   lerArquivoLimitado,
   nomeBackupMigracao,
   salvarProjeto,
+  type Empacotar,
   type OpcoesAbertura,
   type ResultadoAbertura,
   type ResultadoLeituraArquivo,

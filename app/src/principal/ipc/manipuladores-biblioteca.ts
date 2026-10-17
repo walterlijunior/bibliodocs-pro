@@ -292,7 +292,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       return {
         ok: true,
         projeto: {
-          identificador: dep.projetos.registrar(destino, r.idConteudo, novo.manifesto.id),
+          identificador: dep.projetos.registrar(destino, r.idConteudo, novo.manifesto.id, pacote.midias),
           nomeArquivo: nome,
           pacote: paraTransferivel(pacote),
           avisos: [],

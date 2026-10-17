@@ -7,6 +7,14 @@
  *
  * A chave comparável do caminho é calculada uma vez, ao registrar, e um índice por (dono, chave) mantém `idPara` em
  * tempo constante: a lista da biblioteca chama `idPara` para cada arquivo (até 5 000; revisão do M1-T09, A1).
+ *
+ * Mídias conhecidas (M2-T01, R36): cada identificador de projeto guarda os bytes das mídias do último pacote
+ * **conferido** daquele trabalho (lido do arquivo ao abrir, ou empacotado com sucesso numa gravação, o que confere
+ * sha256, tamanho, tipo e declaração no manifesto). O renderer manda só a chave delas no instantâneo e no salvar, em
+ * vez de dezenas de MB a cada ~2 s. Nada que o renderer mandou entra antes da conferência (revisão do M2-T01, F1), e
+ * uma mídia que saiu do pacote sai daqui (F2): se o renderer ainda a referir (desfazer), recebe `MIDIA_AUSENTE` e
+ * reenvia com os bytes. Os bytes ficam num `SharedArrayBuffer` (uma cópia, ao guardar): o empacotador (worker) os lê
+ * sem que o principal copie 25 MB a cada pedido (medido: 17–24 ms → ~0 ms).
  */
 import { randomBytes } from 'node:crypto';
 import { chaveCaminho } from '../../persistencia';
@@ -20,9 +28,26 @@ interface Entrada {
    * nunca o que vem do renderer, para nomear as pastas de instantâneos (revisão do M1-T12, M1).
    */
   idProjeto: string | null;
+  /** Bytes das mídias deste trabalho que o principal já tem, pela chave sha256. */
+  midias: Map<string, Uint8Array>;
 }
 
 const chaveDono = (dono: number, chave: string) => `${dono}\u0000${chave}`;
+
+/** Os mesmos bytes em memória compartilhável com os workers (sem cópia se já estiverem). */
+function compartilhado(bytes: Uint8Array): Uint8Array {
+  if (bytes.buffer instanceof SharedArrayBuffer) return bytes;
+  const copia = new Uint8Array(new SharedArrayBuffer(bytes.byteLength));
+  copia.set(bytes);
+  return copia;
+}
+
+/** As mídias conferidas, reaproveitando a cópia compartilhada das que já estavam guardadas. */
+function guardadas(atuais: ReadonlyMap<string, Uint8Array>, midias: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
+  const r = new Map<string, Uint8Array>();
+  for (const [sha256, bytes] of midias) r.set(sha256, atuais.get(sha256) ?? compartilhado(bytes));
+  return r;
+}
 
 export class RegistroProjetos {
   readonly #entradas = new Map<string, Entrada>();
@@ -40,11 +65,11 @@ export class RegistroProjetos {
     if (this.#porDono.get(k) === id) this.#porDono.delete(k);
   }
 
-  registrar(caminho: string, dono: number, idProjeto: string | null = null): string {
+  registrar(caminho: string, dono: number, idProjeto: string | null = null, midias: ReadonlyMap<string, Uint8Array> = new Map()): string {
     let id = this.#gerar();
     while (this.#entradas.has(id)) id = this.#gerar();
     const chave = chaveCaminho(caminho);
-    this.#entradas.set(id, { caminho, chave, dono, idProjeto });
+    this.#entradas.set(id, { caminho, chave, dono, idProjeto, midias: guardadas(new Map(), midias) });
     this.#porDono.set(chaveDono(dono, chave), id);
     return id;
   }
@@ -65,6 +90,21 @@ export class RegistroProjetos {
   idProjeto(id: string, dono: number): string | null {
     const e = this.#entradas.get(id);
     return e && e.dono === dono ? e.idProjeto : null;
+  }
+
+  /** Mídias conhecidas do identificador, se ele existe e pertence a `dono`. */
+  midias(id: string, dono: number): ReadonlyMap<string, Uint8Array> | null {
+    const e = this.#entradas.get(id);
+    return e && e.dono === dono ? e.midias : null;
+  }
+
+  /**
+   * As mídias conhecidas do identificador passam a ser as de um pacote **já conferido** pelo empacotamento (nunca as
+   * de um pacote só recebido do renderer).
+   */
+  trocarMidias(id: string, dono: number, midias: ReadonlyMap<string, Uint8Array>): void {
+    const e = this.#entradas.get(id);
+    if (e?.dono === dono) e.midias = guardadas(e.midias, midias);
   }
 
   /** Se algum identificador (de qualquer janela) aponta para o caminho. */

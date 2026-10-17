@@ -10,6 +10,7 @@
  */
 export {
   CANAIS_PROJETOS,
+  CODIGO_MIDIA_AUSENTE,
   type ApiBiblioDocs,
   type ApiProjetos,
   type AvisoProjeto,
@@ -17,7 +18,9 @@ export {
   type ErroProjeto,
   type FalhaSalvar,
   type IdentificadorProjeto,
+  type MidiaReferida,
   type MidiaTransferivel,
+  type PacoteEnvio,
   type PacoteSomenteLeituraTransferivel,
   type PacoteTransferivel,
   type ProjetoAberto,
@@ -60,6 +63,7 @@ export {
   MENSAGEM_FALHA_INESPERADA,
   MENSAGEM_FALHA_INSTANTANEO,
   MENSAGEM_SEM_DESTINO,
+  paraEnvio,
   SessaoTrabalho,
   textoDoTitulo,
   tituloDoTexto,

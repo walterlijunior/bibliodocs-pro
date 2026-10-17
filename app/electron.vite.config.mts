@@ -13,9 +13,11 @@ export default defineConfig({
       outDir: 'out/principal',
       rollupOptions: {
         // leitor-projeto: processo utilitário que abre os .bdp fora do principal (M1-T08).
+        // empacotador: worker que empacota o .bdp fora da thread do principal (M2-T01).
         input: {
           index: resolve(raiz, 'src/principal/index.ts'),
           'leitor-projeto': resolve(raiz, 'src/principal/leitor-projeto.ts'),
+          empacotador: resolve(raiz, 'src/principal/empacotador.ts'),
         },
       },
     },

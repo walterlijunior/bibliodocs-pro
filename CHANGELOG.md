@@ -6,6 +6,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T01: desempenho do instantâneo de recuperação e do salvamento com o documento grande (R-M1-01, R36).
+  - `app/tests/apoio/documento-grande.ts`: gerador determinístico de um trabalho de ≈150 páginas com 25 MiB de mídia,
+    para o M3 e a Etapa 6.
+  - `app/e2e/desempenho.spec.ts` (E2E-07, DES-01): abrir, digitar com instantâneos e Ctrl+S, travadas do principal e
+    memória no Electron real.
+  - Medido antes: travadas de 244–406 ms no processo principal a cada instantâneo, tecla de até 328 ms. Corrigido:
+    empacotamento num `worker_threads` (`src/principal/empacotador.ts`), mídias mandadas uma vez por trabalho aberto
+    (`PacoteEnvio`, código `MIDIA_AUSENTE` com reenvio) e guardadas em `SharedArrayBuffer`. Depois: p95 da tecla
+    6–12 ms, no máximo ~60 ms de travada, abrir < 1,5 s, pico de 700–760 MB (meta 800).
+  - Revisão do `revisor-seguranca`: 0 Alta; F1 e F2 (Médias: mídia guardada antes da conferência, acúmulo sem
+    limite) corrigidos — o principal só guarda as mídias do último pacote conferido.
+  - Adendo M2-T01 no ADR-0004; relatório novo `docs/relatorios/M2_RELATORIO_MARCO.md`.
+
 - Etapa 5, preparação do M2.
   - `docs/decisoes/ADR-0007-editor-de-texto-rico.md` (ACEITO, decisão delegada pelo usuário): ProseMirror puro, um
     editor por seção, colagem própria sem `innerHTML`, histórico único texto + estrutura, componentes próprios.

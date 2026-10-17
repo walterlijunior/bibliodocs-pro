@@ -44,6 +44,22 @@ export interface PacoteTransferivel {
   miniatura?: Uint8Array;
 }
 
+/** Mídia que o principal já tem para o identificador (M2-T01): vai só a chave, sem os bytes. */
+export interface MidiaReferida {
+  sha256: string;
+}
+
+/**
+ * Pacote enviado para gravar no arquivo de um identificador (`salvar` e o instantâneo de recuperação): cada mídia vai
+ * com os bytes ou só referida. O principal guarda os bytes das mídias de cada identificador (lidas ao abrir ou
+ * recebidas antes); se faltar uma referida, a resposta traz o código `MIDIA_AUSENTE` e o renderer reenvia com os
+ * bytes de todas. Evita atravessar dezenas de MB pelo IPC a cada ~2 s (R36).
+ */
+export type PacoteEnvio = Omit<PacoteTransferivel, 'midias'> & { midias: (MidiaTransferivel | MidiaReferida)[] };
+
+/** Código de `salvar` e do instantâneo quando falta ao principal uma mídia referida. */
+export const CODIGO_MIDIA_AUSENTE = 'MIDIA_AUSENTE';
+
 /** Projeto de versão futura: o manifesto mantém a versão do arquivo, e nada no contrato aceita gravá-lo. */
 export type PacoteSomenteLeituraTransferivel = Omit<PacoteTransferivel, 'manifesto'> & {
   manifesto: Omit<Manifesto, 'versaoFormato'> & { versaoFormato: number };
@@ -107,7 +123,7 @@ export interface ApiProjetos {
   /** Mostra o diálogo de abrir e lê o arquivo escolhido. */
   abrir(): Promise<ResultadoAbrir>;
   /** Grava no arquivo de `identificador` (aberto ou salvo antes por esta janela). */
-  salvar(identificador: IdentificadorProjeto, pacote: PacoteTransferivel): Promise<ResultadoSalvar>;
+  salvar(identificador: IdentificadorProjeto, pacote: PacoteEnvio): Promise<ResultadoSalvar>;
   /** Mostra o diálogo de salvar e grava no destino escolhido. */
   salvarComo(pacote: PacoteTransferivel): Promise<ResultadoSalvarComo>;
   /** Esquece o identificador (fechar o trabalho). Identificador desconhecido é ignorado. */

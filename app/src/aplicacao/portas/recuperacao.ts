@@ -12,7 +12,7 @@
  * Mesmas regras das outras portas: nada de caminhos no renderer (cada oferta tem um `IdentificadorOferta` opaco, que
  * vale só para a janela que listou); nenhuma função lança por erro esperado.
  */
-import type { IdentificadorProjeto, PacoteTransferivel, ProjetoAberto, ResultadoAbrir } from './projetos';
+import type { IdentificadorProjeto, PacoteEnvio, ProjetoAberto, ResultadoAbrir } from './projetos';
 
 export const CANAIS_RECUPERACAO = {
   instantaneo: 'bibliodocs:recuperacao:instantaneo',
@@ -46,7 +46,8 @@ export interface OfertaRecuperacao {
   arquivoSalvoExiste: boolean;
 }
 
-export type ResultadoInstantaneo = { ok: true } | { ok: false; codigo: 'NAO_ABERTO' | 'PACOTE_INVALIDO' | 'FALHA_DISCO' };
+/** `MIDIA_AUSENTE`: o principal não tem uma mídia referida; reenviar com os bytes (M2-T01). */
+export type ResultadoInstantaneo = { ok: true } | { ok: false; codigo: 'NAO_ABERTO' | 'PACOTE_INVALIDO' | 'FALHA_DISCO' | 'MIDIA_AUSENTE' };
 
 export interface ResultadoListarRecuperacao {
   ofertas: OfertaRecuperacao[];
@@ -65,7 +66,7 @@ export type ResultadoRecuperar =
 
 export interface ApiRecuperacao {
   /** Grava o instantâneo de recuperação do trabalho aberto em `identificador`. */
-  instantaneo(identificador: IdentificadorProjeto, pacote: PacoteTransferivel): Promise<ResultadoInstantaneo>;
+  instantaneo(identificador: IdentificadorProjeto, pacote: PacoteEnvio): Promise<ResultadoInstantaneo>;
   listar(): Promise<ResultadoListarRecuperacao>;
   /** Abre a versão recuperável (instantâneo) ou restaura a cópia no arquivo do usuário e a abre (temporário, `.bak`). */
   recuperar(oferta: IdentificadorOferta): Promise<ResultadoRecuperar>;

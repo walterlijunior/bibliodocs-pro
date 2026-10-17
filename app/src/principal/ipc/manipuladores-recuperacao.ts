@@ -54,6 +54,7 @@ import {
   promoverConjunto,
   reservarInstantaneos,
   SISTEMA_ARQUIVOS_NODE,
+  type Empacotar,
   type OpcoesGravacao,
   type PacoteProjeto,
   type PastasRecuperacao,
@@ -63,7 +64,7 @@ import {
   type SistemaArquivos,
 } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
-import { lerIdentificador, lerPacoteTransferivel } from './argumentos';
+import { lerIdentificador, lerPacoteTransferivel, mapaMidias } from './argumentos';
 import { criarConferencia, criarFila, type Manipulador } from './chamada';
 import { respostaAbrir } from './manipuladores-projetos';
 import type { RespostaLeitor } from './protocolo-leitor';
@@ -82,6 +83,8 @@ export interface DependenciasRecuperacao {
   /** Resumo isolado (processo leitor), para conferir se cada arquivo abre. */
   resumir: Resumir;
   salvar: (destino: string, pacote: PacoteProjeto) => Promise<ResultadoSalvamento>;
+  /** Empacotamento do instantâneo; o principal passa o do worker (M2-T01). Padrão: `empacotarProjeto` aqui mesmo. */
+  empacotar?: Empacotar;
   /** PID deste processo (fica na trava; os temporários dele não são restos). */
   pid: number;
   agora: () => Date;
@@ -119,6 +122,7 @@ interface OfertaInterna {
 
 export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   const fs = dep.fs ?? SISTEMA_ARQUIVOS_NODE;
+  const empacotar = dep.empacotar ?? empacotarProjeto;
   const log = dep.log ?? ((m: string) => console.warn(m));
   const op = { fs, ...(dep.gravacao ? { gravacao: dep.gravacao } : {}) };
   const { pastas } = dep;
@@ -339,16 +343,21 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     const canal = CANAIS_RECUPERACAO.instantaneo;
     conferir(canal, r, argumentos, 2);
     const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador');
-    const p = lerPacoteTransferivel(argumentos[1]);
+    const p = lerPacoteTransferivel(argumentos[1], dep.projetos.midias(id, r.idConteudo) ?? new Map());
     if (!p.ok && p.recusado) return recusarArgumento(canal, `pacote (${p.motivo})`);
     if (dep.projetos.caminho(id, r.idConteudo) === null) return { ok: false, codigo: 'NAO_ABERTO' };
-    if (!p.ok) return { ok: false, codigo: 'PACOTE_INVALIDO' };
+    if (!p.ok) return { ok: false, codigo: p.midiaAusente ? 'MIDIA_AUSENTE' : 'PACOTE_INVALIDO' };
     // O id que nomeia a pasta é o registrado pelo principal; pacote de outro id é recusado (revisão M1).
     const idProjeto = dep.projetos.idProjeto(id, r.idConteudo) ?? p.valor.manifesto.id;
     if (p.valor.manifesto.id !== idProjeto) return { ok: false, codigo: 'PACOTE_INVALIDO' };
-    const empacotado = empacotarProjeto(p.valor);
-    if (!empacotado.ok) return { ok: false, codigo: 'PACOTE_INVALIDO' };
+    const pacote = p.valor;
+    // Empacotar (no worker, M2-T01) dentro da fila: instantâneos e ganchos continuam na ordem de chegada, como quando o
+    // empacotamento era síncrono.
     return emFila(async () => {
+      const empacotado = await empacotar(pacote);
+      if (!empacotado.ok) return { ok: false, codigo: 'PACOTE_INVALIDO' };
+      // Conferido pelo empacotamento: as mídias dele viram as conhecidas (revisão do M2-T01, F1).
+      dep.projetos.trocarMidias(id, r.idConteudo, pacote.midias);
       // Fechado enquanto esperava a vez: não grava nada depois da limpeza do fechamento.
       const caminho = dep.projetos.caminho(id, r.idConteudo);
       if (caminho === null) return { ok: false, codigo: 'NAO_ABERTO' };
@@ -415,7 +424,7 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     const avisos: AvisoProjeto[] = [...lido.avisos];
     let identificador: string | null = null;
     if (original !== null && ehArquivoProjeto(basename(original))) {
-      if (await origemAceita(original, idProjeto)) identificador = dep.projetos.registrar(original, dono, idProjeto);
+      if (await origemAceita(original, idProjeto)) identificador = dep.projetos.registrar(original, dono, idProjeto, mapaMidias(lido.pacote.midias));
       else {
         avisos.push({
           caminho: 'arquivo',
@@ -468,7 +477,7 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       tipo: o.tipo,
       quando: o.publica.quando,
       projeto: {
-        identificador: dep.projetos.registrar(original, dono, pacote.valor.manifesto.id),
+        identificador: dep.projetos.registrar(original, dono, pacote.valor.manifesto.id, pacote.valor.midias),
         nomeArquivo: basename(original),
         pacote: lido.pacote,
         avisos: lido.avisos,

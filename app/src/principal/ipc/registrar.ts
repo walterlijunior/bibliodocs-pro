@@ -7,9 +7,10 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { CANAIS_BIBLIOTECA, CANAIS_PROJETOS, CANAIS_RECUPERACAO } from '../../aplicacao';
-import { salvarProjeto } from '../../persistencia';
+import { salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
+import { criarEmpacotador } from './empacotador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -57,6 +58,9 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   const dadosLocais = pastaDadosLocais();
   const pastaBackups = join(dadosLocais, 'backups');
   const ler = (caminho: string) => lerIsolado(entradaLeitor, { caminho, pastaBackups });
+  // Empacotar (SHA-256, ZIP, releitura) fora da thread do principal, que também encaminha o teclado (M2-T01, R36).
+  const empacotador = criarEmpacotador(join(__dirname, 'empacotador.js'));
+  const salvar = (destino: string, pacote: PacoteProjeto) => salvarProjeto(destino, pacote, { empacotar: empacotador.empacotar });
   // Criada depois (precisa do registro dos projetos e da pasta da biblioteca); os ganchos só rodam depois disso.
   let recuperacao: ReturnType<typeof criarManipuladoresRecuperacao> | null = null;
 
@@ -86,7 +90,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       return r.canceled || !r.filePath ? null : r.filePath;
     },
     ler,
-    salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    salvar,
     antesDeGravar: (idProjeto) => recuperacao?.antesDeGravar(idProjeto) ?? 0,
     aoGravar: async (caminho, idProjeto, dono, marca) => recuperacao?.aoGravar(caminho, idProjeto, dono, marca),
     aoFechar: async (caminho, dono) => recuperacao?.aoFechar(caminho, dono),
@@ -127,7 +131,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     enviarParaLixeira: (caminho) => shell.trashItem(caminho),
     resumir: (caminhos) => resumirIsolado(entradaLeitor, caminhos),
     ler,
-    salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    salvar,
     projetos: registro,
     gerarIdProjeto,
     agora: () => new Date(),
@@ -142,7 +146,8 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     pastaBiblioteca: () => biblioteca.pastaAtual(),
     ler,
     resumir: (caminhos) => resumirIsolado(entradaLeitor, caminhos),
-    salvar: (destino, pacote) => salvarProjeto(destino, pacote),
+    salvar,
+    empacotar: empacotador.empacotar,
     pid: process.pid,
     agora: () => new Date(),
   });

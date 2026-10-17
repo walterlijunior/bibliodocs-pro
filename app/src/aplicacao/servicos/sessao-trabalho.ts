@@ -15,19 +15,24 @@
  *   (`%LOCALAPPDATA%`, nunca o arquivo do usuário). É um limite, não uma espera que recomeça a cada tecla: quem digita
  *   sem parar também tem instantâneos. Um por vez; falha vira aviso, sem tirar o "Salvo"/"Alterações não salvas".
  *   Documento que demora a empacotar e gravar espaça os instantâneos (4 × a duração do último), para não ocupar o
- *   processo principal o tempo todo (revisão do M1-T12, M5).
+ *   processo principal o tempo todo (revisão do M1-T12, M5);
+ * - mídias uma vez (M2-T01, R36): o instantâneo e o salvar mandam só a chave das mídias que o principal já tem daquele
+ *   identificador (as do arquivo aberto e as enviadas antes com sucesso); se ele responder `MIDIA_AUSENTE`, o mesmo
+ *   pedido volta com os bytes de todas.
  *
  * Puro (sem DOM e sem Node): a API, o relógio e o agendador entram por dependência, e os testes rodam em Node com
  * agendador manual (tests/sessao-trabalho.test.ts).
  */
 import type { Inline, TipoTrabalhoId } from '../../dominio/modelo';
 import type { ApiRecuperacao } from '../portas/recuperacao';
-import type {
-  ApiProjetos,
-  IdentificadorProjeto,
-  PacoteSomenteLeituraTransferivel,
-  PacoteTransferivel,
-  ProjetoAberto,
+import {
+  CODIGO_MIDIA_AUSENTE,
+  type ApiProjetos,
+  type IdentificadorProjeto,
+  type PacoteEnvio,
+  type PacoteSomenteLeituraTransferivel,
+  type PacoteTransferivel,
+  type ProjetoAberto,
 } from '../portas/projetos';
 
 /** Espera do salvamento automático depois da última alteração (decisão do usuário, ADR-0004). */
@@ -101,7 +106,14 @@ export interface OpcoesAbrir {
 }
 
 type Aberto =
-  | { modo: 'edicao'; identificador: IdentificadorProjeto | null; nomeArquivo: string; pacote: PacoteTransferivel }
+  | {
+      modo: 'edicao';
+      identificador: IdentificadorProjeto | null;
+      nomeArquivo: string;
+      pacote: PacoteTransferivel;
+      /** Chaves das mídias que o principal já tem para `identificador` (vão sem os bytes). */
+      midiasNoPrincipal: Set<string>;
+    }
   | { modo: 'leitura'; nomeArquivo: string; pacote: PacoteSomenteLeituraTransferivel };
 
 /** Texto editável de um título: os trechos juntos, como foram digitados. */
@@ -117,6 +129,13 @@ export function textoDoTitulo(titulo: readonly Inline[]): string {
 export function tituloDoTexto(texto: string, atual: readonly Inline[]): Inline[] {
   if (texto === textoDoTitulo(atual)) return [...atual];
   return texto === '' ? [] : [{ tipo: 'texto', texto }];
+}
+
+const chavesDasMidias = (p: PacoteTransferivel | null): Set<string> => new Set(p?.midias.map((m) => m.sha256));
+
+/** As mídias em `conhecidas` vão só com a chave. */
+export function paraEnvio(p: PacoteTransferivel, conhecidas: ReadonlySet<string>): PacoteEnvio {
+  return { ...p, midias: p.midias.map((m) => (conhecidas.has(m.sha256) ? { sha256: m.sha256 } : m)) };
 }
 
 export class SessaoTrabalho {
@@ -236,7 +255,7 @@ export class SessaoTrabalho {
     const inicio = this.#dep.agora().getTime();
     let ok: boolean;
     try {
-      ok = (await enviar(identificador, a.pacote)).ok;
+      ok = (await this.#enviarComMidias(a, a.pacote, (p) => enviar(identificador, p), (r) => !r.ok && r.codigo === CODIGO_MIDIA_AUSENTE)).ok;
     } catch {
       ok = false;
     }
@@ -260,7 +279,14 @@ export class SessaoTrabalho {
   /** Passa a editar `projeto`. O trabalho anterior é liberado sem gravar: chame `garantirSalvo` antes. */
   abrir(projeto: ProjetoAberto, avisos: AvisoSessao[] = [], opcoes: OpcoesAbrir = {}): void {
     this.#liberar();
-    const a: Aberto = { modo: 'edicao', identificador: projeto.identificador, nomeArquivo: projeto.nomeArquivo, pacote: projeto.pacote };
+    const a: Aberto = {
+      modo: 'edicao',
+      identificador: projeto.identificador,
+      nomeArquivo: projeto.nomeArquivo,
+      pacote: projeto.pacote,
+      // O principal guarda as mídias do arquivo que ele mesmo entregou com o identificador.
+      midiasNoPrincipal: chavesDasMidias(projeto.identificador === null ? null : projeto.pacote),
+    };
     this.#aberto = a;
     this.#salvamento = { tipo: 'salvo', em: null };
     this.#avisos = [...avisos];
@@ -405,7 +431,8 @@ export class SessaoTrabalho {
     this.#emitir();
     let r: Awaited<ReturnType<ApiProjetos['salvar']>>;
     try {
-      r = await this.#dep.api.salvar(identificador, pacote);
+      const ausente = (x: typeof r) => !x.ok && x.motivo === 'ERRO' && x.codigo === CODIGO_MIDIA_AUSENTE;
+      r = await this.#enviarComMidias(a, pacote, (p) => this.#dep.api.salvar(identificador, p), ausente);
     } catch {
       r = { ok: false, motivo: 'ERRO', codigo: 'FALHA_INESPERADA', mensagem: MENSAGEM_FALHA_INESPERADA, erros: [] };
     }
@@ -453,10 +480,32 @@ export class SessaoTrabalho {
     }
     const antigo = a.identificador;
     a.identificador = r.identificador;
+    // O principal guardou com o identificador novo as mídias do pacote gravado.
+    a.midiasNoPrincipal = chavesDasMidias(pacote);
     if (antigo !== null && antigo !== r.identificador) this.#dep.api.fechar(antigo).catch(() => {});
     this.#avisos = this.#avisos.filter((x) => !x.acoes.includes('salvarComo'));
     this.#concluir(a, pacote, revisao, r.nomeArquivo, r.avisos);
     return true;
+  }
+
+  /**
+   * Manda `pacote` com só a chave das mídias que o principal já tem; se ele responder que falta uma (`ausente`),
+   * reenvia com os bytes de todas. Depois de um envio aceito, todas passam a ser conhecidas.
+   */
+  async #enviarComMidias<R extends { ok: boolean }>(
+    a: Extract<Aberto, { modo: 'edicao' }>,
+    pacote: PacoteTransferivel,
+    enviar: (p: PacoteEnvio) => Promise<R>,
+    ausente: (r: R) => boolean,
+  ): Promise<R> {
+    const conhecidas = a.midiasNoPrincipal;
+    let r = await enviar(paraEnvio(pacote, conhecidas));
+    if (ausente(r)) {
+      conhecidas.clear();
+      r = await enviar(paraEnvio(pacote, conhecidas));
+    }
+    if (r.ok) for (const m of pacote.midias) conhecidas.add(m.sha256);
+    return r;
   }
 
   #comDataAtualizada(p: PacoteTransferivel): PacoteTransferivel {
