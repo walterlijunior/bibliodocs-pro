@@ -33,6 +33,7 @@ no ADR-0007):
 - Teclas do modo de tópicos do Word na árvore (Alt+Shift+setas), Delete, F2 (título), Enter (texto).
 - Excluir sem confirmação, com o anúncio "Seção N excluída. Ctrl+Z desfaz."; Ctrl+Z desfaz texto e estrutura numa ordem só.
 - "Seção anterior/Próxima seção" ligados (Ctrl+Page Up/Down); Trabalho › Estrutura de seções… foca a árvore.
+- Commit do M2-T07: `ee96dc8` (sem `git push`).
 - Revisão do `especialista-interface`: 1 Alta, 3 Médias e 3 Baixas corrigidas; B8 (desempenho com centenas de seções
   ao digitar no título) fica pendente.
 
