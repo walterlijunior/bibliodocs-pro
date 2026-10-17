@@ -11,7 +11,17 @@ export interface Tecla {
   metaKey?: boolean;
 }
 
-export type AcaoGlobal = 'buscar' | 'novoTrabalho' | 'abrir' | 'salvar' | 'salvarComo' | 'fecharTrabalho' | 'voltar' | 'avancar';
+export type AcaoGlobal =
+  | 'buscar'
+  | 'novoTrabalho'
+  | 'abrir'
+  | 'salvar'
+  | 'salvarComo'
+  | 'fecharTrabalho'
+  | 'voltar'
+  | 'avancar'
+  | 'secaoAnterior'
+  | 'proximaSecao';
 
 /** Atalho global da janela; `null` deixa a tecla seguir para o controle em foco. */
 export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
@@ -24,6 +34,9 @@ export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'w') return 'fecharTrabalho';
   if (t.altKey && !t.ctrlKey && !t.shiftKey && tecla === 'ArrowLeft') return 'voltar';
   if (t.altKey && !t.ctrlKey && !t.shiftKey && tecla === 'ArrowRight') return 'avancar';
+  // M2-T07: botões "Seção anterior" e "Próxima seção" da barra superior.
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'PageUp') return 'secaoAnterior';
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'PageDown') return 'proximaSecao';
   return null;
 }
 

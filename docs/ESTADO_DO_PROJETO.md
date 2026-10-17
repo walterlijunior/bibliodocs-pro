@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M2-T06 concluído (editor na aba Escrever ligado à sessão; menu Editar; nota de rodapé).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔).
+**Última atualização:** 2026-10-17 — M2-T07 concluído (árvore de seções na interface; ordem única de desfazer).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔).
 
 ## Etapas
 
@@ -15,17 +15,26 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T02 e T07–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T02 e T08–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T07** (árvore de seções na interface: inserir, renomear, mover, recuar/promover, com o `HistoricoEdicao` único
-   de texto e estrutura), **M2-T02** (tipos de trabalho) ou **M2-T10** (backups rotativos). Recomendado: T07, que
-   completa a edição começada no T06.
+1. **M2-T02** (tipos de trabalho como dados, com elementos e ordem por tipo), pré-requisito do T08 e do T09; ou
+   **M2-T10** (backups rotativos), independente. Recomendado: T02.
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T07 (2026-10-17, delegadas pelo usuário: "deixo todas ao seu julgamento")
+Decisões visíveis tomadas pela sessão principal (motivos no relatório do M2, seção M2-T07; técnicas no adendo do M2-T07
+no ADR-0007):
+- Árvore própria (sem React Aria, sem hash novo na CSP). "Nova seção" entra depois da escolhida, no mesmo nível.
+- Teclas do modo de tópicos do Word na árvore (Alt+Shift+setas), Delete, F2 (título), Enter (texto).
+- Excluir sem confirmação, com o anúncio "Seção N excluída. Ctrl+Z desfaz."; Ctrl+Z desfaz texto e estrutura numa ordem só.
+- "Seção anterior/Próxima seção" ligados (Ctrl+Page Up/Down); Trabalho › Estrutura de seções… foca a árvore.
+- Revisão do `especialista-interface`: 1 Alta, 3 Médias e 3 Baixas corrigidas; B8 (desempenho com centenas de seções
+  ao digitar no título) fica pendente.
 
 ## Decisões do M2-T06 (2026-10-17, delegadas pelo usuário: "deixo todas ao seu julgamento")
 O usuário delegou todas as confirmações à sessão principal. Decisões visíveis tomadas (motivos no relatório do M2,
@@ -81,12 +90,19 @@ O usuário escreveu: "deixo essas decisões para você".
 - Núcleo do editor (M2-T05; adendo do M2-T05 no ADR-0007; `app/README.md`, "Núcleo do editor"):
   - **Feito no M2-T06** (adendo do M2-T06 no ADR-0007): todo `EditorState` nasce em `criarEstadoSecao`; E2E de colagem
     real e net-log; NodeView da nota; M6 e B5 corrigidos; latência medida com o editor.
-  - **Para o M2-T07:**
-    - o `HistoricoEdicao` único (texto + estrutura, ADR-0007 §4) entra com as operações estruturais; hoje cada seção tem
-      só o histórico de texto (`MemoriaEditores` em `EditorSecao.tsx`), e "Nova seção" não se desfaz;
-    - operação estrutural na sessão: refazer `#caminhos` e `#secoes` (como `inserirSecaoNoFim`); a geração **não** muda
-      (senão a `MemoriaEditores` perde os históricos); seção excluída → guardar o `EditorState` no inverso;
-    - o `rotulo` do `EditorSecao` ("Texto da seção N") já acompanha a renumeração por `setProps`.
+  - **Feito no M2-T07** (adendo do M2-T07 no ADR-0007): `HistoricoEdicao` único; operações estruturais na sessão
+    (`#aplicarEstrutura`); árvore `ArvoreSecoes`; `MemoriaEditores` e seção ativa em `useEstrutura` (acima da aba).
+  - **Regras do M2-T07 para o que vier:**
+    - mudança estrutural nova (M5: excluir figura citada etc.) → método da sessão por `#aplicarEstrutura` (inverso no
+      histórico) e, na interface, `concluir` de `useEstrutura` (fecha o grupo de digitação, escolhe a seção ativa);
+    - Ctrl+Z/Ctrl+Y em qualquer editor (seção, nota, futuros pré-textuais) → `aoHistorico`, sempre consumindo a tecla;
+      nunca o `undo` do estado direto (revisão A1);
+    - editor novo que entre na ordem única: avisar `registrarTexto` quando o `undoDepth` mudar fora de transação de
+      histórico, e fechar o grupo (`closeHistory`) ao desmontar;
+    - o conteúdo de uma seção só muda pelo editor dela (senão o estado guardado e o modelo divergem);
+    - **pendente (B8 da revisão):** com centenas de seções, digitar no título re-renderiza a árvore inteira a cada
+      tecla (`resolverAtiva`/`secaoVizinha` O(n), `ArvoreSecoes` sem `memo`); medir com o documento grande no M2-T12;
+    - não há E2E de Ctrl+Z com a ordem única vazia (A1), só leitura do código; roteiro NVDA da árvore entra no R42.
   - **Pendências do M2-T06 sem marco:** conferir as fixtures de colagem com a cópia real do Word e do LibreOffice
     (roteiro manual); roteiro com teclado ABNT2 físico (R41) e NVDA (R42, inclusive o `role="doc-noteref"` da chamada);
     E2E de nota em trabalho só leitura (precisa de um arquivo de versão futura com nota).
@@ -360,3 +376,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (M2-T05) | Núcleo do editor pela sessão principal. Dependências do ADR-0007 instaladas, com o usuário informado antes: 10 pacotes MIT, uma cópia do `prosemirror-model`, fora do ASAR. Código: `interface/editor/` com esquema, conversão com forma canônica, ids únicos, limites do v1, leitura do HTML colado (5 origens) e colagem com `DOMParser` inerte. Regras de fronteira E1–E3. `especialista-documento`: A1, A2, M1–M4 e B1 corrigidas; M5, M6 e B2–B5 registradas. `verificar:tudo` 891/891 + E2E 9/9, 0 vulnerabilidades em produção. Colagem real e editor na tela: M2-T06. Itens visíveis da colagem decididos por delegação. Commit `444fa84` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T04) | Modelo M2 pela sessão principal: blocos `alineas` (com `subalineas`) e `citacaoLonga`, inline `nota` com conteúdo embutido, rótulo derivado `a)…z), aa), bb)` (C-A6), ids únicos também para notas, mensagens pt-BR próprias, JSON Schema com `$defs` nomeados; 2 fixtures válidas e 14 inválidas. `especialista-documento`: 0 Alta, M1 (adendo) e M3 (tipos nomeados) corrigidas, M2 (ids na colagem) para o M2-T05, B4–B7 registradas. 16/16 mutações. `verificar:tudo` 825/825 + E2E 9/9, 0 vulnerabilidades. Incidente: `prettier --write` reformatou 10 arquivos; desfeito reescrevendo a partir do HEAD (o `git checkout` foi bloqueado pela permissão). Decisão delegada: nota no título continua recusada. Commit `41ca279` autorizado pelo usuário. |
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |
+| 2026-10-17 | 5 (M2-T07) | Árvore de seções na aba Escrever (padrão ARIA tree; nova, subir, descer, recuar, promover, excluir, arrastar; Alt+Shift+setas, Delete, F2, Enter), `HistoricoEdicao` com ordem única de texto e estrutura, barra superior Seção anterior/Próxima, Trabalho › Estrutura de seções…. Domínio: `moverParaCima/Baixo`, `moverJuntoDe`. Achado do E2E: grupo de digitação do ProseMirror juntava passos fora de ordem → `closeHistory`. Revisão do `especialista-interface`: A1, M2–M4, B5–B7 corrigidos; B8 pendente. `verificar:tudo`: 943/943, 0 vulnerabilidades, E2E 12/12. |

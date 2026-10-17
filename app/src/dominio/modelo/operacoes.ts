@@ -64,7 +64,9 @@ export type CodigoRecusaSecao =
   | 'SECOES_DEMAIS'
   | 'SEM_SECAO_ANTERIOR'
   | 'JA_PRIMARIA'
-  | 'ID_REPETIDO';
+  | 'ID_REPETIDO'
+  | 'JA_PRIMEIRA'
+  | 'JA_ULTIMA';
 
 export type ResultadoOperacaoSecao =
   /** `mudou: false` (mover para o mesmo lugar): nada a desfazer nem a salvar. */
@@ -82,6 +84,8 @@ export const MENSAGENS_RECUSA_SECAO: Readonly<Record<CodigoRecusaSecao, string>>
   SEM_SECAO_ANTERIOR: 'Não há seção anterior no mesmo nível para receber esta como subseção.',
   JA_PRIMARIA: 'A seção já é primária.',
   ID_REPETIDO: 'A seção inserida repete um identificador que já existe no trabalho.',
+  JA_PRIMEIRA: 'A seção já é a primeira do seu nível e não pode subir mais.',
+  JA_ULTIMA: 'A seção já é a última do seu nível e não pode descer mais.',
 };
 
 type Resultado = ResultadoOperacaoSecao;
@@ -257,6 +261,56 @@ export function recuarSecao(corpo: readonly Secao[], id: Id): Resultado {
   if (local.indice === 0) return recusa('SEM_SECAO_ANTERIOR');
   const anterior = listaEm(corpo, local.caminho.slice(0, -1))[local.indice - 1]!;
   return moverSecao(corpo, id, { paiId: anterior.id, indice: anterior.subsecoes.length });
+}
+
+/**
+ * Sobe uma posição sem mudar de nível (M2-T07): troca de lugar com a irmã anterior; a primeira das irmãs vira a última
+ * subseção da seção anterior à mãe (ex.: 2.1 → 1.3), como a ordem de leitura pede. Leva as suas subseções.
+ */
+export function moverParaCima(corpo: readonly Secao[], id: Id): Resultado {
+  const local = localizarSecao(corpo, id);
+  if (local === null) return recusa('SECAO_INEXISTENTE');
+  if (local.indice > 0) return moverSecao(corpo, id, { paiId: local.paiId, indice: local.indice - 1 });
+  const tia = tiaDaSecao(corpo, local, -1);
+  if (tia === null) return recusa('JA_PRIMEIRA');
+  return moverSecao(corpo, id, { paiId: tia.id, indice: tia.subsecoes.length });
+}
+
+/**
+ * Desce uma posição sem mudar de nível (M2-T07): troca de lugar com a irmã seguinte; a última das irmãs vira a primeira
+ * subseção da seção seguinte à mãe (ex.: 1.3 → 2.1).
+ */
+export function moverParaBaixo(corpo: readonly Secao[], id: Id): Resultado {
+  const local = localizarSecao(corpo, id);
+  if (local === null) return recusa('SECAO_INEXISTENTE');
+  const irmas = listaEm(corpo, local.caminho.slice(0, -1));
+  // `destino.indice` conta sem a seção: a irmã seguinte passa a ocupar `local.indice`.
+  if (local.indice < irmas.length - 1) return moverSecao(corpo, id, { paiId: local.paiId, indice: local.indice + 1 });
+  const tia = tiaDaSecao(corpo, local, 1);
+  if (tia === null) return recusa('JA_ULTIMA');
+  return moverSecao(corpo, id, { paiId: tia.id, indice: 0 });
+}
+
+/** Irmã da mãe logo antes (`-1`) ou logo depois (`1`) dela; `null` para seção primária ou mãe na ponta. */
+function tiaDaSecao(corpo: readonly Secao[], local: LocalSecao, lado: -1 | 1): Secao | null {
+  if (local.paiId === null) return null;
+  const caminhoMae = local.caminho.slice(0, -1);
+  return listaEm(corpo, caminhoMae.slice(0, -1))[caminhoMae[caminhoMae.length - 1]! + lado] ?? null;
+}
+
+/**
+ * Leva a seção para logo antes ou logo depois de `alvoId`, como irmã dele (arrastar e soltar na lista, M2-T07). O nível
+ * passa a ser o do alvo, com os mesmos limites de `moverSecao`; soltar sobre ela mesma não muda nada.
+ */
+export function moverJuntoDe(corpo: readonly Secao[], id: Id, alvoId: Id, lado: 'antes' | 'depois'): Resultado {
+  const local = localizarSecao(corpo, id);
+  if (local === null) return recusa('SECAO_INEXISTENTE');
+  if (alvoId === id) return moverSecao(corpo, id, { paiId: local.paiId, indice: local.indice });
+  const alvo = localizarSecao(corpo, alvoId);
+  if (alvo === null) return recusa('DESTINO_INEXISTENTE');
+  // Sem a seção, o alvo recua uma posição se ela vinha antes dele na mesma lista.
+  const indiceAlvo = alvo.paiId === local.paiId && local.indice < alvo.indice ? alvo.indice - 1 : alvo.indice;
+  return moverSecao(corpo, id, { paiId: alvo.paiId, indice: indiceAlvo + (lado === 'depois' ? 1 : 0) });
 }
 
 /**

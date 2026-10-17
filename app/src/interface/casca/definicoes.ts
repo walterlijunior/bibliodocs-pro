@@ -21,7 +21,11 @@ export type ComandoMenu =
   | 'copiar'
   | 'colar'
   | 'colarSemFormatacao'
-  | 'inserirNota';
+  | 'inserirNota'
+  // M2-T07: Trabalho › Estrutura de seções… (foco na árvore) e os botões de seção da barra superior.
+  | 'estruturaSecoes'
+  | 'secaoAnterior'
+  | 'proximaSecao';
 
 export interface ItemMenu {
   rotulo: string;
@@ -72,7 +76,11 @@ export const MENUS: readonly Menu[] = [
   },
   {
     rotulo: 'Trabalho',
-    itens: [{ rotulo: 'Dados do trabalho…' }, { rotulo: 'Elementos pré-textuais…' }, { rotulo: 'Estrutura de seções…' }], // M2
+    itens: [
+      { rotulo: 'Dados do trabalho…' }, // M2
+      { rotulo: 'Elementos pré-textuais…' }, // M2
+      { rotulo: 'Estrutura de seções…', comando: 'estruturaSecoes' },
+    ],
   },
   {
     rotulo: 'Inserir',
@@ -112,6 +120,11 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
   if (trabalho === null) d.add('fecharTrabalho');
   if (trabalho === null || trabalho.somenteLeitura) d.add('inserirNota');
+  if (trabalho === null) {
+    d.add('estruturaSecoes');
+    d.add('secaoAnterior');
+    d.add('proximaSecao');
+  }
   return d;
 }
 

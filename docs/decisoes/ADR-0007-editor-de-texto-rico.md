@@ -768,3 +768,58 @@ fixtures dão leitura idêntica.
 **Regra E2.** `comandos.ts` e `estado.ts` entram na lista de arquivos puros do editor (testados em Node, sem
 `prosemirror-view`). `colagem.ts` declara tipos estruturais para `DataTransfer` e `DOMParser`, porque agora também é
 compilado no projeto de Node (o estado inclui o plugin de colagem).
+
+## Adendo do M2-T07 (2026-10-17) — árvore de seções e ordem única de desfazer
+
+Código: `app/src/aplicacao/servicos/historico-edicao.ts`; `sessao-trabalho.ts` (`novaSecao`, `operarSecao`,
+`moverSecaoJuntoDe`, `registrarTexto`, `desfazer`, `refazer`); `app/src/dominio/modelo/operacoes.ts` (`moverParaCima`,
+`moverParaBaixo`, `moverJuntoDe`); `app/src/interface/escrever/ArvoreSecoes.tsx`, `useEstrutura.ts` e `secoes.ts`;
+`EditorSecao.tsx` e `nota-view.ts`. Testes: `tests/estrutura-secoes.test.ts`, `tests/sessao-secoes.test.ts`,
+`tests/interface/casca.test.tsx`; E2E `e2e/editor.spec.ts` (EDT-09). Relatório: M2, seção M2-T07.
+
+**Seção 7 (biblioteca de componentes): árvore própria, sem React Aria.** Medido o esforço da árvore própria: um
+componente de ~200 linhas com o padrão ARIA "tree" plano (`aria-level`, `aria-posinset`, `aria-setsize`, foco móvel,
+sem recolher) e arrastar com o HTML5 nativo. Ficou dentro do incremento, sem dependência e sem hash novo na CSP (R44).
+React Aria continua opção para a busca de obra (combobox, M4).
+
+**Seção 4 implementada como proposta**, com estes detalhes:
+- `HistoricoEdicao` puro na `aplicacao/`, guardado na sessão e esvaziado a cada `geracao`. Entradas
+  `{ tipo: 'texto', secaoId }` e `{ tipo: 'estrutura', inverso }`. O inverso é guardado **como recebido** (só ele restaura
+  além dos limites, adendo do M2-T03). Limite de 1000 entradas por pilha.
+- A entrada de texto é empilhada pelo editor quando a profundidade de desfazer da seção **muda** numa transação que não é
+  de desfazer/refazer (`isHistoryTransaction`). "Muda", e não só "cresce", porque o `prosemirror-history` corta 20
+  eventos de uma vez ao passar de 100.
+- Desfazer: a sessão percorre a pilha. A entrada de texto é aplicada por uma função recebida da interface: o editor da
+  seção, se ela está na tela; senão o `EditorState` guardado (`MemoriaEditores.aplicarHistorico`), e a seção passa a ser a
+  ativa. Se o passo já não existe (corte dos 100 eventos), a entrada é descartada e a anterior é tentada.
+- **Grupo de digitação fechado** (`closeHistory`) ao desmontar o editor e depois de cada entrada nova (estrutura, outra
+  seção, desfazer). Achado do E2E: o `prosemirror-history` junta numa mesma entrada o que se digita até 500 ms depois e
+  no mesmo lugar. Assim, digitar logo depois de voltar a uma seção juntava com o passo antigo, e Ctrl+Z desfazia outra
+  seção primeiro.
+- Seção excluída: o estado dela continua na `MemoriaEditores` (indexado pelo id estável). Desfazer a exclusão devolve a
+  seção com o texto e o histórico. O conteúdo da seção só muda pelo editor dela, então o estado guardado e o modelo não
+  divergem.
+- O título do trabalho (campo da casca) continua com o desfazer nativo do campo. Não entra na ordem única.
+- A `MemoriaEditores` e a seção ativa subiram para `useEstrutura` (acima da aba). Antes, trocar de aba desmontava a aba
+  Escrever e perdia o histórico de texto.
+
+**Domínio (aditivo):** `moverParaCima`/`moverParaBaixo` sobem e descem sem mudar de nível. A primeira das irmãs vira a
+última subseção da seção anterior à mãe (2.1 → 1.3), e a última vira a primeira da seguinte (1.3 → 2.1), seguindo a ordem
+de leitura. Nas pontas, `JA_PRIMEIRA`/`JA_ULTIMA`. `moverJuntoDe` põe a seção antes ou depois de outra, como irmã dela,
+para o arrastar. Todas passam por `moverSecao` (mesmos limites e inverso).
+
+**Itens visíveis decididos pela sessão principal** (delegação do usuário de 2026-10-17; motivos no relatório do M2):
+- "Nova seção" entra **depois da seção escolhida e das subseções dela, no mesmo nível**, com o cursor no título. Sem seção
+  escolhida, entra no fim.
+- Teclas na árvore: as do modo de tópicos do Word (Alt+Shift+↑/↓ sobe/desce, Alt+Shift+→ recua, Alt+Shift+← promove),
+  mais Delete exclui, F2 vai ao título, Enter vai ao texto, e setas/Home/End movem a seleção.
+- Excluir não pede confirmação: o anúncio diz "Seção N excluída. Ctrl+Z desfaz.", como no Word.
+- Os botões Recuar e Promover ficam sempre ativos (com seção escolhida). A recusa aparece como texto: desativar o botão
+  logo depois do clique tiraria o foco dele (WCAG 2.4.3).
+- Barra superior: "Seção anterior" e "Próxima seção" ligados (Ctrl+Page Up/Down). Trabalho › "Estrutura de seções…" põe o
+  foco na árvore (rótulo aprovado mantido).
+
+**Revisão do `especialista-interface` (somente leitura):** Ctrl+Z/Ctrl+Y no editor e na nota são **sempre consumidos**,
+mesmo com a ordem única vazia: se seguissem para o `keymap` da seção, o `undo`/`redo` do estado mexeria num passo que a
+ordem única não conhece (A1). O foco segue a seção ativa (no editor, na nota ou na árvore), e os botões não se desativam
+com o foco neles (M2–M4, B5). Achados e correções no relatório do M2, seção M2-T07.

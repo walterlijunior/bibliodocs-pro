@@ -37,13 +37,24 @@ export class NotaView implements NodeView {
   #interno: EditorView | null = null;
 
   readonly #aoRecusar: () => void;
+  readonly #historico: ((sentido: 'desfazer' | 'refazer') => boolean) | undefined;
 
-  /** `aoRecusar`: a seção recusou a alteração feita na nota (o editor mostra o aviso de limite). */
-  constructor(no: NoPm, externo: EditorView, posicao: () => number | undefined, aoRecusar: () => void = () => {}) {
+  /**
+   * `aoRecusar`: a seção recusou a alteração feita na nota (o editor mostra o aviso de limite). `historico`: Ctrl+Z e
+   * Ctrl+Y na nota vão para a ordem única de desfazer do trabalho (M2-T07); sem ela, para o histórico da seção.
+   */
+  constructor(
+    no: NoPm,
+    externo: EditorView,
+    posicao: () => number | undefined,
+    aoRecusar: () => void = () => {},
+    historico?: (sentido: 'desfazer' | 'refazer') => boolean,
+  ) {
     this.#no = no;
     this.#externo = externo;
     this.#posicao = posicao;
     this.#aoRecusar = aoRecusar;
+    this.#historico = historico;
     this.dom = document.createElement('span');
     this.dom.className = 'bd-nota';
     // Papel de chamada de nota (DPUB-ARIA): sem papel, o `aria-label` de um `span` é ignorado (revisão do M2-T06, M3).
@@ -87,15 +98,19 @@ export class NotaView implements NodeView {
     this.dom.appendChild(painel);
     this.#painel = painel;
     const externo = (c: Command): (() => boolean) => () => c(this.#externo.state, this.#externo.dispatch);
+    const historico = this.#historico;
+    // Sempre consumida (revisão do M2-T07, A1): sem nada a desfazer, a tecla não segue para o desfazer do navegador.
+    const desfazerNota = historico ? () => (historico('desfazer'), true) : externo(desfazer);
+    const refazerNota = historico ? () => (historico('refazer'), true) : externo(refazer);
     const voltar = this.#voltar;
     this.#interno = new EditorView(painel, {
       state: EditorState.create({
         doc: this.#no,
         plugins: [
           keymap({
-            'Mod-z': externo(desfazer),
-            'Mod-y': externo(refazer),
-            'Shift-Mod-z': externo(refazer),
+            'Mod-z': desfazerNota,
+            'Mod-y': refazerNota,
+            'Shift-Mod-z': refazerNota,
             'Mod-i': toggleMark(esquemaEditor.marks['italico']!),
             'Mod-b': toggleMark(esquemaEditor.marks['negrito']!),
             'Shift-Mod-=': toggleMark(esquemaEditor.marks['sobrescrito']!),

@@ -1,6 +1,6 @@
 // Faixa 1: navegação entre seções + pré-visualizar + zoom (decisão do usuário), visor central com o pequi,
-// alternar grade/lista e busca (Ctrl+F). Seções e zoom ficam desativados mesmo com trabalho aberto: o M1 só edita o
-// título; a navegação entre seções chega com o editor (M2) e a pré-visualização e o zoom, com a página (M3).
+// alternar grade/lista e busca (Ctrl+F). M2-T07: "Seção anterior" e "Próxima seção" ligados (Ctrl+Page Up/Down), ativos
+// quando há seção para onde ir; a pré-visualização e o zoom continuam desativados até a página (M3).
 import type { Ref } from 'react';
 import { Icone, Pequi } from '../Icones';
 import { linhasDoVisor, type EstadoVisor } from './visor';
@@ -12,21 +12,30 @@ export interface PropsBarraSuperior {
   busca: string;
   aoBuscar: (termo: string) => void;
   refBusca: Ref<HTMLInputElement>;
+  /** Há seção antes (ou depois) da ativa no trabalho aberto. */
+  podeAnterior: boolean;
+  podeProxima: boolean;
+  aoSecaoAnterior: () => void;
+  aoProximaSecao: () => void;
 }
 
-export function BarraSuperior({ visor, modoLista, aoAlternarModo, busca, aoBuscar, refBusca }: PropsBarraSuperior) {
-  // Sem seções nem página para mostrar no M1 (ver o comentário do topo).
+export function BarraSuperior(p: PropsBarraSuperior) {
+  const { visor, modoLista, aoAlternarModo, busca, aoBuscar, refBusca } = p;
+  // Sem página para mostrar até o M3 (ver o comentário do topo).
   const semDocumento = true;
+  // Sem seção nenhuma para onde ir (sem trabalho, ou uma seção só): desativados. Na ponta da lista, só `aria-disabled`:
+  // desativar o botão que acabou de levar à última seção tiraria o foco dele (revisão do M2-T07, B5).
+  const semSecoes = !p.podeAnterior && !p.podeProxima;
   return (
     <header className="barra">
       <div className="barra__esq">
-        <button className="btn-icone btn-icone--grande" type="button" aria-label="Seção anterior" title="Seção anterior (Ctrl+Page Up)" disabled={semDocumento}>
+        <button className="btn-icone btn-icone--grande" type="button" aria-label="Seção anterior" title="Seção anterior (Ctrl+Page Up)" aria-keyshortcuts="Control+PageUp" disabled={semSecoes} aria-disabled={!p.podeAnterior || undefined} onClick={() => p.podeAnterior && p.aoSecaoAnterior()}>
           <Icone nome="anterior" />
         </button>
         <button className="btn-icone btn-icone--grande" type="button" aria-label="Pré-visualizar trabalho" title="Pré-visualizar (Ctrl+P)" disabled={semDocumento}>
           <Icone nome="preview" />
         </button>
-        <button className="btn-icone btn-icone--grande" type="button" aria-label="Próxima seção" title="Próxima seção (Ctrl+Page Down)" disabled={semDocumento}>
+        <button className="btn-icone btn-icone--grande" type="button" aria-label="Próxima seção" title="Próxima seção (Ctrl+Page Down)" aria-keyshortcuts="Control+PageDown" disabled={semSecoes} aria-disabled={!p.podeProxima || undefined} onClick={() => p.podeProxima && p.aoProximaSecao()}>
           <Icone nome="proxima" />
         </button>
         <label className="zoom">

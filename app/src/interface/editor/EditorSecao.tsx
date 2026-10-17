@@ -5,9 +5,17 @@
 //
 // O `EditorState` de cada seção visitada fica na `MemoriaEditores` (o histórico de texto sobrevive à troca de seção) até
 // a sessão abrir outro trabalho (`geracao`). A barra de formatação reflete a seleção e só re-renderiza quando muda.
+//
+// M2-T07 (ADR-0007, seção 4): Ctrl+Z e Ctrl+Y vão para a ordem única de desfazer do trabalho (`aoHistorico`), que pode
+// desfazer uma operação de estrutura ou o texto de outra seção. Cada passo novo do histórico de texto desta seção é
+// avisado (`aoRegistrarTexto`), e o grupo de digitação se fecha quando a ordem única ganha outra entrada (outra seção,
+// estrutura): sem isso, o que se digita logo depois juntaria com o passo de antes e sairia fora de ordem. O texto de uma seção que não está na tela é desfeito no estado guardado
+// (`MemoriaEditores.aplicarHistorico`). Seção excluída: o estado continua guardado, e desfazer a exclusão a devolve com
+// o texto e o histórico.
 import 'prosemirror-view/style/prosemirror.css';
-import { redoDepth, undoDepth } from 'prosemirror-history';
-import type { EditorState } from 'prosemirror-state';
+import { closeHistory, isHistoryTransaction, redoDepth, undoDepth } from 'prosemirror-history';
+import { keydownHandler } from 'prosemirror-keymap';
+import { TextSelection, type EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { MarcaTexto } from '../../dominio/modelo';
@@ -18,14 +26,24 @@ import { criarEstadoSecao } from './estado';
 import { MENSAGENS_AVISO, type AvisoColagem } from './html-colado';
 import { NotaView } from './nota-view';
 
-/** Comandos que o menu Editar e o menu Inserir mandam para o editor da seção aberta. */
+/** Desfazer ou refazer na ordem única do trabalho (texto e estrutura). */
+export type SentidoHistorico = 'desfazer' | 'refazer';
+
+/** Comandos que o menu Editar, o menu Inserir e a lista de seções mandam para o editor da seção aberta. */
 export interface ControleEditor {
+  /** Seção que o editor mostra. */
+  readonly secaoId: string;
+  /** Desfaz ou refaz um passo do histórico de texto desta seção (quem decide a ordem é o histórico único). */
   desfazer(): boolean;
   refazer(): boolean;
   inserirNota(): boolean;
   /** A próxima colagem neste editor fica só com o texto. */
   colarSemFormatacao(): void;
   focar(): void;
+  /** Foco no título da seção, todo selecionado (Renomear, F2). */
+  focarTitulo(): void;
+  /** O próximo passo de texto começa um evento novo no histórico da seção (outra entrada entrou na ordem única). */
+  fecharGrupo(): void;
   /** O foco está no editor da seção ou no de uma nota dela. */
   temFoco(): boolean;
 }
@@ -53,6 +71,24 @@ export class MemoriaEditores {
     if (geracao === this.#geracao) this.#estados.set(secaoId, estado);
   }
 
+  /**
+   * Desfaz ou refaz um passo do texto de uma seção que não está na tela, no estado guardado; o conteúdo novo vai para
+   * `aoAlterar` (a sessão). `false` = sem estado guardado ou sem passo a aplicar.
+   */
+  aplicarHistorico(geracao: number, secaoId: string, sentido: SentidoHistorico, aoAlterar: (conteudo: ConteudoSecao) => void): boolean {
+    const estado = this.obter(geracao, secaoId);
+    if (estado === undefined) return false;
+    let novo: EditorState | null = null;
+    const ok = (sentido === 'desfazer' ? desfazer : refazer)(estado, (tr) => {
+      novo = estado.apply(tr);
+    });
+    if (!ok || novo === null) return false;
+    const aplicado: EditorState = novo;
+    this.guardar(geracao, secaoId, aplicado);
+    if (aplicado.doc !== estado.doc) aoAlterar(docParaSecao(aplicado.doc));
+    return true;
+  }
+
   /** Esquece os estados guardados (trabalho fechado: o texto dele não fica na memória; revisão do M2-T06, B4). */
   limpar(): void {
     this.#estados.clear();
@@ -70,6 +106,10 @@ export interface PropsEditorSecao {
   /** Nome acessível do editor (ex.: "Texto da seção 2"). */
   rotulo: string;
   aoAlterar: (secaoId: string, conteudo: ConteudoSecao) => void;
+  /** Passo novo no histórico de texto da seção (entra na ordem única de desfazer). */
+  aoRegistrarTexto: (secaoId: string) => void;
+  /** Ctrl+Z, Ctrl+Y e Ctrl+Shift+Z: a ordem única de desfazer do trabalho. */
+  aoHistorico: (sentido: SentidoHistorico) => boolean;
   /** Textos do que a colagem descartou (imagem, tabela…). */
   aoAvisar: (textos: string[]) => void;
   controle: RefObject<ControleEditor | null>;
@@ -130,10 +170,25 @@ export function EditorSecao(p: PropsEditorSecao) {
     let atualBarra = barraDe(estado);
     setBarra(atualBarra);
 
+    const historico = (sentido: SentidoHistorico): boolean => !somenteLeitura && refProps.current.aoHistorico(sentido);
+    // Antes das teclas dos plugins (as props do `EditorView` vêm primeiro): o `undo` do estado só desfaria esta seção. A
+    // tecla é sempre consumida, mesmo sem nada a desfazer na ordem única: se seguisse para o `keymap` da seção, um passo
+    // que a ordem única não conhece seria desfeito ou refeito fora de ordem (revisão do M2-T07, A1).
+    const consumir = (sentido: SentidoHistorico) => (): boolean => {
+      historico(sentido);
+      return true;
+    };
+    const teclasHistorico = keydownHandler({
+      'Mod-z': consumir('desfazer'),
+      'Mod-y': consumir('refazer'),
+      'Shift-Mod-z': consumir('refazer'),
+    });
+
     const view: EditorView = new EditorView(hospedeiro, {
       state: estado,
       editable: () => !somenteLeitura,
-      nodeViews: { nota: (no, v, posicao) => new NotaView(no, v, posicao, () => memoria.avisar(['limite'])) },
+      handleKeyDown: teclasHistorico,
+      nodeViews: { nota: (no, v, posicao) => new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico) },
       attributes: {
         class: 'bd-editor',
         role: 'textbox',
@@ -147,6 +202,9 @@ export function EditorSecao(p: PropsEditorSecao) {
         const novo = anterior.apply(tr);
         view.updateState(novo);
         if (novo.doc !== anterior.doc) refProps.current.aoAlterar(secaoId, docParaSecao(novo.doc));
+        // Passo novo no histórico de texto (também quando o limite de 100 eventos corta os mais antigos e a profundidade
+        // diminui); desfazer e refazer não contam: a ordem única já os moveu.
+        if (!isHistoryTransaction(tr) && undoDepth(novo) !== undoDepth(anterior)) refProps.current.aoRegistrarTexto(secaoId);
         // Nota recém-inserida (botão, menu ou Ctrl+Alt+F): o foco vai para o texto dela.
         if (tr.getMeta(META_ABRIR_NOTA)) view.dom.querySelector<HTMLElement>('.bd-nota__editor')?.focus();
         const b = barraDe(novo);
@@ -160,16 +218,24 @@ export function EditorSecao(p: PropsEditorSecao) {
 
     const executar = (c: typeof desfazer): boolean => !somenteLeitura && c(view.state, view.dispatch);
     controle.current = {
+      secaoId,
       desfazer: () => executar(desfazer),
       refazer: () => executar(refazer),
       inserirNota: () => executar(inserirNota),
       colarSemFormatacao: () => colarSemFormatacaoNaProxima(view.state),
       focar: () => view.focus(),
+      focarTitulo: () => {
+        const { doc } = view.state;
+        view.dispatch(view.state.tr.setSelection(TextSelection.create(doc, 1, 1 + doc.child(0).content.size)).scrollIntoView());
+        view.focus();
+      },
       temFoco: () => view.hasFocus() || view.dom.contains(document.activeElement),
+      fecharGrupo: () => view.dispatch(closeHistory(view.state.tr)),
     };
 
     return () => {
-      memoria.guardar(geracao, secaoId, view.state);
+      // Guardado com o grupo fechado: o que for digitado em outra seção entra depois na ordem única.
+      memoria.guardar(geracao, secaoId, view.state.apply(closeHistory(view.state.tr)));
       if (refView.current === view) refView.current = null;
       controle.current = null;
       view.destroy();

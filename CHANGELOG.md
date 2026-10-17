@@ -6,6 +6,17 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T07: árvore de seções na aba Escrever e ordem única de desfazer (ADR-0007, seção 4 e adendo M2-T07).
+  - Árvore acessível (padrão ARIA "tree": nível, posição e número anunciados) com Nova seção, Subir, Descer, Recuar,
+    Promover e Excluir; teclas do modo de tópicos do Word (Alt+Shift+setas), Delete, F2, Enter e setas; arrastar e soltar.
+  - Domínio: `moverParaCima`, `moverParaBaixo` e `moverJuntoDe` (aditivos, com inverso).
+  - `HistoricoEdicao`: Ctrl+Z/Ctrl+Y desfazem texto e estrutura numa ordem só, inclusive o texto de outra seção e a
+    exclusão de seção (volta com o texto). Menu Editar segue a mesma ordem na aba Escrever.
+  - Barra superior: "Seção anterior" e "Próxima seção" ligados (Ctrl+Page Up/Down); Trabalho › Estrutura de seções… foca
+    a árvore.
+  - Testes: `estrutura-secoes` (domínio, histórico, sequências com o estado do editor, regras da árvore), casos novos de
+    sessão e de renderização (943 no total); E2E EDT-09 (12/12).
+
 - Etapa 5, M2-T06: editor de texto na aba Escrever, ligado à sessão de trabalho (ADR-0007, seção 3 e adendo M2-T06).
   - Aba Escrever: lista das seções numeradas pela posição, "Nova seção" e o editor da seção escolhida, com barra de
     formatação (itálico, negrito, sobrescrito, subscrito, nota de rodapé) e os atalhos do Word.

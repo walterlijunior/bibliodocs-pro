@@ -6,7 +6,8 @@
  * - Não importa interface/, principal/ nem electron. Sem DOM e sem Node (checado por tsconfig.puro.json).
  *
  * Marcador criado no M1-T01; contrato da API de projetos (IPC) no M1-T08; biblioteca e criação de trabalho no M1-T09;
- * sessão de edição (trabalho aberto e salvamento automático) no M1-T11; recuperação (instantâneos) no M1-T12.
+ * sessão de edição (trabalho aberto e salvamento automático) no M1-T11; recuperação (instantâneos) no M1-T12; ordem
+ * única de desfazer (`HistoricoEdicao`) e operações estruturais na sessão no M2-T07.
  */
 export {
   CANAIS_PROJETOS,
@@ -63,6 +64,8 @@ export {
   FATOR_ESPACAMENTO_INSTANTANEO,
   MENSAGEM_FALHA_INESPERADA,
   MENSAGEM_FALHA_INSTANTANEO,
+  MENSAGEM_NADA_A_DESFAZER,
+  MENSAGEM_NADA_A_REFAZER,
   MENSAGEM_NAO_EDITAVEL,
   MENSAGEM_SEM_DESTINO,
   paraEnvio,
@@ -71,14 +74,17 @@ export {
   textoDoTitulo,
   tituloDoTexto,
   type AcaoAviso,
+  type AcaoSecao,
+  type AplicarTexto,
   type AvisoSessao,
   type Cancelar,
   type ConteudoDaSecao,
   type DependenciasSessao,
   type EstadoSessao,
   type OpcoesAbrir,
-  type ResultadoInserirSecao,
+  type ResultadoEstrutura,
   type ResumoSecao,
   type SalvamentoSessao,
   type TrabalhoDaSessao,
 } from './servicos/sessao-trabalho';
+export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';

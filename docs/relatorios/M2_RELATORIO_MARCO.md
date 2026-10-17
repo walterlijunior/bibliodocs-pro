@@ -9,7 +9,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T04 Alíneas, citação longa e nota no modelo | CONCLUÍDA | 2026-10-17 |
 | M2-T05 Núcleo do editor: esquema, conversão, ids e colagem | CONCLUÍDA | 2026-10-17 |
 | M2-T06 Editor na aba Escrever ligado à sessão | CONCLUÍDA | 2026-10-17 |
-| M2-T02, M2-T07 a M2-T12 | PENDENTE | — |
+| M2-T07 Árvore de seções na interface e ordem única de desfazer | CONCLUÍDA | 2026-10-17 |
+| M2-T02, M2-T08 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -346,3 +347,71 @@ no adendo do M2-T06 no ADR-0007. Nenhuma dependência nova.
 - B4: o texto do trabalho fechado ficava nos estados guardados. `MemoriaEditores.limpar()` ao fechar.
 - B5: `<style-x>` (elemento personalizado) perdia o texto em `neutralizarEstilos`. Expressão corrigida, com teste.
 - Depois das correções, `npm run verificar:tudo` passou de novo: 915/915, 0 vulnerabilidades, E2E 11/11 (p95 9 ms).
+
+## M2-T07 — Árvore de seções na interface e ordem única de desfazer
+
+**Implementação:** sessão principal. **Revisão:** `especialista-interface`, somente leitura. Decisões técnicas no adendo
+do M2-T07 no ADR-0007. Nenhuma dependência nova; nenhuma regra normativa nova (a numeração continua a do M2-T03:
+RN-038, RN-039, RN-041).
+
+**Código**
+- `dominio/modelo/operacoes.ts`: `moverParaCima`, `moverParaBaixo` (a primeira das irmãs sobe para a seção anterior à
+  mãe; a última desce para a seguinte; `JA_PRIMEIRA`/`JA_ULTIMA` nas pontas) e `moverJuntoDe` (arrastar). Aditivos,
+  todos por `moverSecao`.
+- `aplicacao/servicos/historico-edicao.ts`: `HistoricoEdicao` linear (texto por seção e estrutura com o inverso guardado
+  como recebido; 1000 entradas por pilha).
+- `aplicacao/servicos/sessao-trabalho.ts`: `novaSecao(aposId)` (substitui `inserirSecaoNoFim`), `operarSecao`,
+  `moverSecaoJuntoDe`, `registrarTexto`, `desfazer`/`refazer(aplicarTexto)`. A lista ganhou `paiId`, `posicao` e
+  `irmas` (para `aria-posinset`/`aria-setsize`). A `geracao` não muda numa operação estrutural.
+- `interface/escrever/ArvoreSecoes.tsx` (árvore e botões), `useEstrutura.ts` (seção ativa, operações, desfazer,
+  anterior/próxima; `MemoriaEditores` subiu para cá) e `secoes.ts` (regras puras).
+- `EditorSecao.tsx`: Ctrl+Z/Ctrl+Y → ordem única (sempre consumidos); registra o passo de texto quando o `undoDepth`
+  muda; `aplicarHistorico` desfaz no estado guardado de seção fora da tela; `focarTitulo`, `fecharGrupo`.
+  `nota-view.ts`: as mesmas teclas na nota.
+- Barra superior: "Seção anterior"/"Próxima seção" (Ctrl+Page Up/Down); menu Trabalho › Estrutura de seções…; menu
+  Editar › Desfazer/Refazer seguem a ordem única quando o último foco estava na aba Escrever (fora de campo de texto).
+
+**Achado durante o E2E** [VERIFICADO 2026-10-17]: o `prosemirror-history` junta numa entrada o que se digita até 500 ms
+depois e no mesmo lugar. Voltar a uma seção e digitar logo juntava com o passo antigo dela, e Ctrl+Z desfazia outra seção
+primeiro (reproduzido num teste temporário: o "Dois" da seção 2 saía antes do " Mais." da seção 1). Corrigido com
+`closeHistory` ao desmontar o editor e depois de cada entrada nova; o EDT-09, que falhava, passou.
+
+**Aceite** [VERIFICADO 2026-10-17]
+- Teclado completo: Nova seção, Alt+Shift+↑/↓/→/←, Delete, F2, Enter, setas, Home/End, Ctrl+Z/Ctrl+Y, Ctrl+Page Up/Down,
+  Trabalho › Estrutura de seções… (E2E EDT-09).
+- Leitor de tela: `role="tree"`, cada item com `aria-level`, `aria-posinset` e `aria-setsize`, e o nome "2.1 Coleta".
+  Depois de mover, o foco volta ao item com o número novo (E2E confere `aria-level`, `posinset`, `setsize` e o foco). Não
+  testado com o NVDA (roteiro R42).
+- E2E de mover seção: teclado e arrastar (`dragTo`, HTML5 nativo); o arquivo salvo tem a ordem da tela.
+- Sequência do ADR-0007 §4 em Node: digitar em 1, mover 3 para antes de 2, digitar em 3, desfazer três vezes → documento
+  inicial; refazer volta (`tests/estrutura-secoes.test.ts`).
+- `npm run verificar:tudo`: typecheck OK, 943/943 testes, 0 vulnerabilidades, E2E 12/12 (E2E-07 de desempenho incluso).
+
+**Decisões visíveis** (delegadas pelo usuário à sessão principal, 2026-10-17)
+- Nova seção depois da escolhida e das subseções dela, no mesmo nível: é o que o Word faz com Enter num título, e
+  acrescentar no fim obrigaria a mover quase sempre.
+- Teclas do modo de tópicos do Word (Alt+Shift+setas): quem vem do Word já conhece.
+- Excluir sem diálogo, com anúncio e Ctrl+Z: o diálogo seria mais um passo, e o desfazer devolve a seção com o texto.
+- Recuar e Promover sempre ativos, com a recusa em texto (WCAG 2.4.3: o botão não some do foco).
+- Subir e descer atravessam para a seção vizinha da mãe sem mudar de nível, seguindo a ordem de leitura; mudar de nível
+  é só por recuar/promover ou arrastar.
+
+**Revisão** (`especialista-interface`, somente leitura): 1 Alta, 3 Médias, 4 Baixas.
+- A1 (corrigida): com a ordem única vazia, Ctrl+Z/Ctrl+Y caíam no `undo`/`redo` da seção e mexiam num passo fora da
+  ordem. A tecla agora é sempre consumida (editor e nota).
+- M2 (corrigida): Ctrl+Z dentro da nota levava o foco para o texto da seção. O foco só muda se a seção mudou ou se ele se
+  perdeu.
+- M3 (corrigida): desfazer, refazer e Ctrl+Page Up/Down com o foco na árvore deixavam o foco num item não selecionado (ou
+  no `body`, se o item sumia). O foco segue a seção ativa na árvore.
+- M4 (corrigida): excluir a última seção pelo botão desativava o botão com o foco. O foco vai à seção que ficou no lugar
+  ou a "Nova seção".
+- B5 (corrigida): "Próxima seção" desativava com o foco nele na última seção. Agora usa `aria-disabled` na ponta.
+- B6 (corrigida): duas exclusões seguidas com o mesmo número não eram anunciadas de novo (o texto se repetia).
+- B7 (corrigida): os botões declaravam `aria-keyshortcuts` de teclas que só valem na lista. A tecla ficou só na dica.
+- B8 (pendente): com centenas de seções, digitar no título re-renderiza a árvore inteira a cada tecla. Medir no M2-T12.
+- Depois das correções, `npm run verificar:tudo` passou de novo: 943/943, 0 vulnerabilidades, E2E 12/12.
+
+**Pendente**
+- Roteiro NVDA da árvore (R42): conferir se nível, posição e número são lidos como esperado.
+- E2E de Ctrl+Z com a ordem única vazia (A1): coberto só pela leitura do código.
+- B8 (desempenho da árvore ao digitar no título com centenas de seções).

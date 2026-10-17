@@ -81,7 +81,7 @@ test('RNF-06/07: documento de 150 páginas e 25 MiB — abrir, digitar com insta
 
   // 2. Digitar no fim do texto da seção 1.1.1 (os capítulos e as secundárias só têm título; o texto fica nas terciárias,
   // ~1/48 do documento cada): a página anota, por tecla, o quadro seguinte ao `input`.
-  await p.locator('.lista-secoes__botao', { has: p.locator('.lista-secoes__numero', { hasText: /^1\.1\.1$/ }) }).click();
+  await p.getByRole('treeitem', { name: /^1\.1\.1 / }).click();
   const editor = p.getByRole('textbox', { name: 'Texto da seção 1.1.1' });
   await editor.click();
   await p.keyboard.press('Control+End');

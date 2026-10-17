@@ -138,6 +138,11 @@ describe('teclado', () => {
     expect(acaoDoAtalho(t('w', { ctrlKey: true }))).toBe('fecharTrabalho');
     expect(acaoDoAtalho(t('s', { ctrlKey: true, altKey: true }))).toBeNull();
     expect(acaoDoAtalho(t('w', { ctrlKey: true, shiftKey: true }))).toBeNull();
+    // M2-T07: seção anterior e próxima (botões da barra superior).
+    expect(acaoDoAtalho(t('PageUp', { ctrlKey: true }))).toBe('secaoAnterior');
+    expect(acaoDoAtalho(t('PageDown', { ctrlKey: true }))).toBe('proximaSecao');
+    expect(acaoDoAtalho(t('PageDown'))).toBeNull();
+    expect(acaoDoAtalho(t('PageUp', { ctrlKey: true, shiftKey: true }))).toBeNull();
     expect(acaoDoAtalho(t('s'))).toBeNull();
   });
 
@@ -282,7 +287,7 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
 
   it('comandos desativados conforme o trabalho aberto', () => {
     const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
-    expect(lista(null)).toEqual(['fecharTrabalho', 'inserirNota', 'salvar', 'salvarComo']);
+    expect(lista(null)).toEqual(['estruturaSecoes', 'fecharTrabalho', 'inserirNota', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior']);
     expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
     // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
     expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);

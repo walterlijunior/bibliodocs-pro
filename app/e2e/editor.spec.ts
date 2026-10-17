@@ -6,7 +6,10 @@
  * - EDT-07: colagem com a área de transferência real (HTML das fixtures do Word, do LibreOffice e do Chrome escrito pelo
  *   `clipboard` do Electron): só `Bloco`/`Inline` do modelo, aviso das imagens, nenhuma requisição para a imagem
  *   remota no net-log, nenhum script; "Colar sem formatação" pelo menu Editar (B5);
- * - EDT-08: em todos, nenhum erro de console, exceção ou violação de CSP (`x.problemas`).
+ * - EDT-08: em todos, nenhum erro de console, exceção ou violação de CSP (`x.problemas`);
+ * - EDT-09 (M2-T07): árvore de seções pelo teclado (subir, recuar, promover, excluir, setas, Enter), arrastar e soltar,
+ *   botões "Seção anterior/Próxima seção" e Ctrl+Page Up, e a ordem única de desfazer (estrutura e texto de outra
+ *   seção); o arquivo salvo tem a ordem e os títulos da tela.
  *
  * As fixtures de colagem foram escritas à mão no formato conhecido [HIPÓTESE de fidelidade]: a conferência com a cópia
  * real do Word e do LibreOffice fica no roteiro manual do relatório do M2.
@@ -61,7 +64,7 @@ test('EDT-06: digitar, formatar, desfazer, nota, salvar e reabrir idêntico', as
   const visor = p.locator('.visor [role="status"]');
 
   await p.keyboard.type('Introdução');
-  await expect(p.locator('.lista-secoes__botao[aria-current="true"]')).toContainText('Introdução');
+  await expect(p.getByRole('treeitem', { selected: true })).toContainText('Introdução');
   await p.keyboard.press('Enter');
   // Teclado (acentos), insertText (como o IME entrega) e composição de IME pelo CDP (tecla morta + vogal).
   await p.keyboard.type('O pequi é do cerrado');
@@ -201,5 +204,106 @@ test('EDT-07: colar do Word, do LibreOffice e do Chrome pela área de transferê
   expect(rede.resolucoes.filter((h) => h.includes('exemplo.invalid'))).toEqual([]);
   expect(rede.urls.filter((u) => /exemplo\.invalid|^https?:|^file:/.test(u))).toEqual([]);
   expect(x.requisicoes.filter((u) => !u.startsWith('app://interface/'))).toEqual([]);
+  expect(x.problemas).toEqual([]);
+});
+
+/** Nome dos itens da árvore, na ordem da tela ("2.1 Coleta"). */
+const arvore = (p: Page) => p.getByRole('treeitem').allTextContents();
+
+test('EDT-09: árvore de seções — teclado, arrastar, barra superior e desfazer único', async () => {
+  const x = await abrirApp(amb);
+  const p = await trabalhoComSecao(x);
+  await p.keyboard.type('Introdução');
+  await p.keyboard.press('Enter');
+  await p.keyboard.type('Texto um.');
+  // "Nova seção" entra depois da escolhida, no mesmo nível, com o cursor no título.
+  for (const titulo of ['Método', 'Resultados']) {
+    await p.getByRole('button', { name: 'Nova seção' }).click();
+    await p.keyboard.type(titulo);
+  }
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Método', '3 Resultados']);
+
+  // Subir com Alt+Shift+↑ na árvore: o foco fica no item, com o número novo, nível e posição para o leitor de tela.
+  await p.getByRole('treeitem', { name: '3 Resultados' }).click();
+  await expect(p.getByRole('treeitem', { name: '3 Resultados' })).toBeFocused();
+  await p.keyboard.press('Alt+Shift+ArrowUp');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Resultados', '3 Método']);
+  const resultados = p.getByRole('treeitem', { name: '2 Resultados' });
+  await expect(resultados).toBeFocused();
+  await expect(resultados).toHaveAttribute('aria-posinset', '2');
+  await expect(resultados).toHaveAttribute('aria-setsize', '3');
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 2' })).toBeVisible();
+
+  // Recuar (Alt+Shift+→) e promover (Alt+Shift+←); a primária não promove: mensagem, sem mudar nada.
+  await p.keyboard.press('Alt+Shift+ArrowRight');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '1.1 Resultados', '2 Método']);
+  await expect(p.getByRole('treeitem', { name: '1.1 Resultados' })).toHaveAttribute('aria-level', '2');
+  await expect(p.getByRole('treeitem', { name: '1.1 Resultados' })).toBeFocused();
+  await p.keyboard.press('Alt+Shift+ArrowLeft');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Resultados', '3 Método']);
+  await p.keyboard.press('Alt+Shift+ArrowLeft');
+  await expect(p.getByRole('status').filter({ hasText: 'A seção já é primária.' })).toBeVisible();
+
+  // Desfazer na árvore segue a ordem única: promover, recuar, subir; refazer volta um passo.
+  await p.keyboard.press('Control+Z');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '1.1 Resultados', '2 Método']);
+  await p.keyboard.press('Control+Z');
+  await p.keyboard.press('Control+Z');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Método', '3 Resultados']);
+  await p.keyboard.press('Control+Y');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Resultados', '3 Método']);
+
+  // Setas e Enter: a seleção acompanha o foco; Enter leva ao texto da seção.
+  await p.getByRole('treeitem', { selected: true }).focus();
+  await p.keyboard.press('Home');
+  await expect(p.getByRole('treeitem', { name: '1 Introdução' })).toBeFocused();
+  await p.keyboard.press('Enter');
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' })).toBeFocused();
+
+  // Texto de outra seção: digitar na 1, ir para a 3 pela barra superior e por Ctrl+Page Down, e desfazer pela árvore —
+  // a seção 1 volta a ser a ativa, sem o texto.
+  await p.keyboard.press('Control+End');
+  await p.keyboard.type(' Mais.');
+  await p.getByRole('button', { name: 'Próxima seção' }).click();
+  await expect(p.getByRole('treeitem', { selected: true })).toHaveText('2 Resultados');
+  await p.keyboard.press('Control+PageDown');
+  await expect(p.getByRole('treeitem', { selected: true })).toHaveText('3 Método');
+  await expect(p.getByRole('button', { name: 'Próxima seção' })).toBeDisabled();
+  await p.keyboard.press('Control+PageUp');
+  await expect(p.getByRole('treeitem', { selected: true })).toHaveText('2 Resultados');
+  await p.getByRole('treeitem', { selected: true }).focus();
+  await p.keyboard.press('Control+Z');
+  await expect(p.getByRole('treeitem', { selected: true })).toHaveText('1 Introdução');
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' }).locator('p')).toHaveText('Texto um.');
+  await p.keyboard.press('Control+Y');
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' }).locator('p')).toHaveText('Texto um. Mais.');
+
+  // Arrastar "3 Método" para a metade de cima de "1 Introdução".
+  const metodo = p.getByRole('treeitem', { name: '3 Método' });
+  await metodo.dragTo(p.getByRole('treeitem', { name: '1 Introdução' }), { targetPosition: { x: 20, y: 3 } });
+  await expect.poll(() => arvore(p)).toEqual(['1 Método', '2 Introdução', '3 Resultados']);
+
+  // Excluir com Delete: anúncio, a vizinha vira a ativa; Ctrl+Z devolve a seção com o texto.
+  await p.getByRole('treeitem', { name: '2 Introdução' }).click();
+  await p.keyboard.press('Delete');
+  await expect.poll(() => arvore(p)).toEqual(['1 Método', '2 Resultados']);
+  await expect(p.getByRole('status').filter({ hasText: 'Seção 2 excluída. Ctrl+Z desfaz.' })).toBeVisible();
+  await expect(p.getByRole('treeitem', { name: '2 Resultados' })).toBeFocused();
+  await p.keyboard.press('Control+Z');
+  await expect.poll(() => arvore(p)).toEqual(['1 Método', '2 Introdução', '3 Resultados']);
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 2' }).locator('p')).toHaveText('Texto um. Mais.');
+
+  // Trabalho › Estrutura de seções… põe o foco na árvore.
+  await p.getByRole('menuitem', { name: 'Trabalho' }).click();
+  await p.getByRole('menuitem', { name: /^Estrutura de seções/ }).click();
+  await expect(p.getByRole('treeitem', { selected: true })).toBeFocused();
+
+  await p.keyboard.press('Control+S');
+  await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
+  const corpo = corpoDoArquivo(amb);
+  expect(corpo.map((s) => s.titulo.map((t) => t.texto).join(''))).toEqual(['Método', 'Introdução', 'Resultados']);
+  expect(corpo[1]!.blocos).toHaveLength(1);
+  await p.keyboard.press('Control+W');
+  await x.fechar();
   expect(x.problemas).toEqual([]);
 });

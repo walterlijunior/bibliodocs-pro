@@ -126,9 +126,9 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | Documento grande de medição (≈150 páginas, 25 MiB de mídia, determinístico) | `tests/apoio/documento-grande.ts` | `tests/documento-grande.test.ts` | relatório do M2 (M2-T01) |
 | Empacotamento (NSIS por usuário, fuses, ASAR íntegro, recusa de chaves de linha de comando) | `electron-builder.config.cjs`, `empacotamento/`, `src/principal/seguranca/argumentos.ts` | `tests/empacotamento.test.ts`, `tests/seguranca-argumentos.test.ts` | ADR-0003, adendo M1-T14 |
 
-### Testes E2E (M1-T13; desempenho no M2-T01; editor no M2-T06)
+### Testes E2E (M1-T13; desempenho no M2-T01; editor no M2-T06; árvore de seções no M2-T07)
 
-`npm run test:e2e` roda 11 testes, um Electron por vez:
+`npm run test:e2e` roda 12 testes, um Electron por vez:
 
 | Arquivo | O que verifica | Casos da matriz |
 |---|---|---|
@@ -137,15 +137,17 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | `e2e/casca.spec.ts` | As quatro faixas da janela da largura mínima à maximizada, em 100%, 125% e 150% (3 testes); Ctrl+F, foco visível, sem marca de terceiros | UI-01, UI-02 |
 | `e2e/rede-e-seguranca.spec.ts` | Zero atividade de rede pelo net-log do Chromium; CSP, `eval`, navegação, `window.open`, travessia do `app://` e instância única | SEG-08, SEG-03 |
 | `e2e/desempenho.spec.ts` | Documento grande (150 páginas, 25 MiB): abrir < 3 s, p95 por tecla < 50 ms **digitando no editor da seção 1.1.1** com instantâneos e Ctrl+S, travada do principal < 100 ms, memória < 800 MB. As medidas saem no console (`[M2-T06] ...`) e na anotação do teste | DES-01 (RNF-06, RNF-07) |
-| `e2e/editor.spec.ts` | Editor de seção: acentos (teclado, `insertText`, IME pelo CDP), itálico, desfazer/refazer, nota, salvar e reabrir idêntico; colagem com a área de transferência real (`clipboard.write([new ClipboardItem(...)])`) e pelo menu Editar; net-log sem a imagem remota (2 testes) | E2E-08, E2E-09 |
+| `e2e/editor.spec.ts` | Editor de seção: acentos (teclado, `insertText`, IME pelo CDP), itálico, desfazer/refazer, nota, salvar e reabrir idêntico; colagem com a área de transferência real (`clipboard.write([new ClipboardItem(...)])`) e pelo menu Editar; net-log sem a imagem remota; árvore de seções pelo teclado e arrastando, barra superior e desfazer único (3 testes) | E2E-08, E2E-09, E2E-10 |
 
 Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um teste novo deve usar `criarAmbiente`,
 `abrirApp` e `fechar`/`matar` do apoio e conferir que `x.problemas` termina vazio (console, exceções e CSP).
 
-### Núcleo do editor (M2-T05) e editor na tela (M2-T06)
+### Núcleo do editor (M2-T05), editor na tela (M2-T06) e árvore de seções (M2-T07)
 
-Em `src/interface/editor/` (ADR-0007, adendos do M2-T05 e do M2-T06). Na aba Escrever, a lista de seções e o editor da
-seção escolhida (`escrever/AreaEscrever.tsx`).
+Em `src/interface/editor/` (ADR-0007, adendos do M2-T05 a M2-T07). Na aba Escrever, a árvore de seções
+(`escrever/ArvoreSecoes.tsx`) e o editor da seção escolhida (`escrever/AreaEscrever.tsx`). A seção ativa, os estados
+guardados dos editores e a ordem única de desfazer ficam em `escrever/useEstrutura.ts` (acima da aba); as regras puras da
+árvore, em `escrever/secoes.ts`; o `HistoricoEdicao`, em `src/aplicacao/servicos/historico-edicao.ts`.
 
 | Arquivo | Papel | Testável em Node |
 |---|---|---|
@@ -162,6 +164,9 @@ seção escolhida (`escrever/AreaEscrever.tsx`).
 
 - Todo `EditorState` do app nasce em `criarEstadoSecao` (que põe `pluginIdsUnicos`, `pluginLimites` e `pluginColagem`).
 - A sessão só emite quando o visor ou a lista de seções mudam; não passe a emitir por tecla (R39, medido no E2E-07).
+- Mudança estrutural nova → método da sessão que passa por `#aplicarEstrutura` (registra o inverso no histórico) e, na
+  interface, por `concluir` de `useEstrutura` (fecha o grupo de digitação e escolhe a seção ativa). Ctrl+Z/Ctrl+Y no
+  editor e na nota vão para `aoHistorico`, nunca direto para o `undo` do estado.
 - Menu Editar: Recortar, Copiar e Colar vão pelo canal `edicao` (`src/principal/ipc/manipuladores-edicao.ts`), que pede
   ao principal o mesmo comando das teclas. A página nunca lê a área de transferência por API.
 - `prosemirror-*` só pode ser importado dentro desta pasta, e os arquivos testáveis em Node não importam

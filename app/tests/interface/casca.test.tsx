@@ -3,14 +3,16 @@
 // Interação real (foco, setas, clique) fica para o E2E do M1-T13 e para o roteiro manual do relatório.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { ApiBiblioDocs, EstadoSessao, ItemBiblioteca } from '../../src/aplicacao';
+import { resumirSecoes, type ApiBiblioDocs, type EstadoSessao, type ItemBiblioteca } from '../../src/aplicacao';
 import { Aplicativo } from '../../src/interface/Aplicativo';
 import { AreaBiblioteca, AVISO_NUVEM, type PropsAreaBiblioteca } from '../../src/interface/biblioteca/AreaBiblioteca';
 import { BarraLateral } from '../../src/interface/biblioteca/BarraLateral';
 import { PainelDetalhes } from '../../src/interface/biblioteca/PainelDetalhes';
 import { contar } from '../../src/interface/biblioteca/selecao';
 import { Visor } from '../../src/interface/casca/BarraSuperior';
+import { MemoriaEditores } from '../../src/interface/editor/EditorSecao';
 import { AreaEscrever, type PropsAreaEscrever } from '../../src/interface/escrever/AreaEscrever';
+import { ArvoreSecoes, type PropsArvoreSecoes } from '../../src/interface/escrever/ArvoreSecoes';
 
 const naoUsar = (): never => {
   throw new Error('a renderização estática não deve chamar a API');
@@ -199,7 +201,20 @@ describe('aba Escrever (M1-T11)', () => {
       aoIrParaBiblioteca: nada,
       lerSecao: () => null,
       aoAlterarSecao: nada,
-      aoNovaSecao: () => ({ ok: false, mensagem: 'não usado' }),
+      estrutura: {
+        memoria: new MemoriaEditores(),
+        ativa: null,
+        escolher: nada,
+        novaSecao: () => false,
+        operar: () => false,
+        moverJunto: () => false,
+        historico: () => false,
+        pedirFoco: nada,
+        pedidoFoco: null,
+        consumirFoco: nada,
+        aviso: null,
+        registrarTexto: nada,
+      },
       controleEditor: { current: null },
       ...p,
     };
@@ -283,5 +298,76 @@ describe('painel de detalhes e menus (M1-T11)', () => {
     expect(h).toContain('role="status"');
     expect(h).toContain('Alterações não salvas');
     expect(h).not.toContain('nenhum trabalho aberto');
+  });
+});
+
+describe('árvore de seções (M2-T07)', () => {
+  const secoes = resumirSecoes([
+    { id: 'sec_introducao01', titulo: [{ tipo: 'texto', texto: 'Introdução' }], blocos: [], subsecoes: [] },
+    {
+      id: 'sec_metodo000001',
+      titulo: [{ tipo: 'texto', texto: 'Método' }],
+      blocos: [],
+      subsecoes: [{ id: 'sec_coleta000001', titulo: [], blocos: [], subsecoes: [] }],
+    },
+  ]);
+  function arvore(p: Partial<PropsArvoreSecoes> = {}): string {
+    const nada = () => {};
+    return renderToStaticMarkup(
+      <ArvoreSecoes
+        secoes={secoes}
+        ativaId="sec_coleta000001"
+        somenteLeitura={false}
+        aviso={null}
+        refArvore={{ current: null }}
+        aoEscolher={nada}
+        aoNova={nada}
+        aoOperar={nada}
+        aoMover={nada}
+        aoHistorico={() => false}
+        aoIrAoTexto={nada}
+        {...p}
+      />,
+    );
+  }
+
+  it('papel "tree" com nível, posição e irmãs em cada item; número e título como texto; só o ativo no Tab', () => {
+    const h = arvore();
+    expect(h).toContain('role="tree" aria-labelledby="titulo-lista-secoes"');
+    expect(contarOcorrencias(h, 'role="treeitem"')).toBe(3);
+    expect(h).toMatch(/aria-level="1" aria-posinset="1" aria-setsize="2" aria-selected="false" tabindex="-1"[^>]*>.*?>1<\/span> .*?>Introdução</);
+    expect(h).toMatch(/aria-level="2" aria-posinset="1" aria-setsize="1" aria-selected="true" tabindex="0"[^>]*>.*?>2\.1<\/span> .*?>Sem título</);
+    expect(contarOcorrencias(h, 'tabindex="0"')).toBe(1);
+    expect(contarOcorrencias(h, 'draggable="true"')).toBe(3);
+  });
+
+  it('botões de estrutura com os atalhos; "Nova seção"; linha de estado viva', () => {
+    const h = arvore({ aviso: { texto: 'A seção já é primária.', erro: true } });
+    // A tecla vale na lista, não no botão: só na dica, sem `aria-keyshortcuts` (revisão do M2-T07, B7).
+    for (const [rotulo, atalho] of [
+      ['Subir seção', 'Alt\\+Shift\\+↑'],
+      ['Descer seção', 'Alt\\+Shift\\+↓'],
+      ['Recuar seção', 'Alt\\+Shift\\+→'],
+      ['Promover seção', 'Alt\\+Shift\\+←'],
+      ['Excluir seção', 'Delete'],
+    ]) {
+      expect(h).toMatch(new RegExp(`aria-label="${rotulo}" title="[^"]*na lista: ${atalho}`));
+    }
+    expect(h).not.toMatch(/aria-label="(Subir|Excluir) seção"[^>]*aria-keyshortcuts/);
+    expect(h).toContain('>Nova seção</button>');
+    expect(h).toMatch(/class="dica dica--erro" role="status">A seção já é primária\.</);
+  });
+
+  it('só leitura: sem botões nem arrastar; sem seções: dica', () => {
+    const leitura = arvore({ somenteLeitura: true });
+    expect(leitura).not.toContain('Nova seção');
+    expect(leitura).not.toContain('Excluir seção');
+    expect(leitura).toContain('draggable="false"');
+    expect(arvore({ secoes: [], ativaId: null })).toContain('Este trabalho ainda não tem seções.');
+  });
+
+  it('título com marcação vai como texto', () => {
+    const [s0] = resumirSecoes([{ id: 'sec_introducao01', titulo: [{ tipo: 'texto', texto: '<img src=x>' }], blocos: [], subsecoes: [] }]);
+    expect(arvore({ secoes: [s0!], ativaId: null })).not.toContain('<img');
   });
 });

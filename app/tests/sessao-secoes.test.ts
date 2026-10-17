@@ -1,10 +1,12 @@
-// M2-T06 — texto das seções na sessão (ADR-0007, seção 3): `alterarSecao` troca a seção de forma imutável, soma a
+// M2-T06 e M2-T07 — texto e estrutura das seções na sessão (ADR-0007, seção 3): `alterarSecao` troca a seção de forma imutável, soma a
 // revisão, agenda o automático e o instantâneo, e só avisa a interface quando o visor ou a lista de seções mudam (R39).
 import { describe, expect, it } from 'vitest';
 import {
   ATRASO_INSTANTANEO_MS,
   ATRASO_SALVAMENTO_AUTOMATICO_MS,
   criarTrabalhoVazio,
+  MENSAGEM_NADA_A_DESFAZER,
+  MENSAGEM_NADA_A_REFAZER,
   MENSAGEM_NAO_EDITAVEL,
   resumirSecoes,
   SessaoTrabalho,
@@ -69,11 +71,12 @@ const andar = async () => {
 
 describe('lista de seções (M2-T06)', () => {
   it('em ordem de leitura, com indicativo e nível calculados (nunca gravados)', () => {
+    // M2-T07: mãe, posição entre as irmãs e quantas são (aria-level/posinset/setsize na árvore).
     expect(resumirSecoes(corpoBase())).toEqual([
-      { id: 'sec_introducao01', indicativo: '1', nivel: 1, titulo: 'Introdução' },
-      { id: 'sec_metodo000001', indicativo: '2', nivel: 1, titulo: 'Método' },
-      { id: 'sec_amostra00001', indicativo: '2.1', nivel: 2, titulo: 'Amostra' },
-      { id: 'sec_coleta000001', indicativo: '2.2', nivel: 2, titulo: 'Coleta' },
+      { id: 'sec_introducao01', indicativo: '1', nivel: 1, titulo: 'Introdução', paiId: null, posicao: 1, irmas: 2 },
+      { id: 'sec_metodo000001', indicativo: '2', nivel: 1, titulo: 'Método', paiId: null, posicao: 2, irmas: 2 },
+      { id: 'sec_amostra00001', indicativo: '2.1', nivel: 2, titulo: 'Amostra', paiId: 'sec_metodo000001', posicao: 1, irmas: 2 },
+      { id: 'sec_coleta000001', indicativo: '2.2', nivel: 2, titulo: 'Coleta', paiId: 'sec_metodo000001', posicao: 2, irmas: 2 },
     ]);
     const { sessao } = montar();
     expect(sessao.obterEstado().trabalho?.secoes.map((s) => s.indicativo)).toEqual(['1', '2', '2.1', '2.2']);
@@ -159,14 +162,14 @@ describe('alterarSecao (M2-T06)', () => {
   });
 });
 
-describe('inserirSecaoNoFim (M2-T06)', () => {
+describe('novaSecao (M2-T06, M2-T07)', () => {
   it('trabalho vazio ganha a seção 1; a seguinte é a 2; id repetido é trocado', () => {
     const { sessao } = montar({ corpo: [], ids: ['sec_primeira0001', 'sec_primeira0001', 'sec_segunda00001'] });
-    expect(sessao.inserirSecaoNoFim()).toEqual({ ok: true, id: 'sec_primeira0001' });
-    expect(sessao.inserirSecaoNoFim()).toEqual({ ok: true, id: 'sec_segunda00001' });
-    expect(sessao.obterEstado().trabalho!.secoes).toEqual([
-      { id: 'sec_primeira0001', indicativo: '1', nivel: 1, titulo: '' },
-      { id: 'sec_segunda00001', indicativo: '2', nivel: 1, titulo: '' },
+    expect(sessao.novaSecao()).toEqual({ ok: true, mudou: true, secaoId: 'sec_primeira0001' });
+    expect(sessao.novaSecao('sec_primeira0001')).toEqual({ ok: true, mudou: true, secaoId: 'sec_segunda00001' });
+    expect(sessao.obterEstado().trabalho!.secoes.map((s) => [s.id, s.indicativo, s.titulo])).toEqual([
+      ['sec_primeira0001', '1', ''],
+      ['sec_segunda00001', '2', ''],
     ]);
     expect(sessao.temPendencias).toBe(true);
     expect(validarDocumentoV1(sessao.pacote!.documento).ok).toBe(true);
@@ -175,8 +178,133 @@ describe('inserirSecaoNoFim (M2-T06)', () => {
     expect(sessao.obterEstado().trabalho!.secoes[1]!.titulo).toBe('Conclusão');
   });
 
+  it('entra logo depois da seção escolhida e das subseções dela, no mesmo nível', () => {
+    const { sessao } = montar({ ids: ['sec_novaaposmet1', 'sec_novaaposamo1'] });
+    sessao.novaSecao('sec_metodo000001');
+    sessao.novaSecao('sec_amostra00001');
+    expect(sessao.obterEstado().trabalho!.secoes.map((s) => `${s.indicativo} ${s.id}`)).toEqual([
+      '1 sec_introducao01',
+      '2 sec_metodo000001',
+      '2.1 sec_amostra00001',
+      '2.2 sec_novaaposamo1',
+      '2.3 sec_coleta000001',
+      '3 sec_novaaposmet1',
+    ]);
+  });
+
   it('sem gerador de id ou sem trabalho em edição, recusa com mensagem', () => {
     const { sessao } = montar();
-    expect(sessao.inserirSecaoNoFim()).toEqual({ ok: false, mensagem: MENSAGEM_NAO_EDITAVEL });
+    expect(sessao.novaSecao()).toEqual({ ok: false, mensagem: MENSAGEM_NAO_EDITAVEL });
+  });
+});
+
+/** Indicativo e título de cada seção, na ordem de leitura. */
+const lista = (sessao: SessaoTrabalho) => sessao.obterEstado().trabalho!.secoes.map((s) => `${s.indicativo} ${s.titulo}`);
+
+describe('operações estruturais na sessão (M2-T07, RF-03)', () => {
+  it('subir, descer, recuar, promover e excluir renumeram a lista e contam como alteração', () => {
+    const { sessao, ativos } = montar();
+    expect(sessao.operarSecao('acima', 'sec_coleta000001')).toEqual({ ok: true, mudou: true, secaoId: 'sec_coleta000001' });
+    expect(lista(sessao)).toEqual(['1 Introdução', '2 Método', '2.1 Coleta', '2.2 Amostra']);
+    expect(sessao.obterEstado().trabalho!.salvamento).toEqual({ tipo: 'naoSalvo' });
+    expect(ativos().length).toBe(2);
+    // A primeira das irmãs sobe para a seção anterior à mãe (2.1 → 1.1).
+    sessao.operarSecao('acima', 'sec_coleta000001');
+    expect(lista(sessao)).toEqual(['1 Introdução', '1.1 Coleta', '2 Método', '2.1 Amostra']);
+    sessao.operarSecao('abaixo', 'sec_coleta000001');
+    expect(lista(sessao)).toEqual(['1 Introdução', '2 Método', '2.1 Coleta', '2.2 Amostra']);
+    sessao.operarSecao('promover', 'sec_coleta000001');
+    expect(lista(sessao)).toEqual(['1 Introdução', '2 Método', '3 Coleta', '3.1 Amostra']);
+    sessao.operarSecao('recuar', 'sec_coleta000001');
+    expect(lista(sessao)).toEqual(['1 Introdução', '2 Método', '2.1 Coleta', '2.1.1 Amostra']);
+    expect(sessao.operarSecao('excluir', 'sec_metodo000001')).toEqual({ ok: true, mudou: true, secaoId: null });
+    expect(lista(sessao)).toEqual(['1 Introdução']);
+    expect(validarDocumentoV1(sessao.pacote!.documento).ok).toBe(true);
+  });
+
+  it('recusa com a mensagem do domínio, sem alterar nada nem empilhar desfazer', () => {
+    const { sessao } = montar();
+    const r = sessao.operarSecao('promover', 'sec_introducao01');
+    expect(r).toEqual({ ok: false, mensagem: 'A seção já é primária.' });
+    expect(sessao.operarSecao('acima', 'sec_introducao01')).toMatchObject({ ok: false, mensagem: expect.stringContaining('primeira') });
+    expect(sessao.operarSecao('recuar', 'sec_amostra00001')).toMatchObject({ ok: false });
+    expect(sessao.temPendencias).toBe(false);
+    expect(sessao.podeDesfazer).toBe(false);
+  });
+
+  it('arrastar para junto de outra seção; soltar sobre ela mesma não muda nada', () => {
+    const { sessao } = montar();
+    expect(sessao.moverSecaoJuntoDe('sec_coleta000001', 'sec_coleta000001', 'antes')).toEqual({ ok: true, mudou: false, secaoId: 'sec_coleta000001' });
+    expect(sessao.temPendencias).toBe(false);
+    sessao.moverSecaoJuntoDe('sec_introducao01', 'sec_coleta000001', 'depois');
+    expect(lista(sessao)).toEqual(['1 Método', '1.1 Amostra', '1.2 Coleta', '1.3 Introdução']);
+    expect(sessao.moverSecaoJuntoDe('sec_metodo000001', 'sec_amostra00001', 'antes')).toMatchObject({ ok: false });
+  });
+
+  it('só leitura não opera', () => {
+    const { sessao } = montar();
+    sessao.abrirSomenteLeitura('Futuro.bdp', { ...pacote(corpoBase()), versaoFormato: 2 } as never);
+    expect(sessao.operarSecao('excluir', 'sec_introducao01')).toEqual({ ok: false, mensagem: MENSAGEM_NAO_EDITAVEL });
+    expect(sessao.moverSecaoJuntoDe('sec_introducao01', 'sec_metodo000001', 'depois')).toEqual({ ok: false, mensagem: MENSAGEM_NAO_EDITAVEL });
+    expect(sessao.desfazer(() => true)).toEqual({ ok: false, mensagem: MENSAGEM_NAO_EDITAVEL });
+  });
+});
+
+describe('ordem única de desfazer na sessão (M2-T07; ADR-0007, seção 4)', () => {
+  it('desfaz e refaz a estrutura pelo inverso; a seção excluída volta com o texto', () => {
+    const { sessao } = montar();
+    const inicial = sessao.pacote!.documento.corpo;
+    sessao.operarSecao('excluir', 'sec_introducao01');
+    sessao.operarSecao('recuar', 'sec_coleta000001');
+    const nada = () => false;
+    expect(sessao.desfazer(nada)).toEqual({ ok: true, mudou: true, secaoId: 'sec_coleta000001' });
+    expect(sessao.desfazer(nada)).toEqual({ ok: true, mudou: true, secaoId: 'sec_introducao01' });
+    expect(sessao.pacote!.documento.corpo).toEqual(inicial);
+    expect(sessao.desfazer(nada)).toEqual({ ok: false, mensagem: MENSAGEM_NADA_A_DESFAZER });
+    expect(sessao.refazer(nada)).toEqual({ ok: true, mudou: true, secaoId: null }); // excluída de novo
+    expect(lista(sessao)).toEqual(['1 Método', '1.1 Amostra', '1.2 Coleta']);
+    expect(sessao.refazer(nada)).toMatchObject({ ok: true, secaoId: 'sec_coleta000001' });
+    expect(lista(sessao)).toEqual(['1 Método', '1.1 Amostra', '1.1.1 Coleta']);
+    expect(sessao.refazer(nada)).toEqual({ ok: false, mensagem: MENSAGEM_NADA_A_REFAZER });
+  });
+
+  it('a entrada de texto chama quem tem o editor; sem o passo, é descartada e a anterior é tentada', () => {
+    const { sessao } = montar({ ids: ['sec_novasecao001'] });
+    const chamadas: string[] = [];
+    sessao.registrarTexto('sec_introducao01');
+    sessao.novaSecao('sec_introducao01');
+    sessao.registrarTexto('sec_novasecao001');
+    sessao.registrarTexto('sec_naoexiste0001'); // ignorada: a seção não existe
+    // O texto da seção nova: aplicado.
+    expect(sessao.desfazer((id, s) => (chamadas.push(`${s} ${id}`), true))).toEqual({ ok: true, mudou: true, secaoId: 'sec_novasecao001' });
+    // A criação: desfeita (a seção some, `secaoId` nulo).
+    expect(sessao.desfazer(() => true)).toEqual({ ok: true, mudou: true, secaoId: null });
+    // O texto da Introdução já não está no histórico da seção: descartado, e não há mais nada.
+    expect(sessao.desfazer((id, s) => (chamadas.push(`${s} ${id}`), false))).toEqual({ ok: false, mensagem: MENSAGEM_NADA_A_DESFAZER });
+    expect(chamadas).toEqual(['desfazer sec_novasecao001', 'desfazer sec_introducao01']);
+    // Refazer: a criação e depois o texto da seção nova.
+    expect(sessao.refazer(() => true)).toMatchObject({ ok: true, secaoId: 'sec_novasecao001' });
+    expect(sessao.refazer((id, s) => (chamadas.push(`${s} ${id}`), true))).toMatchObject({ ok: true, secaoId: 'sec_novasecao001' });
+    expect(chamadas.at(-1)).toBe('refazer sec_novasecao001');
+  });
+
+  it('alteração nova esvazia o refazer; reabrir esvazia tudo', () => {
+    const { sessao } = montar();
+    sessao.operarSecao('acima', 'sec_coleta000001');
+    sessao.desfazer(() => true);
+    expect(sessao.podeRefazer).toBe(true);
+    sessao.registrarTexto('sec_coleta000001');
+    expect(sessao.podeRefazer).toBe(false);
+    expect(sessao.podeDesfazer).toBe(true);
+    sessao.abrir({ identificador: ID, nomeArquivo: 'Trabalho.bdp', pacote: pacote(corpoBase()), avisos: [], atualizacao: null });
+    expect(sessao.podeDesfazer).toBe(false);
+  });
+
+  it('a geração não muda numa operação estrutural (os editores guardados continuam valendo)', () => {
+    const { sessao } = montar();
+    const g = sessao.obterEstado().trabalho!.geracao;
+    sessao.operarSecao('acima', 'sec_coleta000001');
+    sessao.desfazer(() => true);
+    expect(sessao.obterEstado().trabalho!.geracao).toBe(g);
   });
 });

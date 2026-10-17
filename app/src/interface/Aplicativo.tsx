@@ -5,6 +5,8 @@
 // M1-T12: ao iniciar, a Biblioteca mostra o que há para recuperar (instantâneo de um trabalho que estava aberto quando o
 // app foi fechado inesperadamente, gravação interrompida, `.bak` íntegro de um arquivo que não abre).
 // M2-T06: o editor de seção na aba Escrever e os menus Editar e Inserir › Nota de rodapé.
+// M2-T07: árvore de seções, ordem única de desfazer (texto e estrutura), "Seção anterior/Próxima seção" na barra
+// superior e Trabalho › Estrutura de seções… (`escrever/useEstrutura.ts`).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   AcaoAviso,
@@ -31,6 +33,7 @@ import { visorDoTrabalho } from './casca/visor';
 import type { ControleEditor } from './editor/EditorSecao';
 import { avisoSomenteLeitura, avisosDaAbertura, mensagemVersaoFutura } from './escrever/aberturas';
 import { AreaEscrever, ID_CAMPO_TITULO } from './escrever/AreaEscrever';
+import { useEstrutura } from './escrever/useEstrutura';
 import { useSessao } from './escrever/useSessao';
 import { SimbolosSvg } from './Icones';
 
@@ -67,10 +70,12 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const saindo = useRef(false);
   const refBusca = useRef<HTMLInputElement>(null);
   const refEditor = useRef<ControleEditor | null>(null);
-  // Último campo de texto com foco: o menu tira o foco dele, e os itens de edição o devolvem antes de agir.
-  const ultimoCampo = useRef<HTMLElement | null>(null);
+  // Último elemento com foco fora da barra de menus: o menu tira o foco dele, e os itens de edição o devolvem antes de
+  // agir (e decidem pelo lugar: campo de texto, ou a aba Escrever com a ordem única de desfazer).
+  const ultimoFoco = useRef<HTMLElement | null>(null);
   const local = historico.atual;
   const trabalho = sessaoEstado.trabalho;
+  const estrutura = useEstrutura(sessao, trabalho, refEditor);
 
   const ir = useCallback((parcial: Partial<Local>) => {
     setHistorico((h) => navegar(h, { ...h.atual, ...parcial }, mesmoLocal));
@@ -314,27 +319,28 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoFocar = (e: FocusEvent) => {
       const alvo = e.target;
-      if (alvo instanceof HTMLInputElement || alvo instanceof HTMLTextAreaElement || (alvo instanceof HTMLElement && alvo.isContentEditable)) {
-        ultimoCampo.current = alvo;
-      }
+      if (alvo instanceof HTMLElement && alvo.closest('[role="menubar"]') === null) ultimoFoco.current = alvo;
     };
     window.addEventListener('focusin', aoFocar);
     return () => window.removeEventListener('focusin', aoFocar);
   }, []);
 
   /**
-   * Itens do menu Editar. No editor de seção, Desfazer e Refazer vão ao histórico da seção (o do navegador não conhece o
-   * ProseMirror); o resto, e tudo nos outros campos, é o comando do Chromium pedido ao principal (`api.edicao`), o mesmo
-   * das teclas: a colagem passa pelo tratador do editor (R40).
+   * Itens do menu Editar. Na aba Escrever (editor, árvore de seções), Desfazer e Refazer seguem a ordem única do trabalho
+   * (M2-T07; o histórico do navegador não conhece o ProseMirror nem a estrutura); o resto, e tudo nos campos de texto, é
+   * o comando do Chromium pedido ao principal (`api.edicao`), o mesmo das teclas: a colagem passa pelo tratador do
+   * editor (R40).
    */
+  const { historico: historicoEdicao } = estrutura;
   const editar = useCallback(
     (acao: AcaoEdicao | 'colarSemFormatacao') => {
-      const campo = ultimoCampo.current;
-      if (campo?.isConnected) campo.focus();
+      const foco = ultimoFoco.current;
+      if (foco?.isConnected) foco.focus();
       const editor = refEditor.current;
       const noEditor = editor !== null && editor.temFoco();
-      if (noEditor && acao === 'desfazer') return void editor.desfazer();
-      if (noEditor && acao === 'refazer') return void editor.refazer();
+      const campo = foco instanceof HTMLInputElement || foco instanceof HTMLTextAreaElement;
+      const naEscrita = foco?.isConnected === true && !campo && foco.closest('.escrever') !== null;
+      if ((acao === 'desfazer' || acao === 'refazer') && naEscrita) return void historicoEdicao(acao);
       if (acao === 'colarSemFormatacao') {
         if (noEditor) editor.colarSemFormatacao();
         // Nos campos de uma linha só há texto: colar é o mesmo que colar sem formatação.
@@ -342,8 +348,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       }
       api.edicao.executar(acao).catch(() => mostrarMensagem({ tipo: 'erro', texto: MENSAGEM_FALHA_EDICAO }));
     },
-    [api, mostrarMensagem],
+    [api, historicoEdicao, mostrarMensagem],
   );
+
+  const { irPara: irParaSecao, pedirFoco } = estrutura;
 
   const comando = useCallback(
     (c: ComandoMenu) => {
@@ -358,6 +366,15 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           return;
         case 'inserirNota':
           refEditor.current?.inserirNota();
+          return;
+        case 'estruturaSecoes':
+          irParaEscrever();
+          pedirFoco('arvore');
+          return;
+        case 'secaoAnterior':
+        case 'proximaSecao':
+          irParaEscrever();
+          irParaSecao(c === 'secaoAnterior' ? -1 : 1);
           return;
         case 'novoTrabalho':
           void criar();
@@ -389,7 +406,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           return;
       }
     },
-    [abrirPorDialogo, acaoDoAviso, criar, editar, escolherPasta, fecharTrabalho, focarBusca, recarregar, sessao],
+    [abrirPorDialogo, acaoDoAviso, criar, editar, escolherPasta, fecharTrabalho, focarBusca, irParaEscrever, irParaSecao, pedirFoco, recarregar, sessao],
   );
 
   // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
@@ -443,6 +460,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
             if (termo.trim() !== '') ir({ aba: 'biblioteca', colecao: 'trabalhos' });
           }}
           refBusca={refBusca}
+          podeAnterior={estrutura.podeAnterior}
+          podeProxima={estrutura.podeProxima}
+          aoSecaoAnterior={() => comando('secaoAnterior')}
+          aoProximaSecao={() => comando('proximaSecao')}
         />
         <BarraMenus aoComando={comando} desativados={desativados} />
         <Navegacao
@@ -504,7 +525,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   setSaidaPedida(false);
                   sessao.alterarSecao(id, conteudo);
                 }}
-                aoNovaSecao={() => sessao.inserirSecaoNoFim()}
+                estrutura={estrutura}
                 controleEditor={refEditor}
               />
             ) : (

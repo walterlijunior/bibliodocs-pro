@@ -23,13 +23,34 @@
  * - texto das seções (M2-T06; ADR-0007, seção 3): o editor manda cada alteração na hora (`alterarSecao`), e a sessão
  *   só avisa a interface quando muda o que ela mostra (estado do visor, título de uma seção na lista): uma emissão por
  *   tecla re-renderizaria a casca inteira (R39).
+ * - estrutura das seções (M2-T07; ADR-0007, seção 4): inserir, excluir, mover, recuar e promover passam pelas operações
+ *   puras de `dominio/modelo`; cada uma aceita entra no `HistoricoEdicao` com o seu inverso. Desfazer e refazer seguem
+ *   a ordem única: a entrada de texto é aplicada por quem tem o editor (função recebida), a de estrutura aqui. A
+ *   `geracao` não muda numa operação estrutural (os editores guardados continuam valendo).
  *
  * Puro (sem DOM e sem Node): a API, o relógio e o agendador entram por dependência, e os testes rodam em Node com
  * agendador manual (tests/sessao-trabalho.test.ts).
  */
-import { inserirSecao, type Id, type InlineDeTitulo, type Secao, type TipoTrabalhoId } from '../../dominio/modelo';
+import {
+  aplicarOperacaoSecao,
+  inserirSecao,
+  localizarSecao,
+  moverJuntoDe,
+  moverParaBaixo,
+  moverParaCima,
+  promoverSecao,
+  recuarSecao,
+  removerSecao,
+  type Id,
+  type InlineDeTitulo,
+  type InversoSecao,
+  type ResultadoOperacaoSecao,
+  type Secao,
+  type TipoTrabalhoId,
+} from '../../dominio/modelo';
 import { numerarSecoes } from '../../dominio/numeracao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
+import { HistoricoEdicao, type EntradaHistorico } from './historico-edicao';
 import {
   CODIGO_MIDIA_AUSENTE,
   type ApiProjetos,
@@ -79,6 +100,10 @@ export interface ResumoSecao {
   /** 1 = primária. */
   nivel: number;
   titulo: string;
+  paiId: Id | null;
+  /** Posição entre as irmãs (base 1) e quantas irmãs há, contando ela (para o leitor de tela). */
+  posicao: number;
+  irmas: number;
 }
 
 /** O que o editor de uma seção edita (as subseções ficam na árvore). */
@@ -124,9 +149,24 @@ export interface DependenciasSessao {
   gerarIdSecao?: () => string;
 }
 
-export type ResultadoInserirSecao = { ok: true; id: Id } | { ok: false; mensagem: string };
+/**
+ * Resultado de uma operação estrutural ou de desfazer/refazer. `secaoId` = a seção a mostrar depois (a criada, a movida,
+ * a do texto desfeito), ou `null` se ela não existe mais (desfazer a criação, excluir).
+ */
+export type ResultadoEstrutura = { ok: true; mudou: boolean; secaoId: Id | null } | { ok: false; mensagem: string };
+
+/** Operações da lista de seções (botões, teclas e menu). */
+export type AcaoSecao = 'recuar' | 'promover' | 'acima' | 'abaixo' | 'excluir';
+
+/**
+ * Aplica desfazer ou refazer ao texto de uma seção (o `prosemirror-history` dela). `false` = não havia o passo (a
+ * entrada é descartada e a seguinte é tentada).
+ */
+export type AplicarTexto = (secaoId: Id, sentido: 'desfazer' | 'refazer') => boolean;
 
 export const MENSAGEM_NAO_EDITAVEL = 'Este trabalho não pode ser alterado.';
+export const MENSAGEM_NADA_A_DESFAZER = 'Não há o que desfazer.';
+export const MENSAGEM_NADA_A_REFAZER = 'Não há o que refazer.';
 
 export interface OpcoesAbrir {
   /**
@@ -164,8 +204,22 @@ export function tituloDoTexto(texto: string, atual: readonly InlineDeTitulo[]): 
 
 /** Lista da aba Escrever, em ordem de leitura. */
 export function resumirSecoes(corpo: readonly Secao[]): ResumoSecao[] {
-  return numerarSecoes(corpo).map((n) => ({ id: n.secao.id, indicativo: n.indicativo, nivel: n.nivel, titulo: textoDoTitulo(n.secao.titulo) }));
+  const numeradas = numerarSecoes(corpo);
+  const irmas = new Map<Id | null, number>();
+  for (const n of numeradas) irmas.set(n.paiId, (irmas.get(n.paiId) ?? 0) + 1);
+  return numeradas.map((n) => ({
+    id: n.secao.id,
+    indicativo: n.indicativo,
+    nivel: n.nivel,
+    titulo: textoDoTitulo(n.secao.titulo),
+    paiId: n.paiId,
+    posicao: Number(n.indicativo.slice(n.indicativo.lastIndexOf('.') + 1)),
+    irmas: irmas.get(n.paiId)!,
+  }));
 }
+
+/** Seção de que trata uma operação ou um inverso. */
+const idDaOperacao = (op: InversoSecao): Id => (op.tipo === 'inserir' ? op.secao.id : op.id);
 
 /** Troca a seção do `caminho` por `nova`, copiando só o caminho até ela. */
 function trocarSecao(lista: readonly Secao[], caminho: readonly number[], nova: Secao): Secao[] {
@@ -230,6 +284,8 @@ export class SessaoTrabalho {
   #caminhos = new Map<Id, number[]>();
   /** Lista de seções da interface, refeita só quando um título ou a estrutura mudam. */
   #secoes: readonly ResumoSecao[] = [];
+  /** Ordem única de desfazer do trabalho aberto (texto e estrutura); esvazia a cada `geracao`. */
+  readonly #historico = new HistoricoEdicao();
 
   constructor(dep: DependenciasSessao) {
     this.#dep = dep;
@@ -392,6 +448,7 @@ export class SessaoTrabalho {
     this.#geracao += 1;
     this.#caminhos = caminhosDasSecoes(corpo);
     this.#secoes = resumirSecoes(corpo);
+    this.#historico.limpar();
   }
 
   #liberar(): void {
@@ -406,6 +463,7 @@ export class SessaoTrabalho {
     this.#aberto = null;
     this.#caminhos = new Map();
     this.#secoes = [];
+    this.#historico.limpar();
     this.#revisao = 0;
     this.#revisaoSalva = 0;
     this.#gravacao = null;
@@ -506,22 +564,122 @@ export class SessaoTrabalho {
     if (emitir) this.#emitir();
   }
 
-  /** Acrescenta uma seção primária vazia no fim do corpo (a árvore, com mover e recuar, é do M2-T07). */
-  inserirSecaoNoFim(): ResultadoInserirSecao {
+  // ---------- estrutura das seções e desfazer (M2-T07) ----------
+
+  /**
+   * Seção nova e vazia logo depois de `aposId` (e das subseções dela), no mesmo nível; sem `aposId` (ou com um que não
+   * existe), no fim do corpo. Entra no desfazer.
+   */
+  novaSecao(aposId: Id | null = null): ResultadoEstrutura {
     const a = this.#aberto;
     const gerar = this.#dep.gerarIdSecao;
     if (a?.modo !== 'edicao' || gerar === undefined) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
     const corpo = a.pacote.documento.corpo;
     let id = gerar();
     while (this.#caminhos.has(id)) id = gerar();
-    const r = inserirSecao(corpo, { id, titulo: [], blocos: [], subsecoes: [] }, { paiId: null, indice: corpo.length });
+    const apos = aposId === null ? null : localizarSecao(corpo, aposId);
+    const destino = apos === null ? { paiId: null, indice: corpo.length } : { paiId: apos.paiId, indice: apos.indice + 1 };
+    return this.#aplicarEstrutura(a, inserirSecao(corpo, { id, titulo: [], blocos: [], subsecoes: [] }, destino), id);
+  }
+
+  /** Recuar, promover, subir, descer ou excluir a seção `id` (com as suas subseções). Entra no desfazer. */
+  operarSecao(acao: AcaoSecao, id: Id): ResultadoEstrutura {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const corpo = a.pacote.documento.corpo;
+    const operacoes: Record<AcaoSecao, () => ResultadoOperacaoSecao> = {
+      recuar: () => recuarSecao(corpo, id),
+      promover: () => promoverSecao(corpo, id),
+      acima: () => moverParaCima(corpo, id),
+      abaixo: () => moverParaBaixo(corpo, id),
+      excluir: () => removerSecao(corpo, id),
+    };
+    return this.#aplicarEstrutura(a, operacoes[acao](), acao === 'excluir' ? null : id);
+  }
+
+  /** Leva a seção para logo antes ou depois de `alvoId` (arrastar e soltar). Entra no desfazer. */
+  moverSecaoJuntoDe(id: Id, alvoId: Id, lado: 'antes' | 'depois'): ResultadoEstrutura {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    return this.#aplicarEstrutura(a, moverJuntoDe(a.pacote.documento.corpo, id, alvoId, lado), id);
+  }
+
+  /**
+   * Resultado de uma operação nova: troca o corpo, refaz caminhos e lista, conta a alteração e guarda o inverso.
+   * `mudou: false` não soma revisão nem empilha desfazer (adendo do M2-T03).
+   */
+  #aplicarEstrutura(a: Extract<Aberto, { modo: 'edicao' }>, r: ResultadoOperacaoSecao, secaoId: Id | null): ResultadoEstrutura {
     if (!r.ok) return { ok: false, mensagem: r.mensagem };
-    a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: r.corpo } };
-    this.#caminhos = caminhosDasSecoes(r.corpo);
-    this.#secoes = resumirSecoes(r.corpo);
+    if (!r.mudou) return { ok: true, mudou: false, secaoId };
+    this.#historico.registrar({ tipo: 'estrutura', inverso: r.inverso });
+    this.#trocarCorpo(a, r.corpo);
+    return { ok: true, mudou: true, secaoId };
+  }
+
+  #trocarCorpo(a: Extract<Aberto, { modo: 'edicao' }>, corpo: Secao[]): void {
+    a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo } };
+    this.#caminhos = caminhosDasSecoes(corpo);
+    this.#secoes = resumirSecoes(corpo);
     this.#marcarAlteracao();
     this.#emitir();
-    return { ok: true, id };
+  }
+
+  /**
+   * O texto da seção ganhou um passo novo no `prosemirror-history` dela (o editor avisa quando a profundidade de
+   * desfazer muda numa transação que não é de desfazer/refazer): entra na ordem única.
+   */
+  registrarTexto(secaoId: Id): void {
+    if (this.#aberto?.modo === 'edicao' && this.#caminhos.has(secaoId)) this.#historico.registrar({ tipo: 'texto', secaoId });
+  }
+
+  get podeDesfazer(): boolean {
+    return this.#aberto?.modo === 'edicao' && this.#historico.podeDesfazer;
+  }
+
+  get podeRefazer(): boolean {
+    return this.#aberto?.modo === 'edicao' && this.#historico.podeRefazer;
+  }
+
+  /** Desfaz a última alteração do trabalho, de texto ou de estrutura (Ctrl+Z). */
+  desfazer(aplicarTexto: AplicarTexto): ResultadoEstrutura {
+    return this.#percorrerHistorico('desfazer', aplicarTexto);
+  }
+
+  /** Refaz o último desfeito (Ctrl+Y). */
+  refazer(aplicarTexto: AplicarTexto): ResultadoEstrutura {
+    return this.#percorrerHistorico('refazer', aplicarTexto);
+  }
+
+  #percorrerHistorico(sentido: 'desfazer' | 'refazer', aplicarTexto: AplicarTexto): ResultadoEstrutura {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    for (let e = this.#historico.topo(sentido); e !== undefined; e = this.#historico.topo(sentido)) {
+      const contraria = this.#aplicarEntrada(a, e, sentido, aplicarTexto);
+      if (contraria === null) {
+        // O passo já não existe (o histórico de cada seção guarda até 100 eventos): segue para a entrada anterior.
+        this.#historico.descartar(sentido);
+        continue;
+      }
+      this.#historico.concluir(sentido, contraria);
+      const id = e.tipo === 'texto' ? e.secaoId : idDaOperacao(e.inverso);
+      return { ok: true, mudou: true, secaoId: this.#caminhos.has(id) ? id : null };
+    }
+    return { ok: false, mensagem: sentido === 'desfazer' ? MENSAGEM_NADA_A_DESFAZER : MENSAGEM_NADA_A_REFAZER };
+  }
+
+  /** Aplica a entrada; devolve a que a anula, ou `null` se ela não pôde ser aplicada. */
+  #aplicarEntrada(
+    a: Extract<Aberto, { modo: 'edicao' }>,
+    e: EntradaHistorico,
+    sentido: 'desfazer' | 'refazer',
+    aplicarTexto: AplicarTexto,
+  ): EntradaHistorico | null {
+    if (e.tipo === 'texto') return this.#caminhos.has(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
+    // O inverso vai como foi recebido (só ele restaura além dos limites).
+    const r = aplicarOperacaoSecao(a.pacote.documento.corpo, e.inverso);
+    if (!r.ok) return null;
+    if (r.mudou) this.#trocarCorpo(a, r.corpo);
+    return { tipo: 'estrutura', inverso: r.inverso };
   }
 
   // ---------- gravação ----------
