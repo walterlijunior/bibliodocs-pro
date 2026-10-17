@@ -6,6 +6,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, preparação do M2.
+  - `docs/decisoes/ADR-0007-editor-de-texto-rico.md` (ACEITO, decisão delegada pelo usuário): ProseMirror puro, um
+    editor por seção, colagem própria sem `innerHTML`, histórico único texto + estrutura, componentes próprios.
+  - Riscos R38–R45 na matriz de riscos; decisões C-A6 (RN-025, `aa), bb)`) e C-B18 (relatório técnico e projeto de
+    pesquisa com os modelos UFT como sugestão editável) na matriz normativa.
+  - `docs/PLANO_DE_IMPLEMENTACAO.md`: tarefas M2-T01..T12 com dependências, aceite e decisões do usuário.
+
 - Etapa 5, M1-T15: fechamento do marco M1.
   - `docs/relatorios/REVISAO_M1.md`: revisão de segurança e qualidade do marco, com 0 Crítica, 1 Alta (R-M1-01,
     instantâneo síncrono; aceito como M2-T01), 3 Médias, 6 Baixas e 3 Info, mais o checklist C-1..C-22 final,

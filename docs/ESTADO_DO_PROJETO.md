@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M1-T15 concluído (fechamento do marco M1).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído** (T01–T15); próximo: preparação do M2.
+**Última atualização:** 2026-10-17 — preparação do M2 concluída (ADR-0007 ACEITO; tarefas M2-T01..T12 no plano; decisões delegadas registradas).
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 pronto para começar pelo **M2-T01**.
 
 ## Etapas
 
@@ -15,17 +15,27 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔, T15 ✔ — **M1 CONCLUÍDO**; M2 a detalhar) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T08 ✔, T09 ✔, T10 ✔, T11 ✔, T12 ✔, T13 ✔, T14 ✔, T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T12 no plano, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Antes do M2: ADR do editor de texto rico (com o `especialista-interface`) e o detalhamento das tarefas do M2 em
-   `docs/PLANO_DE_IMPLEMENTACAO.md`, começando pelo M2-T01 (medição do instantâneo, R-M1-01). As pendências do
-   fechamento do M1 já estão listadas lá.
+1. **M2-T01** (medição do instantâneo e do salvamento com 25 MB e 150 páginas, R-M1-01). T02, T03 e T10 podem vir em
+   seguida ou em paralelo (arquivos diferentes).
 2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões da preparação do M2 (2026-10-17, delegadas pelo usuário à sessão principal)
+O usuário escreveu: "deixo essas decisões para você".
+- **ADR-0007 aceito:** ProseMirror puro (dependências instaladas só no M2-T05, avisando antes), um editor por seção,
+  colagem própria, componentes próprios sem Radix. Riscos R38–R45 registrados na matriz de riscos.
+- **Itens visíveis:** uma seção por vez; aparência neutra no editor, com a forma final na Pré-visualização (rever no
+  fechamento do M3); a colagem preserva itálico, negrito, sobrescrito, subscrito e parágrafos, e recusa imagens e
+  tabelas com aviso; corretor ortográfico desligado no M2.
+- **C-B18:** relatório técnico e projeto de pesquisa usam os elementos dos modelos UFT como sugestão editável,
+  identificada como não exigida pelo Manual; o verificador não acusa ausência.
+- **C-A6 (RN-025):** depois de `z)` vem `aa), bb), cc)` (valor de perfil; continua sem fonte, P-03).
 
 ## Decisões do fechamento do M1 (2026-10-17, delegadas pelo usuário à sessão principal)
 - **R-M1-01 (Alta, desempenho):** aceito para fechar o M1; vira **M2-T01**, obrigatório antes de ligar o editor
@@ -222,11 +232,9 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
   das 3 majors suportadas (R20).
 
 ## Decisões aguardando o usuário
-- (Antes do M2) ADR do editor de texto rico (recomendação do `especialista-interface`: TipTap só com núcleo MIT
-  ou ProseMirror puro) e da biblioteca de componentes (React Aria Components ou Radix) — técnico, conferir versões.
 - (M5) Margens da seção em paisagem: sem RN no Manual; decisão editorial.
 - (Etapa 7) Assinatura de código: certificado OV, MSIX na Microsoft Store ou sem assinatura.
-- (Etapa 5, antes de implementar a regra) 5 ambiguidades remanescentes: RN-025 (letras dobradas), RN-033
+- (Etapa 5, antes de implementar a regra) 4 ambiguidades remanescentes (RN-025 decidida em C-A6): RN-033
   (linha em branco após subtítulo), RN-073 (numeração nos pós-textuais), RN-085 (pontuação final da citação),
   RN-108 (alinhamento da equação).
 - (Etapa 3, sem prazo) Fornecer trechos de normas ABNT/CONMETRO ou orientação da UFT para as 43 perguntas de fonte
@@ -257,3 +265,4 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 | 2026-10-17 | 5 (M1-T13) | E2E pela sessão principal com `@playwright/test` 1.64.1 (dependência local informada) no Electron 44.8.0: FUN-01 (reabrir idêntico, também após reiniciar; SHA-256 do arquivo igual), RNF-04 (`taskkill /F /T`, instantâneo 1992 ms, Recuperar, "Abrir o arquivo salvo"), UI-01 (faixas de 1024×700 a maximizada em 100/125/150%), zero rede pelo net-log e SEG-03. O net-log achou WPAD + checagem de IPv6 ao iniciar → `no-proxy-server` no principal. `engenheiro-qualidade`: 1 Alta (travessia com alvo inexistente), 4 Média (perfil do Chromium real, órfão, laços vazios, corrida no `taskkill`) e 7 Baixa; corrigidas, exceto 3 Baixas aceitas. 4/5 mutações (a de `..` é inalcançável pela página). `verificar:tudo` 712/712 + E2E 8/8, 0 vulnerabilidades; repetições 24/24 e 16/16; kit 0 falhas. Commit `c93933f` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M1-T14) | Empacotamento de fumaça pela sessão principal com electron-builder 26.15.3 (dependência local informada): NSIS por usuário, fuses e ASAR, `electronDist` local, `afterPack` e gancho NSIS. Instalador 111 841 150 bytes (< 200 MB, RNF-08), instalado 390 MB. `revisor-seguranca`: 0 Alta, A-1 (Média, `--remote-debugging-port` abria CDP no pacote) corrigido com recusa de argumentos; `elevate.exe`, comentários e afterPack corrigidos; assinatura, NSIS legado e cache para a Etapa 7. Instalar/desinstalar autorizado pelo usuário: 1.ª rodada achou a cópia de 112 MB em `bibliodocs-pro-updater` → corrigida, 2.ª limpa. Fumaça CDP 11/11 (antes do A-1), negativa 6/6; ASAR adulterado recusado. O Controle Inteligente de Aplicativos bloqueou o `.exe` do `dist:fumaca` (R34). `verificar:tudo` 741/741 + E2E 8/8, 0 vulnerabilidades; 10/10 mutações; kit 0 falhas (busca de segredos passa a ignorar `node_modules`/builds). Depois, a pedido do usuário: ícone próprio (pequi) e decisão delegada de nunca apagar dados ao desinstalar (742/742). Commits `1efbb74` e `e02ae4f` autorizados pelo usuário. |
 | 2026-10-16 | 5 (M1-T11) | Fluxo criar → editar título → salvar → fechar → abrir pela sessão principal: `SessaoTrabalho` pura (fila única de gravações, revisões, automático de 30 s, trocar/fechar gravam antes, só leitura, "Salvar como…"); aba Escrever com título; visor ligado; menu Arquivo e atalhos; abrir/renomear/duplicar/excluir na Biblioteca; fechar a janela grava antes. `especialista-interface`: 0 Alta, M1–M4 e 5 Baixas corrigidas. 13/13 mutações. Fumaça no Electron 44.8.0 por CDP 31/31 (automático em 30,2 s; erro visível; achou e corrigiu erro longo escondido no visor). `verificar:tudo` 665/665, 0 vulnerabilidades, build OK; kit 0 falhas. Commit `f6203ee` autorizado pelo usuário. |
+| 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Sem commit (aguarda autorização). |

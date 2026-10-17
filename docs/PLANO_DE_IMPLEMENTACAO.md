@@ -83,6 +83,30 @@ Comandos rodam em `app/`. Cada tarefa termina com teste e registro; "Informar an
   alíneas, citação longa (bloco), notas; pré-textuais com campos.
 **Aceite:** RF-02, RF-03, RF-04; testes de numeração e de elementos obrigatórios por tipo.
 
+#### Tarefas do M2 (detalhadas em 2026-10-17, preparação do M2)
+Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro. A ordem segue a
+regra "modelo antes da tela" (skill `editor-academico`). O ADR-0007 foi aceito em 2026-10-17.
+
+| ID | Tarefa | Agente | Depende | Critério de aceite | Verificação |
+|---|---|---|---|---|---|
+| M2-T01 | Medir instantâneo de recuperação e salvamento com 25 MB de mídia e documento de 150 páginas (tempo no principal, latência de teclado, RSS). Se passar da meta: instantâneo incremental e empacotamento fora do principal (R-M1-01, R36). Gerador de documento grande reaproveitável no M3 e na Etapa 6 | especialista-documento + engenheiro-qualidade (medição) | — | Medidas registradas contra RNF-06 (abrir 150 páginas < 3 s; < 50 ms por tecla) e RNF-07 (< 800 MB); o instantâneo não atrasa a tecla além de 50 ms | `npm run verificar:tudo`; script de medição com resultado no relatório do marco |
+| M2-T02 | Tipos de trabalho no domínio: os seis tipos (TCC monografia, artigo-TCC, dissertação, tese, relatório técnico, projeto de pesquisa) como **dados** com elementos e ordem da tabela "Ordem dos elementos por tipo" da matriz, cada elemento com RN; `TipoTrabalhoId` ampliado (aditivo no v1); `ROTULOS_TIPO` na interface; criar trabalho escolhendo o tipo. Relatório técnico e projeto de pesquisa: elementos dos modelos UFT como sugestão editável (C-B18) | especialista-documento + especialista-normas (revisão de fontes) | — | RF-02: para cada tipo, trabalho novo contém exatamente os elementos obrigatórios, na ordem; elemento PF não entra como definitivo | `npm run verificar` (teste por tipo) |
+| M2-T03 | Numeração progressiva pura em `dominio/numeracao` e operações estruturais puras sobre a árvore de seções (inserir, remover, mover, recuar, promover), limite de 5 níveis (RN-039, RN-041, RN-028) | especialista-documento | — | RF-03: mover a seção 3 para antes da 2 renumera tudo; recuar além da quinária é recusado com mensagem | `npm run verificar` (propriedades + mutação) |
+| M2-T04 | Modelo M2: alíneas e subalíneas (RN-023, RN-024, RN-026; RN-025 com `aa), bb)` conforme C-A6), citação longa como bloco (RN-004), nota de rodapé como inline atômico com conteúdo; esquemas zod + JSON Schema + fixtures | especialista-documento | T03 | Fixtures válidas passam; inválidas recusadas em pt-BR; ida e volta `.bdp` idêntica | `npm run verificar`; `npm run esquemas:gerar` |
+| M2-T05 | Núcleo do editor (ADR-0007): esquema do editor e conversão modelo ↔ editor testável em Node; colagem saneada para o modelo. **Informar antes:** instalação das dependências do ADR | especialista-interface + especialista-documento (revisão do mapeamento) | T04 | Ida e volta modelo → editor → modelo idêntica em todas as fixtures; HTML colado do Word vira só `Bloco/Inline` | `npm run verificar` |
+| M2-T06 | Editor na aba Escrever ligado à `SessaoTrabalho`: transação soma revisão, agenda o automático e `#agendarInstantaneo()`; desfazer/refazer; IME/acentos; CSP sem violação | especialista-interface | T05, T01 | Digitar, desfazer, salvar, reabrir idêntico; latência ≤ RNF-06 no documento do T01; `x.problemas` vazio no E2E | `npm run verificar:tudo` (E2E novo) |
+| M2-T07 | Árvore de seções na interface: inserir, renomear, mover (teclado e arrastar), recuar/promover, numeração exibida; ligar os botões de seção da barra | especialista-interface | T03, T06 | Teclado completo; leitor de tela anuncia nível e número; E2E de mover seção | `npm run verificar:tudo` |
+| M2-T08 | Pré-textuais com campos: capa, folha de rosto, ficha catalográfica, errata, folha de aprovação, dedicatória, agradecimentos, epígrafe, resumo e abstract com palavras-chave (RN do Quadro 5 e cap. 5 do Manual); validação dos obrigatórios por tipo | especialista-documento (modelo) → especialista-interface (formulários) | T02, T06 | RF-04: obrigatório ausente aparece como pendência (o verificador completo é do M7) | `npm run verificar:tudo` |
+| M2-T09 | Lugares dos pós-textuais na estrutura (referências, glossário, apêndices, anexos) com ordem por tipo; conteúdo detalhado fica no M4/M6 | especialista-documento | T02 | Ordem conforme a matriz; apêndice/anexo identificados por letra (RN do cap. 7–8) | `npm run verificar` |
+| M2-T10 | Backups rotativos `backups\<id>\` (ADR-0004 §4) e `.bak` acompanhando excluir/renomear (R-M1-02, R-M1-03, R37) | especialista-documento | — | Rotação 10 + 1/dia por 7 dias; `*-formato-v<N>.bdp` preservado; `.bak` na Lixeira junto ao excluir | `npm run verificar` |
+| M2-T11 | Pendências técnicas do M1: inventário de licenças e `TERCEIROS.txt`, teste contra copyleft em produção, `npm audit signatures` no `verificar` (R-M1-04/05); logs sem caminho completo (R-M1-07); Electron 44.9.0 com `test:e2e` e fumaça do pacote (R-M1-06); axe-core (RNF-09); tela de `recuperacao-antigos` | engenheiro-qualidade + revisor-seguranca (revisão) | — | Itens fechados ou com motivo registrado | `npm run verificar:tudo` |
+| M2-T12 | Fechamento do marco: README, matriz de testes, `REVISAO_M2.md` (skill `revisao-seguranca-qualidade`), relatório do marco | sessão principal | T01–T11 | Aceite do M2 demonstrado | `npm run verificar:tudo` |
+
+Decisões do M2 tomadas em 2026-10-17 (delegadas pelo usuário à sessão principal): ADR-0007 aceito, com os quatro
+itens visíveis como propostos; relatório técnico e projeto de pesquisa seguem os modelos UFT como sugestão editável
+(C-B18); "letras dobradas" = `aa), bb), cc)` como valor de perfil (C-A6).
+Paralelização: T01, T02, T03 e T10 tocam arquivos diferentes e podem correr juntos.
+
 ### M3 — Motor normativo e exportação DOCX
 - Perfil "UFT 2022" com as regras `CONFIRMADA` de formatação geral; exportação DOCX com estilos e seções;
   regressão documental ativa.
