@@ -8,7 +8,10 @@ import {
   BACKUPS_RECENTES,
   backupsParaApagar,
   dataDoBackup,
+  conciliarBackupsExcluidos,
   fazerBackupRotativo,
+  marcarBackupsExcluidos,
+  PRAZO_BACKUPS_EXCLUIDOS_MS,
   nomeBackupRotativo,
   SISTEMA_ARQUIVOS_NODE,
 } from '../src/persistencia';
@@ -146,5 +149,51 @@ describe('fazerBackupRotativo', () => {
     for (let i = 0; i < 10; i++) await fazer(new Date(AGORA.getTime() - (i + 1) * 3 * 24 * 3_600_000));
     const fs = { ...SISTEMA_ARQUIVOS_NODE, apagar: (c: string) => (c.endsWith('.tmp') ? SISTEMA_ARQUIVOS_NODE.apagar(c) : Promise.reject(Object.assign(new Error('x'), { code: 'EBUSY' }))) };
     expect(await fazerBackupRotativo(origem, pastaBackups, ID, { fs, agora: () => AGORA })).toEqual({ feito: true, nome: '20261102-120000.bdp', avisos: ['EBUSY'] });
+  });
+});
+
+describe('cópias de trabalho excluído (decisão de 2026-11-02)', () => {
+  const pasta = () => join(pastaBackups, ID);
+  const DIA = 24 * 60 * 60 * 1000;
+  const preparar = () => {
+    mkdirSync(pasta(), { recursive: true });
+    writeFileSync(join(pasta(), '20261001-120000-000.bdp'), 'cópia');
+    writeFileSync(join(pasta(), '20261001-120000-000-formato-v1.bdp'), 'migração');
+  };
+  const agora = AGORA.getTime();
+
+  it('sem marca nada é apagado, mesmo ausente da biblioteca', async () => {
+    preparar();
+    await conciliarBackupsExcluidos(pastaBackups, new Set(), agora + 1000 * DIA);
+    expect(readdirSync(pasta())).toHaveLength(2);
+  });
+
+  it('dentro do prazo fica; vencido, sai tudo, inclusive a migração e a pasta', async () => {
+    preparar();
+    await marcarBackupsExcluidos(pastaBackups, ID, agora);
+    await conciliarBackupsExcluidos(pastaBackups, new Set(), agora + PRAZO_BACKUPS_EXCLUIDOS_MS);
+    expect(readdirSync(pasta())).toHaveLength(3);
+    await conciliarBackupsExcluidos(pastaBackups, new Set(), agora + PRAZO_BACKUPS_EXCLUIDOS_MS + 1);
+    expect(existsSync(pasta())).toBe(false);
+  });
+
+  it('o trabalho de volta na biblioteca perde a marca, e as cópias ficam', async () => {
+    preparar();
+    await marcarBackupsExcluidos(pastaBackups, ID, agora);
+    await conciliarBackupsExcluidos(pastaBackups, new Set([ID]), agora + 60 * DIA);
+    expect(readdirSync(pasta()).filter((n) => n.endsWith('.marca'))).toEqual([]);
+    await conciliarBackupsExcluidos(pastaBackups, new Set(), agora + 120 * DIA);
+    expect(readdirSync(pasta())).toHaveLength(2);
+  });
+
+  it('não toca em pasta com nome fora do padrão, e sem pasta de backups não falha', async () => {
+    const estranha = join(pastaBackups, 'nao.valida');
+    mkdirSync(estranha, { recursive: true });
+    writeFileSync(join(estranha, 'excluido-1.marca'), '');
+    await conciliarBackupsExcluidos(pastaBackups, new Set(), agora);
+    expect(readdirSync(estranha)).toHaveLength(1);
+    await conciliarBackupsExcluidos(join(raiz, 'nao-existe'), new Set(), agora);
+    await marcarBackupsExcluidos(join(raiz, 'nao-existe'), ID, agora);
+    expect(existsSync(join(raiz, 'nao-existe'))).toBe(false);
   });
 });

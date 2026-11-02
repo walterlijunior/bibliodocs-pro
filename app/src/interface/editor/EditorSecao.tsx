@@ -20,6 +20,7 @@ import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { MarcaTexto } from '../../dominio/modelo';
 import { colarSemFormatacaoNaProxima } from './colagem';
+import { alternarAlineas, alternarCitacaoLonga, estaEmAlineas, estaEmCitacao } from './comandos-blocos';
 import { alternarMarca, desfazer, inserirNota, marcaAtiva, META_ABRIR_NOTA, podeInserirNota, refazer } from './comandos';
 import { docParaSecao, type ConteudoSecao } from './conversao';
 import { criarEstadoSecao } from './estado';
@@ -121,11 +122,15 @@ interface Barra {
   sobrescrito: boolean;
   subscrito: boolean;
   nota: boolean;
+  alineas: boolean;
+  citacao: boolean;
+  podeAlineas: boolean;
+  podeCitacao: boolean;
   desfazer: boolean;
   refazer: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, desfazer: false, refazer: false };
 
 function barraDe(estado: EditorState): Barra {
   return {
@@ -134,6 +139,10 @@ function barraDe(estado: EditorState): Barra {
     sobrescrito: marcaAtiva(estado, 'sobrescrito'),
     subscrito: marcaAtiva(estado, 'subscrito'),
     nota: podeInserirNota(estado),
+    alineas: estaEmAlineas(estado),
+    citacao: estaEmCitacao(estado),
+    podeAlineas: alternarAlineas(estado),
+    podeCitacao: alternarCitacaoLonga(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
   };
@@ -257,6 +266,13 @@ export function EditorSecao(p: PropsEditorSecao) {
     view.focus();
   };
 
+  const aplicarBloco = (comando: typeof alternarAlineas) => {
+    const view = refView.current;
+    if (!view || somenteLeitura) return;
+    comando(view.state, view.dispatch);
+    view.focus();
+  };
+
   return (
     <div className="editor-secao">
       {!somenteLeitura && (
@@ -288,6 +304,30 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => controle.current?.inserirNota()}
           >
             Nota de rodapé
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            disabled={!barra.podeAlineas}
+            aria-pressed={barra.alineas}
+            aria-keyshortcuts="Control+Shift+L"
+            title="Alíneas (Ctrl+Shift+L). Na alínea, Tab cria subalínea e Shift+Tab volta"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => aplicarBloco(alternarAlineas)}
+          >
+            Alíneas
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            disabled={!barra.podeCitacao}
+            aria-pressed={barra.citacao}
+            aria-keyshortcuts="Control+Shift+Q"
+            title="Citação longa (Ctrl+Shift+Q)"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => aplicarBloco(alternarCitacaoLonga)}
+          >
+            Citação longa
           </button>
         </div>
       )}

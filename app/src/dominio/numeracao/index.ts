@@ -7,6 +7,6 @@
  * Seções no M2-T03; rótulo das alíneas no M2-T04; ilustrações, tabelas, notas e remissivas nos marcos seguintes.
  */
 export { rotuloAlinea } from './alineas';
-export { letraPosTextual, rotulosPosTextuais } from './pos-textuais';
+export { letraPosTextual, letraSemFonte, rotulosPosTextuais } from './pos-textuais';
 export { indicativoSecao, mapaIndicativos, numerarSecoes } from './secoes';
 export type { SecaoNumerada } from './secoes';

@@ -153,8 +153,8 @@ Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um t
 ### Backups (M2-T10)
 
 `src/persistencia/arquivo/backups-rotativos.ts`, ligado em `principal/ipc/registrar.ts`. Ao lado do trabalho fica `<nome>.bdp.bak`
-(última versão); em `%LOCALAPPDATA%\BiblioDocsPro\backups\<id>\`, as cópias `AAAAMMDD-HHMMSS.bdp`. Excluir o trabalho não apaga
-essa pasta.
+(última versão); em `%LOCALAPPDATA%\BiblioDocsPro\backups\<id>\`, as cópias `AAAAMMDD-HHMMSS.bdp`. Excluir o trabalho marca essa pasta:
+30 dias depois, as cópias são apagadas ao listar a biblioteca, inclusive as de migração; se o trabalho voltar à biblioteca, ficam.
 
 ### Pré-textuais (M2-T08)
 

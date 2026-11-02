@@ -13,6 +13,7 @@ import { redo, undo } from 'prosemirror-history';
 import type { MarkType, Node as NoPm } from 'prosemirror-model';
 import { NodeSelection, type Command, type EditorState } from 'prosemirror-state';
 import type { MarcaTexto } from '../../dominio/modelo';
+import { alternarAlineas, alternarCitacaoLonga, enterNaLista, promoverSubalinea, recuarAlinea, voltarNoComeco } from './comandos-blocos';
 import { esquemaEditor } from './esquema';
 
 const { nodes: tipos, marks: marcas } = esquemaEditor;
@@ -137,6 +138,13 @@ export const TECLAS_SECAO: Readonly<Record<string, Command>> = {
   // Com Caps Lock o Windows manda "F"; e Ctrl+Alt (AltGr) não tem a volta pelo código da tecla no prosemirror-keymap.
   'Mod-Alt-F': inserirNota,
   'Shift-Enter': quebrarLinha,
+  // M2-T13: alíneas e citação longa (`comandos-blocos.ts`).
+  'Shift-Mod-l': alternarAlineas,
+  'Shift-Mod-q': alternarCitacaoLonga,
+  Enter: enterNaLista,
+  Tab: recuarAlinea,
+  'Shift-Tab': promoverSubalinea,
+  Backspace: voltarNoComeco,
 };
 
 /** `baseKeymap` com a quebra de linha no Shift+Enter antes do comportamento padrão. */

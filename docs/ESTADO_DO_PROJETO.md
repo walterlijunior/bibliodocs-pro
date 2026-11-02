@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T12 em andamento: revisão feita e achados Alto e Médios tratados, sem commit. Marco não fechado: aguarda decisões do usuário.
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T11 ✔).
+**Última atualização:** 2026-11-02 — **M2 concluído** (T01–T13), com a última parte sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; próximo: M3.
 
 ## Etapas
 
@@ -15,17 +15,28 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T11 ✔, T12 pendente, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit das correções da revisão do M2 (o trabalho está só na pasta).
-2. **Decidir a lacuna de aceite do RF-03:** alíneas e citação longa só entram por colagem. Depois, as 4 perguntas de `docs/relatorios/REVISAO_M2.md`.
-3. Concluir o **M2-T12** (README, matriz e relatório do marco) e fechar o M2.
+1. Autorizar o commit do M2-T13 e do fechamento do M2 (o trabalho está só na pasta).
+2. **Detalhar o plano do M3** (motor normativo e DOCX), incluindo a tela de restaurar backups e os achados abertos de `docs/relatorios/REVISAO_M2.md`.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do usuário no fechamento do M2 (2026-11-02, "siga suas recomendações")
+- Alíneas e citação longa ganharam comandos antes de fechar o marco (M2-T13).
+- Trabalho excluído: as cópias em `backups\<id>\` saem 30 dias depois, inclusive as de migração. Se o trabalho voltar à biblioteca, ficam.
+- Tela de restaurar backups: M3.
+- RN-232 e RN-235: `AMBÍGUA`, com `AA, BB, CC` por decisão do usuário. `AAA` em diante: PENDENTE-FONTE.
+
+## Decisões do M2-T13 (tomadas pela sessão principal, podem ser revistas)
+- Atalhos Ctrl+Shift+L (alíneas) e Ctrl+Shift+Q (citação longa); botões na barra de formatação, sem item novo de menu.
+- Na lista, Tab cria subalínea e não sai do editor; Shift+Tab na alínea sai, para o teclado nunca ficar preso.
+- Seleção com parágrafo ao lado de lista emenda na lista; sair de uma alínea do meio divide a lista em duas.
+- Commit das correções da revisão: `babdb3e` (sem `git push`).
 
 ## Decisões do M2-T12 (tomadas pela sessão principal, podem ser revistas)
 - `verificar` audita também as dependências de desenvolvimento em nível alto: um aviso alto de build agora reprova, porque é o único jeito de enxergar o Electron.
@@ -435,3 +446,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T10) | Backups rotativos e `.bak` em excluir e renomear pela sessão principal, sem revisão independente. Mutações 12/13 (1 revelou condição redundante, removida). `verificar:tudo` 1070/1070, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T11) | Pendências técnicas do M1 pela sessão principal, sem revisão independente: `TERCEIROS.txt`, recusa de copyleft, `audit signatures`, `descreverErro`, Electron 44.9.0 (hash igual ao do release; fumaça do pacote abriu), axe-core (achou 2 botões, corrigidos), Versões descartadas. Mutações 14/14, 2 delas depois de novos testes. `verificar:tudo` 1092/1092, 0 vulnerabilidades em produção, E2E 16/16. Memória 806 MB em uma rodada (meta 800): risco R46. |
 | 2026-11-02 | 5 (M2-T12) | Revisão independente de T08–T11: 1 Alta, 3 Médias, 8 Baixas, 4 Info. Corrigidos R-M2-01, 02, 03, 07, 09, 10, 11; R-M2-04 mitigado. Electron 44.10.1. `verificar:tudo` 1097/1097, E2E 16/16. Achada lacuna do RF-03: alíneas e citação longa só por colagem. Marco não fechado. |
+| 2026-11-02 | 5 (M2-T13) | Comandos de alíneas e citação longa pela sessão principal, sem revisão independente; prazo de 30 dias para cópias de trabalho excluído; RN-232 e RN-235 como AMBÍGUA. Mutações 12/13, e a sobrevivente ganhou teste. **M2 concluído**, com as ressalvas do relatório. |

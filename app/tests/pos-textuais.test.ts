@@ -11,7 +11,7 @@ import {
   type ElementoPosTextualId,
   type TipoTrabalhoUft,
 } from '../src/dominio/modelo';
-import { letraPosTextual, rotulosPosTextuais } from '../src/dominio/numeracao';
+import { letraPosTextual, letraSemFonte, rotulosPosTextuais } from '../src/dominio/numeracao';
 
 const id = (n: number) => `ele_${String(n).padStart(16, '0')}`;
 
@@ -102,5 +102,14 @@ describe('título no formato v1', () => {
     ['caractere de controle', { tipo: 'anexo', id: id(1), titulo: 'a\u0001' }],
   ])('recusa %s', (_caso, e) => {
     expect(validarDocumentoV1(doc([e])).ok).toBe(false);
+  });
+});
+
+describe('letra sem fonte (decisão do usuário, 2026-11-02)', () => {
+  it('até ZZ tem fonte; AAA em diante, não', () => {
+    expect(letraPosTextual(51)).toBe('ZZ');
+    expect(letraSemFonte(51)).toBe(false);
+    expect(letraPosTextual(52)).toBe('AAA');
+    expect(letraSemFonte(52)).toBe(true);
   });
 });

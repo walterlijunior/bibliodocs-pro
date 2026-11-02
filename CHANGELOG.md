@@ -5,6 +5,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M2-T13: alíneas, subalíneas e citação longa pelo editor (botões, Ctrl+Shift+L, Ctrl+Shift+Q, Tab, Shift+Tab).
+
+### Alterado
+- Cópias em `backups\<id>\` de um trabalho excluído são apagadas 30 dias depois; voltando à biblioteca, ficam.
+- RN-232 e RN-235 passam a `AMBÍGUA`, com `AA, BB, CC` por decisão do usuário; `AAA` em diante é PENDENTE-FONTE.
+
 ### Corrigido
 - Etapa 5, M2-T12 (revisão do M2): salvar com uma queda adiada não apaga mais a versão recuperável; título ou subtítulo com
   caractere inválido não trava mais a gravação; Electron 44.10.1 (GHSA-jr5w-w6x2-84p9) e `verificar` auditando também as

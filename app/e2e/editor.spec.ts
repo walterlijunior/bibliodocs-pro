@@ -324,3 +324,32 @@ test('EDT-09: árvore de seções — teclado, arrastar, barra superior e desfaz
   await x.fechar();
   expect(x.problemas).toEqual([]);
 });
+
+test('alíneas e citação longa pelo teclado e pela barra, salvas no arquivo (M2-T13)', async () => {
+  const x = await abrirApp(amb);
+  const p = await trabalhoComSecao(x);
+
+  await editor(p).click();
+  await p.keyboard.press('End');
+  await p.keyboard.press('Enter');
+  await p.keyboard.type('primeira');
+  await p.keyboard.press('Control+Shift+L');
+  await expect(p.getByRole('button', { name: 'Alíneas' })).toHaveAttribute('aria-pressed', 'true');
+  await p.keyboard.press('Enter');
+  await p.keyboard.type('sub');
+  await p.keyboard.press('Tab');
+  await expect(editor(p)).toBeFocused();
+  await p.keyboard.press('Shift+Tab');
+  await p.keyboard.press('Enter');
+  await p.keyboard.press('Enter'); // alínea vazia: sai da lista
+  await p.keyboard.type('Citação');
+  await p.getByRole('button', { name: 'Citação longa' }).click();
+  await expect(editor(p).locator('blockquote')).toHaveText('Citação');
+  await expect(editor(p)).toBeFocused();
+  await p.keyboard.press('Control+S');
+  await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
+  const blocos = corpoDoArquivo(amb).flatMap((s) => (s as { blocos?: { tipo: string; itens?: unknown[] }[] }).blocos ?? []);
+  expect(blocos.map((b) => b.tipo)).toEqual(['alineas', 'citacaoLonga']);
+  expect(blocos[0]!.itens).toHaveLength(2);
+  expect(x.problemas).toEqual([]);
+});

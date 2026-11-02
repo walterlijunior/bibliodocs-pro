@@ -15,7 +15,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T09 Lugares dos pós-textuais e letras de apêndice e anexo | CONCLUÍDA | 2026-11-02 |
 | M2-T10 Backups rotativos e `.bak` acompanhando excluir e renomear | CONCLUÍDA | 2026-11-02 |
 | M2-T11 Pendências técnicas do M1 | CONCLUÍDA | 2026-11-02 |
-| M2-T12 Fechamento do marco | EM ANDAMENTO: revisão feita (`REVISAO_M2.md`); aguarda decisões do usuário | — |
+| M2-T12 Fechamento do marco e revisão (`REVISAO_M2.md`) | CONCLUÍDA | 2026-11-02 |
+| M2-T13 Alíneas e citação longa no editor; prazo das cópias de trabalho excluído | CONCLUÍDA | 2026-11-02 |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -564,3 +565,25 @@ Dependências de desenvolvimento: `electron` 44.8.0 → 44.9.0 e `axe-core` 4.14
 - axe não roda sobre a lista cheia de versões nem substitui o roteiro manual do RNF-09.
 - Lista de terceiros no "Sobre" (RNF-15) não feita. O inventário cobre dependências npm de produção; os avisos do Electron e do Chromium vão nos arquivos deles.
 - **Correção posterior (M2-T12, `REVISAO_M2.md`):** Electron 44.10.1, porque o 44.9.0 tinha aviso Alto; a descrição "17 só em desenvolvimento" acima estava errada, pois um deles era o Electron distribuído. A recusa de versão descartada com oferta adiada foi retirada.
+
+## M2-T13 — Alíneas e citação longa no editor; cópias de trabalho excluído
+
+**Implementação:** sessão principal. **Sem revisão independente.** Nenhuma dependência nova.
+
+- `interface/editor/comandos-blocos.ts`: alternar alíneas e citação longa; Enter, Tab, Shift+Tab e Backspace na lista; botões na barra.
+- `conciliarBackupsExcluidos` e `marcarBackupsExcluidos`: marca em `backups\<id>\` ao excluir; a listagem da biblioteca apaga vencidas e tira a marca de trabalhos presentes.
+- `letraSemFonte`: `AAA` em diante é PENDENTE-FONTE.
+
+**Limitações**
+- A exclusão das cópias só tem teste de unidade, sem E2E, e roda ao listar a biblioteca.
+- Como `Salvar como…` mantém o id, excluir uma cópia marca a pasta comum; se a outra estiver em outra pasta de biblioteca, as cópias saem em 30 dias. O arquivo em si não é tocado.
+- Sem leitor de tela real; a barra só tem o axe. Subalínea só pelo teclado.
+
+## Fechamento do marco
+
+**Aceite do M2** [VERIFICADO 2026-11-02, `npm run verificar:tudo`]
+- RF-02: FUN-02 PASSOU.
+- RF-03: seções, numeração, mover, parágrafos, alíneas, citação longa, nota, desfazer PASSARAM. **Ressalva:** remissivas ficam para o M6.
+- RF-04: FUN-11 PARCIAL. Obrigatório ausente aparece como pendência na aba Escrever; o verificador é do M7, como previa o plano.
+
+**Em aberto para os próximos marcos:** R-M2-04 (cópia de recuperação em trabalho sem arquivo), R-M2-05, 06, 08, 12, 13, 14, 16 e R46 (memória); tela de apêndices e anexos; lista de terceiros no "Sobre"; instalador com o Electron 44.10.1 não gerado.

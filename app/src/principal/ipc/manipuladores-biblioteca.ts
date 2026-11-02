@@ -84,6 +84,10 @@ export interface DependenciasBiblioteca {
   confirmarExclusao: (idConteudo: number, nomeArquivo: string) => Promise<boolean>;
   /** `shell.trashItem`: lança se não conseguiu. */
   enviarParaLixeira: (caminho: string) => Promise<void>;
+  /** Trabalho excluído: as cópias dele em `backups\\<id>\\` entram no prazo de 30 dias. */
+  aoExcluir?: (idProjeto: string) => Promise<void>;
+  /** Biblioteca listada com sucesso, com os ids presentes. */
+  aoListar?: (idsPresentes: ReadonlySet<string>) => Promise<void>;
   /** Resumo isolado (processo leitor). */
   resumir: Resumir;
   /** Leitura isolada (processo leitor), para abrir e duplicar. */
@@ -230,6 +234,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
     }
     if (v.alterado) await guardarIndice(v.indice);
     else indice = v.indice;
+    await dep.aoListar?.(new Set(v.indice.entradas.flatMap((e) => (e.resumo.estado === 'ok' ? [e.resumo.id] : []))));
     const caminhos = v.entradas.map((e) => join(pasta, e.nomeArquivo));
     itens.manterSo(dono, caminhos);
     return { ok: true, pasta: descreverPasta(pasta), itens: v.entradas.map((e) => paraItem(pasta, e, dono)), avisos: v.avisos };
@@ -426,6 +431,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       if (caminho !== antes) return falha('NAO_ENCONTRADO', 'O trabalho mudou de nome. Confira a lista e tente de novo.');
       if (dep.projetos.contem(caminho)) return falha('ABERTO_NO_APP', mensagemAberto);
       const nomeArquivo = basename(caminho);
+      const resumo = indice?.entradas.find((e) => e.nomeArquivo === nomeArquivo)?.resumo;
       try {
         await dep.enviarParaLixeira(caminho);
       } catch (e) {
@@ -437,6 +443,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       if (await fs.info(bak).then(() => true, () => false)) {
         await dep.enviarParaLixeira(bak).catch((e: unknown) => log(`[biblioteca] .bak fora da Lixeira: ${codigoErro(e) ?? 'erro'}`));
       }
+      if (resumo?.estado === 'ok') await dep.aoExcluir?.(resumo.id);
       itens.esquecerCaminho(caminho);
       if (indice) await guardarIndice({ ...indice, entradas: indice.entradas.filter((e) => e.nomeArquivo !== nomeArquivo) });
       return { ok: true };

@@ -11,11 +11,11 @@
 |---|---|---|---|---|
 | 0 | 1 | 3 | 8 | 4 |
 
-O achado Alto e os 3 Médios foram corrigidos e retestados. **O M2 ainda não está fechado:** falta decidir a lacuna de aceite descrita abaixo.
+O achado Alto e 2 Médios foram corrigidos; o terceiro Médio (R-M2-04) foi mitigado. Com a lacuna abaixo tratada no M2-T13 e as decisões do usuário registradas, o M2 foi fechado em 2026-11-02.
 
 ## Lacuna de aceite (achada no fechamento, não pelo revisor)
 
-O RF-03 pede alíneas e citação longa no editor. [VERIFICADO: `comandos.ts`, `EditorSecao.tsx`, `definicoes.ts`, `e2e/editor.spec.ts`] O modelo e a tela os aceitam, mas **só entram por colagem**: não há botão, atalho nem menu para criá-los. Decisão pendente com o usuário.
+O RF-03 pede alíneas e citação longa no editor. [VERIFICADO: `comandos.ts`, `EditorSecao.tsx`, `definicoes.ts`, `e2e/editor.spec.ts`] O modelo e a tela os aceitam, mas **só entravam por colagem**. Decisão do usuário: comandos antes de fechar. **Feito no M2-T13.**
 
 ## Comandos executados (em `app/`)
 
@@ -49,12 +49,12 @@ O RF-03 pede alíneas e citação longa no editor. [VERIFICADO: `comandos.ts`, `
 | R-M2-15 | Info | Logs citam o id aleatório do projeto | Citar na política de privacidade (Etapa 7) |
 | R-M2-16 | Info | `.tmp-*` de gravação interrompida não vai à Lixeira ao excluir | Aberto |
 
-## Perguntas ao usuário
+## Decisões do usuário (2026-11-02)
 
-1. Excluir um trabalho mantém até 16 cópias completas em `backups\` sem prazo, sem aparecer na interface. Continua aceitável para a privacidade?
-2. Em que marco entra a tela para restaurar backups rotativos?
-3. As letras `AA, BB, CC` de apêndice e anexo estendem a decisão C-A6 das alíneas, mas RN-232 e RN-235 estão `CONFIRMADA` sem exemplo no Manual (P-03). Confirma o valor?
-4. Depois de `ZZ`, o código usa `AAA`, sem fonte ([HIPÓTESE] em `pos-textuais.ts:8`). Fica assim ou vira `PENDENTE-FONTE`?
+1. Trabalho excluído: as cópias saem 30 dias depois. **Feito no M2-T13.**
+2. Tela de restaurar backups: M3. **No plano.**
+3. `AA, BB, CC` mantido; RN-232 e RN-235 como `AMBÍGUA`, citando P-03. **Feito.**
+4. `AAA` em diante: PENDENTE-FONTE (`letraSemFonte`). O M3 e o M6 devem avisar. **Feito no domínio.**
 
 ## Não verificado
 

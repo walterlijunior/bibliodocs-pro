@@ -533,6 +533,21 @@ describe('excluir (Lixeira com confirmação)', () => {
     expect(lixeira).toEqual([]);
   });
 
+  it('excluir avisa o id para o prazo dos backups; listar informa os presentes; cancelar não avisa', async () => {
+    await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
+    const excluidos: string[] = [];
+    const listas: string[][] = [];
+    const m = montar({ aoExcluir: async (id) => void excluidos.push(id), aoListar: async (ids) => void listas.push([...ids]) });
+    const a = (await listar(m)).itens[0]!;
+    expect(listas.at(-1)).toHaveLength(1);
+    confirmar = false;
+    await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador);
+    expect(excluidos).toEqual([]);
+    confirmar = true;
+    await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador);
+    expect(excluidos).toEqual(listas.at(-1));
+  });
+
   it('o .bak vai junto para a Lixeira (R-M1-02); o de outro trabalho fica', async () => {
     await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
     writeFileSync(join(pastaPadrao, 'a.bdp.bak'), 'anterior');

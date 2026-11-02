@@ -10,7 +10,7 @@
  */
 import { join } from 'node:path';
 import { PADRAO_ID } from '../../dominio/esquemas';
-import { codigoErro, SISTEMA_ARQUIVOS_NODE, type SistemaArquivos } from './sistema-arquivos';
+import { codigoErro, SISTEMA_ARQUIVOS_NODE, type EntradaPasta, type SistemaArquivos } from './sistema-arquivos';
 
 export const INTERVALO_BACKUP_MS = 10 * 60 * 1000;
 export const BACKUPS_RECENTES = 10;
@@ -111,5 +111,58 @@ export async function fazerBackupRotativo(
   } catch (e) {
     if (temporario !== null) await fs.apagar(temporario).catch(() => undefined);
     return { feito: false, motivo: 'FALHOU', codigo: codigoErro(e) ?? 'erro' };
+  }
+}
+
+// ---------- trabalho excluído ----------
+
+/** Depois de excluir, as cópias ficam este tempo e saem: o usuário não as vê, e o texto não fica para sempre (decisão de 2026-11-02). */
+export const PRAZO_BACKUPS_EXCLUIDOS_MS = 30 * 24 * 60 * 60 * 1000;
+const MARCA_EXCLUIDO = /^excluido-(\d{1,16})\.marca$/;
+
+/** Marca a pasta do trabalho excluído; a data fica no nome. Nunca lança: sem marca, as cópias só ficam mais tempo. */
+export async function marcarBackupsExcluidos(pastaBackups: string, idProjeto: string, agoraMs: number, fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE): Promise<void> {
+  if (!PADRAO_ID.test(idProjeto)) return;
+  const pasta = join(pastaBackups, idProjeto);
+  try {
+    if (!(await fs.info(pasta)).pasta) return;
+    await (await fs.criarExclusivo(join(pasta, `excluido-${agoraMs}.marca`))).fechar();
+  } catch {
+    // sem pasta de backups, ou marca já gravada
+  }
+}
+
+/**
+ * Passa pelas pastas marcadas: trabalho de volta na biblioteca (saiu da Lixeira, cópia com o mesmo id) perde a marca;
+ * vencido o prazo, as cópias são apagadas, inclusive as de migração. Pasta sem marca nunca é tocada. Nunca lança.
+ */
+export async function conciliarBackupsExcluidos(pastaBackups: string, idsPresentes: ReadonlySet<string>, agoraMs: number, fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE): Promise<void> {
+  let pastas: EntradaPasta[];
+  try {
+    pastas = await fs.listarPasta(pastaBackups);
+  } catch {
+    return;
+  }
+  for (const p of pastas) {
+    if (p.link || p.arquivoComum || !PADRAO_ID.test(p.nome)) continue;
+    const pasta = join(pastaBackups, p.nome);
+    try {
+      const arquivos = (await fs.listarPasta(pasta)).filter((e) => e.arquivoComum && !e.link).map((e) => e.nome);
+      const marcas = arquivos.flatMap((n) => {
+        const m = MARCA_EXCLUIDO.exec(n);
+        return m ? [{ nome: n, ms: Number(m[1]) }] : [];
+      });
+      if (marcas.length === 0) continue;
+      if (idsPresentes.has(p.nome)) {
+        for (const m of marcas) await fs.apagar(join(pasta, m.nome));
+        continue;
+      }
+      // A marca mais recente vale; data no futuro não vence.
+      if (agoraMs - Math.max(...marcas.map((m) => m.ms)) <= PRAZO_BACKUPS_EXCLUIDOS_MS) continue;
+      for (const n of arquivos) await fs.apagar(join(pasta, n));
+      await fs.apagarPasta(pasta);
+    } catch {
+      // fica para a próxima listagem
+    }
   }
 }

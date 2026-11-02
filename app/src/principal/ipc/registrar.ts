@@ -7,7 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
-import { fazerBackupRotativo, salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { conciliarBackupsExcluidos, fazerBackupRotativo, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
@@ -119,6 +119,8 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     arquivoIndice: join(dadosLocais, 'biblioteca.json'),
     arquivoPreferencias: join(dadosLocais, 'preferencias.json'),
     ambiente: process.env,
+    aoExcluir: (idProjeto) => marcarBackupsExcluidos(pastaBackups, idProjeto, Date.now()),
+    aoListar: (ids) => conciliarBackupsExcluidos(pastaBackups, ids, Date.now()),
     escolherPasta: async (id) => {
       const janela = janelaDe(id);
       if (!janela) return null;
