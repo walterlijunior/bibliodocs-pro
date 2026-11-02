@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { PERFIL_UFT_2022 as PERFIL } from '../src/aplicacao/perfil-padrao';
 import { formatar, type Perfil } from '../src/dominio/normas';
-import type { BlocoFormatado, EstiloResolvido, TrechoFormatado } from '../src/dominio/normas/formatado';
+import type { BlocoFormatado, DocumentoFormatado, EstiloResolvido, TrechoFormatado } from '../src/dominio/normas/formatado';
 import type { Documento, Inline, Secao } from '../src/dominio/modelo';
 
 const texto = (t: string, ...marcas: ('italico' | 'negrito')[]): Inline => ({ tipo: 'texto', texto: t, ...(marcas.length ? { marcas } : {}) });
@@ -24,6 +24,7 @@ const mudarPerfil = (f: (p: { regras: { id: string; status: string; parametros?:
   f(p);
   return p as unknown as Perfil;
 };
+const todos = (d: DocumentoFormatado): BlocoFormatado[] => d.secoes.flatMap((x) => x.blocos);
 const paragrafos = (bs: readonly BlocoFormatado[]) => bs.filter((b): b is Extract<BlocoFormatado, { tipo: 'paragrafo' }> => b.tipo === 'paragrafo');
 
 describe('toda formatação tem RN (RF-05)', () => {
@@ -46,7 +47,7 @@ describe('toda formatação tem RN (RF-05)', () => {
       PERFIL,
     );
     const ver = (origem: readonly string[]) => origem.forEach((rn) => expect(rnDoPerfil.has(rn), rn).toBe(true));
-    for (const b of d.blocos) {
+    for (const b of todos(d)) {
       ver(b.origem);
       if (b.tipo === 'paragrafo') for (const t of b.trechos) if (t.tipo === 'nota') ver(t.origem);
     }
@@ -188,20 +189,20 @@ describe('regra sem decisão não é aplicada', () => {
 describe('blocos', () => {
   it('títulos com indicativo e estilo do nível, em ordem de leitura (RN-039)', () => {
     const d = formatar(doc(secao('a', 'Um', [], [secao('b', 'Dois', [], [secao('c', 'Três')])]), secao('d', 'Quatro')), PERFIL);
-    expect(paragrafos(d.blocos).map((b) => [b.estilo, b.indicativo])).toEqual([
+    expect(paragrafos(todos(d)).map((b) => [b.estilo, b.indicativo])).toEqual([
       ['titulo1', '1'],
       ['titulo2', '1.1'],
       ['titulo3', '1.1.1'],
       ['titulo1', '2'],
     ]);
-    expect(paragrafos(d.blocos)[0]!.origem).toEqual(['RN-039', 'RN-042']);
+    expect(paragrafos(todos(d))[0]!.origem).toEqual(['RN-039', 'RN-042']);
   });
 
   it('além do quinto nível sai como quinária, com aviso', () => {
     let s = secao('n6', 'Seis');
     for (let i = 5; i >= 1; i--) s = secao(`n${i}`, `N${i}`, [], [s]);
     const d = formatar(doc(s), PERFIL);
-    expect(paragrafos(d.blocos).at(-1)).toMatchObject({ estilo: 'titulo5', indicativo: '1.1.1.1.1.1' });
+    expect(paragrafos(todos(d)).at(-1)).toMatchObject({ estilo: 'titulo5', indicativo: '1.1.1.1.1.1' });
     expect(d.avisos.map((a) => [a.codigo, a.id])).toEqual([['SECAO_ALEM_DO_LIMITE', 'n6']]);
   });
 
@@ -214,7 +215,7 @@ describe('blocos', () => {
       ])),
       PERFIL,
     );
-    const b = d.blocos;
+    const b = todos(d);
     expect(b[1]).toEqual({
       tipo: 'paragrafo',
       estilo: 'corpo',
@@ -234,7 +235,7 @@ describe('blocos', () => {
       ])),
       PERFIL,
     );
-    const l = paragrafos(d.blocos).filter((b) => b.lista);
+    const l = paragrafos(todos(d)).filter((b) => b.lista);
     expect(l[0]!.lista).toEqual({ lista: 0, nivel: 0, rotulo: 'a)', posicao: 0 });
     expect(l[26]!.lista?.rotulo).toBe('aa)');
     expect(l[27]!.lista).toEqual({ lista: 1, nivel: 0, rotulo: 'a)', posicao: 0 });
@@ -250,7 +251,7 @@ describe('blocos', () => {
       ),
       PERFIL,
     );
-    const notas = paragrafos(d.blocos).flatMap((b) => b.trechos).filter((t): t is Extract<TrechoFormatado, { tipo: 'nota' }> => t.tipo === 'nota');
+    const notas = paragrafos(todos(d)).flatMap((b) => b.trechos).filter((t): t is Extract<TrechoFormatado, { tipo: 'nota' }> => t.tipo === 'nota');
     expect(notas.map((n) => n.numero)).toEqual([1, 2, 3]);
     expect(notas[0]).toMatchObject({ estilo: 'textoNota', origem: ['RN-102'] });
     expect(d.avisos.map((a) => [a.codigo, a.id])).toEqual([['NOTA_VAZIA', 'v']]);
@@ -267,7 +268,7 @@ describe('blocos', () => {
     const p = mudarPerfil((x) => {
       x.regras = x.regras.filter((r) => r.id !== 'RN-039');
     });
-    expect(paragrafos(formatar(doc(secao('a', 'Um')), p).blocos)[0]).not.toHaveProperty('indicativo');
+    expect(paragrafos(todos(formatar(doc(secao('a', 'Um')), p)))[0]).not.toHaveProperty('indicativo');
   });
 
   it('é determinístico, não altera a entrada e é serializável', () => {

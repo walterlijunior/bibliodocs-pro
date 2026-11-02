@@ -3,7 +3,7 @@
  * Tudo já resolvido, em unidades do OOXML (twips e meios-pontos), e cada propriedade diz de que RN veio (RF-05). Só
  * tipos: `exportacao/docx` e `interface` podem importar este arquivo.
  *
- * O M3-T04 acrescenta seções, paginação e os pré e pós-textuais.
+ * Seções, paginação e pré e pós-textuais desde o M3-T04.
  */
 import type { MarcaTexto } from '../modelo';
 
@@ -53,6 +53,14 @@ export interface ItemDeLista {
   posicao: number;
 }
 
+export interface EntradaSumario {
+  /** De 1 a 5 (RN-169). */
+  nivel: number;
+  /** Vazio em títulos sem indicativo, como REFERÊNCIAS. */
+  indicativo: string;
+  texto: string;
+}
+
 export type BlocoFormatado =
   | {
       tipo: 'paragrafo';
@@ -61,22 +69,67 @@ export type BlocoFormatado =
       /** Indicativo da seção ("1.1"), já resolvido (RN-039). */
       indicativo?: string;
       lista?: ItemDeLista;
+      /** Começa em página nova; o estilo não diz porque depende do elemento (RN-148, RN-151, RN-171). */
+      novaPagina?: true;
+      /** Espaço antes só deste parágrafo (dedicatória abaixo do meio da folha, RN-146). */
+      antesTw?: number;
       origem: readonly string[];
     }
+  /** Caixa de tamanho fixo (ficha catalográfica, RN-136). */
+  | { tipo: 'quadro'; estilo: string; larguraTw: number; alturaTw: number; trechos: readonly TrechoFormatado[]; origem: readonly string[] }
+  /** Sumário: o exportador grava como campo; o motor entrega indicativo e título, e a página é estimada na exportação. */
+  | { tipo: 'sumario'; estilo: string; entradas: readonly EntradaSumario[]; origem: readonly string[] }
   /** Pedida pelo autor, não por uma regra: por isso `origem` fica vazia. */
   | { tipo: 'quebraPagina'; origem: readonly string[] };
 
 export interface AvisoFormatacao {
-  codigo: 'NOTA_VAZIA' | 'CITACAO_VAZIA' | 'ALINEA_VAZIA' | 'SECAO_ALEM_DO_LIMITE';
+  codigo:
+    | 'NOTA_VAZIA'
+    | 'CITACAO_VAZIA'
+    | 'ALINEA_VAZIA'
+    | 'SECAO_ALEM_DO_LIMITE'
+    | 'BRASAO_AUSENTE'
+    | 'FICHA_VAZIA'
+    | 'FORMA_SEM_FONTE'
+    | 'ELEMENTO_ADIADO'
+    | 'LETRA_SEM_FONTE';
   /** Id do elemento no modelo. */
   id: string;
   mensagem: string;
 }
 
+export interface PaginaResolvida {
+  larguraTw: number;
+  alturaTw: number;
+  margemSuperiorTw: number;
+  margemInferiorTw: number;
+  margemEsquerdaTw: number;
+  margemDireitaTw: number;
+  /** Distância do número à borda (RN-072). */
+  cabecalhoTw: number;
+  origem: readonly string[];
+}
+
+export interface SecaoFormatada {
+  papel: 'capa' | 'folhaRosto' | 'ficha' | 'preTextual' | 'textual' | 'posTextual';
+  /** Só quando recomeça a contagem; sem ele, continua da seção anterior (RN-067, RN-073). */
+  reiniciarEm?: number;
+  /** Mostra o número no cabeçalho (RN-068). */
+  exibirNumero: boolean;
+  /** `distribuido`: espalha os parágrafos na altura (RN-125); `inferior`: encosta no pé (RN-135). */
+  alinhamentoVertical?: 'distribuido' | 'inferior';
+  blocos: readonly BlocoFormatado[];
+  origem: readonly string[];
+}
+
 export interface DocumentoFormatado {
   perfil: { id: string; versao: string };
   estilos: readonly EstiloResolvido[];
-  blocos: readonly BlocoFormatado[];
+  /** Vale para todas as seções. */
+  pagina: PaginaResolvida;
+  /** Numeração contínua e filete curto (RN-102, RN-104). */
+  notas: { numeracao: string; fileteTw: number | null; origem: readonly string[] };
+  secoes: readonly SecaoFormatada[];
   /** Regras do perfil que não foram aplicadas por falta de decisão ou de fonte. */
   regrasAguardando: readonly string[];
   avisos: readonly AvisoFormatacao[];

@@ -5,13 +5,16 @@
  * Regra `AMBIGUA` sem parâmetro decidido e `PENDENTE-FONTE` não provisória não são aplicadas; saem em `regrasAguardando`.
  */
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
-import type { Bloco, Documento, Inline, InlineDeTitulo } from '../modelo';
+import type { Bloco, Documento, ElementoPreTextual, Inline, InlineDeTitulo, Metadados } from '../modelo';
+import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
   DocumentoFormatado,
   EstiloResolvido,
+  PaginaResolvida,
   PropriedadesEstilo,
+  SecaoFormatada,
   TrechoFormatado,
 } from './formatado';
 import type { AlvoRegra, Perfil, PropriedadesFormatacao, RegraNormativa } from './perfil';
@@ -108,7 +111,23 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
     parametros: recuoLista('recuoSubalineaCm', 'deslocamentoSubalineaCm'),
   },
   { id: 'naturezaTrabalho', nome: 'Natureza do trabalho', alvos: ['documento', 'folhaRosto.natureza'] },
-  { id: 'agradecimentos', nome: 'Agradecimentos e dedicatória', alvos: ['documento', 'preTextual.agradecimentos'] },
+  { id: 'agradecimentos', nome: 'Agradecimentos', alvos: ['documento', 'preTextual.agradecimentos'] },
+  { id: 'dedicatoria', nome: 'Dedicatória', alvos: ['documento', 'preTextual.dedicatoria'] },
+  { id: 'resumo', nome: 'Resumo', alvos: ['documento', 'preTextual.resumo'] },
+  { id: 'capaInstituicao', nome: 'Capa – Instituição', alvos: ['documento', 'capa', 'capa.instituicao'] },
+  { id: 'capaAutoria', nome: 'Capa – Autoria', alvos: ['documento', 'capa', 'capa.autoria'] },
+  { id: 'capaTitulo', nome: 'Capa – Título', alvos: ['documento', 'capa', 'capa.titulo'] },
+  { id: 'capaLocalAno', nome: 'Capa – Local e ano', alvos: ['documento', 'capa', 'capa.localAno'] },
+  { id: 'rostoAutoria', nome: 'Folha de rosto – Autoria', alvos: ['documento', 'folhaRosto', 'folhaRosto.autoria'] },
+  { id: 'rostoTitulo', nome: 'Folha de rosto – Título', alvos: ['documento', 'folhaRosto', 'folhaRosto.titulo'] },
+  { id: 'rostoLocalAno', nome: 'Folha de rosto – Local e ano', alvos: ['documento', 'folhaRosto.localAno'] },
+  { id: 'fichaCatalografica', nome: 'Ficha catalográfica', alvos: ['documento', 'fichaCatalografica'] },
+  { id: 'aprovacaoIdentificacao', nome: 'Aprovação – Identificação', alvos: ['documento', 'folhaAprovacao.identificacao'] },
+  { id: 'aprovacaoNatureza', nome: 'Aprovação – Natureza', alvos: ['documento', 'folhaAprovacao.natureza'] },
+  { id: 'aprovacaoData', nome: 'Aprovação – Data', alvos: ['documento', 'folhaAprovacao.data'] },
+  { id: 'aprovacaoBanca', nome: 'Aprovação – Banca', alvos: ['documento', 'folhaAprovacao.banca'] },
+  { id: 'entradaSumario', nome: 'Entrada do sumário', alvos: ['documento', 'sumario.entrada'] },
+  { id: 'identificacaoPosTextual', nome: 'Identificação de apêndice e anexo', alvos: ['documento', 'posTextual.identificacao'] },
   { id: 'referencia', nome: 'Referência', alvos: ['documento', 'referencia'] },
   { id: 'numeroPagina', nome: 'Número da página', alvos: ['documento', 'paginacao.numero'] },
 ];
@@ -175,8 +194,43 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
-/** Corpo do documento em blocos, com as notas numeradas em ordem de leitura. Trata só o que tem RN aplicada. */
-export function formatar(doc: Pick<Documento, 'corpo'>, perfil: Perfil, ajustes: AjustesProjeto = {}): DocumentoFormatado {
+export type DocumentoParaFormatar = Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais'>>;
+
+/** Papel em mm: 1 mm = 1440/25,4 twips, sem a aproximação de 567/cm (RN-018: 11906 × 16838). */
+const mmParaTw = (mm: number): number => Math.round((mm * 1440) / 25.4);
+
+function paginaDe(regras: readonly RegraNormativa[], perfil: Perfil): PaginaResolvida {
+  const props: PropriedadesFormatacao = {};
+  const origem: string[] = [];
+  for (const r of regras) {
+    if (r.alvo !== 'pagina' || !r.propriedades) continue;
+    Object.assign(props, r.propriedades);
+    origem.push(r.id);
+  }
+  const rnCabecalho = regras.find((r) => r.parametros?.includes('distanciaCabecalhoCm'));
+  const cab = rnCabecalho ? perfil.parametros['distanciaCabecalhoCm']?.valor : undefined;
+  return {
+    larguraTw: mmParaTw(props.larguraMm ?? 0),
+    alturaTw: mmParaTw(props.alturaMm ?? 0),
+    margemSuperiorTw: cmParaTw(props.margemSuperiorCm ?? 0),
+    margemInferiorTw: cmParaTw(props.margemInferiorCm ?? 0),
+    margemEsquerdaTw: cmParaTw(props.margemEsquerdaCm ?? 0),
+    margemDireitaTw: cmParaTw(props.margemDireitaCm ?? 0),
+    cabecalhoTw: typeof cab === 'number' ? cmParaTw(cab) : 0,
+    origem: rnCabecalho ? [...origem, rnCabecalho.id] : origem,
+  };
+}
+
+/** A seção já começa em página nova: a primeira quebra pediria uma folha em branco à toa. */
+function semQuebraNaPrimeira(blocos: readonly BlocoFormatado[]): BlocoFormatado[] {
+  const [primeiro, ...resto] = blocos;
+  if (primeiro?.tipo !== 'paragrafo' || !primeiro.novaPagina) return [...blocos];
+  const { novaPagina: _n, ...sem } = primeiro;
+  return [sem, ...resto];
+}
+
+/** Corpo do documento em blocos, com as notas numeradas em ordem de leitura, dentro das seções do trabalho. */
+export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: AjustesProjeto = {}): DocumentoFormatado {
   const regras = perfil.regras.filter((r) => regraAplicavel(r, perfil));
   const regrasAguardando = perfil.regras.filter((r) => !regras.includes(r)).map((r) => r.id);
   const estilos = ESTILOS.map((d) => resolverEstilo(d, regras, perfil, ajustes));
@@ -252,5 +306,62 @@ export function formatar(doc: Pick<Documento, 'corpo'>, perfil: Perfil, ajustes:
     ];
   });
 
-  return { perfil: { id: perfil.id, versao: perfil.versao }, estilos, blocos, regrasAguardando, avisos };
+  const pagina = paginaDe(regras, perfil);
+  const entradas = (): BlocoFormatado => ({
+    tipo: 'sumario',
+    estilo: 'entradaSumario',
+    entradas: numerarSecoes(doc.corpo)
+      .filter((n) => !n.alemDoLimite) // RN-169: não passa da quinária
+      .map((n) => ({ nivel: n.nivel, indicativo: rnNumeracao === null ? '' : n.indicativo, texto: n.secao.titulo.map((t) => t.texto).join('') })),
+    origem: ['RN-169', 'RN-170', 'RN-171'],
+  });
+  const m: Metadados = doc.metadados ?? { titulo: [] };
+  const pre: readonly ElementoPreTextual[] = doc.preTextuais ?? [];
+  const tem = (t: ElementoPreTextual['tipo']) => pre.find((e) => e.tipo === t);
+  const secoes: SecaoFormatada[] = [];
+  const capa = tem('capa');
+  if (capa) {
+    // RN-118: o brasão é identidade visual da instituição; o arquivo ainda não existe no projeto.
+    avisos.push({ codigo: 'BRASAO_AUSENTE', id: capa.id, mensagem: 'A capa saiu sem o brasão da UFT: o aplicativo ainda não tem o arquivo.' });
+    secoes.push({ papel: 'capa', exibirNumero: false, alinhamentoVertical: 'distribuido', blocos: blocosCapa(m), origem: ['RN-067', 'RN-125'] });
+  }
+  if (tem('folhaRosto')) secoes.push({ papel: 'folhaRosto', exibirNumero: false, alinhamentoVertical: 'distribuido', blocos: blocosFolhaRosto(m), origem: ['RN-067', 'RN-068'] });
+  const ficha = tem('fichaCatalografica');
+  if (ficha) {
+    const texto = ficha.tipo === 'fichaCatalografica' ? (ficha.texto ?? '') : '';
+    if (texto.trim() === '') avisos.push({ codigo: 'FICHA_VAZIA', id: ficha.id, mensagem: 'Ficha catalográfica sem texto: a página foi reservada (RN-071).' });
+    const dim = (c: string) => (typeof perfil.parametros[c]?.valor === 'number' ? cmParaTw(perfil.parametros[c]!.valor as number) : 0);
+    secoes.push({
+      papel: 'ficha',
+      exibirNumero: false,
+      alinhamentoVertical: 'inferior',
+      blocos: [{ tipo: 'quadro', estilo: 'fichaCatalografica', larguraTw: dim('fichaLarguraCm'), alturaTw: dim('fichaAlturaCm'), trechos: texto === '' ? [] : [{ tipo: 'texto', texto, marcas: [] }], origem: ['RN-135', 'RN-136'] }],
+      origem: ['RN-071', 'RN-135'],
+    });
+  }
+  const meioDaAreaUtilTw = Math.round((pagina.alturaTw - pagina.margemSuperiorTw - pagina.margemInferiorTw) / 2) || null;
+  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, { meioDaAreaUtilTw, avisos, entradas }));
+  if (blocosPre.length > 0) secoes.push({ papel: 'preTextual', exibirNumero: false, blocos: semQuebraNaPrimeira(blocosPre), origem: ['RN-067', 'RN-068'] });
+  secoes.push({ papel: 'textual', exibirNumero: true, blocos, origem: ['RN-068', 'RN-069'] });
+  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos);
+  if (blocosPos.length > 0) secoes.push({ papel: 'posTextual', exibirNumero: true, blocos: semQuebraNaPrimeira(blocosPos), origem: ['RN-073'] });
+  // RN-067: a capa não conta; a primeira folha depois dela é a 1, e as seguintes continuam.
+  const primeira = secoes.find((x) => x.papel !== 'capa')!;
+  secoes[secoes.indexOf(primeira)] = { ...primeira, reiniciarEm: 1 };
+
+  const rnNotasFilete = regras.filter((r) => r.alvo === 'nota.filete').map((r) => r.id);
+  const filete = perfil.parametros['fileteNotasCm']?.valor;
+  return {
+    perfil: { id: perfil.id, versao: perfil.versao },
+    estilos,
+    pagina,
+    notas: {
+      numeracao: rnNotas.length > 0 ? String(perfil.parametros['numeracaoNotas']?.valor) : 'continua',
+      fileteTw: rnNotasFilete.length > 0 && typeof filete === 'number' ? cmParaTw(filete) : null,
+      origem: [...rnNotas, ...rnNotasFilete],
+    },
+    secoes,
+    regrasAguardando,
+    avisos,
+  };
 }

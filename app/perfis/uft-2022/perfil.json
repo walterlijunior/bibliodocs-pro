@@ -158,6 +158,22 @@
     "RN-155"
    ],
    "origem": "decisao-usuario-2026-10-15"
+  },
+  "fichaLarguraCm": {
+   "valor": 7.5,
+   "ajustavel": false,
+   "rn": [
+    "RN-136"
+   ],
+   "origem": "norma"
+  },
+  "fichaAlturaCm": {
+   "valor": 12.5,
+   "ajustavel": false,
+   "rn": [
+    "RN-136"
+   ],
+   "origem": "norma"
   }
  },
  "regras": [
@@ -616,6 +632,395 @@
    "parametros": [
     "palavrasChaveMaximo"
    ]
+  },
+  {
+   "id": "RN-151",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9 (texto) e anotação da Fig. 10",
+   "tipo": "estilo",
+   "alvo": "titulo.semIndicativo",
+   "propriedades": {
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-124",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 32, anotação da Fig. 3",
+   "tipo": "estilo",
+   "alvo": "capa",
+   "propriedades": {
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-119",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, 5.1 b",
+   "tipo": "estilo",
+   "alvo": "capa.instituicao",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-120",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, 5.1 c",
+   "tipo": "estilo",
+   "alvo": "capa.autoria",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-121",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, 5.1 d; anotação Fig. 3, p. 32",
+   "tipo": "estilo",
+   "alvo": "capa.titulo",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-122",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, 5.1 d; Fig. 3, p. 32",
+   "tipo": "estilo",
+   "alvo": "capa.titulo",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-123",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, 5.1 e; Fig. 3, p. 32",
+   "tipo": "estilo",
+   "alvo": "capa.localAno",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-130",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 34, anotação da Fig. 5",
+   "tipo": "estilo",
+   "alvo": "folhaRosto",
+   "propriedades": {
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-128",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 33, 5.3 a",
+   "tipo": "estilo",
+   "alvo": "folhaRosto.autoria",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-129",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 33, 5.3 b",
+   "tipo": "estilo",
+   "alvo": "folhaRosto.titulo",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-131",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 34, anotação da Fig. 5; p. 17, 2.6 h",
+   "tipo": "estilo",
+   "alvo": "folhaRosto.natureza",
+   "propriedades": {
+    "recuoEsquerdaCm": 8,
+    "alinhamento": "justificado",
+    "corpoPt": 10,
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-134",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 33, 5.3 f; p. 34, anotação da Fig. 5",
+   "tipo": "estilo",
+   "alvo": "folhaRosto.localAno",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-136",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 34, 5.4; Fig. 6, p. 35",
+   "tipo": "procedimento",
+   "alvo": "fichaCatalografica",
+   "procedimento": "dimensoesDaFicha",
+   "parametros": [
+    "fichaLarguraCm",
+    "fichaAlturaCm"
+   ]
+  },
+  {
+   "id": "RN-141",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 37, anotação da Fig. 7",
+   "tipo": "estilo",
+   "alvo": "folhaAprovacao.identificacao",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "corpoPt": 12,
+    "entrelinha": "1,5",
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-142",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 37, anotação da Fig. 7",
+   "tipo": "estilo",
+   "alvo": "folhaAprovacao.natureza",
+   "propriedades": {
+    "recuoEsquerdaCm": 8,
+    "alinhamento": "justificado",
+    "corpoPt": 10,
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-143",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 37, anotação da Fig. 7",
+   "tipo": "estilo",
+   "alvo": "folhaAprovacao.data",
+   "propriedades": {
+    "alinhamento": "esquerda",
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-144",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 37, anotação da Fig. 7",
+   "tipo": "estilo",
+   "alvo": "folhaAprovacao.banca",
+   "propriedades": {
+    "alinhamento": "centralizado",
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-146",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 38, anotação da Fig. 8; p. 17 (outras orientações)",
+   "tipo": "estilo",
+   "alvo": "preTextual.dedicatoria",
+   "propriedades": {
+    "recuoEsquerdaCm": 8,
+    "alinhamento": "justificado",
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-152",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9 e anotação da Fig. 10",
+   "tipo": "estilo",
+   "alvo": "preTextual.resumo",
+   "propriedades": {
+    "corpoPt": 12,
+    "alinhamento": "justificado"
+   }
+  },
+  {
+   "id": "RN-153",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9; p. 16, 2.6 b; p. 40 e p. 41 (anotações Fig. 10 e 11)",
+   "tipo": "estilo",
+   "alvo": "preTextual.resumo",
+   "propriedades": {
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-171",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 46, anotação da Fig. 16",
+   "tipo": "estilo",
+   "alvo": "sumario.entrada",
+   "propriedades": {
+    "corpoPt": 12,
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-237",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 65–66 (exemplos)",
+   "tipo": "estilo",
+   "alvo": "posTextual.identificacao",
+   "propriedades": {
+    "alinhamento": "esquerda"
+   }
+  },
+  {
+   "id": "RN-117",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 31, seção 5.1 a–e",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-127",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 33, 5.3 a–f",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-132",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 33, 5.3 c–e; Fig. 5, p. 34",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-135",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 34, 5.4",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-139",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 35, 5.5; exemplo p. 36",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-140",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 36, 5.6",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-145",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 38, 5.7 e anotação da Fig. 8; p. 15 (RN-007)",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-148",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 39, anotação da Fig. 9; p. 17",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-149",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 30 (Quadro 5); p. 15 (2.4); p. 17",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-150",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-156",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, anotação da Fig. 10 (e Fig. 11, p. 41)",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-157",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 41, 5.10",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-158",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 41, anotação da Fig. 11",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-169",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 46, 5.15",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-170",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 46, 5.15 (citando NBR 6027:2012)",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-230",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 64, cap. 6",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-231",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 65, cap. 7",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-234",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 66, cap. 8",
+   "tipo": "estrutura",
+   "alvo": "documento"
+  },
+  {
+   "id": "RN-238",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 67, cap. 9 (citando NBR 6034:2004)",
+   "tipo": "estrutura",
+   "alvo": "documento"
   }
  ],
  "tiposTrabalho": {

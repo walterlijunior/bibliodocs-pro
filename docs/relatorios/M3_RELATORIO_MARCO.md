@@ -8,7 +8,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T01 PoC com `docx` 9.15.1 no Word real | CONCLUÍDA | 2026-11-02 |
 | M3-T02 Perfil `uft-2022` em dados | CONCLUÍDA | 2026-11-02 |
 | M3-T03 Motor: estilos e corpo do texto | CONCLUÍDA | 2026-11-02 |
-| M3-T04 a M3-T12 | PENDENTE | — |
+| M3-T04 Motor: seções, paginação, pré e pós-textuais | CONCLUÍDA | 2026-11-02 |
+| M3-T05 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -83,3 +84,23 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - `tituloSemIndicativo`, `referencia` e `numeroPagina` não têm entrelinha ou fonte de corpo próprias quando a regra não as define; a conferência no Word fica para o M3-T06 e T07.
 - `rotuloAlineasDobradas` aceita só o valor decidido: não há outra sequência implementada.
 - A opção de Arial existe no motor (`ajustes.fonte`), mas o trabalho ainda não guarda essa escolha, nem há tela: M3-T08.
+
+## M3-T04 — Motor: seções, paginação, pré e pós-textuais
+
+**Implementação:** sessão principal. **Sem revisão independente.** Nenhuma dependência nova. Capa, folha de rosto e folha de aprovação foram conferidas com as Figuras 3, 5 e 7 do Manual.
+
+**Código**
+- `DocumentoFormatado` passa a ter `pagina`, `notas` e `secoes`: capa, folha de rosto, ficha, pré-textual, textual, pós-textual. Blocos novos: `quadro` e `sumario`.
+- `dominio/normas/motor-elementos.ts`: conteúdo de cada elemento. Perfil com 84 regras e 19 parâmetros: toda RN citada pelo motor existe no perfil, com status e fonte da matriz.
+- Contagem desde a folha de rosto (RN-067), número do texto em diante (RN-068), sem recomeçar (RN-073).
+
+**Testes** [VERIFICADO 2026-11-02]: `verificar:tudo` 1314/1314 antes do último teste, E2E 17/17, memória 764 MB; `tests/motor-elementos.test.ts` cobre os seis tipos. Mutações: 16/18; uma revelou falta de teste de página nova, acrescentado, e a outra não muda o comportamento.
+
+**Limitações**
+- **Brasão (RN-118):** a capa sai sem ele e com aviso; não há o arquivo no projeto.
+- **Distribuição vertical:** usa `vAlign=both`, que espalha todos os parágrafos, aproximando a Figura 3. O LibreOffice pode ignorá-lo; conferir no M3-T05 e T07.
+- **Sem conteúdo ainda:** referências (M4), glossário, índice, listas e corpo de apêndice e anexo (M6): saem título e identificação; as listas, só aviso.
+- **Sumário:** todas as entradas com o mesmo estilo (RN-171); forma por nível fica para o M6, e títulos sem indicativo ainda não entram nas entradas.
+- **Epígrafe:** sai como corpo, com aviso, porque RN-037 depende da NBR 10520.
+- **Folha de aprovação:** o alinhamento central da banca vem do desenho, porque a anotação do Manual está cortada (RN-144). Os títulos fixos e os rótulos ("Keywords", "Área de concentração") estão no motor, não no perfil: um perfil em outra língua exigiria código, o que limita o RNF-13.
+- Assinatura da banca é uma linha de sublinhados em texto.
