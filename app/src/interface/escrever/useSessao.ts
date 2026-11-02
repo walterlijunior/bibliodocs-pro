@@ -26,6 +26,7 @@ export function useSessao(api: ApiBiblioDocs, aoSalvar: () => void) {
         instantaneo: (identificador, pacote) => api.recuperacao.instantaneo(identificador, pacote),
         // M2-T06: seção nova com id no formato do esquema (`sec_` + 16 caracteres aleatórios).
         gerarIdSecao: () => gerarId('sec'),
+        gerarIdElemento: () => gerarId('ele'),
       }),
   );
   useEffect(() => () => sessao.encerrar(), [sessao]);

@@ -258,6 +258,24 @@ button:disabled { opacity: 0.45; cursor: default; }
 .formulario--compacto { margin-bottom: var(--esp-3); }
 .escrever { display: grid; grid-template-columns: minmax(180px, var(--largura-lateral)) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
 .escrever__secoes { display: grid; gap: var(--esp-2); }
+.escrever__coluna { display: grid; gap: var(--esp-4); min-width: 0; }
+.elementos { display: grid; gap: var(--esp-2); }
+.elementos h2 { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
+.elementos__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.elementos__item { width: 100%; min-height: var(--alvo-minimo); display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-2); align-items: center; padding: var(--esp-1) var(--esp-2); text-align: left; background: transparent; color: var(--cor-texto); border: 1px solid transparent; border-radius: var(--raio); font-size: var(--tam-base); }
+.elementos__item:hover { background: var(--cor-superficie); }
+.elementos__item[aria-current='true'] { background: var(--cor-superficie); border-color: var(--cor-borda-controle); font-weight: 600; }
+.elementos__marca { font-size: var(--tam-peq); font-weight: 400; color: var(--cor-texto-sec); }
+.elementos__marca--pendente { color: var(--cor-erro); }
+.elementos__incluir { display: grid; gap: var(--esp-1); }
+.elementos__incluir .campo { font-size: var(--tam-base); }
+.formulario--elemento { display: grid; gap: var(--esp-3); }
+.elemento__cab { display: flex; justify-content: space-between; align-items: center; gap: var(--esp-2); }
+.elemento__campo { display: grid; gap: var(--esp-1); }
+.elemento__campo .campo { font-size: var(--tam-base); }
+.elemento__campo textarea { resize: vertical; font-family: inherit; }
+.elemento__grupo { display: grid; gap: var(--esp-2); margin: 0; padding: var(--esp-2) var(--esp-3); border: 1px solid var(--cor-borda); border-radius: var(--raio); }
+.elemento__marcar { display: flex; gap: var(--esp-2); align-items: center; }
 .escrever__secoes h2, .escrever__numero { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
 /* Árvore de seções (M2-T07): recuo por nível, item ativo destacado, linha onde a seção arrastada vai entrar. */
 .arvore-secoes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }

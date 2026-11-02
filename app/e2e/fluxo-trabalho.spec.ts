@@ -133,3 +133,70 @@ test('FUN-02: o diálogo "Novo trabalho" cria o trabalho do tipo escolhido, com 
   await x.fechar();
   expect(x.problemas).toEqual([]);
 });
+
+test('FUN-11: elementos pré-textuais — campos, pendências, retirar com Ctrl+Z, salvar e reabrir', async () => {
+  const x = await abrirApp(amb);
+  const p = x.pagina;
+  await criarTrabalho(p, 'Tese');
+  const elementos = p.getByRole('navigation', { name: 'Elementos pré-textuais' });
+  const item = (nome: string | RegExp) => elementos.getByRole('button', { name: nome });
+
+  // Trabalho novo: a capa aponta o que falta, com a RN; escrever tira a pendência.
+  await item(/^Capa/).click();
+  const pendenciasCapa = p.getByRole('list', { name: 'Pendências: Capa' });
+  await expect(pendenciasCapa).toContainText('Capa: falta a autoria. (RN-117)');
+  await p.getByLabel('Autoria').fill('Ana Souza');
+  await expect(pendenciasCapa).not.toContainText('falta a autoria');
+  await p.getByLabel('Instituição').fill('Universidade Federal do Tocantins');
+
+  // O dado da capa é o mesmo da folha de rosto.
+  await item(/^Folha de rosto/).click();
+  await expect(p.getByLabel('Autoria')).toHaveValue('Ana Souza');
+  await p.getByLabel('Natureza do trabalho').fill('Tese para o grau de Mestre.');
+  await expect(p.getByRole('list', { name: 'Pendências: Folha de rosto' })).toContainText('RN-133');
+  await p.getByLabel('Natureza do trabalho').fill('Tese para o grau de Doutor.');
+
+  // Resumo: palavras-chave separadas por ponto e vírgula, sem perder o separador enquanto digita.
+  await item(/^Resumo( |$)(?!em)/).click();
+  await p.getByLabel('Texto do resumo', { exact: true }).fill('Texto curto do resumo.');
+  await expect(p.getByRole('list', { name: 'Pendências: Resumo' })).toContainText('RN-154');
+  const chaves = p.getByLabel('Palavras-chave', { exact: true });
+  await chaves.pressSequentially('Pequi; Cerrado');
+  await expect(chaves).toHaveValue('Pequi; Cerrado');
+
+  // Retirar leva o texto; Ctrl+Z na lista traz de volta; obrigatório fora vira pendência do trabalho.
+  await p.getByRole('button', { name: 'Retirar do trabalho' }).click();
+  await expect(elementos.getByRole('status')).toHaveText('Resumo retirado. Ctrl+Z desfaz.');
+  await expect(elementos.getByRole('list', { name: 'Pendências do trabalho' })).toContainText('Resumo: elemento obrigatório ausente.');
+  await expect(elementos.getByRole('button').first()).toBeFocused();
+  await p.keyboard.press('Control+Z');
+  await expect(elementos.getByRole('list', { name: 'Pendências do trabalho' })).toHaveCount(0);
+  await item(/^Resumo( |$)(?!em)/).click();
+  await expect(p.getByLabel('Texto do resumo', { exact: true })).toHaveValue('Texto curto do resumo.');
+
+  // Incluir entra no lugar do Quadro 5 e abre o formulário.
+  await elementos.getByLabel('Incluir elemento').selectOption({ label: 'Dedicatória' });
+  await elementos.getByRole('button', { name: 'Incluir', exact: true }).click();
+  await p.getByLabel('Texto da dedicatória').fill('Aos meus pais.');
+
+  // Escolher uma seção volta ao editor.
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' })).toBeVisible();
+
+  await p.keyboard.press('Control+S');
+  await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
+  const nomes = arquivosBdp(amb);
+  const doc = JSON.parse(lerDocumento(join(amb.trabalhos, nomes[0]!)).json) as Documento;
+  expect(doc.metadados).toMatchObject({ autoria: 'Ana Souza', natureza: 'Tese para o grau de Doutor.' });
+  expect(doc.preTextuais?.find((e) => e.tipo === 'resumo')).toMatchObject({ texto: 'Texto curto do resumo.', palavrasChave: ['Pequi', 'Cerrado'] });
+  expect(doc.preTextuais?.map((e) => e.tipo)).toEqual(['capa', 'folhaRosto', 'fichaCatalografica', 'folhaAprovacao', 'dedicatoria', 'resumo', 'abstract', 'sumario']);
+
+  // Reabrir mostra o mesmo.
+  await p.keyboard.press('Control+W');
+  await p.getByRole('option', { name: /Tese/ }).dblclick();
+  await item(/^Dedicatória/).click();
+  await expect(p.getByLabel('Texto da dedicatória')).toHaveValue('Aos meus pais.');
+
+  await x.fechar();
+  expect(x.problemas).toEqual([]);
+});

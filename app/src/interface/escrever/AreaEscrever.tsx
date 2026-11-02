@@ -2,14 +2,16 @@
 // ao salvar com "Salvar como…", arquivo sem .bdp, versão futura). M2-T06: a lista das seções, numeradas pela posição,
 // e o editor da seção escolhida (uma seção por vez, decisão da preparação do M2). M2-T07: a árvore de seções, com nova,
 // subir, descer, recuar, promover, excluir e arrastar (`ArvoreSecoes`); a seção ativa e a ordem única de desfazer vêm
-// de `useEstrutura`, acima da aba. Texto sempre como texto (nunca HTML).
+// de `useEstrutura`, acima da aba. M2-T08: a lista dos elementos pré-textuais e o formulário do escolhido, no lugar do
+// editor da seção. Texto sempre como texto (nunca HTML).
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { AcaoAviso, AvisoSessao, ConteudoDaSecao, EstadoSessao } from '../../aplicacao';
-import type { Secao } from '../../dominio/modelo';
+import type { AcaoAviso, AlteracaoDados, AvisoSessao, CamposElemento, ConteudoDaSecao, EstadoSessao } from '../../aplicacao';
+import type { ElementoPreTextualId, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
 import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
+import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
@@ -45,6 +47,16 @@ export interface PropsAreaEscrever {
     | 'aviso'
     | 'registrarTexto'
   >;
+  /** Dados de identificação e elementos pré-textuais (M2-T08). */
+  elementos: {
+    alterarDados: (a: AlteracaoDados) => void;
+    alterarSubtitulo: (texto: string) => void;
+    alterar: (id: string, campos: CamposElemento) => void;
+    incluir: (tipo: ElementoPreTextualId) => string | null;
+    retirar: (id: string) => boolean;
+  };
+  /** O formulário de um elemento está no lugar do editor: o menu Inserir › Nota de rodapé fica desativado. */
+  aoMudarFormulario?: (aberto: boolean) => void;
   /** O editor da seção aberta, para os menus Editar e Inserir. */
   controleEditor: RefObject<ControleEditor | null>;
 }
@@ -56,6 +68,17 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const refArvore = useRef<HTMLUListElement>(null);
   const refEscrever = useRef<HTMLDivElement>(null);
   const { controleEditor } = p;
+  // Elemento na tela no lugar do editor. Outra seção ativa (árvore, barra superior, desfazer) volta ao editor.
+  const [elementoId, setElementoId] = useState<string | null>(null);
+  const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
+  const ativaId = e.ativa?.id ?? null;
+  useEffect(() => setElementoId(null), [ativaId, t?.geracao]);
+  const comFormulario = elementoId !== null && (t?.preTextuais?.lista.some((x) => x.id === elementoId) ?? false);
+  const { aoMudarFormulario } = p;
+  useEffect(() => {
+    aoMudarFormulario?.(comFormulario);
+    return () => aoMudarFormulario?.(false);
+  }, [comFormulario, aoMudarFormulario]);
   const { pedidoFoco, consumirFoco } = e;
   // Depois de mudar de seção ou de estrutura: o foco vai ao editor (já montado: os efeitos do filho rodam antes), ao
   // título ou ao item ativo da árvore (sem seções, ao botão "Nova seção").
@@ -96,7 +119,10 @@ export function AreaEscrever(p: PropsAreaEscrever) {
 
   const secoes = t.secoes;
   const ativa = e.ativa;
+  const pre = t.preTextuais;
+  const elementoAtivo = pre?.lista.find((x) => x.id === elementoId) ?? null;
   const escolher = (id: string, foco: PedidoFoco['alvo'] | null) => {
+    setElementoId(null);
     e.escolher(id, foco);
     setAvisosEditor([]);
   };
@@ -155,6 +181,29 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       </form>
 
       <div className="escrever" ref={refEscrever}>
+        <div className="escrever__coluna">
+        {pre !== null && (
+          <ListaElementos
+            elementos={pre.resumos}
+            ausentes={pre.ausentes}
+            pendenciasGerais={pre.pendencias.filter((x) => !pre.lista.some((el) => el.tipo === x.elemento))}
+            ativoId={elementoAtivo?.id ?? null}
+            somenteLeitura={t.somenteLeitura}
+            anuncio={anuncioElemento}
+            aoEscolher={(id) => {
+              setAnuncioElemento(null);
+              setElementoId(id);
+            }}
+            aoIncluir={(tipo) => {
+              const id = p.elementos.incluir(tipo);
+              if (id !== null) {
+                setElementoId(id);
+                setAnuncioElemento(`${ROTULOS_ELEMENTO[tipo]} incluído. Ctrl+Z desfaz.`);
+              }
+            }}
+            aoHistorico={e.historico}
+          />
+        )}
         <ArvoreSecoes
           secoes={secoes}
           ativaId={ativa?.id ?? null}
@@ -171,9 +220,31 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoHistorico={e.historico}
           aoIrAoTexto={e.pedirFoco}
         />
+        </div>
 
-        <section className="escrever__texto" aria-labelledby="titulo-secao-ativa">
-          {ativa === null ? (
+        <section className="escrever__texto" aria-labelledby={elementoAtivo ? undefined : 'titulo-secao-ativa'} aria-label={elementoAtivo ? 'Elemento pré-textual' : undefined}>
+          {elementoAtivo !== null && pre !== null ? (
+            <FormularioElemento
+              key={elementoAtivo.id}
+              elemento={elementoAtivo}
+              dados={pre.dados}
+              subtitulo={pre.subtitulo}
+              sugerido={pre.resumos.find((x) => x.id === elementoAtivo.id)?.sugerido === true}
+              rotuloOrientador={t.tipoTrabalho === 'projeto-pesquisa' ? 'Coordenador(a)' : 'Orientador(a)'}
+              pendencias={pre.pendencias.filter((x) => x.elemento === elementoAtivo.tipo)}
+              somenteLeitura={t.somenteLeitura}
+              aoAlterarDados={p.elementos.alterarDados}
+              aoAlterarSubtitulo={p.elementos.alterarSubtitulo}
+              aoAlterarElemento={p.elementos.alterar}
+              aoRetirar={(id) => {
+                if (p.elementos.retirar(id)) {
+                  setElementoId(null);
+                  setAnuncioElemento(`${ROTULOS_ELEMENTO[elementoAtivo.tipo]} retirado. Ctrl+Z desfaz.`);
+                  refEscrever.current?.querySelector<HTMLElement>('.elementos__item')?.focus();
+                }
+              }}
+            />
+          ) : ativa === null ? (
             <p className="dica" id="titulo-secao-ativa">
               {t.somenteLeitura ? 'Este trabalho não tem seções.' : 'Use “Nova seção” para começar o texto.'}
             </p>

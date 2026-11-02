@@ -41,16 +41,24 @@ import {
   promoverSecao,
   recuarSecao,
   removerSecao,
+  ehTipoTrabalhoUft,
+  ORDEM_PRE_TEXTUAIS,
+  type Documento,
+  type ElementoPreTextual,
+  type ElementoPreTextualId,
   type Id,
   type InlineDeTitulo,
   type InversoSecao,
+  type Metadados,
   type ResultadoOperacaoSecao,
   type Secao,
   type TipoTrabalhoId,
 } from '../../dominio/modelo';
+import { ESTRUTURA_POR_TIPO, pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
 import { numerarSecoes } from '../../dominio/numeracao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
-import { HistoricoEdicao, type EntradaHistorico } from './historico-edicao';
+import { HistoricoEdicao, type EntradaHistorico, type InversoElemento } from './historico-edicao';
+import { aplicarCampos, aplicarDados, comElemento, type AlteracaoDados, type CamposElemento } from './pre-textuais';
 import {
   CODIGO_MIDIA_AUSENTE,
   type ApiProjetos,
@@ -109,6 +117,27 @@ export interface ResumoSecao {
 /** O que o editor de uma seção edita (as subseções ficam na árvore). */
 export type ConteudoDaSecao = Pick<Secao, 'titulo' | 'blocos'>;
 
+/** Elemento pré-textual na lista da aba Escrever (M2-T08). */
+export interface ResumoElemento {
+  id: Id;
+  tipo: ElementoPreTextualId;
+  /** Sugestão do modelo UFT, não exigida pelo Manual (C-B18). */
+  sugerido: boolean;
+  /** Pendências (sem contar os avisos) deste elemento. */
+  pendencias: number;
+}
+
+/** Dados dos formulários pré-textuais (M2-T08). Os objetos só mudam quando o conteúdo deles muda. */
+export interface PreTextuaisDaSessao {
+  dados: Metadados;
+  subtitulo: string;
+  lista: readonly ElementoPreTextual[];
+  resumos: readonly ResumoElemento[];
+  /** Tipos que o autor pode incluir, na ordem do Quadro 5. */
+  ausentes: readonly ElementoPreTextualId[];
+  pendencias: readonly PendenciaPreTextual[];
+}
+
 export interface TrabalhoDaSessao {
   /**
    * Muda a cada trabalho aberto (também ao reabrir o mesmo arquivo ou recuperar): o editor descarta o que guardou do
@@ -125,6 +154,8 @@ export interface TrabalhoDaSessao {
   salvamento: SalvamentoSessao;
   /** Seções do corpo em ordem de leitura. */
   secoes: readonly ResumoSecao[];
+  /** `null` nos tipos sem elementos (genérico, tipo de versão futura). */
+  preTextuais: PreTextuaisDaSessao | null;
 }
 
 export interface EstadoSessao {
@@ -147,6 +178,8 @@ export interface DependenciasSessao {
   atrasoInstantaneoMs?: number;
   /** Id de seção nova (`sec_` + 16 caracteres, dentro do `PADRAO_ID`). Sem ele, a sessão não cria seções. */
   gerarIdSecao?: () => string;
+  /** Id de elemento novo no formato do esquema (M2-T08). */
+  gerarIdElemento?: () => string;
 }
 
 /**
@@ -330,10 +363,41 @@ export class SessaoTrabalho {
               podeSalvar: a.modo === 'edicao' && a.identificador !== null,
               salvamento: this.#salvamento,
               secoes: this.#secoes,
+              preTextuais: this.#preTextuais(a.pacote.documento),
             },
       avisos: this.#avisos,
     };
     for (const o of this.#ouvintes) o();
+  }
+
+  #cachePreTextuais: { metadados: Metadados; lista: unknown; resultado: PreTextuaisDaSessao | null } | null = null;
+
+  /** Recalculado só quando os dados ou os elementos mudam: digitar numa seção não refaz as pendências. */
+  #preTextuais(doc: Documento): PreTextuaisDaSessao | null {
+    const c = this.#cachePreTextuais;
+    if (c !== null && c.metadados === doc.metadados && c.lista === doc.preTextuais) return c.resultado;
+    let resultado: PreTextuaisDaSessao | null = null;
+    if (ehTipoTrabalhoUft(doc.tipoTrabalho)) {
+      const estrutura = ESTRUTURA_POR_TIPO[doc.tipoTrabalho].preTextuais;
+      const lista = doc.preTextuais ?? [];
+      const pendencias = pendenciasPreTextuais(doc);
+      const presentes = new Set(lista.map((e) => e.tipo));
+      resultado = {
+        dados: doc.metadados,
+        subtitulo: textoDoTitulo(doc.metadados.subtitulo ?? []),
+        lista,
+        resumos: lista.map((e) => ({
+          id: e.id,
+          tipo: e.tipo,
+          sugerido: estrutura[e.tipo].presenca === 'sugerido',
+          pendencias: pendencias.filter((p) => p.elemento === e.tipo && p.nivel === 'pendencia').length,
+        })),
+        ausentes: ORDEM_PRE_TEXTUAIS.filter((t) => !presentes.has(t)),
+        pendencias,
+      };
+    }
+    this.#cachePreTextuais = { metadados: doc.metadados, lista: doc.preTextuais, resultado };
+    return resultado;
   }
 
   #avisar(aviso: AvisoSessao): void {
@@ -518,6 +582,99 @@ export class SessaoTrabalho {
     this.#emitir();
   }
 
+  // ---------- dados de identificação e elementos pré-textuais (M2-T08) ----------
+
+  /** Campo de identificação (capa, folha de rosto). Como o título, usa o desfazer do próprio campo. */
+  alterarDados(alteracao: AlteracaoDados): void {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return;
+    const atual = a.pacote.documento.metadados;
+    const novos = aplicarDados(atual, alteracao);
+    if (novos !== atual) this.#trocarMetadados(a, novos);
+  }
+
+  alterarSubtitulo(texto: string): void {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return;
+    const atual = a.pacote.documento.metadados;
+    if (texto === textoDoTitulo(atual.subtitulo ?? [])) return;
+    const { subtitulo: _antigo, ...resto } = atual;
+    this.#trocarMetadados(a, texto === '' ? resto : { ...resto, subtitulo: tituloDoTexto(texto, atual.subtitulo ?? []) });
+  }
+
+  #trocarMetadados(a: Extract<Aberto, { modo: 'edicao' }>, metadados: Metadados): void {
+    a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, metadados } };
+    this.#marcarAlteracao();
+    this.#emitir();
+  }
+
+  /** Campos de um elemento presente. Usa o desfazer do próprio campo. */
+  alterarElemento(id: Id, campos: CamposElemento): void {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return;
+    const lista = a.pacote.documento.preTextuais ?? [];
+    const atual = lista.find((e) => e.id === id);
+    if (atual === undefined) return;
+    const novo = aplicarCampos(atual, campos);
+    if (novo !== atual) this.#trocarElementos(a, lista.map((e) => (e === atual ? novo : e)));
+  }
+
+  /** Inclui o elemento no lugar dele no Quadro 5. Entra no desfazer. Devolve o id, ou `null` se não pôde. */
+  incluirElemento(tipo: ElementoPreTextualId): Id | null {
+    const a = this.#aberto;
+    const gerar = this.#dep.gerarIdElemento;
+    if (a?.modo !== 'edicao' || gerar === undefined || !ehTipoTrabalhoUft(a.pacote.documento.tipoTrabalho)) return null;
+    const lista = a.pacote.documento.preTextuais ?? [];
+    if (lista.some((e) => e.tipo === tipo)) return null;
+    let id = gerar();
+    while (this.#idEmUso(a, id)) id = gerar();
+    this.#historico.registrar({ tipo: 'elemento', inverso: { acao: 'retirar', id } });
+    this.#trocarElementos(a, comElemento(lista, { tipo, id } as ElementoPreTextual));
+    return id;
+  }
+
+  /** Retira o elemento com o que foi escrito nele. Entra no desfazer (Ctrl+Z o traz de volta com o texto). */
+  retirarElemento(id: Id): boolean {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return false;
+    const lista = a.pacote.documento.preTextuais ?? [];
+    const elemento = lista.find((e) => e.id === id);
+    if (elemento === undefined) return false;
+    this.#historico.registrar({ tipo: 'elemento', inverso: { acao: 'incluir', elemento } });
+    this.#trocarElementos(a, lista.filter((e) => e !== elemento));
+    return true;
+  }
+
+  /** Lista vazia fica ausente (forma única; o esquema recusa `[]`). */
+  #trocarElementos(a: Extract<Aberto, { modo: 'edicao' }>, lista: ElementoPreTextual[]): void {
+    const { preTextuais: _antigos, ...resto } = a.pacote.documento;
+    // A ordem das chaves é a da leitura: `preTextuais` antes de `corpo`.
+    const { id, tipoTrabalho, metadados, ...demais } = resto;
+    a.pacote = { ...a.pacote, documento: { id, tipoTrabalho, metadados, ...(lista.length > 0 && { preTextuais: lista }), ...demais } };
+    this.#marcarAlteracao();
+    this.#emitir();
+  }
+
+  /** Ids são únicos no documento inteiro: um repetido torna o `.bdp` ilegível (R38; B2 do M2-T03). */
+  #idEmUso(a: Extract<Aberto, { modo: 'edicao' }>, id: Id): boolean {
+    const d = a.pacote.documento;
+    return this.#caminhos.has(id) || (d.preTextuais ?? []).some((e) => e.id === id) || (d.posTextuais ?? []).some((e) => e.id === id);
+  }
+
+  /** Desfaz ou refaz uma inclusão ou retirada; devolve a entrada que a anula, ou `null` se já não se aplica. */
+  #aplicarInversoElemento(a: Extract<Aberto, { modo: 'edicao' }>, inverso: InversoElemento): EntradaHistorico | null {
+    const lista = a.pacote.documento.preTextuais ?? [];
+    if (inverso.acao === 'incluir') {
+      if (lista.some((e) => e.tipo === inverso.elemento.tipo)) return null;
+      this.#trocarElementos(a, comElemento(lista, inverso.elemento));
+      return { tipo: 'elemento', inverso: { acao: 'retirar', id: inverso.elemento.id } };
+    }
+    const elemento = lista.find((e) => e.id === inverso.id);
+    if (elemento === undefined) return null;
+    this.#trocarElementos(a, lista.filter((e) => e !== elemento));
+    return { tipo: 'elemento', inverso: { acao: 'incluir', elemento } };
+  }
+
   /**
    * Conta uma alteração e agenda o automático e o instantâneo. `true` = o visor mudou (é preciso emitir).
    * Durante a gravação o visor continua em "Salvando…"; o resultado decide o próximo estado. (Com o diálogo do
@@ -576,7 +733,7 @@ export class SessaoTrabalho {
     if (a?.modo !== 'edicao' || gerar === undefined) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
     const corpo = a.pacote.documento.corpo;
     let id = gerar();
-    while (this.#caminhos.has(id)) id = gerar();
+    while (this.#idEmUso(a, id)) id = gerar();
     const apos = aposId === null ? null : localizarSecao(corpo, aposId);
     const destino = apos === null ? { paiId: null, indice: corpo.length } : { paiId: apos.paiId, indice: apos.indice + 1 };
     return this.#aplicarEstrutura(a, inserirSecao(corpo, { id, titulo: [], blocos: [], subsecoes: [] }, destino), id);
@@ -661,8 +818,8 @@ export class SessaoTrabalho {
         continue;
       }
       this.#historico.concluir(sentido, contraria);
-      const id = e.tipo === 'texto' ? e.secaoId : idDaOperacao(e.inverso);
-      return { ok: true, mudou: true, secaoId: this.#caminhos.has(id) ? id : null };
+      const id = e.tipo === 'texto' ? e.secaoId : e.tipo === 'estrutura' ? idDaOperacao(e.inverso) : null;
+      return { ok: true, mudou: true, secaoId: id !== null && this.#caminhos.has(id) ? id : null };
     }
     return { ok: false, mensagem: sentido === 'desfazer' ? MENSAGEM_NADA_A_DESFAZER : MENSAGEM_NADA_A_REFAZER };
   }
@@ -675,6 +832,7 @@ export class SessaoTrabalho {
     aplicarTexto: AplicarTexto,
   ): EntradaHistorico | null {
     if (e.tipo === 'texto') return this.#caminhos.has(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
+    if (e.tipo === 'elemento') return this.#aplicarInversoElemento(a, e.inverso);
     // O inverso vai como foi recebido (só ele restaura além dos limites).
     const r = aplicarOperacaoSecao(a.pacote.documento.corpo, e.inverso);
     if (!r.ok) return null;

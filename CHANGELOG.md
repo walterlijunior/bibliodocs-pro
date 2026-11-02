@@ -6,6 +6,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T08: elementos pré-textuais com campos na aba Escrever (RF-04; adendo M2-T08 no ADR-0004).
+  - Lista dos elementos com a marca de sugestão e a contagem de pendências; incluir e retirar, com Ctrl+Z.
+  - Formulários de capa, folha de rosto, ficha, errata, folha de aprovação com banca, dedicatória, agradecimentos,
+    epígrafe, resumo e resumo em língua estrangeira com palavras-chave.
+  - Pendências com a RN (obrigatório ausente, campo vazio, bolsista) e avisos (extensão do resumo, palavras-chave, grau
+    incoerente com o tipo). Nada impede de salvar.
+  - Formato v1: dados de identificação em `metadados` e campos nos elementos (aditivo).
 - Etapa 5, M2-T02: tipos de trabalho como dados e diálogo "Novo trabalho" (RF-02; adendo M2-T02 no ADR-0004).
   - Seis tipos (monografia, artigo-TCC, dissertação, tese, relatório técnico, projeto de pesquisa), cada elemento com
     presença, RN e fonte; o trabalho novo nasce com os elementos e as seções do tipo, na ordem do Quadro 5.

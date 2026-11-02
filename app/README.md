@@ -126,9 +126,9 @@ As decisões e os desvios de cada parte estão no adendo indicado. As regras par
 | Documento grande de medição (≈150 páginas, 25 MiB de mídia, determinístico) | `tests/apoio/documento-grande.ts` | `tests/documento-grande.test.ts` | relatório do M2 (M2-T01) |
 | Empacotamento (NSIS por usuário, fuses, ASAR íntegro, recusa de chaves de linha de comando) | `electron-builder.config.cjs`, `empacotamento/`, `src/principal/seguranca/argumentos.ts` | `tests/empacotamento.test.ts`, `tests/seguranca-argumentos.test.ts` | ADR-0003, adendo M1-T14 |
 
-### Testes E2E (M1-T13; desempenho no M2-T01; editor no M2-T06; árvore de seções no M2-T07; tipos no M2-T02)
+### Testes E2E (M1-T13; desempenho no M2-T01; editor no M2-T06; árvore de seções no M2-T07; tipos no M2-T02; pré-textuais no M2-T08)
 
-`npm run test:e2e` roda 13 testes, um Electron por vez:
+`npm run test:e2e` roda 14 testes, um Electron por vez:
 
 | Arquivo | O que verifica | Casos da matriz |
 |---|---|---|
@@ -148,6 +148,12 @@ Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um t
 (`src/aplicacao/servicos/criar-trabalho.ts`). Elementos, presença, RN e fonte de cada tipo em
 `src/dominio/normas/tipos-trabalho.ts`; ordem e repetição em `src/dominio/modelo/elementos.ts`. Testes:
 `tests/tipos-trabalho.test.ts` (confere as RN na matriz normativa) e FUN-02 em `e2e/fluxo-trabalho.spec.ts`.
+
+### Pré-textuais (M2-T08)
+
+Lista e formulários em `src/interface/escrever/PreTextuais.tsx`; edição em `src/aplicacao/servicos/pre-textuais.ts`, pela
+`SessaoTrabalho`; pendências com RN em `src/dominio/normas/pendencias-pre-textuais.ts`. A interface recebe as pendências
+prontas em `trabalho.preTextuais` (não importa `dominio/normas`). Testes: `tests/pre-textuais.test.ts` e FUN-11.
 
 ### Núcleo do editor (M2-T05), editor na tela (M2-T06) e árvore de seções (M2-T07)
 

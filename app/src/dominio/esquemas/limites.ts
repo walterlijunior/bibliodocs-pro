@@ -31,6 +31,10 @@ export const LIMITES_V1 = {
   /** 5.000 entradas do ZIP menos as entradas fixas do pacote. */
   midias: 4_990,
   bytesMidia: 64 * 1024 * 1024,
+  /** Campos de identificação (autoria, instituição, natureza, data, membro da banca...) (M2-T08). */
+  campoCurto: 2_000,
+  palavrasChave: 50,
+  membrosBanca: 30,
   /** Campos curtos: versões, ids de perfil. */
   textoCurto: 64,
   /** Erros listados por validação; o restante é resumido. */

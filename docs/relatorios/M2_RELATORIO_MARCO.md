@@ -11,7 +11,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T06 Editor na aba Escrever ligado à sessão | CONCLUÍDA | 2026-10-17 |
 | M2-T07 Árvore de seções na interface e ordem única de desfazer | CONCLUÍDA | 2026-10-17 |
 | M2-T02 Tipos de trabalho como dados e diálogo "Novo trabalho" | CONCLUÍDA | 2026-11-02 |
-| M2-T08 a M2-T12 | PENDENTE | — |
+| M2-T08 Pré-textuais com campos e pendências | CONCLUÍDA | 2026-11-02 |
+| M2-T09 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -459,3 +460,34 @@ anexo. Três testes novos; na 2.ª rodada 12/12.
 - A variante Letras-Libras (RN-115) não é oferecida; agradecimentos de bolsista (RN-147) ficam `condicional`, sem campo
   "bolsista" (M2-T08). A lombada fica fora do modelo (RN-126, PENDENTE-FONTE; elemento físico).
 - O último tipo escolhido dura só a sessão. Trabalhos `generico` do M1 continuam abrindo, sem elementos.
+
+## M2-T08 — Pré-textuais com campos e pendências
+
+**Implementação:** sessão principal. **Sem revisão independente** (agentes não acionados nesta tarefa). Nenhuma dependência
+nova. Decisões técnicas no adendo do M2-T08 no ADR-0004.
+
+**Código**
+- `dominio/modelo/tipos.ts`: `Metadados` com os dados de identificação; `ElementoPreTextual` como união por tipo.
+- `dominio/esquemas`: campos no v1 (aditivo), limites `campoCurto`, `palavrasChave`, `membrosBanca`.
+- `dominio/normas/pendencias-pre-textuais.ts`: pendências e avisos com RN.
+- `aplicacao/servicos/pre-textuais.ts` (edição pura, limpeza do texto) e `sessao-trabalho.ts`: `alterarDados`,
+  `alterarSubtitulo`, `alterarElemento`, `incluirElemento`, `retirarElemento`; entrada `elemento` no `HistoricoEdicao`.
+- `interface/escrever/PreTextuais.tsx`: lista, incluir, formulários. O formulário fica no lugar do editor da seção.
+
+**Regras aplicadas:** RN-117, RN-127, RN-133, RN-135, RN-140, RN-147, RN-150, RN-154 (C-B6), RN-155 (C-B7), RN-157, e
+presença por tipo do M2-T02. Só a coleta e a pendência; a forma final (fontes, recuos, caixa) é do M3.
+
+**Aceite** [VERIFICADO 2026-11-02]
+- RF-04: `tests/pre-textuais.test.ts` e FUN-11 em `e2e/fluxo-trabalho.spec.ts` (preencher, pendência some, RN-133, retirar e
+  Ctrl+Z, incluir, salvar, reabrir). Telas conferidas por captura (capa e folha de aprovação).
+- Achados pelos testes e corrigidos: mensagem "d membro 1" da banca; menu Inserir › Nota de rodapé mudo com o formulário na
+  tela (agora desativado; **sem teste automático**).
+- Mutações: 16/16 detectadas por script temporário.
+- `npm run verificar:tudo`: 1024/1024, 0 vulnerabilidades, build OK, E2E 14/14. Kit: 0 falhas.
+- B2 do M2-T03 fechado para os pré-textuais: seção e elemento novos não reaproveitam id em uso.
+
+**Limites conhecidos**
+- Campos em texto simples: sem itálico nem negrito em resumo e agradecimentos (termo estrangeiro no resumo, por exemplo).
+- Digitar nos campos usa o desfazer do próprio campo, fora da ordem única; retirar um membro da banca não tem desfazer.
+- Ficha catalográfica é texto colado do sistema da UFT, sem imagem ou PDF (mídia no M5).
+- Roteiro NVDA (R42) não executado.

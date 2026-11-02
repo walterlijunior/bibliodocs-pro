@@ -226,7 +226,7 @@ describe('visor', () => {
       podeSalvar: true,
       salvamento: { tipo: 'erro', codigo: 'EM_USO', mensagem: 'Não foi possível salvar: o arquivo está em uso por outro programa.' },
       geracao: 1,
-      secoes: [],
+      secoes: [], preTextuais: null,
     } as const;
     const v = visorDoTrabalho(trabalho);
     expect(v.tipo === 'trabalho' && linhasDoVisor(v.trabalho)).toEqual([

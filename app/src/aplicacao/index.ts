@@ -95,5 +95,17 @@ export {
   type ResumoSecao,
   type SalvamentoSessao,
   type TrabalhoDaSessao,
+  type PreTextuaisDaSessao,
+  type ResumoElemento,
 } from './servicos/sessao-trabalho';
+export {
+  aplicarCampos,
+  aplicarDados,
+  limparTexto,
+  palavrasChaveDoTexto,
+  type AlteracaoDados,
+  type CampoTextoDados,
+  type CamposElemento,
+} from './servicos/pre-textuais';
+export type { PendenciaPreTextual } from '../dominio/normas';
 export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';

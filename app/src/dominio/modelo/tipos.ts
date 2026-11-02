@@ -134,23 +134,61 @@ export type ElementoPreTextualId =
 /** Elementos pós-textuais, na ordem do Quadro 5 (RN-114). Apêndice e anexo podem se repetir. */
 export type ElementoPosTextualId = 'referencias' | 'glossario' | 'apendice' | 'anexo' | 'indice';
 
-/**
- * Lugar de um elemento no trabalho (M2-T02). Só o lugar: os campos e o texto de cada elemento chegam no M2-T08
- * (pré-textuais) e no M2-T09/M4/M6 (pós-textuais), como campos novos desta interface.
- */
-export interface ElementoPreTextual {
-  tipo: ElementoPreTextualId;
-  id: Id;
+type SoLugar<T> = T extends string ? { tipo: T; id: Id } : never;
+type ComTexto<T> = T extends string ? { tipo: T; id: Id; texto?: string } : never;
+
+/** Língua do resumo estrangeiro (RN-157); ausente = inglês. */
+export type IdiomaResumo = 'en' | 'es' | 'fr';
+
+/** Membro da banca (RN-140). Todos os campos são opcionais: a falta é pendência, não erro do arquivo. */
+export interface MembroBanca {
+  nome?: string;
+  titulacao?: string;
+  instituicao?: string;
 }
+
+/**
+ * Elemento pré-textual com o que é só dele (M2-T08). O que capa, folha de rosto e folha de aprovação repetem fica em
+ * `Metadados`. Texto simples (`\n` separa parágrafos). Listas e sumário não têm campos: são gerados (M6). Campo vazio
+ * fica ausente.
+ */
+export type ElementoPreTextual =
+  | SoLugar<'capa' | 'folhaRosto' | 'listaIlustracoes' | 'listaTabelas' | 'listaSiglas' | 'listaSimbolos' | 'sumario'>
+  | ComTexto<'fichaCatalografica' | 'errata' | 'dedicatoria' | 'agradecimentos' | 'epigrafe'>
+  | { tipo: 'folhaAprovacao'; id: Id; dataAprovacao?: string; banca?: MembroBanca[] }
+  | { tipo: 'resumo'; id: Id; texto?: string; palavrasChave?: string[] }
+  | { tipo: 'abstract'; id: Id; idioma?: IdiomaResumo; texto?: string; palavrasChave?: string[] };
+
+/** Lugar de um pós-textual no trabalho (M2-T02); os campos chegam no M2-T09/M4/M6. */
 
 export interface ElementoPosTextual {
   tipo: ElementoPosTextualId;
   id: Id;
 }
 
+/** Pessoa com titulação (orientador, coorientador; RN-127, RN-132). */
+export interface PessoaTitulada {
+  nome?: string;
+  titulacao?: string;
+}
+
+/** Dados de identificação (RN-117, RN-127, RN-140). Campo vazio fica ausente (M2-T08). */
 export interface Metadados {
   titulo: InlineDeTitulo[];
   subtitulo?: InlineDeTitulo[];
+  autoria?: string;
+  instituicao?: string;
+  campus?: string;
+  curso?: string;
+  volume?: string;
+  local?: string;
+  ano?: string;
+  natureza?: string;
+  areaConcentracao?: string;
+  orientador?: PessoaTitulada;
+  coorientador?: PessoaTitulada;
+  /** RN-147: torna os agradecimentos obrigatórios. Só `true`; falso fica ausente. */
+  bolsista?: true;
 }
 
 export interface Documento {

@@ -45,6 +45,100 @@
               }
             ]
           }
+        },
+        "autoria": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "instituicao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "campus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "curso": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "volume": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "local": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "ano": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "natureza": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "areaConcentracao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "orientador": {
+          "type": "object",
+          "properties": {
+            "nome": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "titulacao": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "coorientador": {
+          "type": "object",
+          "properties": {
+            "nome": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "titulacao": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "bolsista": {
+          "type": "boolean",
+          "const": true
         }
       },
       "required": [
@@ -118,38 +212,385 @@
       "additionalProperties": false
     },
     "ElementoPreTextual": {
-      "type": "object",
-      "properties": {
-        "tipo": {
-          "type": "string",
-          "enum": [
-            "capa",
-            "folhaRosto",
-            "fichaCatalografica",
-            "errata",
-            "folhaAprovacao",
-            "dedicatoria",
-            "agradecimentos",
-            "epigrafe",
-            "resumo",
-            "abstract",
-            "listaIlustracoes",
-            "listaTabelas",
-            "listaSiglas",
-            "listaSimbolos",
-            "sumario"
-          ]
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "capa"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
         },
-        "id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "folhaRosto"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "fichaCatalografica"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "errata"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "folhaAprovacao"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "dataAprovacao": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "banca": {
+              "minItems": 1,
+              "maxItems": 30,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  },
+                  "titulacao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  },
+                  "instituicao": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "listaIlustracoes"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "listaTabelas"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "listaSiglas"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "listaSimbolos"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "sumario"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "dedicatoria"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "agradecimentos"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "epigrafe"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "resumo"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "palavrasChave": {
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+              }
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "abstract"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "idioma": {
+              "type": "string",
+              "enum": [
+                "en",
+                "es",
+                "fr"
+              ]
+            },
+            "texto": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "palavrasChave": {
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+              }
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "tipo",
-        "id"
-      ],
-      "additionalProperties": false
+      ]
     },
     "Secao": {
       "type": "object",

@@ -193,6 +193,7 @@ describe('aba Escrever (M1-T11)', () => {
       rotuloDescartar: 'Fechar sem salvar',
       ocupado: false,
       aoAlterarTitulo: nada,
+      elementos: { alterarDados: nada, alterarSubtitulo: nada, alterar: nada, incluir: () => null, retirar: () => false },
       aoSalvar: nada,
       aoFechar: nada,
       aoAcao: nada,
@@ -228,7 +229,7 @@ describe('aba Escrever (M1-T11)', () => {
     podeSalvar: true,
     salvamento: { tipo: 'naoSalvo' },
     geracao: 1,
-    secoes: [],
+    secoes: [], preTextuais: null,
   } as const;
 
   it('sem trabalho: convite para criar ou abrir', () => {

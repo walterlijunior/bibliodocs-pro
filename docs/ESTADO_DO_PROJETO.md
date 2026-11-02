@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T02 concluído (tipos de trabalho como dados; diálogo "Novo trabalho"), sem commit: aguarda autorização.
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔).
+**Última atualização:** 2026-11-02 — M2-T08 concluído (pré-textuais com campos e pendências), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T08 ✔).
 
 ## Etapas
 
@@ -15,17 +15,25 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T07 ✔, T08–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T08 ✔, T09–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T02 (o trabalho está só na pasta).
-2. **M2-T08** (pré-textuais com campos) ou **M2-T09** (lugares dos pós-textuais), que dependiam do T02; ou **M2-T10**
-   (backups rotativos), independente. Recomendado: T08.
+1. Autorizar o commit do M2-T08 (o trabalho está só na pasta).
+2. **M2-T09** (lugares dos pós-textuais; apêndice e anexo por letra). Depois M2-T10 e M2-T11.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T08 (visíveis; tomadas pela sessão principal sob "pode seguir", podem ser revistas)
+- Pendência nunca impede de salvar. Elemento obrigatório pode ser retirado (vira pendência); Ctrl+Z traz de volta com o texto.
+- Formulário no lugar do editor, com a lista acima da árvore de seções.
+- Campos em texto simples, sem itálico nem negrito.
+- Ficha catalográfica como texto colado do sistema da UFT (endereço mostrado como texto, sem link: app sem rede).
+- Palavras-chave separadas por ponto e vírgula; o ponto final vem da formatação (RN-156).
+- Projeto de pesquisa mostra "Coordenador(a)" no lugar de "Orientador(a)", como no modelo UFT.
+- Commit do M2-T02: `d3fb2e2` (sem `git push`).
 
 ## Decisões do M2-T02 (visíveis; sem registro de confirmação do usuário, podem ser revistas)
 - "Novo trabalho" pede o tipo num diálogo; o trabalho é gravado ao nascer; o último tipo fica marcado durante a sessão.
@@ -95,10 +103,14 @@ O usuário escreveu: "deixo essas decisões para você".
   ordem do texto não muda (adendo do M2-T03 no ADR-0007).
 
 ## Instruções para etapas futuras
+- Pré-textuais (M2-T08; adendo no ADR-0004; relatório do M2):
+  - Campo novo: tipo e esquema (`expectTypeOf` confere), `CAMPOS_POR_TIPO` em `pre-textuais.ts`, formulário, pendência com RN.
+  - **Para o M3:** nota, resumo e demais vazios são válidos; o exportador usa `metadados` e os campos, e aplica a forma
+    (RN-118 a RN-124, RN-128 a RN-134, RN-141 a RN-146, RN-148, RN-151 a RN-153, RN-158, RN-156).
+  - **Para o M7:** partir de `pendenciasPreTextuais`. **Para o M6:** gerar listas e sumário (hoje só o lugar).
+  - Sem marco: desfazer ao retirar membro da banca; rich text em resumo e agradecimentos; teste do menu Inserir desativado.
 - Tipos de trabalho (M2-T02; adendo no ADR-0004; relatório do M2):
-  - **Para o M2-T08/T09:** campos novos em `ElementoPreTextual`/`ElementoPosTextual` e nos esquemas; marcar cada elemento
-    sugerido como "sugestão do modelo UFT, não exigida pelo Manual" (C-B18, hoje só no diálogo); campo "bolsista"
-    (RN-147); `inserirSecao` deve considerar os ids dos elementos (B2 do M2-T03).
+  - **Para o M2-T09:** campos novos em `ElementoPosTextual` e nos esquemas.
   - Marcar como `IMPLEMENTADA` uma RN citada em `ESTRUTURA_POR_TIPO` exige ajustar `tests/tipos-trabalho.test.ts`, que
     hoje exige `CONFIRMADA`.
   - **Para o M3:** `ESTRUTURA_POR_TIPO` vai para `perfis/uft-2022/`. Sem marco: variante Letras-Libras (RN-115).
@@ -393,3 +405,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T07) | Árvore de seções na aba Escrever (padrão ARIA tree; nova, subir, descer, recuar, promover, excluir, arrastar; Alt+Shift+setas, Delete, F2, Enter), `HistoricoEdicao` com ordem única de texto e estrutura, barra superior Seção anterior/Próxima, Trabalho › Estrutura de seções…. Domínio: `moverParaCima/Baixo`, `moverJuntoDe`. Achado do E2E: grupo de digitação do ProseMirror juntava passos fora de ordem → `closeHistory`. Revisão do `especialista-interface`: A1, M2–M4, B5–B7 corrigidos; B8 pendente. `verificar:tudo`: 943/943, 0 vulnerabilidades, E2E 12/12. |
 | 2026-11-02 | 5 (M2-T02) | Retomada do código deixado sem commit em 2026-10-17. Seis tipos como dados, `preTextuais`/`posTextuais` no v1, `biblioteca.criar(tipo)`, diálogo "Novo trabalho". Fontes conferidas pela sessão principal contra a matriz e os modelos: sem divergência; 2 comentários corrigidos. Mutações 9/12 → 3 testes novos → 12/12. RN-113 e RN-114 `IMPLEMENTADA`. `verificar:tudo` 981/981, 0 vulnerabilidades, E2E 13/13; kit 0 falhas. Relatório da revisão anterior não encontrado. Sem commit (aguarda autorização). |
+| 2026-11-02 | 5 (M2-T08) | Pré-textuais pela sessão principal, sem revisão independente: dados em `metadados`, campos por elemento, pendências com RN, lista e formulários na aba Escrever, incluir e retirar na ordem única. Mutações 16/16. `verificar:tudo` 1024/1024, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |

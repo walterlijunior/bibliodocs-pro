@@ -17,3 +17,10 @@ export {
   type PresencaElemento,
   type SecaoInicial,
 } from './tipos-trabalho';
+export {
+  contarPalavras,
+  FAIXA_PALAVRAS_RESUMO,
+  MAXIMO_PALAVRAS_CHAVE,
+  pendenciasPreTextuais,
+  type PendenciaPreTextual,
+} from './pendencias-pre-textuais';

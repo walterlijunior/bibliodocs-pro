@@ -604,3 +604,14 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
   seção 3).
 - **Presença `sugerido`:** estende C-B18 ao corpo do artigo-TCC (PF-14), para o autor não começar sem seções. O verificador
   nunca acusa a ausência de elemento sugerido.
+
+## Adendo do M2-T08 (2026-11-02) — campos dos pré-textuais no formato v1
+
+- **Aditivo, sem subir `versaoFormato`.** Arquivos do M1 e do M2-T02 continuam válidos.
+- **O que se repete fica em `metadados`** (autoria, instituição, local, ano, natureza, orientador...), para capa, folha de
+  rosto e folha de aprovação nunca divergirem. O que é só do elemento fica nele, numa união por `tipo`.
+- **Forma única:** campo vazio fica ausente; o esquema recusa texto vazio, `bolsista: false` e listas vazias.
+- **Texto simples**, com `\n` entre parágrafos, em vez de `Inline[]`. Mudar depois é possível antes da 1.ª distribuição.
+- **A sessão limpa o texto** antes de pôr no modelo (XML 1.0, limites): colar um controle não pode impedir de salvar.
+- **Desfazer:** incluir e retirar entram na ordem única com um inverso só daquele elemento; restaurar uma cópia da lista
+  apagaria o que foi digitado depois. Os campos usam o desfazer nativo, como o título.

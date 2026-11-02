@@ -73,6 +73,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const saindo = useRef(false);
   const refBusca = useRef<HTMLInputElement>(null);
   const refEditor = useRef<ControleEditor | null>(null);
+  const [comFormulario, setComFormulario] = useState(false);
   // Último elemento com foco fora da barra de menus: o menu tira o foco dele, e os itens de edição o devolvem antes de
   // agir (e decidem pelo lugar: campo de texto, ou a aba Escrever com a ordem única de desfazer).
   const ultimoFoco = useRef<HTMLElement | null>(null);
@@ -424,9 +425,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
   const desativados = useMemo(() => {
     const d = new Set(comandosDesativados(trabalho));
-    if (local.aba !== 'escrever') d.add('inserirNota');
+    if (local.aba !== 'escrever' || comFormulario) d.add('inserirNota');
     return d;
-  }, [trabalho, local.aba]);
+  }, [trabalho, local.aba, comFormulario]);
 
   // Atalhos globais (Ctrl+F, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+W, Alt+setas, F5).
   useEffect(() => {
@@ -546,12 +547,20 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoCriar={pedirNovoTrabalho}
                 aoAbrir={() => void abrirPorDialogo()}
                 aoIrParaBiblioteca={() => ir({ aba: 'biblioteca', colecao: 'trabalhos' })}
+                elementos={{
+                  alterarDados: (a) => sessao.alterarDados(a),
+                  alterarSubtitulo: (texto) => sessao.alterarSubtitulo(texto),
+                  alterar: (id, campos) => sessao.alterarElemento(id, campos),
+                  incluir: (tipo) => sessao.incluirElemento(tipo),
+                  retirar: (id) => sessao.retirarElemento(id),
+                }}
                 lerSecao={(id) => sessao.secao(id)}
                 aoAlterarSecao={(id, conteudo) => {
                   setSaidaPedida(false);
                   sessao.alterarSecao(id, conteudo);
                 }}
                 estrutura={estrutura}
+                aoMudarFormulario={setComFormulario}
                 controleEditor={refEditor}
               />
             ) : (

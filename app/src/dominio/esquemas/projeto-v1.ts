@@ -6,7 +6,7 @@
  * As restrições que o JSON Schema não expressa estão em `RESTRICOES_SO_NO_CODIGO`.
  */
 import { z } from 'zod';
-import { ORDEM_POS_TEXTUAIS, ORDEM_PRE_TEXTUAIS, TIPOS_TRABALHO } from '../modelo';
+import { ORDEM_POS_TEXTUAIS, TIPOS_TRABALHO } from '../modelo';
 import { LIMITES_V1 } from './limites';
 
 export const VERSAO_FORMATO_ATUAL = 1;
@@ -116,9 +116,48 @@ export const esquemaSecao = z
 
 export const esquemaTipoTrabalho = z.enum(TIPOS_TRABALHO);
 
-/** Lugar de um elemento pré ou pós-textual (M2-T02); os campos de cada um chegam no M2-T08 e no M2-T09. */
-export const esquemaElementoPreTextual = z.strictObject({ tipo: z.enum(ORDEM_PRE_TEXTUAIS), id }).meta({ id: 'ElementoPreTextual' });
+const mensagemCampo = { error: 'o texto contém caractere de controle ou inválido (só tabulação e quebra de linha são aceitas)' };
+const textoDeCampo = (limite: number) => z.string().min(1).max(limite).regex(PADRAO_TEXTO_XML, mensagemCampo);
+const campoCurto = textoDeCampo(LIMITES_V1.campoCurto);
+const campoLongo = textoDeCampo(LIMITES_V1.textoInline);
+const palavrasChave = z.array(campoCurto).min(1).max(LIMITES_V1.palavrasChave);
+
+const soLugar = <T extends string>(tipo: T) => z.strictObject({ tipo: z.literal(tipo), id });
+const comTexto = <T extends string>(tipo: T) => z.strictObject({ tipo: z.literal(tipo), id, texto: campoLongo.optional() });
+
+/** Elemento pré-textual com os campos dele (M2-T08; `ElementoPreTextual` em `dominio/modelo`). */
+export const esquemaElementoPreTextual = z
+  .discriminatedUnion('tipo', [
+    soLugar('capa'),
+    soLugar('folhaRosto'),
+    comTexto('fichaCatalografica'),
+    comTexto('errata'),
+    z.strictObject({
+      tipo: z.literal('folhaAprovacao'),
+      id,
+      dataAprovacao: campoCurto.optional(),
+      banca: z
+        .array(z.strictObject({ nome: campoCurto.optional(), titulacao: campoCurto.optional(), instituicao: campoCurto.optional() }))
+        .min(1)
+        .max(LIMITES_V1.membrosBanca)
+        .optional(),
+    }),
+    soLugar('listaIlustracoes'),
+    soLugar('listaTabelas'),
+    soLugar('listaSiglas'),
+    soLugar('listaSimbolos'),
+    soLugar('sumario'),
+    comTexto('dedicatoria'),
+    comTexto('agradecimentos'),
+    comTexto('epigrafe'),
+    z.strictObject({ tipo: z.literal('resumo'), id, texto: campoLongo.optional(), palavrasChave: palavrasChave.optional() }),
+    z.strictObject({ tipo: z.literal('abstract'), id, idioma: z.enum(['en', 'es', 'fr']).optional(), texto: campoLongo.optional(), palavrasChave: palavrasChave.optional() }),
+  ])
+  .meta({ id: 'ElementoPreTextual' });
+/** Lugar de um pós-textual (M2-T02); os campos chegam no M2-T09. */
 export const esquemaElementoPosTextual = z.strictObject({ tipo: z.enum(ORDEM_POS_TEXTUAIS), id }).meta({ id: 'ElementoPosTextual' });
+
+const pessoaTitulada = z.strictObject({ nome: campoCurto.optional(), titulacao: campoCurto.optional() });
 
 export const esquemaDocumentoV1 = z.strictObject({
   id,
@@ -126,6 +165,18 @@ export const esquemaDocumentoV1 = z.strictObject({
   metadados: z.strictObject({
     titulo: conteudoTitulo,
     subtitulo: conteudoTitulo.optional(),
+    autoria: campoCurto.optional(),
+    instituicao: campoCurto.optional(),
+    campus: campoCurto.optional(),
+    curso: campoCurto.optional(),
+    volume: campoCurto.optional(),
+    local: campoCurto.optional(),
+    ano: campoCurto.optional(),
+    natureza: campoCurto.optional(),
+    areaConcentracao: campoCurto.optional(),
+    orientador: pessoaTitulada.optional(),
+    coorientador: pessoaTitulada.optional(),
+    bolsista: z.literal(true).optional(),
   }),
   preTextuais: z.array(esquemaElementoPreTextual).min(1).max(LIMITES_V1.elementosPreTextuais).optional(),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),
