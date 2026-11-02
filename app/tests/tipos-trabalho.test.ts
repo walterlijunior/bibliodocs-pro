@@ -16,7 +16,10 @@ import {
   type Secao,
   type TipoTrabalhoUft,
 } from '../src/dominio/modelo';
-import { entraNoTrabalhoNovo, ESTRUTURA_POR_TIPO } from '../src/dominio/normas';
+import { PERFIL_UFT_2022 } from '../src/aplicacao/perfil-padrao';
+import { entraNoTrabalhoNovo } from '../src/dominio/normas';
+
+const ESTRUTURA_POR_TIPO = PERFIL_UFT_2022.tiposTrabalho;
 import { ROTULOS_TIPO, rotuloTipo, TIPOS_NOVO_TRABALHO } from '../src/interface/biblioteca/selecao';
 import { empacotarProjeto, lerProjeto } from '../src/persistencia';
 

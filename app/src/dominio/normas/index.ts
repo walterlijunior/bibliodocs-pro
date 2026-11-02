@@ -9,18 +9,17 @@
  */
 export {
   entraNoTrabalhoNovo,
-  ESTRUTURA_POR_TIPO,
   estruturaInicial,
   type ElementoTextualId,
   type EstruturaInicial,
   type EstruturaTipo,
   type PresencaElemento,
   type SecaoInicial,
+  type Presenca,
 } from './tipos-trabalho';
+export type { AlvoRegra, ParametroPerfil, Perfil, PropriedadesFormatacao, RegraNormativa } from './perfil';
 export {
   contarPalavras,
-  FAIXA_PALAVRAS_RESUMO,
-  MAXIMO_PALAVRAS_CHAVE,
   pendenciasPreTextuais,
   type PendenciaPreTextual,
 } from './pendencias-pre-textuais';

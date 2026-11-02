@@ -54,9 +54,10 @@ import {
   type Secao,
   type TipoTrabalhoId,
 } from '../../dominio/modelo';
-import { ESTRUTURA_POR_TIPO, pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
+import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
 import { LIMITES_V1 } from '../../dominio/esquemas';
 import { numerarSecoes } from '../../dominio/numeracao';
+import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import { HistoricoEdicao, type EntradaHistorico, type InversoElemento } from './historico-edicao';
 import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
@@ -384,9 +385,9 @@ export class SessaoTrabalho {
     if (c !== null && c.metadados === doc.metadados && c.lista === doc.preTextuais) return c.resultado;
     let resultado: PreTextuaisDaSessao | null = null;
     if (ehTipoTrabalhoUft(doc.tipoTrabalho)) {
-      const estrutura = ESTRUTURA_POR_TIPO[doc.tipoTrabalho].preTextuais;
+      const estrutura = PERFIL_UFT_2022.tiposTrabalho[doc.tipoTrabalho].preTextuais;
       const lista = doc.preTextuais ?? [];
-      const pendencias = pendenciasPreTextuais(doc);
+      const pendencias = pendenciasPreTextuais(doc, PERFIL_UFT_2022);
       const presentes = new Set(lista.map((e) => e.tipo));
       resultado = {
         dados: doc.metadados,

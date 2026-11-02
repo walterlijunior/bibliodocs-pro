@@ -14,8 +14,10 @@ import {
 } from '../src/aplicacao';
 import { LIMITES_V1, validarDocumentoV1 } from '../src/dominio/esquemas';
 import type { Documento, ElementoPreTextual, Metadados, TipoTrabalhoUft } from '../src/dominio/modelo';
-import { pendenciasPreTextuais } from '../src/dominio/normas';
+import { pendenciasPreTextuais as pendenciasComPerfil } from '../src/dominio/normas';
+import { PERFIL_UFT_2022 } from '../src/aplicacao/perfil-padrao';
 import { empacotarProjeto, lerProjeto } from '../src/persistencia';
+const pendenciasPreTextuais = (d: Parameters<typeof pendenciasComPerfil>[0]) => pendenciasComPerfil(d, PERFIL_UFT_2022);
 
 function novo(tipo: TipoTrabalhoUft) {
   let n = 0;

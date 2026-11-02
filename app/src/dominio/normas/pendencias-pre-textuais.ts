@@ -9,7 +9,7 @@
  * escreveu valem para ele.
  */
 import { ehTipoTrabalhoUft, ORDEM_PRE_TEXTUAIS, type Documento, type ElementoPreTextual, type ElementoPreTextualId } from '../modelo';
-import { ESTRUTURA_POR_TIPO } from './tipos-trabalho';
+import type { Perfil } from './perfil';
 
 export interface PendenciaPreTextual {
   elemento: ElementoPreTextualId;
@@ -17,11 +17,6 @@ export interface PendenciaPreTextual {
   nivel: 'pendencia' | 'aviso';
   mensagem: string;
 }
-
-/** RN-154, a), com C-B6 para o artigo como TCC. */
-export const FAIXA_PALAVRAS_RESUMO = { minimo: 150, maximo: 500 } as const;
-/** RN-155, com C-B7: aviso acima de quatro. */
-export const MAXIMO_PALAVRAS_CHAVE = 4;
 
 const NOMES: Readonly<Record<ElementoPreTextualId, string>> = {
   capa: 'Capa',
@@ -49,9 +44,12 @@ export const contarPalavras = (texto: string): number => {
 };
 
 /** Pendências e avisos do documento, na ordem do Quadro 5. O tipo `generico` e os tipos desconhecidos não têm nenhum. */
-export function pendenciasPreTextuais(doc: Pick<Documento, 'tipoTrabalho' | 'metadados' | 'preTextuais'>): PendenciaPreTextual[] {
+export function pendenciasPreTextuais(doc: Pick<Documento, 'tipoTrabalho' | 'metadados' | 'preTextuais'>, perfil: Perfil): PendenciaPreTextual[] {
   if (!ehTipoTrabalhoUft(doc.tipoTrabalho)) return [];
-  const estrutura = ESTRUTURA_POR_TIPO[doc.tipoTrabalho].preTextuais;
+  const estrutura = perfil.tiposTrabalho[doc.tipoTrabalho].preTextuais;
+  // RN-154, a), com C-B6; RN-155, com C-B7.
+  const faixaResumo = perfil.parametros['resumoPalavras']!.valor as { minimo: number; maximo: number };
+  const maximoPalavrasChave = perfil.parametros['palavrasChaveMaximo']!.valor as number;
   const m = doc.metadados;
   const lista: PendenciaPreTextual[] = [];
   const presentes = new Map<ElementoPreTextualId, ElementoPreTextual>((doc.preTextuais ?? []).map((e) => [e.tipo, e]));
@@ -76,12 +74,12 @@ export function pendenciasPreTextuais(doc: Pick<Documento, 'tipoTrabalho' | 'met
     // Só o que o autor escreveu; vale para qualquer presença.
     if (e.tipo === 'resumo' && preenchido(e.texto)) {
       const n = contarPalavras(e.texto!);
-      if (n < FAIXA_PALAVRAS_RESUMO.minimo || n > FAIXA_PALAVRAS_RESUMO.maximo) {
-        aviso('RN-154', `Resumo: ${n} palavras; o Manual pede de ${FAIXA_PALAVRAS_RESUMO.minimo} a ${FAIXA_PALAVRAS_RESUMO.maximo}.`);
+      if (n < faixaResumo.minimo || n > faixaResumo.maximo) {
+        aviso('RN-154', `Resumo: ${n} palavras; o Manual pede de ${faixaResumo.minimo} a ${faixaResumo.maximo}.`);
       }
     }
-    if ((e.tipo === 'resumo' || e.tipo === 'abstract') && (e.palavrasChave?.length ?? 0) > MAXIMO_PALAVRAS_CHAVE) {
-      aviso('RN-155', `${NOMES[tipo]}: ${e.palavrasChave!.length} palavras-chave; o Manual pede no máximo ${MAXIMO_PALAVRAS_CHAVE}.`);
+    if ((e.tipo === 'resumo' || e.tipo === 'abstract') && (e.palavrasChave?.length ?? 0) > maximoPalavrasChave) {
+      aviso('RN-155', `${NOMES[tipo]}: ${e.palavrasChave!.length} palavras-chave; o Manual pede no máximo ${maximoPalavrasChave}.`);
     }
     if (e.tipo === 'folhaRosto' && preenchido(m.natureza)) {
       if (doc.tipoTrabalho === 'tese' && /\bmestr/iu.test(m.natureza!)) aviso('RN-133', 'Folha de rosto: a natureza cita mestrado, mas o trabalho é uma tese.');

@@ -1,0 +1,1743 @@
+{
+ "id": "uft-2022",
+ "versao": "1.0.0",
+ "nome": "UFT 2022",
+ "fontes": [
+  {
+   "id": "M",
+   "citacao": "UNIVERSIDADE FEDERAL DO TOCANTINS. Manual de normalização para elaboração de trabalhos acadêmico-científicos da Universidade Federal do Tocantins. 2. ed. rev. e atual. Palmas: UFT, 2022.",
+   "arquivo": "materiais/normas/Manual_Normalizacao_UFT_2ed_2022.pdf"
+  },
+  {
+   "id": "I",
+   "citacao": "INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. Normas de apresentação tabular. 3. ed. Rio de Janeiro: IBGE, 1993.",
+   "arquivo": "materiais/normas/NORMAS DE APRESENTAÇÃO TABULAR.pdf"
+  }
+ ],
+ "parametros": {
+  "fonte": {
+   "valor": "Times New Roman",
+   "ajustavel": true,
+   "rn": [
+    "RN-001"
+   ],
+   "origem": "decisao-usuario-2026-11-02",
+   "opcoes": [
+    "Times New Roman",
+    "Arial"
+   ]
+  },
+  "espacoTitulosPt": {
+   "valor": 18,
+   "ajustavel": false,
+   "rn": [
+    "RN-033"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "paginacaoPosTextual": {
+   "valor": "continua",
+   "ajustavel": false,
+   "rn": [
+    "RN-073"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "recuoAlineaCm": {
+   "valor": 1.25,
+   "ajustavel": false,
+   "rn": [
+    "RN-027"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "deslocamentoAlineaCm": {
+   "valor": 0.75,
+   "ajustavel": false,
+   "rn": [
+    "RN-027"
+   ],
+   "origem": "provisorio"
+  },
+  "recuoSubalineaCm": {
+   "valor": 2.25,
+   "ajustavel": false,
+   "rn": [
+    "RN-027"
+   ],
+   "origem": "provisorio"
+  },
+  "deslocamentoSubalineaCm": {
+   "valor": 0.5,
+   "ajustavel": false,
+   "rn": [
+    "RN-027"
+   ],
+   "origem": "provisorio"
+  },
+  "distanciaCabecalhoCm": {
+   "valor": 1.25,
+   "ajustavel": false,
+   "rn": [
+    "RN-072"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "espacoCitacaoLongaPt": {
+   "valor": 18,
+   "ajustavel": false,
+   "rn": [
+    "RN-088"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "numeracaoNotas": {
+   "valor": "continua",
+   "ajustavel": false,
+   "rn": [
+    "RN-102"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "fileteNotasCm": {
+   "valor": 5,
+   "ajustavel": false,
+   "rn": [
+    "RN-104"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "capaDistribuicao": {
+   "valor": "figura-3",
+   "ajustavel": false,
+   "rn": [
+    "RN-125"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "rotuloAlineasDobradas": {
+   "valor": "aa,bb,cc",
+   "ajustavel": false,
+   "rn": [
+    "RN-025"
+   ],
+   "origem": "decisao-usuario-2026-10-17"
+  },
+  "letrasApendiceDobradas": {
+   "valor": "AA,BB,CC",
+   "ajustavel": false,
+   "rn": [
+    "RN-232",
+    "RN-235"
+   ],
+   "origem": "decisao-usuario-2026-11-02"
+  },
+  "separadorTitulo": {
+   "valor": " – ",
+   "ajustavel": false,
+   "rn": [
+    "RN-053"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
+  },
+  "resumoPalavras": {
+   "valor": {
+    "minimo": 150,
+    "maximo": 500
+   },
+   "ajustavel": false,
+   "rn": [
+    "RN-154"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
+  },
+  "palavrasChaveMaximo": {
+   "valor": 4,
+   "ajustavel": false,
+   "rn": [
+    "RN-155"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
+  }
+ },
+ "regras": [
+  {
+   "id": "RN-001",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.1; p. 19 (anotação do exemplo)",
+   "tipo": "estilo",
+   "alvo": "documento",
+   "propriedades": {
+    "corpoPt": 12
+   },
+   "parametros": [
+    "fonte"
+   ]
+  },
+  {
+   "id": "RN-018",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.11",
+   "tipo": "estilo",
+   "alvo": "pagina",
+   "propriedades": {
+    "larguraMm": 210,
+    "alturaMm": 297
+   }
+  },
+  {
+   "id": "RN-002",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.2",
+   "tipo": "estilo",
+   "alvo": "pagina",
+   "propriedades": {
+    "margemSuperiorCm": 3,
+    "margemEsquerdaCm": 3,
+    "margemInferiorCm": 2,
+    "margemDireitaCm": 2
+   }
+  },
+  {
+   "id": "RN-019",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.11",
+   "tipo": "procedimento",
+   "alvo": "documento",
+   "procedimento": "textoNaCorPreta"
+  },
+  {
+   "id": "RN-003",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.3; p. 17, Quadro 1",
+   "tipo": "estilo",
+   "alvo": "corpo.paragrafo",
+   "propriedades": {
+    "recuoPrimeiraLinhaCm": 1.25,
+    "alinhamento": "justificado"
+   }
+  },
+  {
+   "id": "RN-029",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.6 a; p. 17, Quadro 1",
+   "tipo": "estilo",
+   "alvo": "corpo.paragrafo",
+   "propriedades": {
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-004",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15 (2.3), p. 16 (2.6 b), p. 17 (Quadro 1), p. 22 (3.1 b)",
+   "tipo": "estilo",
+   "alvo": "citacao.longa",
+   "propriedades": {
+    "recuoEsquerdaCm": 4,
+    "alinhamento": "justificado",
+    "corpoPt": 10,
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-088",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "estilo",
+   "alvo": "citacao.longa",
+   "parametros": [
+    "espacoCitacaoLongaPt"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-005",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.3; p. 28, cap. 4",
+   "tipo": "estilo",
+   "alvo": "titulo",
+   "propriedades": {
+    "alinhamento": "esquerda",
+    "manterComProximo": true
+   }
+  },
+  {
+   "id": "RN-040",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 28, cap. 4 (\"fonte tamanho 12\")",
+   "tipo": "estilo",
+   "alvo": "titulo",
+   "propriedades": {
+    "corpoPt": 12
+   }
+  },
+  {
+   "id": "RN-033",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 16, seção 2.6 e",
+   "tipo": "estilo",
+   "alvo": "titulo",
+   "parametros": [
+    "espacoTitulosPt"
+   ]
+  },
+  {
+   "id": "RN-008",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.4 (Obs.); p. 28, cap. 4",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel1",
+   "propriedades": {
+    "quebraPaginaAntes": true
+   }
+  },
+  {
+   "id": "RN-010",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel1",
+   "propriedades": {
+    "entrelinha": "1,5",
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-011",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28–29",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel2",
+   "propriedades": {
+    "entrelinha": "1,5",
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-012",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel3",
+   "propriedades": {
+    "entrelinha": "1,5"
+   }
+  },
+  {
+   "id": "RN-013",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel4",
+   "propriedades": {
+    "entrelinha": "1,5",
+    "italico": true
+   }
+  },
+  {
+   "id": "RN-014",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28",
+   "tipo": "estilo",
+   "alvo": "titulo.nivel5",
+   "propriedades": {
+    "entrelinha": "1,5",
+    "sublinhado": true
+   }
+  },
+  {
+   "id": "RN-039",
+   "status": "IMPLEMENTADA",
+   "fonte": "M, p. 28, cap. 4 (cita NBR 6024:2012)",
+   "tipo": "procedimento",
+   "alvo": "titulo",
+   "procedimento": "numeracaoProgressiva"
+  },
+  {
+   "id": "RN-042",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 28, exemplo; p. 17, Quadro 1 (sublinhado em \"5.1.1.1.1\")",
+   "tipo": "procedimento",
+   "alvo": "titulo",
+   "procedimento": "indicativoComDestaqueDoTitulo"
+  },
+  {
+   "id": "RN-007",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.4; p. 28",
+   "tipo": "estilo",
+   "alvo": "titulo.semIndicativo",
+   "propriedades": {
+    "alinhamento": "centralizado"
+   }
+  },
+  {
+   "id": "RN-045",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 39 (Fig. 9), 40 (5.9, Fig. 10), 41 (Fig. 11), 42–43 (Fig. 12–13), 46 (Fig. 16); p. 29 e 64–67 (exemplos)",
+   "tipo": "estilo",
+   "alvo": "titulo.semIndicativo",
+   "propriedades": {
+    "maiusculas": true,
+    "negrito": true
+   }
+  },
+  {
+   "id": "RN-016",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15 (2.1), p. 16 (2.6 b), p. 17 (Quadro 1), p. 26 (3.4)",
+   "tipo": "estilo",
+   "alvo": "nota.texto",
+   "propriedades": {
+    "alinhamento": "justificado",
+    "entrelinha": "simples",
+    "corpoPt": 10
+   }
+  },
+  {
+   "id": "RN-102",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "estilo",
+   "alvo": "nota.numeracao",
+   "parametros": [
+    "numeracaoNotas"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-104",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "estilo",
+   "alvo": "nota.filete",
+   "parametros": [
+    "fileteNotasCm"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-023",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.5 (cita NBR 6024:2012)",
+   "tipo": "procedimento",
+   "alvo": "alinea",
+   "procedimento": "rotuloDeAlinea"
+  },
+  {
+   "id": "RN-025",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 16, seção 2.5",
+   "tipo": "procedimento",
+   "alvo": "alinea",
+   "procedimento": "rotuloDeAlinea",
+   "parametros": [
+    "rotuloAlineasDobradas"
+   ]
+  },
+  {
+   "id": "RN-026",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.5",
+   "tipo": "procedimento",
+   "alvo": "subalinea",
+   "procedimento": "travessaoDeSubalinea"
+  },
+  {
+   "id": "RN-027",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, p. 16, seção 2.5 (só exemplo)",
+   "tipo": "estilo",
+   "alvo": "alinea",
+   "parametros": [
+    "recuoAlineaCm",
+    "deslocamentoAlineaCm",
+    "recuoSubalineaCm",
+    "deslocamentoSubalineaCm"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-017",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, seção 2.6 h; p. 34, anotação da Fig. 5",
+   "tipo": "estilo",
+   "alvo": "folhaRosto.natureza",
+   "propriedades": {
+    "recuoEsquerdaCm": 8,
+    "alinhamento": "justificado",
+    "corpoPt": 10,
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-036",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, \"Outras orientações importantes\"",
+   "tipo": "estilo",
+   "alvo": "preTextual.agradecimentos",
+   "propriedades": {
+    "entrelinha": "1,5",
+    "corpoPt": 12,
+    "alinhamento": "justificado"
+   }
+  },
+  {
+   "id": "RN-034",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, seção 2.6 f; Quadro 1",
+   "tipo": "estilo",
+   "alvo": "referencia",
+   "propriedades": {
+    "alinhamento": "esquerda",
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-067",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.10",
+   "tipo": "procedimento",
+   "alvo": "paginacao",
+   "procedimento": "contarDaFolhaDeRosto"
+  },
+  {
+   "id": "RN-068",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.10",
+   "tipo": "procedimento",
+   "alvo": "paginacao",
+   "procedimento": "exibirDaPrimeiraTextual"
+  },
+  {
+   "id": "RN-069",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.10",
+   "tipo": "estilo",
+   "alvo": "paginacao.numero",
+   "propriedades": {
+    "alinhamento": "direita"
+   }
+  },
+  {
+   "id": "RN-070",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.10",
+   "tipo": "estilo",
+   "alvo": "paginacao.numero",
+   "propriedades": {
+    "corpoPt": 10
+   }
+  },
+  {
+   "id": "RN-071",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 21, seção 2.10; p. 34, seção 5.4",
+   "tipo": "procedimento",
+   "alvo": "paginacao",
+   "procedimento": "fichaContadaSemNumero"
+  },
+  {
+   "id": "RN-072",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "estilo",
+   "alvo": "paginacao.numero",
+   "parametros": [
+    "distanciaCabecalhoCm"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-073",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 21, seção 2.10 (implícito: \"todas as folhas\")",
+   "tipo": "procedimento",
+   "alvo": "paginacao",
+   "procedimento": "numeracaoContinua",
+   "parametros": [
+    "paginacaoPosTextual"
+   ]
+  },
+  {
+   "id": "RN-125",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, Fig. 3, p. 32 (desenho)",
+   "tipo": "procedimento",
+   "alvo": "capa",
+   "procedimento": "distribuirCapa",
+   "parametros": [
+    "capaDistribuicao"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-232",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 65, cap. 7",
+   "tipo": "procedimento",
+   "alvo": "posTextual.apendice",
+   "procedimento": "letraDePosTextual",
+   "parametros": [
+    "letrasApendiceDobradas"
+   ]
+  },
+  {
+   "id": "RN-235",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 66, cap. 8",
+   "tipo": "procedimento",
+   "alvo": "posTextual.anexo",
+   "procedimento": "letraDePosTextual",
+   "parametros": [
+    "letrasApendiceDobradas"
+   ]
+  },
+  {
+   "id": "RN-154",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9 a–c",
+   "tipo": "verificacao",
+   "alvo": "preTextual.resumo",
+   "procedimento": "extensaoDoResumo",
+   "parametros": [
+    "resumoPalavras"
+   ]
+  },
+  {
+   "id": "RN-155",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 40, 5.9 (texto); anotação da Fig. 10, p. 40; anotação da Fig. 11, p. 41",
+   "tipo": "verificacao",
+   "alvo": "preTextual.resumo",
+   "procedimento": "quantidadeDePalavrasChave",
+   "parametros": [
+    "palavrasChaveMaximo"
+   ]
+  }
+ ],
+ "tiposTrabalho": {
+  "monografia": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-117"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 31, 5.1"
+    },
+    "folhaRosto": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-127"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 33, 5.3"
+    },
+    "fichaCatalografica": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-135"
+     ],
+     "fonte": "M, p. 34, 5.4 (ausente do Quadro 5, C-B1)"
+    },
+    "errata": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-138"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 35, 5.5"
+    },
+    "folhaAprovacao": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-140"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 36, 5.6"
+    },
+    "dedicatoria": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-145"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 38, 5.7"
+    },
+    "agradecimentos": {
+     "presenca": "condicional",
+     "rn": [
+      "RN-112",
+      "RN-147"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 39, 5.8 (obrigatório se bolsista)"
+    },
+    "epigrafe": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-149"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 17"
+    },
+    "resumo": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-150"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 40, 5.9"
+    },
+    "abstract": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-157"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 41, 5.10"
+    },
+    "listaIlustracoes": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-160"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
+    },
+    "listaTabelas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-163"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 43, 5.12"
+    },
+    "listaSiglas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-165"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 44, 5.13"
+    },
+    "listaSimbolos": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-167"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 45, 5.14"
+    },
+    "sumario": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-168"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 46, 5.15"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-172"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 47, 5.16",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-173"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 48, 5.17",
+     "secoes": [
+      {
+       "titulo": "Desenvolvimento"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-174"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.18",
+     "secoes": [
+      {
+       "titulo": "Considerações finais"
+      }
+     ]
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-175"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.19"
+    },
+    "glossario": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-230"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 64, cap. 6"
+    },
+    "apendice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-231"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 65, cap. 7"
+    },
+    "anexo": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-234"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 66, cap. 8"
+    },
+    "indice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-238"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 67, cap. 9"
+    }
+   }
+  },
+  "artigo-tcc": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-117"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 31, 5.1"
+    },
+    "folhaRosto": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-127"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 33, 5.3"
+    },
+    "fichaCatalografica": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-135"
+     ],
+     "fonte": "M, p. 34, 5.4 (ausente do Quadro 5, C-B1)"
+    },
+    "errata": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-138"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 35, 5.5"
+    },
+    "folhaAprovacao": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-140"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 36, 5.6"
+    },
+    "dedicatoria": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-145"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 38, 5.7"
+    },
+    "agradecimentos": {
+     "presenca": "condicional",
+     "rn": [
+      "RN-112",
+      "RN-147"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 39, 5.8 (obrigatório se bolsista)"
+    },
+    "epigrafe": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-149"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 17"
+    },
+    "resumo": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-150"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 40, 5.9"
+    },
+    "abstract": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-157"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 41, 5.10"
+    },
+    "listaIlustracoes": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-160"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
+    },
+    "listaTabelas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-163"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 43, 5.12"
+    },
+    "listaSiglas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-165"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 44, 5.13"
+    },
+    "listaSimbolos": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-167"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 45, 5.14"
+    },
+    "sumario": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-168"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 46, 5.15"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de artigo (PF-14) (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de artigo (PF-14) (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Desenvolvimento"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de artigo (PF-14) (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Considerações finais"
+      }
+     ]
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-175"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.19"
+    },
+    "glossario": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-230"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 64, cap. 6"
+    },
+    "apendice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-231"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 65, cap. 7"
+    },
+    "anexo": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-234"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 66, cap. 8"
+    },
+    "indice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-238"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 67, cap. 9"
+    }
+   }
+  },
+  "dissertacao": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-117"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 31, 5.1"
+    },
+    "folhaRosto": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-127"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 33, 5.3"
+    },
+    "fichaCatalografica": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-135"
+     ],
+     "fonte": "M, p. 34, 5.4 (ausente do Quadro 5, C-B1)"
+    },
+    "errata": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-138"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 35, 5.5"
+    },
+    "folhaAprovacao": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-140"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 36, 5.6"
+    },
+    "dedicatoria": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-145"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 38, 5.7"
+    },
+    "agradecimentos": {
+     "presenca": "condicional",
+     "rn": [
+      "RN-112",
+      "RN-147"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 39, 5.8 (obrigatório se bolsista)"
+    },
+    "epigrafe": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-149"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 17"
+    },
+    "resumo": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-150"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 40, 5.9"
+    },
+    "abstract": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-157"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 41, 5.10"
+    },
+    "listaIlustracoes": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-160"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
+    },
+    "listaTabelas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-163"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 43, 5.12"
+    },
+    "listaSiglas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-165"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 44, 5.13"
+    },
+    "listaSimbolos": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-167"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 45, 5.14"
+    },
+    "sumario": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-168"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 46, 5.15"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-172"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 47, 5.16",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-173"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 48, 5.17",
+     "secoes": [
+      {
+       "titulo": "Desenvolvimento"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-174"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.18",
+     "secoes": [
+      {
+       "titulo": "Considerações finais"
+      }
+     ]
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-175"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.19"
+    },
+    "glossario": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-230"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 64, cap. 6"
+    },
+    "apendice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-231"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 65, cap. 7"
+    },
+    "anexo": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-234"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 66, cap. 8"
+    },
+    "indice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-238"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 67, cap. 9"
+    }
+   }
+  },
+  "tese": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-117"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 31, 5.1"
+    },
+    "folhaRosto": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-127"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 33, 5.3"
+    },
+    "fichaCatalografica": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-135"
+     ],
+     "fonte": "M, p. 34, 5.4 (ausente do Quadro 5, C-B1)"
+    },
+    "errata": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-138"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 35, 5.5"
+    },
+    "folhaAprovacao": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-140"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 36, 5.6"
+    },
+    "dedicatoria": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-145"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 38, 5.7"
+    },
+    "agradecimentos": {
+     "presenca": "condicional",
+     "rn": [
+      "RN-112",
+      "RN-147"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 39, 5.8 (obrigatório se bolsista)"
+    },
+    "epigrafe": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-149"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 17"
+    },
+    "resumo": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-150"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 40, 5.9"
+    },
+    "abstract": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-157"
+     ],
+     "fonte": "M, p. 30, Quadro 5; p. 41, 5.10"
+    },
+    "listaIlustracoes": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-160"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
+    },
+    "listaTabelas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-163"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 43, 5.12"
+    },
+    "listaSiglas": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-165"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 44, 5.13"
+    },
+    "listaSimbolos": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-167"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 45, 5.14"
+    },
+    "sumario": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-168"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 46, 5.15"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-172"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 47, 5.16",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-173"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 48, 5.17",
+     "secoes": [
+      {
+       "titulo": "Desenvolvimento"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-174"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.18",
+     "secoes": [
+      {
+       "titulo": "Considerações finais"
+      }
+     ]
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "obrigatorio",
+     "rn": [
+      "RN-111",
+      "RN-175"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 49, 5.19"
+    },
+    "glossario": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-230"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 64, cap. 6"
+    },
+    "apendice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-231"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 65, cap. 7"
+    },
+    "anexo": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-234"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 66, cap. 8"
+    },
+    "indice": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-112",
+      "RN-238"
+     ],
+     "fonte": "M, p. 31, Quadro 5; p. 67, cap. 9"
+    }
+   }
+  },
+  "relatorio-tecnico": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "folhaRosto": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "fichaCatalografica": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "errata": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para relatório técnico; ausente do modelo UFT"
+    },
+    "folhaAprovacao": {
+     "presenca": "opcional",
+     "rn": [],
+     "fonte": "decisão C-B11 do usuário (2026-10-15): opcional, configurável; M, p. 36, Fig. 7 cita \"Relatório\""
+    },
+    "dedicatoria": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "agradecimentos": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "epigrafe": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para relatório técnico; ausente do modelo UFT"
+    },
+    "resumo": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "abstract": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "listaIlustracoes": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "listaTabelas": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "listaSiglas": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "listaSimbolos": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "sumario": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Desenvolvimento"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Considerações finais"
+      }
+     ]
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "glossario": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para relatório técnico; ausente do modelo UFT"
+    },
+    "apendice": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "anexo": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
+    },
+    "indice": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para relatório técnico; ausente do modelo UFT"
+    }
+   }
+  },
+  "projeto-pesquisa": {
+   "preTextuais": {
+    "capa": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "folhaRosto": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "fichaCatalografica": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "errata": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "folhaAprovacao": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "dedicatoria": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "agradecimentos": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "epigrafe": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "resumo": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "abstract": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "listaIlustracoes": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "listaTabelas": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "listaSiglas": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "listaSimbolos": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "sumario": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    }
+   },
+   "textuais": [
+    {
+     "elemento": "introducao",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Introdução"
+      }
+     ]
+    },
+    {
+     "elemento": "desenvolvimento",
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)",
+     "secoes": [
+      {
+       "titulo": "Objetivos",
+       "subsecoes": [
+        {
+         "titulo": "Objetivo geral"
+        },
+        {
+         "titulo": "Objetivos específicos"
+        }
+       ]
+      },
+      {
+       "titulo": "Cronograma"
+      }
+     ]
+    },
+    {
+     "elemento": "conclusao",
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT",
+     "secoes": []
+    }
+   ],
+   "posTextuais": {
+    "referencias": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "glossario": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    },
+    "apendice": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "anexo": {
+     "presenca": "sugerido",
+     "rn": [],
+     "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "indice": {
+     "presenca": "naoDefinido",
+     "rn": [],
+     "fonte": "Manual sem estrutura para projeto de pesquisa; ausente do modelo UFT"
+    }
+   }
+  }
+ }
+}

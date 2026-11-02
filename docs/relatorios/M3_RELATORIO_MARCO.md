@@ -6,7 +6,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 |---|---|---|
 | M3-T00 Plano e decisões de formatação (D-M3-01 a 09) | CONCLUÍDA | 2026-11-02 |
 | M3-T01 PoC com `docx` 9.15.1 no Word real | CONCLUÍDA | 2026-11-02 |
-| M3-T02 a M3-T12 | PENDENTE | — |
+| M3-T02 Perfil `uft-2022` em dados | CONCLUÍDA | 2026-11-02 |
+| M3-T03 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -44,3 +45,21 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - Na primeira execução, uma falha de chamada no script deixou 7 processos do Word abertos e ocultos. O script foi corrigido; nas rodadas seguintes o número não aumentou. Esses 7 continuam abertos, porque encerrar todo processo do Word foi bloqueado e poderia atingir um documento do usuário.
 
 **Testes:** `npm run verificar:tudo`: 1112/1112, 388 assinaturas, sem achado alto, E2E 17/17, memória 766 MB. Só a instalação das dependências mudou no app; o exportador ainda não as usa.
+
+## M3-T02 — Perfil `uft-2022` em dados
+
+**Implementação:** sessão principal, sem delegar a `especialista-normas`. **Sem revisão independente:** vale conferir no M3-T12 se cada propriedade transcreve a norma.
+
+**Código**
+- `perfis/uft-2022/perfil.json`: 43 regras (31 CONFIRMADA, 5 AMBÍGUA, 6 PENDENTE-FONTE provisórias, 1 IMPLEMENTADA), 17 parâmetros, 6 tipos de trabalho.
+- `dominio/normas/perfil.ts` (tipos) e `dominio/esquemas/perfil.ts` (zod). `aplicacao/perfil-padrao.ts` é o único ponto que lê o JSON.
+- `estruturaInicial` e `pendenciasPreTextuais` recebem o perfil por parâmetro. Os dados de tipos foram copiados por programa do TypeScript anterior, e os testes de tipos continuam iguais.
+
+**Testes** [VERIFICADO 2026-11-02]: `verificar:tudo` 1174/1174, 388 assinaturas, E2E 17/17, memória 783 MB. `tests/perfil.test.ts` confere status e fonte de cada regra contra a matriz, conflito entre regras e perfil fictício (RNF-13). Mutações no JSON: 11/11.
+
+**Limitações**
+- O teste confere status e fonte contra a matriz, mas não o valor de cada medida contra o Manual, salvo nos pontos do DOC-01 a DOC-06. Um valor errado em outra regra só apareceria na revisão.
+- Só formatação geral: a forma de capa, folha de rosto e demais elementos entra no M3-T04.
+- O motor ainda não lê as regras: nada muda no documento até o M3-T03.
+- O perfil é validado por teste, não ao carregar: ele faz parte do build.
+- Deslocamentos de alínea (0,75 cm), recuo e deslocamento de subalínea (2,25 e 0,5 cm) vêm da PoC, com `origem: provisorio`. Sua decisão D-M3-04 fixou só o recuo da letra.

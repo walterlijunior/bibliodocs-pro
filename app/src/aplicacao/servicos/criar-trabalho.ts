@@ -8,6 +8,7 @@
 import { IDENTIFICADOR_FORMATO, VERSAO_FORMATO_ATUAL, type Manifesto } from '../../dominio/esquemas';
 import type { Documento, Secao, TipoTrabalhoId, TipoTrabalhoUft } from '../../dominio/modelo';
 import { estruturaInicial, type SecaoInicial } from '../../dominio/normas';
+import { PERFIL_UFT_2022 } from '../perfil-padrao';
 
 /**
  * Perfil gravado nos trabalhos novos. [HIPÓTESE] a versão `1.0.0` fica até o perfil existir em dados (M3), quando
@@ -62,7 +63,7 @@ export function criarTrabalhoVazio(dados: DadosNovoTrabalho): TrabalhoNovo {
 
 /** Trabalho novo do tipo: sem título, com os elementos e as seções iniciais do tipo, sem texto. */
 export function criarTrabalhoDoTipo(dados: DadosNovoTrabalhoDoTipo): TrabalhoNovo {
-  const e = estruturaInicial(dados.tipo);
+  const e = estruturaInicial(dados.tipo, PERFIL_UFT_2022);
   const secao = (s: SecaoInicial): Secao => ({
     id: dados.novoId(PREFIXO_ID_SECAO),
     titulo: [{ tipo: 'texto', texto: s.titulo }],

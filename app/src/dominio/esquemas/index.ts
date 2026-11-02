@@ -45,3 +45,4 @@ export {
   type Migracao,
   type ResultadoMigracao,
 } from './migracoes';
+export { esquemaPerfil, validarPerfil } from './perfil';

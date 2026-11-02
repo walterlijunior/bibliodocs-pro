@@ -402,3 +402,5 @@ Decisões técnicas da sessão principal; as escolhas visíveis são do usuário
 Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no inline
 (`{ tipo:'nota', id, conteudo }`), sem `Documento.notas`. A `citacaoLonga` não tem campo `chamada`. As alíneas usam
 `subalineas` (e não `subitens`). Decisões e motivos estão no adendo do M2-T04 no ADR-0007.
+
+**Adendo do M3-T02 (2026-11-02).** `normas` não importa `esquemas`, então o tipo `Perfil` fica em `dominio/normas/perfil.ts` e o esquema zod em `dominio/esquemas/perfil.ts`; o teste liga os dois. Só `aplicacao/perfil-padrao.ts` lê o JSON. `RegraNormativa.status` aceita também `IMPLEMENTADA`, para espelhar a matriz.
