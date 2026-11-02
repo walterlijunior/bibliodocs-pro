@@ -1,7 +1,7 @@
 # Matriz de requisitos normativos (RN)
 
 > **Situação: Etapa 3 concluída em 2026-10-15, com as decisões do usuário registradas** (seção "Decisões do
-> usuário"). Restam 5 ambiguidades e 24 linhas `PENDENTE-FONTE`, nenhuma bloqueante para a Etapa 4. Construída pelo `especialista-normas` em três frentes (Manual p. 1–29; Manual p. 30–73;
+> usuário"). Restam 7 ambiguidades (5 da Etapa 3, RN-232 e RN-235, estas com decisão do usuário em 2026-11-02) e 24 linhas `PENDENTE-FONTE`, nenhuma bloqueante para a Etapa 4. Construída pelo `especialista-normas` em três frentes (Manual p. 1–29; Manual p. 30–73;
 > Norma Tabular do IBGE) e integrada pela sessão principal. Evidências, divergências com modelos e código,
 > amostragem e cobertura: `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md`.
 > Desde o M2-T03 (2026-10-17), RN-038, RN-039 e RN-041 estão `IMPLEMENTADA` no domínio (numeração e operações
@@ -432,6 +432,15 @@ constante no código. As alternativas ficam como opções de perfil.
 | P-C4 | Alinhamento dos números | RN-312 | À direita (valor de perfil) |
 | P-C5 | Ponto final no título da tabela | RN-310 | Sem ponto final (valor de perfil) |
 | P-C10 | Traços internos; glifo do zero | RN-253, 264 | Sem traços entre linhas de dados; zero absoluto = "–" |
+| D-M3-01 | Fonte padrão | RN-001 | Times New Roman; Arial como opção por trabalho (2026-11-02) |
+| D-M3-02 | Espaço de 1,5 em torno dos títulos | RN-033 | Uma linha em branco de 1,5 antes e depois, também na seção primária (2026-11-02) |
+| D-M3-03 | Numeração até a última folha | RN-073 | Contínua, incluindo referências, apêndices e anexos (2026-11-02) |
+| D-M3-04 | Recuo das alíneas | RN-027 | Letra a 1,25 cm, texto deslocado; provisório, sem fonte (2026-11-02) |
+| D-M3-05 | Distância do número de página à borda | RN-072 | 1,25 cm, como nos modelos; provisório, sem fonte (2026-11-02) |
+| D-M3-06 | Espaço em torno da citação longa | RN-088 | 18 pt antes e depois, como nos modelos; provisório, sem fonte (2026-11-02) |
+| D-M3-07 | Numeração das notas | RN-102 | Contínua no documento, como nos modelos; provisório, sem fonte (2026-11-02) |
+| D-M3-08 | Filete das notas | RN-104 | Curto, cerca de 5 cm, como nos exemplos do Manual; provisório, sem fonte (2026-11-02) |
+| D-M3-09 | Distribuição vertical da capa | RN-125 | Como a Fig. 3: instituição no topo, título ao centro, local e ano no pé; provisório, sem medida (2026-11-02) |
 | — | Recomendações das frentes aceitas no mesmo ato | RN-042, 059, 103, 302, 308 | Destaque do título no indicativo; ilustração centralizada; "(informação verbal)" como no exemplo; "Tabela n – Título"; uma linha simples antes do título e depois do rodapé |
 
 Quando a regra não tem norma no projeto (RN-261, 310, 311, 312, 182), o status continua `PENDENTE-FONTE`.
@@ -458,8 +467,8 @@ precisa de fonte ou de decisão do usuário (checklist da política, §5).
 |---|---|---|
 | **RN-025** | "Letras dobradas" nas alíneas: `aa), bb)` ou `aa), ab)` | Depende da NBR 6024 (P-03) |
 | **RN-232, RN-235** | "Letras dobradas" em apêndices e anexos: `AA, BB, CC` | Decisão do usuário (2026-11-02), até a NBR 6024 (P-03); `AAA` em diante PENDENTE-FONTE (`letraSemFonte`) |
-| **RN-033** | Espaço de 1,5 entre subtítulo e texto: linha em branco extra ou só a entrelinha | Exemplos do Manual sugerem linha em branco; decidir na Etapa 5 (M2) |
-| **RN-073** | Numeração contínua até a última folha (referências, apêndices, anexos) | O Manual (p. 21, 2.10) não trata; depende da NBR 14724 ou de decisão |
+| **RN-033** | Espaço de 1,5 entre subtítulo e texto: linha em branco extra ou só a entrelinha | Decidida pelo usuário em 2026-11-02 (ver D-M3) |
+| **RN-073** | Numeração contínua até a última folha (referências, apêndices, anexos) | Decidida pelo usuário em 2026-11-02 (ver D-M3) |
 | **RN-085** | Pontuação final da citação em relação às aspas e à chamada | Exemplos inconsistentes; depende da NBR 10520 (P-12) |
 | **RN-108** | Alinhamento da equação (esquerda × centralizada) | O texto é omisso; P-18 |
 

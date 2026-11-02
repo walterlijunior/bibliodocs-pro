@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — **M2 concluído** (T01–T13), com a última parte sem commit: aguarda autorização.
+**Última atualização:** 2026-11-02 — M3-T00 concluído (decisões D-M3 na matriz); M3-T01 em andamento.
 **Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; próximo: M3.
 
 ## Etapas
@@ -22,9 +22,14 @@
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T13 e do fechamento do M2 (o trabalho está só na pasta).
-2. **Detalhar o plano do M3** (motor normativo e DOCX), incluindo a tela de restaurar backups e os achados abertos de `docs/relatorios/REVISAO_M2.md`.
+1. **M3-T01:** refazer a PoC com `docx` 9.15.1 e conferir no Word real.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Fatos novos para o M3 [VERIFICADO 2026-11-02]
+- Word 16 instalado e acessível por COM (`Word.Application`): a PoC dizia "Word não disponível". DOC-08 pode ser automatizado em parte.
+- `dotnet` indisponível: o validador OOXML da camada 6 exigiria instalar o .NET, dependência global que precisa de autorização.
+- `docx` está na 9.15.1, e `fast-xml-parser` segue na 5.11.2. A versão 9.15.1 traz `fflate` e `nanoid` 6, e ainda não foi testada.
+- Commit do M2-T13: `5f636b9` (sem `git push`).
 
 ## Decisões do usuário no fechamento do M2 (2026-11-02, "siga suas recomendações")
 - Alíneas e citação longa ganharam comandos antes de fechar o marco (M2-T13).

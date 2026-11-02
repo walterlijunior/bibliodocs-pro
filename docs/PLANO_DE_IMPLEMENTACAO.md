@@ -109,11 +109,31 @@ itens visíveis como propostos; relatório técnico e projeto de pesquisa seguem
 Paralelização: T01, T02, T03 e T10 tocam arquivos diferentes e podem correr juntos.
 
 ### M3 — Motor normativo e exportação DOCX
-- Tela para restaurar backups rotativos de `backups\<id>\` (decisão do usuário, 2026-11-02; registrar como tarefa no detalhamento do M3).
 - Perfil "UFT 2022" com as regras `CONFIRMADA` de formatação geral; exportação DOCX com estilos e seções;
   regressão documental ativa.
 **Aceite:** RF-05, RF-06; teste de propriedades normativas no DOCX passa; verificação manual no Word e
 LibreOffice registrada.
+
+#### Tarefas do M3 (detalhadas em 2026-11-02; decisões D-M3 na matriz)
+Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro. Ordem: provar a saída no
+Word, depois perfil, motor, exportador e tela. **Limite do marco:** sumário como campo real, com título, indicativo e
+página; listas de ilustrações, siglas e remissivas ficam no M6, e tabelas, figuras e equações, no M5.
+
+| ID | Tarefa | Agente | Depende | Critério de aceite | Verificação |
+|---|---|---|---|---|---|
+| M3-T00 ✔ | Decisões editoriais de formatação: RN-001 (fonte padrão), RN-027, RN-033, RN-072, RN-073, RN-088, RN-102, RN-104, RN-125 | usuário + especialista-normas | — | Cada decisão na matriz, como parâmetro de perfil | Revisão da matriz |
+| M3-T01 | Refazer a PoC com `docx` 9.15.1 (a do ADR era 9.11.0) e conferir no **Word real** por automação COM (`Word 16`, disponível nesta máquina): L2, L3, L5, L6, L7, L13. **Informar antes:** `docx` e `fast-xml-parser` | especialista-documento | — | Sem pedido de reparo; achados L1–L13 fechados ou com contorno; versão fixada | Script de abertura no Word; `soffice` |
+| M3-T02 | Perfil em dados: esquema, `perfis/uft-2022/` com regras `CONFIRMADA` de formatação geral, parâmetros decididos, `ESTRUTURA_POR_TIPO` movida para o perfil; teste contra a matriz (ADR-0006, camada 2) | especialista-normas + especialista-documento | T00 | Regra e status iguais aos da matriz; PENDENTE-FONTE só com `provisoria`; ambígua sem decisão não é aplicada | `npm run verificar` |
+| M3-T03 | Motor: `formatar(doc, perfil)` puro; `DocumentoFormatado` com `origem` RN; estilos, títulos 1–5, parágrafo, alíneas, citação longa e notas | especialista-documento | T02 | Formatação sem RN reprova teste (RF-05); parâmetros decididos com os dois valores | `npm run verificar`, propriedades e mutação |
+| M3-T04 | Motor: seções e paginação (RN-067, RN-068, RN-073), ordem física, pré-textuais com capa e folha de rosto, pós-textuais com letras e aviso de `letraSemFonte`; conteúdo vazio (B6) | especialista-documento | T03 | Seis tipos com a ordem da matriz; contagem da folha de rosto em diante; vazio não vira nota vazia | `npm run verificar` |
+| M3-T05 | Exportador `exportacao/docx` em processo utilitário: mapeamento 1:1, notas reais, numeração `SEQ`/títulos, sumário em cache com páginas estimadas e aviso de F9 | especialista-documento + revisor-seguranca (utilitário e limites) | T01, T04 | Nenhuma decisão normativa no exportador (teste de arquitetura); XML bem formado | `npm run verificar` |
+| M3-T06 | Regressão documental: corpus com um projeto por tipo e "documento difícil" sem conteúdo real; propriedades com falha citando a RN; instantâneo de XML normalizado | engenheiro-qualidade | T05 | DOC-01 a DOC-07 automáticos; cada mudança de instantâneo explicada | `npm run verificar` |
+| M3-T07 | Camadas externas: `test:libreoffice` (converte e confere páginas e títulos) e `test:word` (COM: abre sem reparo, conta páginas). Pulam com aviso se o programa faltar; validador .NET só se autorizado, porque exige instalar o .NET | engenheiro-qualidade | T06 | DOC-08 no Word e no LibreOffice com versão registrada | `npm run verificar:tudo` |
+| M3-T08 | Tela: Exportar DOCX (Ctrl+E, Exportar › Exportar DOCX…), destino por diálogo do principal, progresso, avisos de pendência e de regra aguardando decisão, sem gravar por cima em silêncio | especialista-interface + revisor-seguranca | T05 | Canal validado; arquivo aberto no Word não perde dados; E2E exporta e confere | `npm run verificar:tudo` (E2E, axe) |
+| M3-T09 | Tela de restaurar backups rotativos de `backups\<id>\` (decisão do usuário, 2026-11-02): lista por trabalho e abre como trabalho sem arquivo, sem alterar nada | especialista-interface + especialista-documento | — | Sem caminho no renderer; nada é sobrescrito; E2E | `npm run verificar:tudo` |
+| M3-T10 | Achados abertos que protegem dados: R-M2-04 (cópia de recuperação em trabalho sem arquivo), R-M2-06 e R-M2-08; depois R-M2-05, 12, 14, 16 | especialista-documento | T09 | Cada achado fechado, ou com motivo registrado | `npm run verificar:tudo` |
+| M3-T11 | Medir RNF-06/07 com exportação (`npm run medir`); rever R46 (memória, medida mais estável); instalador com o Electron atual; lista de terceiros no "Sobre", incluindo `docx` | engenheiro-qualidade | T08 | Medidas registradas; instalador instala e abre | `npm run medir`; `npm run dist` |
+| M3-T12 | Fechamento: `REVISAO_M3.md` com revisão independente, relatório do marco, README, matriz de testes e verificação no Word registrada pelo usuário | sessão principal | T01–T11 | Aceite do M3 demonstrado | `npm run verificar:tudo` |
 
 ### M4 — Citações e referências
 **Aceite:** RF-07, RF-08; verificador de órfãs/não citadas.
