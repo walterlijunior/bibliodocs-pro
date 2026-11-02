@@ -26,6 +26,7 @@
     "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts"
   },
   "dependencies": {
+    "docx": "9.15.1",
     "fflate": "0.8.3",
     "prosemirror-commands": "1.7.2",
     "prosemirror-history": "1.5.1",
@@ -48,6 +49,7 @@
     "electron": "44.10.1",
     "electron-builder": "26.15.3",
     "electron-vite": "6.0.0",
+    "fast-xml-parser": "5.11.2",
     "typescript": "7.0.2",
     "vite": "8.3.4",
     "vitest": "5.0.5"

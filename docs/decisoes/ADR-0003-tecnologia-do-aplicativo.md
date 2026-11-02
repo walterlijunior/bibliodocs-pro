@@ -308,3 +308,5 @@ bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 
   - reinstalar o app recupera tudo.
   O que fica está documentado em `app/README.md`. Uma limpeza explícita, dentro do app e com confirmação, pode entrar
   depois, se houver pedido.
+
+**Adendo do M3-T01 (2026-11-02).** `docx` fixada em 9.15.1, testada no Word 16 real (`docs/relatorios/M3_RELATORIO_MARCO.md`). Os itens essenciais da PoC continuam atendidos, e o desempate pela alternativa C não se aplica.

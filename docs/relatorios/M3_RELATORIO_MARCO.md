@@ -1,0 +1,46 @@
+# Relatório do Marco M3 — Motor normativo e exportação DOCX
+
+Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `docs/PLANO_DE_IMPLEMENTACAO.md`.
+
+| Tarefa | Situação | Data |
+|---|---|---|
+| M3-T00 Plano e decisões de formatação (D-M3-01 a 09) | CONCLUÍDA | 2026-11-02 |
+| M3-T01 PoC com `docx` 9.15.1 no Word real | CONCLUÍDA | 2026-11-02 |
+| M3-T02 a M3-T12 | PENDENTE | — |
+
+## M3-T01 — PoC com `docx` 9.15.1 no Word real
+
+**Implementação:** sessão principal. **Sem revisão independente.** Dependências locais: `docx` 9.15.1 (produção) e `fast-xml-parser` 5.11.2 (desenvolvimento).
+
+`app/ferramentas/word/conferir-no-word.ps1` abre um DOCX numa instância própria do Word, em somente leitura, e nunca salva. O sumário é atualizado só na memória, para comparar com o gravado.
+
+**Resultados** [VERIFICADO 2026-11-02, Word 16.0, `analise/poc-docx/`]
+
+| Verificação | Resultado |
+|---|---|
+| `verificar.py` em `poc_final.docx` com 9.15.1 | 60 OK, 0 falhas |
+| Word, 15 páginas | Abriu; 5 seções, 1 nota, 2 tabelas, 1 equação, 1 imagem, 17 campos |
+| Sumário estimado × atualizado no Word, 15 páginas | Mesmas páginas |
+| Sumário estimado × atualizado no Word, 149 páginas | **Idêntico** (L12) |
+| Geração de 149 páginas, com estimativa | 4,3 s, processo inteiro |
+| Texto do PDF do Word × LibreOffice | Mesma página a página, salvo a extração do texto da equação e do preenchimento do sumário |
+
+**Achados da PoC**
+
+| ID | Situação em 9.15.1 |
+|---|---|
+| L2 Estilo inexistente no sumário | Com o contorno `\\u`, sem estilo indefinido; a combinação com `\\t` não foi retestada |
+| L3 Tabulação das listas e `IndexLink` | `IndexLink` agora é definido; tabulação em 9025/9026, não em 9071. **Contornar no M6**, quando as listas entrarem |
+| L5 `SEQ` sem valor | Contornado: `SimpleField` com o número, 3 `SEQ` corretos no Word |
+| L6 Número no filete da nota | **Não aparece no Word**, conferido em imagem. O filete nativo é curto, como D-M3-08 |
+| L7 Numeração `hybridMultilevel` | Títulos corretos no Word. Inserir título novo no Word não foi testado |
+| L12 Paginação estimada no Word | **Fechado** nos dois documentos |
+| L13 Nada aberto no Word | **Fechado pela automação**, com a limitação abaixo |
+
+**Limitações**
+- **A automação não prova "abre sem reparo".** Em 6 arquivos estragados de propósito, recusou 3: XML quebrado, célula sem parágrafo e arquivo que não é ZIP. Abriu 3 sem erro: parágrafo com tabela dentro, elemento desconhecido e arquivo sem estilos. Com alertas desligados, não se sabe se o Word os repara em silêncio ou os tolera. Por isso, a conferência manual do usuário continua no fechamento do M3 (risco R47).
+- `@types/node` e `undici-types` entram no inventário como dependências declaradas do `docx`, embora só tragam tipos. O M3-T05 deve deixá-los fora do pacote.
+- O teste do script ainda não está em `verificar:tudo` (M3-T07).
+- Na primeira execução, uma falha de chamada no script deixou 7 processos do Word abertos e ocultos. O script foi corrigido; nas rodadas seguintes o número não aumentou. Esses 7 continuam abertos, porque encerrar todo processo do Word foi bloqueado e poderia atingir um documento do usuário.
+
+**Testes:** `npm run verificar:tudo`: 1112/1112, 388 assinaturas, sem achado alto, E2E 17/17, memória 766 MB. Só a instalação das dependências mudou no app; o exportador ainda não as usa.

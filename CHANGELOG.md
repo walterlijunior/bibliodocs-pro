@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M3-T01: PoC com `docx` 9.15.1 conferida no Word real; `app/ferramentas/word/conferir-no-word.ps1`. Dependências `docx` e `fast-xml-parser`, ainda sem uso no aplicativo.
 - Etapa 5, M2-T13: alíneas, subalíneas e citação longa pelo editor (botões, Ctrl+Shift+L, Ctrl+Shift+Q, Tab, Shift+Tab).
 
 ### Alterado

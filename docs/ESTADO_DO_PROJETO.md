@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M3-T00 concluído (decisões D-M3 na matriz); M3-T01 em andamento.
-**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; próximo: M3.
+**Última atualização:** 2026-11-02 — M3-T01 concluído (PoC com `docx` 9.15.1 no Word real), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00, T01 ✔).
 
 ## Etapas
 
@@ -15,20 +15,23 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00, T01 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M3-T01:** refazer a PoC com `docx` 9.15.1 e conferir no Word real.
+1. Autorizar o commit do M3-T01 (o trabalho está só na pasta).
+2. **M3-T02:** perfil `uft-2022` em dados, conferido contra a matriz.
+3. Decidir: instalar o .NET para o validador OOXML (R47)? Encerrar os 7 processos ocultos do Word que ficaram abertos?
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Fatos novos para o M3 [VERIFICADO 2026-11-02]
 - Word 16 instalado e acessível por COM (`Word.Application`): a PoC dizia "Word não disponível". DOC-08 pode ser automatizado em parte.
 - `dotnet` indisponível: o validador OOXML da camada 6 exigiria instalar o .NET, dependência global que precisa de autorização.
-- `docx` está na 9.15.1, e `fast-xml-parser` segue na 5.11.2. A versão 9.15.1 traz `fflate` e `nanoid` 6, e ainda não foi testada.
+- `docx` 9.15.1 testada na PoC (`docs/relatorios/M3_RELATORIO_MARCO.md`). Sumário estimado igual ao do Word em 15 e 149 páginas.
+- A automação do Word detectou 3 de 6 arquivos inválidos: não prova "abre sem reparo" (R47).
 - Commit do M2-T13: `5f636b9` (sem `git push`).
 
 ## Decisões do usuário no fechamento do M2 (2026-11-02, "siga suas recomendações")
@@ -452,3 +455,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T11) | Pendências técnicas do M1 pela sessão principal, sem revisão independente: `TERCEIROS.txt`, recusa de copyleft, `audit signatures`, `descreverErro`, Electron 44.9.0 (hash igual ao do release; fumaça do pacote abriu), axe-core (achou 2 botões, corrigidos), Versões descartadas. Mutações 14/14, 2 delas depois de novos testes. `verificar:tudo` 1092/1092, 0 vulnerabilidades em produção, E2E 16/16. Memória 806 MB em uma rodada (meta 800): risco R46. |
 | 2026-11-02 | 5 (M2-T12) | Revisão independente de T08–T11: 1 Alta, 3 Médias, 8 Baixas, 4 Info. Corrigidos R-M2-01, 02, 03, 07, 09, 10, 11; R-M2-04 mitigado. Electron 44.10.1. `verificar:tudo` 1097/1097, E2E 16/16. Achada lacuna do RF-03: alíneas e citação longa só por colagem. Marco não fechado. |
 | 2026-11-02 | 5 (M2-T13) | Comandos de alíneas e citação longa pela sessão principal, sem revisão independente; prazo de 30 dias para cópias de trabalho excluído; RN-232 e RN-235 como AMBÍGUA. Mutações 12/13, e a sobrevivente ganhou teste. **M2 concluído**, com as ressalvas do relatório. |
+| 2026-11-02 | 5 (M3-T00, T01) | Plano do M3 e decisões D-M3. PoC com `docx` 9.15.1 aberta no Word 16 por COM: paginação estimada igual à real em 149 páginas; filete sem número (L6). Automação detecta 3/6 inválidos (R47). 7 processos ocultos do Word ficaram abertos por falha do script. `verificar:tudo` 1112/1112, E2E 17/17. |
