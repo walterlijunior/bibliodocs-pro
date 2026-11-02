@@ -13,7 +13,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T02 Tipos de trabalho como dados e diálogo "Novo trabalho" | CONCLUÍDA | 2026-11-02 |
 | M2-T08 Pré-textuais com campos e pendências | CONCLUÍDA | 2026-11-02 |
 | M2-T09 Lugares dos pós-textuais e letras de apêndice e anexo | CONCLUÍDA | 2026-11-02 |
-| M2-T10 a M2-T12 | PENDENTE | — |
+| M2-T10 Backups rotativos e `.bak` acompanhando excluir e renomear | CONCLUÍDA | 2026-11-02 |
+| M2-T11 e M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -512,3 +513,27 @@ Mutações 8/8. `npm run verificar:tudo`: 1042/1042, 0 vulnerabilidades, build O
 
 **Limites conhecidos:** a forma "APÊNDICE A – Título" e o título geral (RN-237) são do M3; o conteúdo, do M4 e do M6.
 Referências ausentes ainda não aparecem como pendência (verificador, M7).
+
+## M2-T10 — Backups rotativos e `.bak` acompanhando excluir e renomear (R-M1-02, R-M1-03, R37)
+
+**Implementação:** sessão principal. **Sem revisão independente.** Nenhuma dependência nova.
+
+**Código**
+- `persistencia/arquivo/backups-rotativos.ts`: `fazerBackupRotativo` (cópia por temporário, intervalo lido dos nomes, rotação
+  10 + 1 por dia em 7 dias) e `backupsParaApagar` (pura). `*-formato-v<N>.bdp` nunca é escolhido.
+- `manipuladores-projetos.ts`: gancho `antesDeSobrescrever`, só no `salvar`. `registrar.ts` liga o gancho; falha só vai ao log, sem caminho.
+- `manipuladores-biblioteca.ts`: `.bak` vai junto para a Lixeira e é renomeado junto, sem sobrescrever outro `.bak`.
+
+**Desvio do ADR-0004 §4:** o ADR diz "a cada salvamento explícito"; o backup vale para **todo** salvamento no próprio
+arquivo, inclusive o automático, respeitando os 10 minutos. O principal não distingue os dois, e quem só usa o automático
+ficaria sem backup nenhum.
+
+**Aceite** [VERIFICADO 2026-11-02]: `tests/backups-rotativos.test.ts`, casos novos em `biblioteca.test.ts` e
+`ipc-projetos.test.ts`; FUN-11 confere o arquivo real em `backups\<id>\` no Electron. Mutações: 13, sendo 12 detectadas e 1
+que revelou condição redundante (removida). `npm run verificar:tudo`: 1070/1070, 0 vulnerabilidades, build OK, E2E 14/14. Kit: 0 falhas.
+
+**Limites conhecidos**
+- Excluir um trabalho **não** apaga `backups\<id>\`: a cópia do texto continua em `%LOCALAPPDATA%` (como os instantâneos e
+  conforme a decisão de nunca apagar dados). Sem tela para reabrir um backup.
+- `.bak` não movido à Lixeira ou não renomeado fica só no registro técnico, sem aviso ao usuário. Lixeira real do `.bak` sem E2E.
+- A cópia acrescenta tempo a um salvamento a cada 10 minutos (não medido com 25 MB).

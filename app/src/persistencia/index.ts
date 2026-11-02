@@ -28,6 +28,16 @@ export {
   type ResultadoSalvamento,
 } from './arquivo/projeto-em-disco';
 export {
+  BACKUPS_RECENTES,
+  backupsParaApagar,
+  dataDoBackup,
+  DIAS_COM_BACKUP,
+  fazerBackupRotativo,
+  INTERVALO_BACKUP_MS,
+  nomeBackupRotativo,
+  type ResultadoBackup,
+} from './arquivo/backups-rotativos';
+export {
   codigoErro,
   SISTEMA_ARQUIVOS_NODE,
   type ArquivoAberto,

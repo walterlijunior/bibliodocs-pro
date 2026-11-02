@@ -163,6 +163,25 @@ describe('destinos só por diálogo (C-12)', () => {
     expect(aberto.ok && aberto.pacote.documento.metadados.titulo[0]?.texto).toBe('Outro título');
   });
 
+  it('backup rotativo (M2-T10): só ao gravar por cima com salvar, antes de gravar, com o id do projeto; Salvar como não faz', async () => {
+    const chamadas: { caminho: string; id: string; titulo: unknown }[] = [];
+    const m = montar({
+      antesDeSobrescrever: async (caminho, id) => {
+        const lido = await abrirProjeto(caminho);
+        chamadas.push({ caminho, id, titulo: lido.ok && lido.pacote.documento.metadados.titulo[0]?.texto });
+      },
+    });
+    const id = await salvarComoEm(m, 'A.bdp');
+    expect(chamadas).toEqual([]);
+    const antes = await abrirProjeto(join(pasta, 'A.bdp'));
+    await chamar(m, CANAIS_PROJETOS.salvar, LEGITIMO, id, pacote('Outro título'));
+    expect(chamadas).toHaveLength(1);
+    expect(chamadas[0]!.caminho).toBe(join(pasta, 'A.bdp'));
+    // Viu a versão anterior: a cópia acontece antes de gravar.
+    expect(chamadas[0]!.titulo).toBe(antes.ok && antes.pacote.documento.metadados.titulo[0]?.texto);
+    expect(chamadas[0]!.id).toBe(antes.ok && antes.pacote.manifesto.id);
+  });
+
   it('identificador desconhecido, de outra janela ou fechado não grava', async () => {
     const m = montar({ conteudosPermitidos: () => new Set([JANELA, 8]) });
     const id = await salvarComoEm(m, 'A.bdp');

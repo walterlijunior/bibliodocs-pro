@@ -46,6 +46,8 @@ export interface DependenciasProjetos {
    */
   antesDeGravar?: (idProjeto: string) => number;
   aoGravar?: (caminho: string, idProjeto: string, dono: number, marca: number) => Promise<void>;
+  /** Antes de gravar por cima do próprio arquivo: backup rotativo da versão anterior (M2-T10). Não lança. */
+  antesDeSobrescrever?: (caminho: string, idProjeto: string) => Promise<void>;
   /** Depois de fechar um arquivo: a sessão de recuperação dele termina (M1-T12). */
   aoFechar?: (caminho: string, dono: number) => Promise<void>;
   /** Registro técnico (nunca vai ao renderer). */
@@ -141,6 +143,7 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     // O id é o que o principal registrou ao abrir; o do pacote só vale se ainda não havia um (revisão do M1-T12, M1).
     const idProjeto = registro.idProjeto(id, r.idConteudo) ?? p.valor.manifesto.id;
     const marca = dep.antesDeGravar?.(idProjeto) ?? 0;
+    await dep.antesDeSobrescrever?.(destino, idProjeto);
     const s = paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
     // Fora `PACOTE_INVALIDO`, o pacote passou pelo empacotamento (conferido): as mídias dele viram as conhecidas, mesmo
     // que a gravação no disco tenha falhado depois (revisão do M2-T01, F1).

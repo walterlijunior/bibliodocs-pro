@@ -408,6 +408,22 @@ describe('renomear', () => {
     expect(resumidos).toEqual([]); // o índice já sabia do nome novo
   });
 
+  it('o .bak acompanha (R-M1-02); sem .bak nada muda; .bak já existente com o nome novo não é sobrescrito', async () => {
+    await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
+    writeFileSync(join(pastaPadrao, 'a.bdp.bak'), 'anterior');
+    await gravarProjeto(pastaPadrao, 'c.bdp', 'Tres');
+    writeFileSync(join(pastaPadrao, 'c.bdp.bak'), 'de c');
+    writeFileSync(join(pastaPadrao, 'd.bdp.bak'), 'de d');
+    const m = montar();
+    const l = (await listar(m)).itens;
+    expect(await m.chamar(CANAIS_BIBLIOTECA.renomear, LEGITIMO, porNome(l, 'a.bdp').identificador, 'b')).toMatchObject({ ok: true });
+    expect(readFileSync(join(pastaPadrao, 'b.bdp.bak'), 'utf8')).toBe('anterior');
+    expect(existsSync(join(pastaPadrao, 'a.bdp.bak'))).toBe(false);
+    expect(await m.chamar(CANAIS_BIBLIOTECA.renomear, LEGITIMO, porNome(l, 'c.bdp').identificador, 'd')).toMatchObject({ ok: true });
+    expect(readFileSync(join(pastaPadrao, 'd.bdp.bak'), 'utf8')).toBe('de d');
+    expect(readFileSync(join(pastaPadrao, 'c.bdp.bak'), 'utf8')).toBe('de c');
+  });
+
   it('só a caixa muda', async () => {
     await gravarProjeto(pastaPadrao, 'tcc.bdp', 'Um');
     const m = montar();
@@ -515,6 +531,17 @@ describe('excluir (Lixeira com confirmação)', () => {
     expect(await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador)).toEqual({ ok: false, motivo: 'CANCELADO' });
     expect(arquivos()).toEqual(['a.bdp']);
     expect(lixeira).toEqual([]);
+  });
+
+  it('o .bak vai junto para a Lixeira (R-M1-02); o de outro trabalho fica', async () => {
+    await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
+    writeFileSync(join(pastaPadrao, 'a.bdp.bak'), 'anterior');
+    writeFileSync(join(pastaPadrao, 'b.bdp.bak'), 'outro');
+    const m = montar();
+    const a = (await listar(m)).itens[0]!;
+    expect(await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador)).toEqual({ ok: true });
+    expect(lixeira.map((c) => c.slice(pastaPadrao.length + 1))).toEqual(['a.bdp', 'a.bdp.bak']);
+    expect(readdirSync(pastaPadrao).filter((n) => n.includes('.bak'))).toEqual(['b.bdp.bak']);
   });
 
   it('confirmar envia para a Lixeira, tira do índice e invalida o identificador', async () => {

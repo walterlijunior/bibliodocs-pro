@@ -149,6 +149,12 @@ Os dados, a biblioteca e o perfil do Chromium ficam numa pasta temporária. Um t
 `src/dominio/normas/tipos-trabalho.ts`; ordem e repetição em `src/dominio/modelo/elementos.ts`. Testes:
 `tests/tipos-trabalho.test.ts` (confere as RN na matriz normativa) e FUN-02 em `e2e/fluxo-trabalho.spec.ts`.
 
+### Backups (M2-T10)
+
+`src/persistencia/arquivo/backups-rotativos.ts`, ligado em `principal/ipc/registrar.ts`. Ao lado do trabalho fica `<nome>.bdp.bak`
+(última versão); em `%LOCALAPPDATA%\BiblioDocsPro\backups\<id>\`, as cópias `AAAAMMDD-HHMMSS.bdp`. Excluir o trabalho não apaga
+essa pasta.
+
 ### Pré-textuais (M2-T08)
 
 Lista e formulários em `src/interface/escrever/PreTextuais.tsx`; edição em `src/aplicacao/servicos/pre-textuais.ts`, pela

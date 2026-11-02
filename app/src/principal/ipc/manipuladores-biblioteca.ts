@@ -349,6 +349,11 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
           ? falha('JA_EXISTE', `Já existe um trabalho chamado “${v.nomeArquivo}” nesta pasta.`)
           : falhaDisco(rn.erro, 'renomear o trabalho');
       }
+      // O `.bak` acompanha (R-M1-02). Falhar aqui não desfaz o renomear: a cópia só fica com o nome antigo.
+      if (await fs.info(`${caminho}.bak`).then(() => true, () => false)) {
+        const bak = await renomearSemSobrescrever(`${caminho}.bak`, `${destino}.bak`, fs);
+        if (!bak.ok) log(`[biblioteca] .bak não renomeado: ${bak.motivo === 'JA_EXISTE' ? 'já existe um com o nome novo' : (codigoErro(bak.erro) ?? 'erro')}`);
+      }
       itens.trocarCaminho(caminho, destino);
       const anterior = indice?.entradas.find((e) => e.nomeArquivo === antigo)?.resumo ?? { estado: 'invalido' as const };
       const entrada = await registrarNoIndice(pasta, v.nomeArquivo, anterior, antigo);
@@ -425,6 +430,11 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       } catch (e) {
         log(`[biblioteca] Lixeira falhou: ${codigoErro(e) ?? (e instanceof Error ? e.message : 'erro')}`);
         return falha('LIXEIRA_FALHOU', `Não foi possível enviar “${nomeArquivo}” para a Lixeira. Nada foi apagado.`);
+      }
+      // O `.bak` tem o texto anterior: vai junto para a Lixeira (R-M1-02). O trabalho já foi; falhar aqui só fica no registro.
+      const bak = `${caminho}.bak`;
+      if (await fs.info(bak).then(() => true, () => false)) {
+        await dep.enviarParaLixeira(bak).catch((e: unknown) => log(`[biblioteca] .bak fora da Lixeira: ${codigoErro(e) ?? 'erro'}`));
       }
       itens.esquecerCaminho(caminho);
       if (indice) await guardarIndice({ ...indice, entradas: indice.entradas.filter((e) => e.nomeArquivo !== nomeArquivo) });

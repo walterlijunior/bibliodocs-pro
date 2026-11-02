@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T09 concluído (lugares dos pós-textuais, só domínio), sem commit: aguarda autorização.
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T09 ✔).
+**Última atualização:** 2026-11-02 — M2-T10 concluído (backups rotativos; `.bak` em excluir e renomear), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T10 ✔).
 
 ## Etapas
 
@@ -15,16 +15,21 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T09 ✔, T10–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T10 ✔, T11 e T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T09 (o trabalho está só na pasta).
-2. **M2-T10** (backups rotativos e `.bak` acompanhando excluir e renomear). Depois M2-T11 e M2-T12.
+1. Autorizar o commit do M2-T10 (o trabalho está só na pasta).
+2. **M2-T11** (pendências técnicas do M1: licenças, `npm audit signatures`, logs sem caminho, Electron 44.9.0, axe-core, tela de `recuperacao-antigos`). Depois o M2-T12.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T10 (tomadas pela sessão principal, podem ser revistas)
+- Backup também no salvamento automático, não só no explícito (desvio do ADR-0004 §4, adendo do M2-T10).
+- Excluir um trabalho mantém os backups em `%LOCALAPPDATA%`; a cópia do texto fica lá até uma opção de apagar existir.
+- Commit do M2-T09: `01713fc` (sem `git push`).
 
 ## Decisões do M2-T09 (tomada pela sessão principal, pode ser revista)
 - Letras depois do Z: `AA, BB, CC` (RN-232, RN-235), como C-A6; o Manual não exemplifica (P-03).
@@ -247,7 +252,7 @@ O usuário escreveu: "deixo essas decisões para você".
     conferir a oferta (texto aceita "HH:MM" e "DD/MM/AAAA às HH:MM"). `LOCALAPPDATA` redirecionado isola os dados.
   - Pendentes: medir o instantâneo com 25 MB e, se travar a interface, empacotar fora do principal (antes do editor do
     M2); tela para reabrir `recuperacao-antigos`; oferta visível mesmo com a Biblioteca em erro; backups rotativos
-    (`backups\<id>\`, 10 + 1/dia por 7 dias, ADR-0004 §4) ainda não implementados (não constavam do T12).
+    (`backups\<id>\`): feitos no M2-T10.
 - Sessão de edição (M1-T11):
   - `SessaoTrabalho` em `app/src/aplicacao/servicos/sessao-trabalho.ts`; hook em `interface/escrever/useSessao.ts`;
     decisões no adendo do M1-T11 no ADR-0004. Toda gravação passa pela fila (`#enfileirar`); nada grava fora dela.
@@ -412,3 +417,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T02) | Retomada do código deixado sem commit em 2026-10-17. Seis tipos como dados, `preTextuais`/`posTextuais` no v1, `biblioteca.criar(tipo)`, diálogo "Novo trabalho". Fontes conferidas pela sessão principal contra a matriz e os modelos: sem divergência; 2 comentários corrigidos. Mutações 9/12 → 3 testes novos → 12/12. RN-113 e RN-114 `IMPLEMENTADA`. `verificar:tudo` 981/981, 0 vulnerabilidades, E2E 13/13; kit 0 falhas. Relatório da revisão anterior não encontrado. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T08) | Pré-textuais pela sessão principal, sem revisão independente: dados em `metadados`, campos por elemento, pendências com RN, lista e formulários na aba Escrever, incluir e retirar na ordem única. Mutações 16/16. `verificar:tudo` 1024/1024, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T09) | Pós-textuais no domínio pela sessão principal, sem revisão independente: inclusão no lugar do Quadro 5, letras derivadas, `titulo` em apêndice e anexo; célula da RN-232 corrigida. Mutações 8/8. `verificar:tudo` 1042/1042, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
+| 2026-11-02 | 5 (M2-T10) | Backups rotativos e `.bak` em excluir e renomear pela sessão principal, sem revisão independente. Mutações 12/13 (1 revelou condição redundante, removida). `verificar:tudo` 1070/1070, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |

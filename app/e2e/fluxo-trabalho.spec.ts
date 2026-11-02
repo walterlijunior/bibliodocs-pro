@@ -5,7 +5,7 @@
  * do tipo.
  */
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import type { Documento } from '../src/dominio/modelo';
@@ -190,6 +190,11 @@ test('FUN-11: elementos pré-textuais — campos, pendências, retirar com Ctrl+
   expect(doc.metadados).toMatchObject({ autoria: 'Ana Souza', natureza: 'Tese para o grau de Doutor.' });
   expect(doc.preTextuais?.find((e) => e.tipo === 'resumo')).toMatchObject({ texto: 'Texto curto do resumo.', palavrasChave: ['Pequi', 'Cerrado'] });
   expect(doc.preTextuais?.map((e) => e.tipo)).toEqual(['capa', 'folhaRosto', 'fichaCatalografica', 'folhaAprovacao', 'dedicatoria', 'resumo', 'abstract', 'sumario']);
+
+  // M2-T10: gravar por cima guardou a versão anterior em backups\<id>\.
+  const backups = readdirSync(join(amb.dados, 'backups', doc.id));
+  expect(backups).toHaveLength(1);
+  expect(backups[0]).toMatch(/^\d{8}-\d{6}\.bdp$/);
 
   // Reabrir mostra o mesmo.
   await p.keyboard.press('Control+W');

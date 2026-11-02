@@ -619,3 +619,11 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
 ## Adendo do M2-T09 (2026-11-02) — pós-textuais no formato v1
 
 - **Aditivo:** `titulo` opcional em apêndice e anexo. A letra não é gravada: vem da posição, como o número das seções.
+
+## Adendo do M2-T10 (2026-11-02) — backups rotativos
+
+- **Desvio da seção 4:** o backup vale para todo salvamento no próprio arquivo, inclusive o automático, em vez de só o
+  explícito. O principal não distingue os dois, e quem só usa o automático ficaria sem backup. O limite de 10 minutos continua.
+- O intervalo vem dos nomes na pasta, então vale depois de reiniciar. Data futura (relógio mudado) não trava os novos.
+- `Salvar como` não faz backup: o que seria sobrescrito pode ser de outro projeto.
+- Excluir o trabalho mantém `backups\<id>\`.

@@ -7,7 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
-import { salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { fazerBackupRotativo, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
@@ -103,6 +103,12 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     salvar,
     antesDeGravar: (idProjeto) => recuperacao?.antesDeGravar(idProjeto) ?? 0,
     aoGravar: async (caminho, idProjeto, dono, marca) => recuperacao?.aoGravar(caminho, idProjeto, dono, marca),
+    antesDeSobrescrever: async (caminho, idProjeto) => {
+      // Falha no backup nunca impede de salvar; o registro técnico não leva caminho.
+      const b = await fazerBackupRotativo(caminho, pastaBackups, idProjeto);
+      if (!b.feito && b.motivo === 'FALHOU') console.warn(`[backups] cópia falhou: ${b.codigo}`);
+      if (b.feito && b.avisos.length > 0) console.warn(`[backups] rotação incompleta: ${b.avisos.join(', ')}`);
+    },
     aoFechar: async (caminho, dono) => recuperacao?.aoFechar(caminho, dono),
   });
 
