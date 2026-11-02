@@ -27,7 +27,7 @@ import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { DialogoVersoesDescartadas } from './biblioteca/DialogoVersoesDescartadas';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
-import { avisoDescartada, avisoRecuperado } from './biblioteca/recuperacao';
+import { avisoRecuperado, textoDescartada } from './biblioteca/recuperacao';
 import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista, type Filtro } from './biblioteca/selecao';
 import { FALHA_INESPERADA, useBiblioteca } from './biblioteca/useBiblioteca';
 import { BarraMenus } from './casca/BarraMenus';
@@ -211,11 +211,14 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
 
   const pedirDescartadas = useCallback(async () => {
     setDescartadas(null);
+    setDescartadasIncompleta(false);
     try {
       const r = await api.recuperacao.listarDescartadas();
       setDescartadas((atual) => (atual === undefined ? undefined : r.versoes));
+      setDescartadasIncompleta(r.incompleta);
     } catch {
       setDescartadas((atual) => (atual === undefined ? undefined : []));
+      setDescartadasIncompleta(true);
       mostrarMensagem({ tipo: 'erro', texto: FALHA_INESPERADA });
     }
   }, [api, mostrarMensagem]);
@@ -235,7 +238,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           mostrarMensagem({ tipo: 'erro', texto: r.mensagem });
           return;
         }
-        sessao.abrir(r.projeto, [avisoDescartada(r.quando, new Date()), ...avisosDaAbertura(r.projeto)], { naoSalvo: true });
+        sessao.abrir(r.projeto, avisosDaAbertura(r.projeto), { naoSalvo: true, textoSemDestino: textoDescartada(r.quando, new Date()) });
         setSaidaPedida(false);
         irParaEscrever();
         setFocarTitulo((n) => n + 1);
@@ -263,6 +266,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [escolhendoTipo, setEscolhendoTipo] = useState(false);
   /** Diálogo "Versões descartadas": `undefined` fechado, `null` listando (M2-T11). */
   const [descartadas, setDescartadas] = useState<readonly VersaoDescartada[] | null | undefined>(undefined);
+  const [descartadasIncompleta, setDescartadasIncompleta] = useState(false);
   const [ultimoTipo, setUltimoTipo] = useState<TipoTrabalhoUft>('monografia');
 
   // Com outra troca em curso o diálogo não abre: "Criar trabalho" não faria nada (revisão do M2-T02, M3).
@@ -520,6 +524,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       {descartadas !== undefined && (
         <DialogoVersoesDescartadas
           versoes={descartadas}
+          incompleta={descartadasIncompleta}
           ocupado={bib.ocupado}
           aoAbrir={(id) => void abrirDescartada(id)}
           aoFechar={() => setDescartadas(undefined)}

@@ -80,6 +80,16 @@ describe('fazerBackupRotativo', () => {
     expect(readFileSync(origem, 'utf8')).toBe('versao 1');
   });
 
+  it('temporário de uma queda anterior é apagado, e um arquivo alheio fica (R-M2-07)', async () => {
+    const pasta = join(pastaBackups, ID);
+    mkdirSync(pasta, { recursive: true });
+    writeFileSync(join(pasta, '20260101-000000.bdp.tmp'), 'resto');
+    writeFileSync(join(pasta, 'nota.txt'), 'alheio');
+    await fazer();
+    expect(readdirSync(pasta).filter((n) => n.endsWith('.tmp'))).toEqual([]);
+    expect(readdirSync(pasta)).toContain('nota.txt');
+  });
+
   it('arquivo novo não tem versão anterior', async () => {
     rmSync(origem);
     expect(await fazer()).toEqual({ feito: false, motivo: 'SEM_ARQUIVO' });

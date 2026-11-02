@@ -5,6 +5,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M2-T12 (revisão do M2): salvar com uma queda adiada não apaga mais a versão recuperável; título ou subtítulo com
+  caractere inválido não trava mais a gravação; Electron 44.10.1 (GHSA-jr5w-w6x2-84p9) e `verificar` auditando também as
+  dependências de desenvolvimento; textos, data e lista incompleta em Versões descartadas; temporário de backup órfão.
+
 ### Adicionado
 - Etapa 5, M2-T11: pendências técnicas do M1. Inventário de licenças com `TERCEIROS.txt` no pacote e recusa de copyleft em
   produção; `npm audit signatures` no `verificar`; logs só com código ou tipo do erro; Electron 44.9.0; axe-core nos E2E;

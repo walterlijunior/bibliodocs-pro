@@ -38,13 +38,12 @@ export function textoOferta(o: OfertaRecuperacao, hoje: Date): string {
 /** Rótulo do botão que aceita a oferta. */
 export const rotuloRecuperar = (tipo: TipoOferta) => (tipo === 'instantaneo' ? 'Recuperar' : 'Restaurar');
 
-/** Aviso da versão aberta pelo diálogo "Versões descartadas" (M2-T11): ela não está em nenhum arquivo. */
-export function avisoDescartada(quando: number, hoje: Date): AvisoSessao {
-  return {
-    nivel: 'info',
-    texto: `Versão descartada de ${quandoLegivel(quando, hoje)}. Nenhum arquivo foi alterado: para mantê-la, use “Salvar como…”.`,
-    acoes: [],
-  };
+/** Aviso da versão aberta pelo diálogo "Versões descartadas": ela não está em nenhum arquivo (R-M2-04, R-M2-10). */
+export function textoDescartada(quando: number, hoje: Date): string {
+  return (
+    `Versão descartada, guardada em ${quandoLegivel(quando, hoje)}. Nenhum arquivo foi alterado. ` +
+    'O que você escrever aqui não tem cópia de recuperação até usar “Salvar como…”.'
+  );
 }
 
 /** Aviso do trabalho aberto a partir de uma oferta. */

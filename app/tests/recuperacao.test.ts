@@ -43,11 +43,12 @@ import {
   resumirProjeto,
   salvarProjeto,
   type PastasRecuperacao,
+  type ResumoProjeto,
 } from '../src/persistencia';
 import { lerPacoteTransferivel } from '../src/principal/ipc/argumentos';
 import { ErroIpcRecusado } from '../src/principal/ipc/chamada';
 import { criarManipuladoresProjetos } from '../src/principal/ipc/manipuladores-projetos';
-import { criarManipuladoresRecuperacao, MAX_VERSOES_DESCARTADAS, MENSAGEM_DESCARTADA_COM_OFERTA, MENSAGEM_DESCARTADA_ILEGIVEL, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
+import { criarManipuladoresRecuperacao, MAX_VERSOES_DESCARTADAS, MENSAGEM_DESCARTADA_ILEGIVEL, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
 import { paraRespostaLeitor } from '../src/principal/ipc/protocolo-leitor';
 import type { InfoRemetente } from '../src/principal/ipc/remetente';
 import { RegistroProjetos } from '../src/principal/ipc/registro-projetos';
@@ -101,7 +102,10 @@ const envelhecer = (caminho: string, segundos = 60) => {
 /** Relógio do "app" 1 h à frente: os restos criados pelo teste já passaram da idade mínima de 10 min. */
 const ADIANTE_MS = 60 * 60 * 1000;
 
-function processo(pid = OUTRO_PID, extra: { salvar?: (d: string, p: PacoteProjetoTeste) => ReturnType<typeof salvarProjeto> } = {}) {
+function processo(
+  pid = OUTRO_PID,
+  extra: { salvar?: (d: string, p: PacoteProjetoTeste) => ReturnType<typeof salvarProjeto>; resumir?: (c: string[]) => Promise<ResumoProjeto[] | null> } = {},
+) {
   const registro = new RegistroProjetos();
   const ler = async (c: string) => paraRespostaLeitor(await abrirProjeto(c, { pastaBackups: join(raiz, 'backups') }));
   const rec = criarManipuladoresRecuperacao({
@@ -111,7 +115,7 @@ function processo(pid = OUTRO_PID, extra: { salvar?: (d: string, p: PacoteProjet
     projetos: registro,
     pastaBiblioteca: async () => biblioteca,
     ler,
-    resumir: async (caminhos) => Promise.all(caminhos.map((c) => resumirProjeto(c))),
+    resumir: extra.resumir ?? (async (caminhos) => Promise.all(caminhos.map((c) => resumirProjeto(c)))),
     salvar: extra.salvar ?? ((d, p) => salvarProjeto(d, p)),
     pid,
     agora: () => new Date(Date.now() + ADIANTE_MS),
@@ -918,14 +922,44 @@ describe('versões descartadas (M2-T11; R-M1-10)', () => {
     expect(await p.abrirDescartada(nova!.identificador)).toEqual(recusa);
   });
 
-  it('com oferta do mesmo trabalho pendente, recusa, porque o "Salvar como…" apagaria a oferta', async () => {
+  it('leitor fora do ar: a lista avisa que está incompleta em vez de dizer que não há versões (R-M2-11)', async () => {
+    await guardar('a-atual.bdp', 'Rascunho');
+    const r = (await processo(OUTRO_PID, { resumir: async () => null }).chamar(CANAIS_RECUPERACAO.listarDescartadas)) as ResultadoListarDescartadas;
+    expect(r).toEqual({ versoes: [], incompleta: true });
+  });
+
+  it('a data é a de quando foi guardada, e a cópia anterior vem marcada (R-M2-09)', async () => {
+    const quando = new Date('2026-10-30T12:00:00Z');
+    const atual = await guardar('prj-20261030-120000-atual.bdp', 'A');
+    const anterior = await guardar('prj-20261030-120000-anterior.bdp', 'A');
+    utimesSync(atual, quando, quando);
+    utimesSync(anterior, quando, quando);
+    const versoes = await processo().listarDescartadas();
+    expect(versoes.map((v) => v.quando)).toEqual([quando.getTime(), quando.getTime()]);
+    expect(versoes.map((v) => v.anterior).sort()).toEqual([false, true]);
+  });
+
+  it('salvar o arquivo com a queda adiada e sem nenhum instantâneo novo não apaga a queda (R-M2-01)', async () => {
+    const caminho = await gravarTrabalho('Trabalho.bdp', 'Salvo');
+    envelhecer(caminho);
+    const antes = processo(111);
+    await antes.instantaneo(antes.abrirArquivo(caminho), pacote('Da queda'));
+    const depois = processo(222);
+    expect(await depois.listar()).toHaveLength(1);
+    const id = depois.abrirArquivo(caminho);
+    expect((await depois.salvar(id, pacote('Salvo logo'))).ok).toBe(true);
+    await depois.fechar(id);
+    expect((await depois.listar()).map((o) => o.titulo)).toEqual(['Da queda']);
+  });
+
+  it('com oferta do mesmo trabalho pendente, a versão abre e a oferta fica', async () => {
     await guardar('a-atual.bdp', 'Rascunho');
     const caminho = await gravarTrabalho('Trabalho.bdp', 'Salvo');
     const antes = processo(111);
     await antes.instantaneo(antes.abrirArquivo(caminho), pacote('Editado'));
     const depois = processo(222);
     const [v] = await depois.listarDescartadas();
-    expect(await depois.abrirDescartada(v!.identificador)).toEqual({ ok: false, mensagem: MENSAGEM_DESCARTADA_COM_OFERTA });
+    expect((await depois.abrirDescartada(v!.identificador)).ok).toBe(true);
     expect(existsSync(join(pastaInstantaneos(), NOME_INSTANTANEO))).toBe(true);
   });
 

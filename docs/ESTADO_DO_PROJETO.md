@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T11 concluído (pendências técnicas do M1), sem commit: aguarda autorização.
+**Última atualização:** 2026-11-02 — M2-T12 em andamento: revisão feita e achados Alto e Médios tratados, sem commit. Marco não fechado: aguarda decisões do usuário.
 **Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T11 ✔).
 
 ## Etapas
@@ -22,14 +22,20 @@
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T11 (o trabalho está só na pasta).
-2. **M2-T12**, que precisa cobrir também T08, T09, T10 e T11, feitas sem revisão independente.
+1. Autorizar o commit das correções da revisão do M2 (o trabalho está só na pasta).
+2. **Decidir a lacuna de aceite do RF-03:** alíneas e citação longa só entram por colagem. Depois, as 4 perguntas de `docs/relatorios/REVISAO_M2.md`.
+3. Concluir o **M2-T12** (README, matriz e relatório do marco) e fechar o M2.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T12 (tomadas pela sessão principal, podem ser revistas)
+- `verificar` audita também as dependências de desenvolvimento em nível alto: um aviso alto de build agora reprova, porque é o único jeito de enxergar o Electron.
+- R-M2-04 só mitigado com aviso: edição em versão descartada segue sem cópia de recuperação até "Salvar como…".
+- Abertos para depois: R-M2-05, 06, 08, 12, 13, 14, 16 (`docs/relatorios/REVISAO_M2.md`).
+- Commit do M2-T11: `7165a80` (sem `git push`).
 
 ## Decisões do M2-T11 (tomadas pela sessão principal, podem ser revistas)
 - Novo item visível no menu aprovado: Arquivo › "Versões descartadas…", depois de "Atualizar biblioteca".
 - Versão descartada abre como trabalho sem arquivo: só "Salvar como…" a grava, e ela continua em `recuperacao-antigos` até o prazo.
-- Versão de trabalho com oferta de recuperação pendente não abre, porque "Salvar como…" apagaria a oferta.
 - Nomes acessíveis "Sobrescrito x²" e "Subscrito x₂" nos botões, exigência do axe (WCAG 2.5.3).
 - Licença fora de MIT, ISC, 0BSD, BSD-2, BSD-3 e Apache-2.0 reprova o inventário até alguém decidir.
 - Lista de terceiros no "Sobre" (RNF-15) não feita: o item do menu ainda não tem tela. Falta um marco para ela.
@@ -428,3 +434,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T09) | Pós-textuais no domínio pela sessão principal, sem revisão independente: inclusão no lugar do Quadro 5, letras derivadas, `titulo` em apêndice e anexo; célula da RN-232 corrigida. Mutações 8/8. `verificar:tudo` 1042/1042, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T10) | Backups rotativos e `.bak` em excluir e renomear pela sessão principal, sem revisão independente. Mutações 12/13 (1 revelou condição redundante, removida). `verificar:tudo` 1070/1070, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T11) | Pendências técnicas do M1 pela sessão principal, sem revisão independente: `TERCEIROS.txt`, recusa de copyleft, `audit signatures`, `descreverErro`, Electron 44.9.0 (hash igual ao do release; fumaça do pacote abriu), axe-core (achou 2 botões, corrigidos), Versões descartadas. Mutações 14/14, 2 delas depois de novos testes. `verificar:tudo` 1092/1092, 0 vulnerabilidades em produção, E2E 16/16. Memória 806 MB em uma rodada (meta 800): risco R46. |
+| 2026-11-02 | 5 (M2-T12) | Revisão independente de T08–T11: 1 Alta, 3 Médias, 8 Baixas, 4 Info. Corrigidos R-M2-01, 02, 03, 07, 09, 10, 11; R-M2-04 mitigado. Electron 44.10.1. `verificar:tudo` 1097/1097, E2E 16/16. Achada lacuna do RF-03: alíneas e citação longa só por colagem. Marco não fechado. |

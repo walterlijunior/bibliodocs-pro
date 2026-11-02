@@ -9,6 +9,8 @@ import { quandoLegivel } from './recuperacao';
 export interface PropsDialogoVersoesDescartadas {
   /** `null`: ainda listando. */
   versoes: readonly VersaoDescartada[] | null;
+  /** Algum arquivo não pôde ser lido: "nenhuma versão" seria falso. */
+  incompleta?: boolean;
   ocupado?: boolean;
   aoAbrir: (id: IdentificadorOferta) => void;
   aoFechar: () => void;
@@ -44,31 +46,35 @@ export function DialogoVersoesDescartadas(p: PropsDialogoVersoesDescartadas) {
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Versões descartadas</h2>
         <p id={`${base}-nota`} className="dica">
-          Alterações que você não salvou ficam guardadas aqui por 7 dias. Abrir uma versão não altera nenhum arquivo: para mantê-la, use “Salvar como…”.
+          Alterações descartadas ao fechar um trabalho ficam guardadas aqui por 7 dias. Abrir uma versão não altera nenhum arquivo: para mantê-la, use “Salvar como…”.
         </p>
+        {p.incompleta && <p role="alert">Algumas versões não puderam ser lidas agora e podem não aparecer. Tente de novo.</p>}
         {p.versoes === null ? (
           <p role="status">Procurando versões…</p>
         ) : p.versoes.length === 0 ? (
-          <p role="status">Nenhuma versão descartada nos últimos 7 dias.</p>
+          !p.incompleta && <p role="status">Nenhuma versão descartada nos últimos 7 dias.</p>
         ) : (
           <ul className="versoes lista-rolavel" aria-label="Versões descartadas">
-            {p.versoes.map((v) => (
+            {p.versoes.map((v) => {
+              const quando = `${quandoLegivel(v.quando, hoje)}${v.anterior ? ' (cópia anterior)' : ''}`;
+              return (
               <li key={v.identificador} className="versoes__item">
                 <div className="versoes__texto">
                   <span className="versoes__titulo">{v.titulo.trim() !== '' ? v.titulo : 'Trabalho sem título'}</span>
-                  <span className="dica">Versão de {quandoLegivel(v.quando, hoje)}</span>
+                  <span className="dica">Guardada em {quando}</span>
                 </div>
                 <button
                   type="button"
                   className="btn-secundario"
                   disabled={p.ocupado}
-                  aria-label={`Abrir a versão de ${quandoLegivel(v.quando, hoje)} de ${v.titulo.trim() !== '' ? v.titulo : 'trabalho sem título'}`}
+                  aria-label={`Abrir a versão de ${quando} de ${v.titulo.trim() !== '' ? v.titulo : 'trabalho sem título'}`}
                   onClick={() => p.aoAbrir(v.identificador)}
                 >
                   Abrir
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
         <div className="dialogo__acoes">

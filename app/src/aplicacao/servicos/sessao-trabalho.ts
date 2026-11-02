@@ -55,10 +55,11 @@ import {
   type TipoTrabalhoId,
 } from '../../dominio/modelo';
 import { ESTRUTURA_POR_TIPO, pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
+import { LIMITES_V1 } from '../../dominio/esquemas';
 import { numerarSecoes } from '../../dominio/numeracao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import { HistoricoEdicao, type EntradaHistorico, type InversoElemento } from './historico-edicao';
-import { aplicarCampos, aplicarDados, comElemento, type AlteracaoDados, type CamposElemento } from './pre-textuais';
+import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
 import {
   CODIGO_MIDIA_AUSENTE,
   type ApiProjetos,
@@ -207,6 +208,8 @@ export interface OpcoesAbrir {
    * a grava no arquivo em 30 s.
    */
   naoSalvo?: boolean;
+  /** Trabalho sem arquivo: texto do aviso que leva ao "Salvar como…", no lugar de {@link MENSAGEM_SEM_DESTINO}. */
+  textoSemDestino?: string;
 }
 
 type Aberto =
@@ -231,8 +234,10 @@ export function textoDoTitulo(titulo: readonly InlineDeTitulo[]): string {
  * caminho do M1 cria título com marcas].
  */
 export function tituloDoTexto(texto: string, atual: readonly InlineDeTitulo[]): InlineDeTitulo[] {
-  if (texto === textoDoTitulo(atual)) return [...atual];
-  return texto === '' ? [] : [{ tipo: 'texto', texto }];
+  // Colado com caractere de controle ou acima do limite, o título recusaria toda gravação (R-M2-03).
+  const limpo = limparTexto(texto, LIMITES_V1.textoInline);
+  if (limpo === textoDoTitulo(atual)) return [...atual];
+  return limpo === '' ? [] : [{ tipo: 'texto', texto: limpo }];
 }
 
 /** Lista da aba Escrever, em ordem de leitura. */
@@ -299,6 +304,7 @@ export function paraEnvio(p: PacoteTransferivel, conhecidas: ReadonlySet<string>
 export class SessaoTrabalho {
   readonly #dep: DependenciasSessao;
   readonly #ouvintes = new Set<() => void>();
+  #textoSemDestino: string = MENSAGEM_SEM_DESTINO;
   #aberto: Aberto | null = null;
   #salvamento: SalvamentoSessao = { tipo: 'salvo', em: null };
   #avisos: AvisoSessao[] = [];
@@ -489,7 +495,8 @@ export class SessaoTrabalho {
     this.#novaGeracao(projeto.pacote.documento.corpo);
     this.#salvamento = { tipo: 'salvo', em: null };
     this.#avisos = [...avisos];
-    if (projeto.identificador === null) this.#avisar({ nivel: 'alerta', texto: MENSAGEM_SEM_DESTINO, acoes: ['salvarComo'] });
+    this.#textoSemDestino = opcoes.textoSemDestino ?? MENSAGEM_SEM_DESTINO;
+    if (projeto.identificador === null) this.#avisar({ nivel: 'alerta', texto: this.#textoSemDestino, acoes: ['salvarComo'] });
     if (opcoes.naoSalvo) {
       this.#revisao = 1;
       this.#salvamento = { tipo: 'naoSalvo' };
@@ -599,7 +606,8 @@ export class SessaoTrabalho {
     const atual = a.pacote.documento.metadados;
     if (texto === textoDoTitulo(atual.subtitulo ?? [])) return;
     const { subtitulo: _antigo, ...resto } = atual;
-    this.#trocarMetadados(a, texto === '' ? resto : { ...resto, subtitulo: tituloDoTexto(texto, atual.subtitulo ?? []) });
+    const subtitulo = tituloDoTexto(texto, atual.subtitulo ?? []);
+    this.#trocarMetadados(a, subtitulo.length === 0 ? resto : { ...resto, subtitulo });
   }
 
   #trocarMetadados(a: Extract<Aberto, { modo: 'edicao' }>, metadados: Metadados): void {
@@ -850,7 +858,7 @@ export class SessaoTrabalho {
     const a = this.#aberto;
     if (a === null || a.modo === 'leitura') return Promise.resolve(a === null);
     if (a.identificador === null) {
-      this.#avisar({ nivel: 'alerta', texto: MENSAGEM_SEM_DESTINO, acoes: ['salvarComo'] });
+      this.#avisar({ nivel: 'alerta', texto: this.#textoSemDestino, acoes: ['salvarComo'] });
       this.#emitir();
       return Promise.resolve(false);
     }

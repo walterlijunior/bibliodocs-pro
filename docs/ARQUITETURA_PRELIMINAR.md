@@ -25,7 +25,7 @@ e o esqueleto do exportador DOCX servem de referência.
 
 | Peça | Escolha (versão consultada em 2026-10-15) |
 |---|---|
-| Runtime desktop | Electron 44.x (44.9.0 desde o M2-T11), sempre numa das 3 majors com suporte |
+| Runtime desktop | Electron 44.x (44.10.1 desde o M2-T12), sempre numa das 3 majors com suporte |
 | Build | electron-vite 6 + Vite 8 |
 | Linguagem | TypeScript 7 (`tsc --noEmit` para tipos) |
 | Interface | React 19 |

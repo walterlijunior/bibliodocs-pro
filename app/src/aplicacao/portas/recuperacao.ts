@@ -71,12 +71,16 @@ export interface VersaoDescartada {
   identificador: IdentificadorOferta;
   /** Título em texto plano (pode ser vazio). */
   titulo: string;
-  /** Última alteração registrada na versão (ms desde 1970). */
+  /** Quando a versão foi guardada (ms desde 1970). */
   quando: number;
+  /** Cópia anterior à mais recente do mesmo descarte. */
+  anterior: boolean;
 }
 
 export interface ResultadoListarDescartadas {
   versoes: VersaoDescartada[];
+  /** Algum arquivo não pôde ser lido agora: a lista pode não estar completa. */
+  incompleta: boolean;
 }
 
 export type ResultadoAbrirDescartada = { ok: true; projeto: ProjetoAberto; quando: number } | { ok: false; mensagem: string };

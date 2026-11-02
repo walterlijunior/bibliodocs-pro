@@ -86,6 +86,8 @@ export async function fazerBackupRotativo(
     }
     await fs.criarPasta(pasta);
     const nomes = (await fs.listarPasta(pasta)).filter((e) => e.arquivoComum).map((e) => e.nome);
+    // Resto de uma queda anterior: cópia completa do texto que nada mais apagaria (R-M2-07).
+    for (const n of nomes) if (n.endsWith(SUFIXO_TEMPORARIO)) await fs.apagar(join(pasta, n)).catch(() => undefined);
     const nome = nomeBackupRotativo(agora);
     const recente = nomes.some((n) => {
       const quando = dataDoBackup(n)?.getTime();
@@ -94,8 +96,6 @@ export async function fazerBackupRotativo(
     if (recente) return { feito: false, motivo: 'INTERVALO' };
 
     temporario = join(pasta, nome + SUFIXO_TEMPORARIO);
-    // Resto de uma queda anterior.
-    await fs.apagar(temporario).catch(() => undefined);
     await fs.copiar(origem, temporario);
     // A cópia herda o somente leitura, que impediria a rotação de apagá-la depois.
     await fs.tornarGravavel(temporario);

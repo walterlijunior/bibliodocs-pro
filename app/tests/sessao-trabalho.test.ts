@@ -1,6 +1,7 @@
 // M1-T11 — sessão de edição: estado de salvamento do visor e salvamento automático (ADR-0004, opção 1 do usuário).
 // API falsa e agendador manual: nenhuma espera real, nenhum Electron.
 import { describe, expect, it } from 'vitest';
+import { LIMITES_V1 } from '../src/dominio/esquemas';
 import {
   ATRASO_INSTANTANEO_MS,
   ATRASO_SALVAMENTO_AUTOMATICO_MS,
@@ -106,6 +107,10 @@ describe('título editável', () => {
     expect(tituloDoTexto('Estudo de Caryocar brasiliense', italico)).toEqual(italico);
     expect(tituloDoTexto('Outro', italico)).toEqual([{ tipo: 'texto', texto: 'Outro' }]);
     expect(tituloDoTexto('', italico)).toEqual([]);
+    // R-M2-03: o que o v1 recusa não entra no modelo.
+    expect(tituloDoTexto('a\u000bb', [])).toEqual([{ tipo: 'texto', texto: 'ab' }]);
+    expect(tituloDoTexto('\u000b', [])).toEqual([]);
+    expect((tituloDoTexto('x'.repeat(LIMITES_V1.textoInline + 5), [])[0] as { texto: string }).texto).toHaveLength(LIMITES_V1.textoInline);
   });
 });
 
@@ -514,5 +519,15 @@ describe('mídias uma vez (M2-T01)', () => {
     await andar();
     expect(enviados.map((p) => p.midias)).toEqual([[{ sha256: M.sha256 }], [M], [{ sha256: M.sha256 }]]);
     expect(sessao.obterEstado().avisos).toEqual([]);
+  });
+});
+
+describe('trabalho sem arquivo com texto próprio (R-M2-04, R-M2-10)', () => {
+  it('o aviso usa o texto pedido, e o falso "não é .bdp" não aparece', () => {
+    const { sessao } = montar();
+    sessao.abrir(projeto({ identificador: null }), [], { textoSemDestino: 'Versão descartada' });
+    expect(sessao.obterEstado().avisos.map((a) => a.texto)).toEqual(['Versão descartada']);
+    sessao.abrir(projeto({ identificador: null }));
+    expect(sessao.obterEstado().avisos.map((a) => a.texto)).toEqual([MENSAGEM_SEM_DESTINO]);
   });
 });

@@ -26,7 +26,7 @@ pré-textuais) chega no M2, e a exportação DOCX no M3. Relatório do marco: `d
 | `npm run preview` | Abre o aplicativo a partir do build em `out/` |
 | `npm run typecheck` | `tsc --noEmit` nos quatro projetos TypeScript (node, puro, web e e2e) |
 | `npm test` | `vitest run` (testes em `tests/`) |
-| `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --omit=dev --audit-level=high`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
+| `npm run verificar` | **Comando único de verificação:** `typecheck` → `vitest run` → `npm audit --audit-level=high` (com as de desenvolvimento, porque o Electron distribuído é uma delas) → `npm audit signatures`. Para na primeira etapa que falhar e sai com código diferente de zero. O `npm audit` consulta o registro do npm, portanto precisa de rede |
 | `npm run esquemas:gerar` | Regrava o JSON Schema de `esquemas/projeto-v1/` a partir dos esquemas zod. Rode depois de mudar `src/dominio/esquemas/projeto-v1.ts`; o `verificar` falha enquanto o arquivo versionado estiver diferente |
 | `npm run test:e2e` | `build` + E2E do Playwright no Electron real (`e2e/`): fluxo do trabalho, recuperação após `taskkill`, casca em 3 escalas, zero rede (net-log), defesas do runtime e desempenho com o documento grande (150 páginas, 25 MiB). Abre janelas na tela (~50 s). Dados, biblioteca e perfil do Chromium ficam numa pasta temporária apagada no fim; roda mesmo com o app aberto |
 | `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
@@ -276,7 +276,7 @@ porque o controle `app.isPackaged` vem antes.
 | C-10 a C-12 | API nomeada no preload; remetente e argumentos conferidos (zod estrito e limites); identificadores opacos; caminho de destino só por diálogo (M1-T08) | `src/preload/api.ts`, `src/principal/ipc/` |
 | C-13, C-14 | Fuses e integridade do ASAR (M1-T14) | `electron-builder.config.cjs` |
 | C-16, C-17 | NSIS por usuário, sem elevação; sem atualização automática (`publish: null`) (M1-T14) | idem |
-| C-18 a C-20 | Lockfile em sincronia, versões exatas, `npm audit --omit=dev` no `verificar`, varreduras de `innerHTML`/`eval`/rede (M1-T03) | `tests/arquitetura-varreduras.test.ts` |
+| C-18 a C-20 | Lockfile em sincronia, versões exatas, `npm audit` no `verificar`, varreduras de `innerHTML`/`eval`/rede (M1-T03) | `tests/arquitetura-varreduras.test.ts` |
 | C-22 (parte 2) | Trava de sessão por trabalho aberto, válida dentro desta instalação (M1-T12) | `src/persistencia/recuperacao/` |
 
 **Pendentes:**
@@ -295,3 +295,4 @@ Testes de segurança: `tests/seguranca-politica-urls.test.ts`, `tests/seguranca-
 
 Arquivo › Versões descartadas… lista o que está em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao-antigos` e ainda abre
 (prazo de 7 dias). A versão abre como trabalho sem arquivo: nada é alterado, e só "Salvar como…" a grava.
+Até lá, o que for escrito nela não tem salvamento automático nem cópia de recuperação (R-M2-04).

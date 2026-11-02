@@ -133,7 +133,7 @@ test('Versões descartadas: abre como trabalho sem arquivo e não altera nada (M
   await b.pagina.getByRole('menuitem', { name: 'Versões descartadas…' }).click();
   await b.pagina.getByRole('button', { name: /^Abrir a versão de .* de Versão guardada$/ }).click();
   await expect(b.pagina.getByLabel('Título do trabalho')).toHaveValue('Versão guardada');
-  await expect(b.pagina.getByText(/^Versão descartada de /)).toBeVisible();
+  await expect(b.pagina.getByText(/^Versão descartada, guardada em /)).toBeVisible();
   expect(readFileSync(arquivo).equals(bytesArquivo)).toBe(true);
   expect(readFileSync(guardado).equals(bytesGuardado)).toBe(true);
 });

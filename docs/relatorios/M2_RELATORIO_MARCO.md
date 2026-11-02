@@ -15,7 +15,7 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T09 Lugares dos pós-textuais e letras de apêndice e anexo | CONCLUÍDA | 2026-11-02 |
 | M2-T10 Backups rotativos e `.bak` acompanhando excluir e renomear | CONCLUÍDA | 2026-11-02 |
 | M2-T11 Pendências técnicas do M1 | CONCLUÍDA | 2026-11-02 |
-| M2-T12 | PENDENTE | — |
+| M2-T12 Fechamento do marco | EM ANDAMENTO: revisão feita (`REVISAO_M2.md`); aguarda decisões do usuário | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -563,4 +563,4 @@ Dependências de desenvolvimento: `electron` 44.8.0 → 44.9.0 e `axe-core` 4.14
 - Instalador NSIS não regenerado nem instalado com o 44.9.0: só a pasta de fumaça foi conferida.
 - axe não roda sobre a lista cheia de versões nem substitui o roteiro manual do RNF-09.
 - Lista de terceiros no "Sobre" (RNF-15) não feita. O inventário cobre dependências npm de produção; os avisos do Electron e do Chromium vão nos arquivos deles.
-- Com oferta adiada ("Decidir depois"), a versão descartada do mesmo trabalho só abre depois de decidir a oferta.
+- **Correção posterior (M2-T12, `REVISAO_M2.md`):** Electron 44.10.1, porque o 44.9.0 tinha aviso Alto; a descrição "17 só em desenvolvimento" acima estava errada, pois um deles era o Electron distribuído. A recusa de versão descartada com oferta adiada foi retirada.

@@ -53,6 +53,7 @@ import {
   limparAntigos,
   listarIdsComInstantaneos,
   listarTravas,
+  NOME_INSTANTANEO_ANTERIOR,
   procurarRestos,
   promoverConjunto,
   reservarInstantaneos,
@@ -107,8 +108,6 @@ const MENSAGEM_SEM_GUARDAR = 'Não foi possível guardar o arquivo danificado an
 /** Versões listadas no máximo por vez: cada uma é lida pelo processo leitor. */
 export const MAX_VERSOES_DESCARTADAS = 100;
 export const MENSAGEM_DESCARTADA_ILEGIVEL = 'Não foi possível abrir esta versão. Ela pode ter passado do prazo de 7 dias.';
-export const MENSAGEM_DESCARTADA_COM_OFERTA =
-  'Este trabalho tem uma versão esperando recuperação na Biblioteca. Decida essa recuperação antes de abrir uma versão descartada.';
 const MENSAGEM_DISCO = 'Não foi possível preparar a recuperação por um erro no disco. Nada foi apagado.';
 
 interface SessaoAtiva {
@@ -144,7 +143,7 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   const registroOfertas = dep.ofertas ?? new RegistroProjetos();
   const internas = new Map<string, OfertaInterna>();
   /** Identificador → caminho em `recuperacao-antigos`; valem só para a janela e a listagem mais recente. */
-  const descartadas = new Map<string, { caminho: string; dono: number }>();
+  const descartadas = new Map<string, { caminho: string; dono: number; quando: number }>();
   let contador = 0;
 
   const agoraMs = () => dep.agora().getTime();
@@ -192,8 +191,9 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   /** O trabalho `idProjeto` foi gravado em `caminho` (salvar ou "Salvar como…"). */
   const aoGravar = (caminho: string, idProjeto: string, dono: number, marca: number): Promise<void> =>
     emFila(async () => {
-      // Instantâneo gravado durante a gravação tem alterações que o arquivo não tem: fica (revisão A3).
-      if ((geracoes.get(idProjeto) ?? 0) === marca) await apagarInstantaneos(pastas, idProjeto, op);
+      // Instantâneo gravado durante a gravação tem alterações que o arquivo não tem: fica (revisão A3). Sem sessão, os
+      // instantâneos são de uma queda ainda não decidida, e só a escolha do usuário os tira (R-M2-01).
+      if (sessoes.has(idProjeto) && (geracoes.get(idProjeto) ?? 0) === marca) await apagarInstantaneos(pastas, idProjeto, op);
       const s = sessoes.get(idProjeto);
       if (s && s.dono === dono && chaveCaminho(s.caminho) !== chaveCaminho(caminho)) await iniciarSessao(idProjeto, caminho, dono);
     });
@@ -558,22 +558,28 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
           if (i !== null) arquivos.push({ caminho, modificadoEmMs: i.modificadoEmMs });
         }
       } catch {
-        return { versoes: [] }; // pasta ainda não existe ou não abre
+        return { versoes: [], incompleta: false }; // pasta ainda não existe ou não abre
       }
       arquivos.sort((a, b) => b.modificadoEmMs - a.modificadoEmMs);
       const lote = arquivos.slice(0, MAX_VERSOES_DESCARTADAS);
-      const resumos = (await dep.resumir(lote.map((a) => a.caminho))) ?? [];
+      const resumos = await resumirTodos(lote.map((a) => a.caminho));
+      let incompleta = false;
       const versoes: VersaoDescartada[] = [];
-      lote.forEach((a, i) => {
-        const resumo = resumos[i];
+      lote.forEach((a) => {
+        const resumo = resumos.get(a.caminho);
+        if (resumo === null || resumo === undefined) incompleta = true; // o leitor falhou: não é o mesmo que não haver versão
         if (resumo?.estado !== 'ok') return; // danificado ou de versão futura: não abre aqui
         const identificador = registroOfertas.registrar(`descartada:${++contador}`, r.idConteudo);
-        descartadas.set(identificador, { caminho: a.caminho, dono: r.idConteudo });
-        const atualizado = Date.parse(resumo.atualizadoEm);
-        versoes.push({ identificador, titulo: resumo.titulo, quando: Number.isNaN(atualizado) ? a.modificadoEmMs : atualizado });
+        descartadas.set(identificador, { caminho: a.caminho, dono: r.idConteudo, quando: a.modificadoEmMs });
+        // `atualizadoEm` é a data do último salvamento, não a do texto: vale a hora em que a versão foi guardada (R-M2-09).
+        versoes.push({
+          identificador,
+          titulo: resumo.titulo,
+          quando: a.modificadoEmMs,
+          anterior: basename(a.caminho).includes(`-${NOME_INSTANTANEO_ANTERIOR}`),
+        });
       });
-      versoes.sort((a, b) => b.quando - a.quando);
-      return { versoes };
+      return { versoes, incompleta };
     });
   };
 
@@ -588,12 +594,9 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       if (!lido.ok) return { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
       const idProjeto = lido.pacote.manifesto.id;
       if (sessoes.has(idProjeto)) return { ok: false, mensagem: MENSAGEM_JA_ABERTO };
-      // "Salvar como…" deste trabalho apagaria os instantâneos do mesmo projeto (`aoGravar`), que ainda são uma oferta.
-      if ((await instantaneosDe(pastas, idProjeto, op)).length > 0) return { ok: false, mensagem: MENSAGEM_DESCARTADA_COM_OFERTA };
-      const quando = Date.parse(lido.pacote.manifesto.atualizadoEm);
       return {
         ok: true,
-        quando: Number.isNaN(quando) ? agoraMs() : quando,
+        quando: d.quando,
         projeto: { identificador: null, nomeArquivo: 'Versão descartada.bdp', pacote: lido.pacote, avisos: [...lido.avisos], atualizacao: null },
       };
     });
