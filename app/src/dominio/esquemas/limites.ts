@@ -4,7 +4,7 @@
  * Os limites de tamanho do arquivo, de entradas do ZIP e de compressão ficam no contêiner (M1-T05).
  * Aqui ficam os que dependem da estrutura dos JSON.
  */
-import { MAXIMO_SECOES_POR_NIVEL } from '../modelo';
+import { MAXIMO_REPETICOES_ELEMENTO, MAXIMO_SECOES_POR_NIVEL, ORDEM_POS_TEXTUAIS, ORDEM_PRE_TEXTUAIS } from '../modelo';
 
 export const LIMITES_V1 = {
   /** Profundidade máxima da árvore de seções (ADR-0004: "profundidade da árvore de blocos ≤ 64"). */
@@ -25,6 +25,9 @@ export const LIMITES_V1 = {
   subalineasPorAlinea: 1_000,
   /** Mesmo valor que as operações de `dominio/modelo` respeitam (M2-T03). */
   secoesPorNivel: MAXIMO_SECOES_POR_NIVEL,
+  /** Cada pré-textual uma vez; apêndices e anexos até `MAXIMO_REPETICOES_ELEMENTO` cada (M2-T02). */
+  elementosPreTextuais: ORDEM_PRE_TEXTUAIS.length,
+  elementosPosTextuais: ORDEM_POS_TEXTUAIS.length - 2 + 2 * MAXIMO_REPETICOES_ELEMENTO,
   /** 5.000 entradas do ZIP menos as entradas fixas do pacote. */
   midias: 4_990,
   bytesMidia: 64 * 1024 * 1024,

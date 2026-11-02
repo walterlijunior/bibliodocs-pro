@@ -6,6 +6,7 @@
  * As restrições que o JSON Schema não expressa estão em `RESTRICOES_SO_NO_CODIGO`.
  */
 import { z } from 'zod';
+import { ORDEM_POS_TEXTUAIS, ORDEM_PRE_TEXTUAIS, TIPOS_TRABALHO } from '../modelo';
 import { LIMITES_V1 } from './limites';
 
 export const VERSAO_FORMATO_ATUAL = 1;
@@ -113,14 +114,22 @@ export const esquemaSecao = z
   })
   .meta({ id: 'Secao' });
 
+export const esquemaTipoTrabalho = z.enum(TIPOS_TRABALHO);
+
+/** Lugar de um elemento pré ou pós-textual (M2-T02); os campos de cada um chegam no M2-T08 e no M2-T09. */
+export const esquemaElementoPreTextual = z.strictObject({ tipo: z.enum(ORDEM_PRE_TEXTUAIS), id }).meta({ id: 'ElementoPreTextual' });
+export const esquemaElementoPosTextual = z.strictObject({ tipo: z.enum(ORDEM_POS_TEXTUAIS), id }).meta({ id: 'ElementoPosTextual' });
+
 export const esquemaDocumentoV1 = z.strictObject({
   id,
-  tipoTrabalho: z.enum(['generico']),
+  tipoTrabalho: esquemaTipoTrabalho,
   metadados: z.strictObject({
     titulo: conteudoTitulo,
     subtitulo: conteudoTitulo.optional(),
   }),
+  preTextuais: z.array(esquemaElementoPreTextual).min(1).max(LIMITES_V1.elementosPreTextuais).optional(),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),
+  posTextuais: z.array(esquemaElementoPosTextual).min(1).max(LIMITES_V1.elementosPosTextuais).optional(),
 });
 
 // ---------- manifesto.json ----------
@@ -155,7 +164,7 @@ export const esquemaManifestoV1 = z
       id: z.string().max(LIMITES_V1.textoCurto).regex(PADRAO_ID_PERFIL, { error: 'id de perfil inválido (ex.: uft-2022)' }),
       versao: z.string().max(LIMITES_V1.textoCurto).regex(PADRAO_VERSAO_SEMVER, { error: 'versão do perfil inválida (ex.: 1.0.0)' }),
     }),
-    tipoTrabalho: z.enum(['generico']),
+    tipoTrabalho: esquemaTipoTrabalho,
     midias: z.array(esquemaMidia).max(LIMITES_V1.midias),
   })
   .superRefine((m, ctx) => {
@@ -180,6 +189,7 @@ export const RESTRICOES_SO_NO_CODIGO = [
   'maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo)',
   'caminho da mídia coerente com sha256 e tipo',
   'sha256 único na lista de mídias do manifesto',
-  'ids únicos no documento (seções, blocos e notas)',
+  'ids únicos no documento (elementos pré e pós-textuais, seções, blocos e notas)',
+  'elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico',
   'sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas)',
 ] as const;

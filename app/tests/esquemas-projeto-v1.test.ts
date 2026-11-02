@@ -93,7 +93,7 @@ describe('documento.json v1', () => {
 
   it('marca e tipo de trabalho fora da enumeração são recusados', () => {
     const json = lerFixture('documento-valido.json');
-    json.tipoTrabalho = 'tese';
+    json.tipoTrabalho = 'tcc';
     json.metadados.titulo[1].marcas = ['sublinhado'];
     const lista = erros(validarDocumentoV1(json));
     expect(lista.map((e) => e.caminho).sort()).toEqual(['documento.metadados.titulo[1].marcas[0]', 'documento.tipoTrabalho']);

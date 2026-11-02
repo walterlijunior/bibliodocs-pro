@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-10-17 — M2-T07 concluído (árvore de seções na interface; ordem única de desfazer).
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔).
+**Última atualização:** 2026-11-02 — M2-T02 concluído (tipos de trabalho como dados; diálogo "Novo trabalho"), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01 ✔, T02 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔).
 
 ## Etapas
 
@@ -15,16 +15,23 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01 ✔, T03 ✔, T04 ✔, T05 ✔, T06 ✔, T07 ✔, T02 e T08–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T07 ✔, T08–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. **M2-T02** (tipos de trabalho como dados, com elementos e ordem por tipo), pré-requisito do T08 e do T09; ou
-   **M2-T10** (backups rotativos), independente. Recomendado: T02.
-2. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+1. Autorizar o commit do M2-T02 (o trabalho está só na pasta).
+2. **M2-T08** (pré-textuais com campos) ou **M2-T09** (lugares dos pós-textuais), que dependiam do T02; ou **M2-T10**
+   (backups rotativos), independente. Recomendado: T08.
+3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T02 (visíveis; sem registro de confirmação do usuário, podem ser revistas)
+- "Novo trabalho" pede o tipo num diálogo; o trabalho é gravado ao nascer; o último tipo fica marcado durante a sessão.
+- O trabalho novo traz o obrigatório e o sugerido; opcionais não entram, o autor acrescenta.
+- Corpo do artigo-TCC: Introdução, Desenvolvimento, Considerações finais como sugestão (C-B18 estendida; PF-14 sem fonte).
+- Projeto de pesquisa: Introdução, Objetivos (geral, específicos), Cronograma, como no modelo UFT.
 
 ## Decisões do M2-T07 (2026-10-17, delegadas pelo usuário: "deixo todas ao seu julgamento")
 Decisões visíveis tomadas pela sessão principal (motivos no relatório do M2, seção M2-T07; técnicas no adendo do M2-T07
@@ -88,6 +95,13 @@ O usuário escreveu: "deixo essas decisões para você".
   ordem do texto não muda (adendo do M2-T03 no ADR-0007).
 
 ## Instruções para etapas futuras
+- Tipos de trabalho (M2-T02; adendo no ADR-0004; relatório do M2):
+  - **Para o M2-T08/T09:** campos novos em `ElementoPreTextual`/`ElementoPosTextual` e nos esquemas; marcar cada elemento
+    sugerido como "sugestão do modelo UFT, não exigida pelo Manual" (C-B18, hoje só no diálogo); campo "bolsista"
+    (RN-147); `inserirSecao` deve considerar os ids dos elementos (B2 do M2-T03).
+  - Marcar como `IMPLEMENTADA` uma RN citada em `ESTRUTURA_POR_TIPO` exige ajustar `tests/tipos-trabalho.test.ts`, que
+    hoje exige `CONFIRMADA`.
+  - **Para o M3:** `ESTRUTURA_POR_TIPO` vai para `perfis/uft-2022/`. Sem marco: variante Letras-Libras (RN-115).
 - Núcleo do editor (M2-T05; adendo do M2-T05 no ADR-0007; `app/README.md`, "Núcleo do editor"):
   - **Feito no M2-T06** (adendo do M2-T06 no ADR-0007): todo `EditorState` nasce em `criarEstadoSecao`; E2E de colagem
     real e net-log; NodeView da nota; M6 e B5 corrigidos; latência medida com o editor.
@@ -378,3 +392,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (M2-T04) | Modelo M2 pela sessão principal: blocos `alineas` (com `subalineas`) e `citacaoLonga`, inline `nota` com conteúdo embutido, rótulo derivado `a)…z), aa), bb)` (C-A6), ids únicos também para notas, mensagens pt-BR próprias, JSON Schema com `$defs` nomeados; 2 fixtures válidas e 14 inválidas. `especialista-documento`: 0 Alta, M1 (adendo) e M3 (tipos nomeados) corrigidas, M2 (ids na colagem) para o M2-T05, B4–B7 registradas. 16/16 mutações. `verificar:tudo` 825/825 + E2E 9/9, 0 vulnerabilidades. Incidente: `prettier --write` reformatou 10 arquivos; desfeito reescrevendo a partir do HEAD (o `git checkout` foi bloqueado pela permissão). Decisão delegada: nota no título continua recusada. Commit `41ca279` autorizado pelo usuário. |
 | 2026-10-17 | 5 (prep. M2) | Preparação do M2: tarefas M2-T01..T12 detalhadas no plano pela sessão principal (dependências, aceite, decisões do usuário necessárias); ADR-0007 redigido pelo `especialista-interface` e aceito (com os itens visíveis, C-B18 e C-A6) por decisão delegada pelo usuário, com versões conferidas por `npm view` (ProseMirror 86,0 × TipTap 77,4 × Lexical 69,2 × próprio 62,4 × Slate 61,0); achados: TipTap e React Aria injetam `<style>` (CSP), Radix injeta `<style>` variável, colagem padrão do ProseMirror usa `innerHTML` → colagem própria. Sem mudança de código. Kit validado. Commit `9480c8c` autorizado pelo usuário. |
 | 2026-10-17 | 5 (M2-T07) | Árvore de seções na aba Escrever (padrão ARIA tree; nova, subir, descer, recuar, promover, excluir, arrastar; Alt+Shift+setas, Delete, F2, Enter), `HistoricoEdicao` com ordem única de texto e estrutura, barra superior Seção anterior/Próxima, Trabalho › Estrutura de seções…. Domínio: `moverParaCima/Baixo`, `moverJuntoDe`. Achado do E2E: grupo de digitação do ProseMirror juntava passos fora de ordem → `closeHistory`. Revisão do `especialista-interface`: A1, M2–M4, B5–B7 corrigidos; B8 pendente. `verificar:tudo`: 943/943, 0 vulnerabilidades, E2E 12/12. |
+| 2026-11-02 | 5 (M2-T02) | Retomada do código deixado sem commit em 2026-10-17. Seis tipos como dados, `preTextuais`/`posTextuais` no v1, `biblioteca.criar(tipo)`, diálogo "Novo trabalho". Fontes conferidas pela sessão principal contra a matriz e os modelos: sem divergência; 2 comentários corrigidos. Mutações 9/12 → 3 testes novos → 12/12. RN-113 e RN-114 `IMPLEMENTADA`. `verificar:tudo` 981/981, 0 vulnerabilidades, E2E 13/13; kit 0 falhas. Relatório da revisão anterior não encontrado. Sem commit (aguarda autorização). |

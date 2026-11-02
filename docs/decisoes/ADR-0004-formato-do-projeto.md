@@ -589,3 +589,18 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
   verdade; o principal ainda desserializa o `documento.json` a cada instantâneo (~5 ms com 150 páginas), o que cresce
   com o texto — se o editor do M2-T06 passar da meta, mandar só as seções alteradas; mídia removida fica na memória até
   fechar o trabalho. Corrigido na revisão: mídia removida sai do registro no envio aceito seguinte.
+
+## Adendo do M2-T02 (2026-11-02) — tipos de trabalho e elementos no formato v1
+
+- **Aditivo, sem subir `versaoFormato`** (regra do adendo do M1-T04: ainda não houve distribuição). `tipoTrabalho` aceita
+  os seis tipos UFT e `generico`. Arquivos do M1 continuam válidos.
+- **`preTextuais` e `posTextuais`:** listas opcionais de `{ tipo, id }` só com o lugar do elemento; os campos entram como
+  acréscimos no M2-T08 e no M2-T09. Lista vazia é recusada (forma única: sem elemento, a chave fica ausente).
+- **Só no código** (`RESTRICOES_SO_NO_CODIGO`): ordem do Quadro 5; só apêndice e anexo se repetem, até 200; nenhum
+  elemento no `generico`; ids únicos também entre elementos e seções.
+- **Ausência não invalida o arquivo:** elemento obrigatório ausente é pendência do verificador (RF-04), porque o autor
+  precisa poder salvar um trabalho incompleto.
+- **Dados em TypeScript até o M3:** `ESTRUTURA_POR_TIPO` passa a `perfis/uft-2022/` quando o perfil existir (ADR-0005,
+  seção 3).
+- **Presença `sugerido`:** estende C-B18 ao corpo do artigo-TCC (PF-14), para o autor não começar sem seções. O verificador
+  nunca acusa a ausência de elemento sugerido.

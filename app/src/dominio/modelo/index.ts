@@ -6,7 +6,7 @@
  * - Sem números armazenados e sem HTML.
  *
  * Tipos mínimos do formato v1 criados no M1-T04; operações estruturais da árvore de seções no M2-T03; alíneas, citação
- * longa e nota de rodapé no M2-T04.
+ * longa e nota de rodapé no M2-T04; tipos de trabalho UFT e lugares dos elementos pré e pós-textuais no M2-T02.
  */
 export type {
   Bloco,
@@ -15,6 +15,10 @@ export type {
   BlocoParagrafo,
   BlocoQuebraPagina,
   Documento,
+  ElementoPosTextual,
+  ElementoPosTextualId,
+  ElementoPreTextual,
+  ElementoPreTextualId,
   Id,
   Inline,
   InlineDeNota,
@@ -26,7 +30,19 @@ export type {
   Metadados,
   Secao,
   TipoTrabalhoId,
+  TipoTrabalhoUft,
 } from './tipos';
+export {
+  ehTipoTrabalhoUft,
+  ELEMENTOS_REPETIVEIS,
+  MAXIMO_REPETICOES_ELEMENTO,
+  ORDEM_POS_TEXTUAIS,
+  ORDEM_PRE_TEXTUAIS,
+  problemaNosElementos,
+  TIPOS_TRABALHO,
+  TIPOS_TRABALHO_UFT,
+  type ProblemaElementos,
+} from './elementos';
 export { conteudosDoBloco, idsDoBloco } from './percorrer';
 export { textoPlano } from './texto-plano';
 export {

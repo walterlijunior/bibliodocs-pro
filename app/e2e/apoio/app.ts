@@ -12,7 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { _electron, type ElectronApplication, type Page } from '@playwright/test';
+import { _electron, expect, type ElectronApplication, type Page } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
 import { textoPlano, type Inline } from '../../src/dominio/modelo';
 
@@ -150,6 +150,19 @@ export async function abrirApp(amb: Ambiente, argsExtras: readonly string[] = []
   };
   abertos.get(amb)?.add(aberto);
   return aberto;
+}
+
+/**
+ * Cria um trabalho pelo diálogo "Novo trabalho" (M2-T02): clica o botão (padrão: "Criar primeiro trabalho"), marca o
+ * tipo pelo rótulo e confirma. Volta com o campo do título focado.
+ */
+export async function criarTrabalho(p: Page, tipo = 'TCC (monografia)', botao = 'Criar primeiro trabalho'): Promise<void> {
+  await p.getByRole('button', { name: botao }).click();
+  const dialogo = p.getByRole('dialog', { name: 'Novo trabalho' });
+  await dialogo.getByRole('radio', { name: tipo, exact: true }).check();
+  await dialogo.getByRole('button', { name: 'Criar trabalho' }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(p.getByLabel('Título do trabalho')).toBeFocused();
 }
 
 /** Arquivos `.bdp` da biblioteca. */

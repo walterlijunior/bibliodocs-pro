@@ -57,7 +57,16 @@ export {
   type TipoOferta,
 } from './portas/recuperacao';
 export { ACOES_EDICAO, CANAIS_EDICAO, type AcaoEdicao, type ApiEdicao, type CanalEdicao } from './portas/edicao';
-export { criarTrabalhoVazio, PERFIL_PADRAO, type DadosNovoTrabalho, type TrabalhoNovo } from './servicos/criar-trabalho';
+export {
+  criarTrabalhoDoTipo,
+  criarTrabalhoVazio,
+  PERFIL_PADRAO,
+  PREFIXO_ID_ELEMENTO,
+  PREFIXO_ID_SECAO,
+  type DadosNovoTrabalho,
+  type DadosNovoTrabalhoDoTipo,
+  type TrabalhoNovo,
+} from './servicos/criar-trabalho';
 export {
   ATRASO_INSTANTANEO_MS,
   ATRASO_SALVAMENTO_AUTOMATICO_MS,

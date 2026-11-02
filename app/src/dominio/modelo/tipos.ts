@@ -15,8 +15,13 @@
 /** Identificador estável (nanoid ou equivalente), nunca reaproveitado. */
 export type Id = string;
 
-/** Tipos de trabalho. No M1 só existe o genérico; os tipos UFT entram no M2 com o perfil. */
-export type TipoTrabalhoId = 'generico';
+/**
+ * Tipos de trabalho do Manual UFT (M2-T02). Os elementos e a ordem de cada um estão em `dominio/normas/tipos-trabalho`.
+ */
+export type TipoTrabalhoUft = 'monografia' | 'artigo-tcc' | 'dissertacao' | 'tese' | 'relatorio-tecnico' | 'projeto-pesquisa';
+
+/** `generico` é o tipo dos trabalhos criados no M1: não tem elementos pré nem pós-textuais e não é mais oferecido. */
+export type TipoTrabalhoId = 'generico' | TipoTrabalhoUft;
 
 export type MarcaTexto = 'italico' | 'negrito' | 'sobrescrito' | 'subscrito';
 
@@ -105,6 +110,44 @@ export interface Secao {
   subsecoes: Secao[];
 }
 
+/**
+ * Elementos pré-textuais, na ordem do Quadro 5 do Manual (RN-113). A lombada fica de fora: é parte física do trabalho
+ * impresso, sem efeito no DOCX (RN-126, PENDENTE-FONTE).
+ */
+export type ElementoPreTextualId =
+  | 'capa'
+  | 'folhaRosto'
+  | 'fichaCatalografica'
+  | 'errata'
+  | 'folhaAprovacao'
+  | 'dedicatoria'
+  | 'agradecimentos'
+  | 'epigrafe'
+  | 'resumo'
+  | 'abstract'
+  | 'listaIlustracoes'
+  | 'listaTabelas'
+  | 'listaSiglas'
+  | 'listaSimbolos'
+  | 'sumario';
+
+/** Elementos pós-textuais, na ordem do Quadro 5 (RN-114). Apêndice e anexo podem se repetir. */
+export type ElementoPosTextualId = 'referencias' | 'glossario' | 'apendice' | 'anexo' | 'indice';
+
+/**
+ * Lugar de um elemento no trabalho (M2-T02). Só o lugar: os campos e o texto de cada elemento chegam no M2-T08
+ * (pré-textuais) e no M2-T09/M4/M6 (pós-textuais), como campos novos desta interface.
+ */
+export interface ElementoPreTextual {
+  tipo: ElementoPreTextualId;
+  id: Id;
+}
+
+export interface ElementoPosTextual {
+  tipo: ElementoPosTextualId;
+  id: Id;
+}
+
 export interface Metadados {
   titulo: InlineDeTitulo[];
   subtitulo?: InlineDeTitulo[];
@@ -114,5 +157,11 @@ export interface Documento {
   id: Id;
   tipoTrabalho: TipoTrabalhoId;
   metadados: Metadados;
+  /**
+   * Na ordem do Quadro 5. Ausente quando não há elemento (a lista vazia é recusada na leitura, como `subalineas`);
+   * sempre ausente no tipo `generico`.
+   */
+  preTextuais?: ElementoPreTextual[];
   corpo: Secao[];
+  posTextuais?: ElementoPosTextual[];
 }

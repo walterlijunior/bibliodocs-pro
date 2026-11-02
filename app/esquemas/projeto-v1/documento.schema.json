@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:bibliodocs:esquemas:projeto-v1:documento",
   "title": "BiblioDocs Pro — documento.json (formato v1)",
-  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (seções, blocos e notas); sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
+  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (elementos pré e pós-textuais, seções, blocos e notas); elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico; sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
   "type": "object",
   "properties": {
     "id": {
@@ -12,7 +12,13 @@
     "tipoTrabalho": {
       "type": "string",
       "enum": [
-        "generico"
+        "generico",
+        "monografia",
+        "artigo-tcc",
+        "dissertacao",
+        "tese",
+        "relatorio-tecnico",
+        "projeto-pesquisa"
       ]
     },
     "metadados": {
@@ -46,11 +52,27 @@
       ],
       "additionalProperties": false
     },
+    "preTextuais": {
+      "minItems": 1,
+      "maxItems": 15,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ElementoPreTextual"
+      }
+    },
     "corpo": {
       "maxItems": 1000,
       "type": "array",
       "items": {
         "$ref": "#/$defs/Secao"
+      }
+    },
+    "posTextuais": {
+      "minItems": 1,
+      "maxItems": 403,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ElementoPosTextual"
       }
     }
   },
@@ -92,6 +114,40 @@
       "required": [
         "tipo",
         "texto"
+      ],
+      "additionalProperties": false
+    },
+    "ElementoPreTextual": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "capa",
+            "folhaRosto",
+            "fichaCatalografica",
+            "errata",
+            "folhaAprovacao",
+            "dedicatoria",
+            "agradecimentos",
+            "epigrafe",
+            "resumo",
+            "abstract",
+            "listaIlustracoes",
+            "listaTabelas",
+            "listaSiglas",
+            "listaSimbolos",
+            "sumario"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        }
+      },
+      "required": [
+        "tipo",
+        "id"
       ],
       "additionalProperties": false
     },
@@ -299,6 +355,30 @@
       },
       "required": [
         "conteudo"
+      ],
+      "additionalProperties": false
+    },
+    "ElementoPosTextual": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "referencias",
+            "glossario",
+            "apendice",
+            "anexo",
+            "indice"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        }
+      },
+      "required": [
+        "tipo",
+        "id"
       ],
       "additionalProperties": false
     }

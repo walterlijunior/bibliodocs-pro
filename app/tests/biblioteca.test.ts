@@ -329,10 +329,11 @@ describe('listar e índice-cache', () => {
 });
 
 describe('criar', () => {
-  it('cria um trabalho vazio válido, já aberto, com nome livre', async () => {
-    const m = montar();
-    const r1 = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO);
-    const r2 = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO);
+  it('cria um trabalho do tipo pedido, válido, já aberto, com nome livre', async () => {
+    let n = 0;
+    const m = montar({ gerarId: (prefixo) => `${prefixo}_Id${String(++n).padStart(6, '0')}` });
+    const r1 = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO, 'projeto-pesquisa');
+    const r2 = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO, 'tese');
     if (!r1.ok || !r2.ok) throw new Error('criar falhou');
     expect([r1.projeto.nomeArquivo, r2.projeto.nomeArquivo]).toEqual(['Trabalho sem título.bdp', 'Trabalho sem título (2).bdp']);
     expect(r1.item).toMatchObject({ nomeArquivo: 'Trabalho sem título.bdp', estado: 'ok', titulo: '', criadoEm: AGORA.toISOString() });
@@ -340,7 +341,15 @@ describe('criar', () => {
     const lido = await abrirProjeto(join(pastaPadrao, 'Trabalho sem título.bdp'));
     if (!lido.ok) throw new Error('arquivo criado inválido');
     expect(lido.pacote.manifesto.id).toBe('prj_Gerado0001');
-    expect(lido.pacote.documento).toEqual({ id: 'prj_Gerado0001', tipoTrabalho: 'generico', metadados: { titulo: [] }, corpo: [] });
+    expect(lido.pacote.manifesto.tipoTrabalho).toBe('projeto-pesquisa');
+    const doc = lido.pacote.documento;
+    expect(doc).toMatchObject({ id: 'prj_Gerado0001', tipoTrabalho: 'projeto-pesquisa', metadados: { titulo: [] } });
+    expect(doc.preTextuais?.map((e) => e.tipo)).toEqual(['capa', 'folhaRosto', 'listaIlustracoes', 'listaTabelas', 'sumario']);
+    expect(doc.preTextuais?.[0]?.id).toBe('ele_Id000001');
+    expect(doc.corpo.map((s) => s.titulo[0]?.texto)).toEqual(['Introdução', 'Objetivos', 'Cronograma']);
+    expect(doc.posTextuais?.map((e) => e.tipo)).toEqual(['referencias', 'apendice', 'anexo']);
+    expect(r1.item.tipoTrabalho).toBe('projeto-pesquisa');
+    expect(r2.projeto.pacote.manifesto.tipoTrabalho).toBe('tese');
     expect(r2.projeto.pacote.manifesto.id).toBe('prj_Gerado0002');
 
     // O identificador devolvido serve para salvar (fluxo do M1-T11).
@@ -593,7 +602,7 @@ describe('recusas de IPC (C-11)', () => {
   it.each<[string, unknown[]]>([
     [CANAIS_BIBLIOTECA.listar, []],
     [CANAIS_BIBLIOTECA.escolherPasta, []],
-    [CANAIS_BIBLIOTECA.criar, []],
+    [CANAIS_BIBLIOTECA.criar, ['tese']],
     [CANAIS_BIBLIOTECA.abrir, [ID_FALSO]],
     [CANAIS_BIBLIOTECA.renomear, [ID_FALSO, 'x']],
     [CANAIS_BIBLIOTECA.duplicar, [ID_FALSO]],
@@ -611,6 +620,9 @@ describe('recusas de IPC (C-11)', () => {
     ['identificador não texto', [CANAIS_BIBLIOTECA.excluir, { id: 1 }]],
     ['nome não texto', [CANAIS_BIBLIOTECA.renomear, 'A'.repeat(22), 42]],
     ['nome gigante', [CANAIS_BIBLIOTECA.renomear, 'A'.repeat(22), 'x'.repeat(1_001)]],
+    ['tipo genérico (não é mais oferecido)', [CANAIS_BIBLIOTECA.criar, 'generico']],
+    ['tipo desconhecido', [CANAIS_BIBLIOTECA.criar, 'tcc']],
+    ['tipo não texto', [CANAIS_BIBLIOTECA.criar, { tipo: 'tese' }]],
   ])('argumento fora do contrato: %s', async (_caso, [canal, ...args]) => {
     await expect(montar().chamar(canal as string, LEGITIMO, ...args)).rejects.toBeInstanceOf(ErroIpcRecusado);
   });
@@ -659,13 +671,13 @@ describe('preload (C-10) — biblioteca', () => {
     const api = criarApiBiblioDocs(async (...a) => (chamadas.push(a), { ok: true }));
     await api.biblioteca.listar();
     await api.biblioteca.escolherPasta();
-    await api.biblioteca.criar();
+    await api.biblioteca.criar('tese');
     await api.biblioteca.abrir('i');
     await api.biblioteca.renomear('i', 'n');
     await api.biblioteca.duplicar('i');
     await api.biblioteca.excluir('i');
     const c = CANAIS_BIBLIOTECA;
-    expect(chamadas).toEqual([[c.listar], [c.escolherPasta], [c.criar], [c.abrir, 'i'], [c.renomear, 'i', 'n'], [c.duplicar, 'i'], [c.excluir, 'i']]);
+    expect(chamadas).toEqual([[c.listar], [c.escolherPasta], [c.criar, 'tese'], [c.abrir, 'i'], [c.renomear, 'i', 'n'], [c.duplicar, 'i'], [c.excluir, 'i']]);
     expect(Object.isFrozen(api.biblioteca)).toBe(true);
   });
 });
@@ -746,7 +758,7 @@ describe('revisão M1 — exceção inesperada não leva caminho ao renderer', (
         return r;
       },
     });
-    const r = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO);
+    const r = await m.chamar<ResultadoCriar>(CANAIS_BIBLIOTECA.criar, LEGITIMO, 'monografia');
     expect(r).toMatchObject({ ok: true, item: { bytes: 0, modificadoEm: 0 } });
   });
 });

@@ -16,6 +16,7 @@ import type {
   ResultadoAbrir,
   ResultadoListar,
 } from '../../aplicacao';
+import type { TipoTrabalhoUft } from '../../dominio/modelo';
 
 export type EstadoBiblioteca =
   | { fase: 'carregando' }
@@ -100,9 +101,9 @@ export function useBiblioteca(api: ApiBiblioDocs) {
 
   /** Cria um trabalho já aberto (o identificador de gravação fica com a sessão de edição). */
   const criar = useCallback(
-    () =>
+    (tipo: TipoTrabalhoUft) =>
       acao(async (): Promise<{ projeto: ProjetoAberto; id: IdentificadorItem } | null> => {
-        const r = await api.biblioteca.criar();
+        const r = await api.biblioteca.criar(tipo);
         if (!r.ok) {
           falhou(r.codigo, r.mensagem);
           return null;

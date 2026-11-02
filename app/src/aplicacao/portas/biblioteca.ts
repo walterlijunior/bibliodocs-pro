@@ -11,6 +11,7 @@
  *   Lixeira, nunca apagar;
  * - nenhuma função lança por erro esperado; a rejeição fica para chamada recusada (origem, argumento fora do contrato).
  */
+import type { TipoTrabalhoUft } from '../../dominio/modelo';
 import type { ProjetoAberto, ResultadoAbrir } from './projetos';
 
 export const CANAIS_BIBLIOTECA = {
@@ -95,8 +96,11 @@ export interface ApiBiblioteca {
   listar(): Promise<ResultadoListar>;
   /** Mostra o diálogo de escolher pasta; a escolha vale para as próximas sessões. */
   escolherPasta(): Promise<ResultadoEscolherPasta>;
-  /** Cria um trabalho vazio (tipo genérico) na pasta e já o abre. */
-  criar(): Promise<ResultadoCriar>;
+  /**
+   * Cria um trabalho do tipo na pasta, com os elementos e as seções iniciais do tipo (M2-T02), e já o abre. Tipo fora
+   * de `TIPOS_TRABALHO_UFT` rejeita a chamada.
+   */
+  criar(tipo: TipoTrabalhoUft): Promise<ResultadoCriar>;
   /** Abre um arquivo da lista (mesmo resultado de `projetos.abrir`, sem o diálogo). */
   abrir(item: IdentificadorItem): Promise<ResultadoAbrir>;
   /** Renomeia o arquivo; `novoNome` sem a extensão (`.bdp` no fim é aceito e ignorado). */

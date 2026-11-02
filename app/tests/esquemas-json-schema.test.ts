@@ -78,8 +78,8 @@ it('documento.schema.json exige marcas únicas e texto apto a XML 1.0', () => {
   expect(texto).toContain('\\\\p{Cs}');
 });
 
-it('documento.schema.json define Secao como $defs recursiva e nomeia os trechos e a alínea', () => {
+it('documento.schema.json define Secao como $defs recursiva e nomeia os trechos, a alínea e os elementos', () => {
   const defs = gerados['documento.schema.json'].$defs as Record<string, No>;
-  expect(Object.keys(defs).sort()).toEqual(['Inline', 'InlineNota', 'InlineTexto', 'ItemAlinea', 'Secao']);
+  expect(Object.keys(defs).sort()).toEqual(['ElementoPosTextual', 'ElementoPreTextual', 'Inline', 'InlineNota', 'InlineTexto', 'ItemAlinea', 'Secao']);
   expect(JSON.stringify(defs.Secao)).toContain('"$ref":"#/$defs/Secao"');
 });

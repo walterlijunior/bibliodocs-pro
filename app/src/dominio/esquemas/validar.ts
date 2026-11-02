@@ -1,10 +1,10 @@
 /**
  * Validação dos JSON do pacote `.bdp` com mensagens em pt-BR (M1-T04; ADR-0004, seções 2 e 3).
  * Ordem: aninhamento JSON (iterativo, antes do zod, contra estouro de pilha) → esquema estrito →
- * profundidade da árvore de seções → ids únicos.
+ * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos.
  */
 import { z } from 'zod';
-import type { Bloco, Documento, Inline, Secao } from '../modelo';
+import { problemaNosElementos, type Bloco, type Documento, type Inline, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
 import { esquemaDocumentoV1, esquemaManifestoV1, type Manifesto } from './projeto-v1';
 
@@ -81,9 +81,24 @@ function conteudosComCaminho(b: Bloco): { conteudo: readonly Inline[]; caminho: 
   }
 }
 
-/** Primeiro id de seção, bloco ou nota repetido no documento, em ordem de leitura e sem recursão. */
-function idRepetido(corpo: Secao[]): readonly PropertyKey[] | null {
+const MENSAGENS_ELEMENTOS = {
+  tipoSemElementos: 'o tipo de trabalho genérico não tem elementos pré nem pós-textuais',
+  foraDeOrdem: 'elemento fora da ordem do Quadro 5 do Manual UFT',
+  repetido: 'elemento repetido (só apêndice e anexo podem aparecer mais de uma vez)',
+  repeticoesDemais: 'apêndices ou anexos demais',
+} as const;
+
+/**
+ * Primeiro id de elemento, seção, bloco ou nota repetido no documento, em ordem de leitura (pré-textuais, corpo,
+ * pós-textuais) e sem recursão.
+ */
+function idRepetido(doc: Documento): readonly PropertyKey[] | null {
   const vistos = new Set<string>();
+  for (const [i, e] of (doc.preTextuais ?? []).entries()) {
+    if (vistos.has(e.id)) return ['preTextuais', i, 'id'];
+    vistos.add(e.id);
+  }
+  const corpo = doc.corpo;
   const pilha: { s: Secao; caminho: PropertyKey[] }[] = corpo.map((s, i) => ({ s, caminho: ['corpo', i] })).reverse();
   while (pilha.length > 0) {
     const { s, caminho } = pilha.pop()!;
@@ -101,6 +116,10 @@ function idRepetido(corpo: Secao[]): readonly PropertyKey[] | null {
       }
     }
     for (let i = s.subsecoes.length - 1; i >= 0; i--) pilha.push({ s: s.subsecoes[i]!, caminho: [...caminho, 'subsecoes', i] });
+  }
+  for (const [i, e] of (doc.posTextuais ?? []).entries()) {
+    if (vistos.has(e.id)) return ['posTextuais', i, 'id'];
+    vistos.add(e.id);
   }
   return null;
 }
@@ -124,7 +143,14 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
       erros: [{ caminho: formatarCaminho('documento', alem), mensagem: `seções aninhadas demais (limite de ${LIMITES_V1.profundidadeSecoes} níveis)` }],
     };
   }
-  const repetido = idRepetido(r.valor.corpo);
+  const elementos = problemaNosElementos(r.valor);
+  if (elementos) {
+    return {
+      ok: false,
+      erros: [{ caminho: formatarCaminho('documento', [elementos.lista, elementos.indice, 'tipo']), mensagem: MENSAGENS_ELEMENTOS[elementos.motivo] }],
+    };
+  }
+  const repetido = idRepetido(r.valor);
   if (repetido) {
     return { ok: false, erros: [{ caminho: formatarCaminho('documento', repetido), mensagem: 'identificador repetido no documento' }] };
   }

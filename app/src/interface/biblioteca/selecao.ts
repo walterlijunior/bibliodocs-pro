@@ -3,6 +3,7 @@
  * Sem React e sem DOM, para ser testado em Node (tests/interface-biblioteca.test.ts).
  */
 import type { ItemBiblioteca } from '../../aplicacao';
+import type { TipoTrabalhoId, TipoTrabalhoUft } from '../../dominio/modelo';
 
 export type Filtro = { tipo: 'todos' } | { tipo: 'recentes' } | { tipo: 'tipoTrabalho'; id: string };
 
@@ -12,14 +13,35 @@ export const FILTRO_TODOS: Filtro = { tipo: 'todos' };
 export const LIMITE_RECENTES = 10;
 
 /**
- * Nome de cada tipo de trabalho na interface. No M1 só existe `generico`; os seis tipos UFT (TCC, Artigo, Dissertação,
- * Tese, Relatório, Projeto) entram no M2 com o perfil (RF-02). Tipo desconhecido aparece pelo próprio id.
+ * Nome de cada tipo de trabalho na interface (M2-T02; RF-02). `generico` é o tipo dos trabalhos criados no M1. Tipo
+ * desconhecido (arquivo de versão futura) aparece pelo próprio id.
  */
-const ROTULOS_TIPO: Readonly<Record<string, string>> = { generico: 'Genérico' };
+export const ROTULOS_TIPO: Readonly<Record<TipoTrabalhoId, string>> = {
+  generico: 'Genérico',
+  monografia: 'TCC (monografia)',
+  'artigo-tcc': 'Artigo como TCC',
+  dissertacao: 'Dissertação',
+  tese: 'Tese',
+  'relatorio-tecnico': 'Relatório técnico',
+  'projeto-pesquisa': 'Projeto de pesquisa',
+};
+
+/**
+ * Tipos oferecidos em "Novo trabalho", na ordem de `TIPOS_TRABALHO_UFT` (a interface só importa tipos do domínio, e
+ * `tests/tipos-trabalho.test.ts` confere que as listas são iguais), com o que cada um traz pronto.
+ */
+export const TIPOS_NOVO_TRABALHO: readonly { id: TipoTrabalhoUft; descricao: string }[] = [
+  { id: 'monografia', descricao: 'Graduação ou especialização. Elementos exigidos pelo Manual da UFT (Quadro 5).' },
+  { id: 'artigo-tcc', descricao: 'TCC em formato de artigo. Capa, folha de rosto e referências conforme o Manual da UFT; seções sugeridas.' },
+  { id: 'dissertacao', descricao: 'Mestrado. Elementos exigidos pelo Manual da UFT (Quadro 5).' },
+  { id: 'tese', descricao: 'Doutorado. Elementos exigidos pelo Manual da UFT (Quadro 5).' },
+  { id: 'relatorio-tecnico', descricao: 'O Manual da UFT não fixa a estrutura; você pode ajustar os elementos sugeridos pelo modelo da UFT.' },
+  { id: 'projeto-pesquisa', descricao: 'O Manual da UFT não fixa a estrutura; você pode ajustar os elementos sugeridos pelo modelo da UFT.' },
+];
 
 export function rotuloTipo(id: string | null): string {
   if (id === null) return 'Tipo desconhecido';
-  return ROTULOS_TIPO[id] ?? id;
+  return Object.hasOwn(ROTULOS_TIPO, id) ? ROTULOS_TIPO[id as TipoTrabalhoId] : id;
 }
 
 const EXTENSAO = /\.bdp$/i;

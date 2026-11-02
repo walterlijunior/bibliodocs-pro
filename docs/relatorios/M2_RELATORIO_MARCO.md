@@ -10,7 +10,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T05 Núcleo do editor: esquema, conversão, ids e colagem | CONCLUÍDA | 2026-10-17 |
 | M2-T06 Editor na aba Escrever ligado à sessão | CONCLUÍDA | 2026-10-17 |
 | M2-T07 Árvore de seções na interface e ordem única de desfazer | CONCLUÍDA | 2026-10-17 |
-| M2-T02, M2-T08 a M2-T12 | PENDENTE | — |
+| M2-T02 Tipos de trabalho como dados e diálogo "Novo trabalho" | CONCLUÍDA | 2026-11-02 |
+| M2-T08 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -415,3 +416,46 @@ primeiro (reproduzido num teste temporário: o "Dois" da seção 2 saía antes d
 - Roteiro NVDA da árvore (R42): conferir se nível, posição e número são lidos como esperado.
 - E2E de Ctrl+Z com a ordem única vazia (A1): coberto só pela leitura do código.
 - B8 (desempenho da árvore ao digitar no título com centenas de seções).
+
+## M2-T02 — Tipos de trabalho como dados e diálogo "Novo trabalho"
+
+**Implementação:** sessão principal, entre 2026-10-17 e 2026-11-02 (o código ficou sem commit nem registro em
+2026-10-17 e foi retomado e fechado em 2026-11-02). Nenhuma dependência nova. Decisões técnicas no adendo do M2-T02 no
+ADR-0004.
+
+**Código**
+- `dominio/modelo/elementos.ts`: tipos UFT, ordem canônica dos elementos e `problemaNosElementos`.
+- `dominio/normas/tipos-trabalho.ts`: `ESTRUTURA_POR_TIPO` (presença, RN e fonte de cada elemento, por tipo) e
+  `estruturaInicial`.
+- `dominio/esquemas`: `tipoTrabalho` com os seis tipos; `preTextuais` e `posTextuais` opcionais no `documento.json`.
+- `aplicacao/servicos/criar-trabalho.ts`: `criarTrabalhoDoTipo`. Canal `biblioteca.criar(tipo)`; tipo fora da lista é
+  recusado no principal.
+- `interface/biblioteca/DialogoNovoTrabalho.tsx` (`<dialog>` modal), `ROTULOS_TIPO`, `TIPOS_NOVO_TRABALHO`.
+
+**Conferência das fontes** [VERIFICADO 2026-11-02, pela sessão principal; sem agente `especialista-normas`]
+- Cada célula de `ESTRUTURA_POR_TIPO` comparada com a tabela "Ordem dos elementos" da matriz: sem divergência.
+- Cada RN citada lida na matriz: trata do elemento a que está ligada e está `CONFIRMADA`.
+- Modelos em `analise/modelos_txt/`: artigo e relatório trazem introdução, seções de miolo e considerações finais;
+  projeto traz introdução, "2 Objetivos" (geral e específicos) e cronograma, sem conclusão.
+- Corrigido nesta conferência: comentário do `ARTIGO_TCC` (o modelo não tem seção "Desenvolvimento"; o nome é do Manual)
+  e comentário de `selecao.ts` que apontava para o arquivo de teste errado.
+
+**Mutações** [VERIFICADO 2026-11-02]: 12 aplicadas por script temporário sobre dados, ordem, validação e criação. Na 1.ª
+rodada 9/12: sobreviveram trocar errata e folha de aprovação na ordem canônica, aceitar vizinhos trocados e não repetir
+anexo. Três testes novos; na 2.ª rodada 12/12.
+
+**Aceite** [VERIFICADO 2026-11-02]
+- RF-02: `tests/tipos-trabalho.test.ts`, trabalho novo de cada tipo com exatamente os elementos esperados, na ordem;
+  elemento sem fonte (`naoDefinido`) não entra; `sugerido` não tem RN e relatório e projeto não têm obrigatórios.
+- `e2e/fluxo-trabalho.spec.ts` (FUN-02): diálogo por teclado, Esc, foco, atalhos inertes, arquivo gravado com tipo e
+  elementos, último tipo marcado.
+- `npm run verificar:tudo`: 981/981, 0 vulnerabilidades, build OK, E2E 13/13. Kit: 0 falhas.
+
+**Limites conhecidos**
+- A revisão independente desta tarefa não tem relatório: só restam os rótulos nos comentários do código ("revisão do
+  M2-T02": A1, M2, M3), já corrigidos. Os demais achados, se houve, não são conhecidos.
+- Os elementos só têm o lugar no arquivo: campos e tela no M2-T08 e no M2-T09. Até lá, a marca "sugestão do modelo UFT,
+  não exigida pelo Manual" (C-B18) aparece apenas na descrição do tipo, no diálogo; por elemento, entra no M2-T08.
+- A variante Letras-Libras (RN-115) não é oferecida; agradecimentos de bolsista (RN-147) ficam `condicional`, sem campo
+  "bolsista" (M2-T08). A lombada fica fora do modelo (RN-126, PENDENTE-FONTE; elemento físico).
+- O último tipo escolhido dura só a sessão. Trabalhos `generico` do M1 continuam abrindo, sem elementos.

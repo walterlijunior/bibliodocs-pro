@@ -5,7 +5,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { abrirApp, arquivosBdp, criarAmbiente, lerDocumento, type Ambiente } from './apoio/app';
+import { abrirApp, arquivosBdp, criarAmbiente, criarTrabalho, lerDocumento, type Ambiente } from './apoio/app';
 
 let amb: Ambiente;
 test.beforeEach(() => {
@@ -57,7 +57,7 @@ test('RNF-04: matar o processo durante a edição e recuperar a última alteraç
   // 1. Trabalho salvo, depois uma alteração que só está na memória (e no instantâneo).
   const a = await abrirApp(amb);
   const campoA = a.pagina.getByLabel('Título do trabalho');
-  await a.pagina.getByRole('button', { name: 'Criar primeiro trabalho' }).click();
+  await criarTrabalho(a.pagina);
   await campoA.fill('Versão salva');
   await a.pagina.keyboard.press('Control+S');
   await expect(a.pagina.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);

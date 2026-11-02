@@ -18,7 +18,17 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import type { Bloco, Documento } from '../src/dominio/modelo';
-import { abrirApp, arquivosBdp, atividadeDeRede, criarAmbiente, lerDocumento, RAIZ_APP, type Ambiente, type AppAberto } from './apoio/app';
+import {
+  abrirApp,
+  arquivosBdp,
+  atividadeDeRede,
+  criarAmbiente,
+  criarTrabalho,
+  lerDocumento,
+  RAIZ_APP,
+  type Ambiente,
+  type AppAberto,
+} from './apoio/app';
 
 let amb: Ambiente;
 test.beforeEach(() => {
@@ -33,15 +43,25 @@ const corpoDoArquivo = (amb: Ambiente): Documento['corpo'] => {
   return (JSON.parse(lerDocumento(join(amb.trabalhos, nomes[0]!)).json) as Documento).corpo;
 };
 
-/** Trabalho novo com uma seção, o cursor no título dela. */
+/**
+ * Trabalho com uma seção só, o cursor no título dela. Desde o M2-T02 o trabalho nasce com as seções do tipo: o teste
+ * exclui as três do TCC pela árvore (Delete) antes de criar a sua.
+ */
 async function trabalhoComSecao(x: AppAberto): Promise<Page> {
   const p = x.pagina;
-  await p.getByRole('button', { name: 'Criar primeiro trabalho' }).click();
+  await criarTrabalho(p);
   await p.getByLabel('Título do trabalho').fill('Editor');
+  await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Desenvolvimento', '3 Considerações finais']);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  for (let i = 0; i < 3; i++) await p.keyboard.press('Delete');
+  await expect(p.getByRole('treeitem')).toHaveCount(0);
   await p.getByRole('button', { name: 'Nova seção' }).click();
   await expect(p.getByRole('textbox', { name: 'Texto da seção 1' })).toBeFocused();
   return p;
 }
+
+/** Nome dos itens da árvore, na ordem da tela ("2.1 Coleta"). */
+const arvore = (p: Page) => p.getByRole('treeitem').allTextContents();
 
 const editor = (p: Page) => p.getByRole('textbox', { name: 'Texto da seção 1' });
 
@@ -206,9 +226,6 @@ test('EDT-07: colar do Word, do LibreOffice e do Chrome pela área de transferê
   expect(x.requisicoes.filter((u) => !u.startsWith('app://interface/'))).toEqual([]);
   expect(x.problemas).toEqual([]);
 });
-
-/** Nome dos itens da árvore, na ordem da tela ("2.1 Coleta"). */
-const arvore = (p: Page) => p.getByRole('treeitem').allTextContents();
 
 test('EDT-09: árvore de seções — teclado, arrastar, barra superior e desfazer único', async () => {
   const x = await abrirApp(amb);

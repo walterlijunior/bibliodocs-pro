@@ -13,10 +13,11 @@
  *   recuperação; dois arquivos com o mesmo id misturariam essas pastas);
  * - excluir só envia para a Lixeira; se a Lixeira falha, nada é apagado.
  */
+import { randomBytes } from 'node:crypto';
 import { basename, dirname, join } from 'node:path';
 import {
   CANAIS_BIBLIOTECA,
-  criarTrabalhoVazio,
+  criarTrabalhoDoTipo,
   type CanalBiblioteca,
   type FalhaBiblioteca,
   type ItemBiblioteca,
@@ -28,6 +29,7 @@ import {
   type ResultadoItem,
   type ResultadoListar,
 } from '../../aplicacao';
+import { ehTipoTrabalhoUft } from '../../dominio/modelo';
 import {
   codigoErro,
   comSufixo,
@@ -90,6 +92,8 @@ export interface DependenciasBiblioteca {
   projetos: RegistroProjetos;
   /** Id novo de projeto (`PADRAO_ID`). */
   gerarIdProjeto: () => string;
+  /** Id novo de elemento ou seção com o prefixo (`PADRAO_ID`); padrão: prefixo + 16 caracteres aleatórios. */
+  gerarId?: (prefixo: string) => string;
   agora: () => Date;
   appVersao: string;
   fs?: SistemaArquivos;
@@ -125,6 +129,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
   const itens = dep.itens ?? new RegistroProjetos();
   const log = dep.log ?? ((m: string) => console.warn(m));
   const { conferir, recusarArgumento } = criarConferencia(dep.origem, dep.conteudosPermitidos, log);
+  const novoId = dep.gerarId ?? ((prefixo: string) => `${prefixo}_${randomBytes(12).toString('base64url')}`);
   const emFila = criarFila();
 
   // Estado da sessão: a pasta vem das preferências na 1.ª chamada; o índice fica em memória depois de lido.
@@ -264,7 +269,9 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
   };
 
   const criar: Manipulador = async (r, argumentos): Promise<ResultadoCriar> => {
-    conferir(CANAIS_BIBLIOTECA.criar, r, argumentos, 0);
+    conferir(CANAIS_BIBLIOTECA.criar, r, argumentos, 1);
+    const tipo = argumentos[0];
+    if (!ehTipoTrabalhoUft(tipo)) return recusarArgumento(CANAIS_BIBLIOTECA.criar, 'tipo de trabalho');
     return emFila(async () => {
       const p = await prepararPasta();
       if (!p.ok) return p;
@@ -275,7 +282,13 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
         return falhaDisco(e, 'criar o trabalho');
       }
       if (!nome) return falha('SEM_NOME_LIVRE', 'Não foi possível escolher um nome livre para o trabalho novo.');
-      const novo = criarTrabalhoVazio({ id: dep.gerarIdProjeto(), agora: dep.agora().toISOString(), appVersao: dep.appVersao });
+      const novo = criarTrabalhoDoTipo({
+        id: dep.gerarIdProjeto(),
+        agora: dep.agora().toISOString(),
+        appVersao: dep.appVersao,
+        tipo,
+        novoId,
+      });
       const pacote: PacoteProjeto = { ...novo, midias: new Map() };
       const destino = join(p.pasta, nome);
       const s = await dep.salvar(destino, pacote);

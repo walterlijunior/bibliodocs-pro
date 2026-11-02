@@ -6,7 +6,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { expect, test } from '@playwright/test';
-import { abrirApp, atividadeDeRede, criarAmbiente, RAIZ_APP, type Ambiente } from './apoio/app';
+import { abrirApp, atividadeDeRede, criarAmbiente, criarTrabalho, RAIZ_APP, type Ambiente } from './apoio/app';
 
 let amb: Ambiente;
 test.beforeEach(() => {
@@ -27,7 +27,7 @@ function semRede(netLog: string): void {
 test('zero requisições de rede: criar, salvar, buscar, fechar e reabrir', async () => {
   const x = await abrirApp(amb);
   const p = x.pagina;
-  await p.getByRole('button', { name: 'Criar primeiro trabalho' }).click();
+  await criarTrabalho(p);
   await p.getByLabel('Título do trabalho').fill('Trabalho sem rede');
   await p.keyboard.press('Control+S');
   await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);

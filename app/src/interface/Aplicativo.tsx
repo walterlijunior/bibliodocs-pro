@@ -7,6 +7,7 @@
 // M2-T06: o editor de seção na aba Escrever e os menus Editar e Inserir › Nota de rodapé.
 // M2-T07: árvore de seções, ordem única de desfazer (texto e estrutura), "Seção anterior/Próxima seção" na barra
 // superior e Trabalho › Estrutura de seções… (`escrever/useEstrutura.ts`).
+// M2-T02: "Novo trabalho" abre o diálogo de escolha do tipo; o trabalho nasce com os elementos e as seções do tipo.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   AcaoAviso,
@@ -18,8 +19,10 @@ import type {
   ResultadoAbrir,
   ResultadoRecuperar,
 } from '../aplicacao';
+import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
+import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
 import { avisoRecuperado } from './biblioteca/recuperacao';
 import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista, type Filtro } from './biblioteca/selecao';
@@ -218,11 +221,20 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     [api, exclusivo, liberarAtual, listarOfertas, receberAbertura],
   );
 
+  // Diálogo de tipo: aberto por "Novo trabalho"; marca o último tipo escolhido na sessão.
+  const [escolhendoTipo, setEscolhendoTipo] = useState(false);
+  const [ultimoTipo, setUltimoTipo] = useState<TipoTrabalhoUft>('monografia');
+
+  // Com outra troca em curso o diálogo não abre: "Criar trabalho" não faria nada (revisão do M2-T02, M3).
+  const pedirNovoTrabalho = useCallback(() => {
+    if (!trocando.current) setEscolhendoTipo(true);
+  }, []);
+
   const criar = useCallback(
-    () =>
+    (tipo: TipoTrabalhoUft) =>
       exclusivo(async () => {
         if (!(await liberarAtual())) return;
-        const r = await criarNaBiblioteca();
+        const r = await criarNaBiblioteca(tipo);
         if (r === null) return;
         sessao.abrir(r.projeto);
         setBusca('');
@@ -377,7 +389,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           irParaSecao(c === 'secaoAnterior' ? -1 : 1);
           return;
         case 'novoTrabalho':
-          void criar();
+          pedirNovoTrabalho();
           return;
         case 'abrir':
           void abrirPorDialogo();
@@ -406,7 +418,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           return;
       }
     },
-    [abrirPorDialogo, acaoDoAviso, criar, editar, escolherPasta, fecharTrabalho, focarBusca, irParaEscrever, irParaSecao, pedirFoco, recarregar, sessao],
+    [abrirPorDialogo, acaoDoAviso, editar, escolherPasta, pedirNovoTrabalho, fecharTrabalho, focarBusca, irParaEscrever, irParaSecao, pedirFoco, recarregar, sessao],
   );
 
   // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
@@ -419,6 +431,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // Atalhos globais (Ctrl+F, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+W, Alt+setas, F5).
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
+      // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
+      if (escolhendoTipo) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -433,7 +447,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [comando, desativados]);
+  }, [comando, desativados, escolhendoTipo]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -448,6 +462,18 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   return (
     <>
       <SimbolosSvg />
+      {escolhendoTipo && (
+        <DialogoNovoTrabalho
+          inicial={ultimoTipo}
+          ocupado={bib.ocupado}
+          aoCancelar={() => setEscolhendoTipo(false)}
+          aoCriar={(tipo) => {
+            setEscolhendoTipo(false);
+            setUltimoTipo(tipo);
+            void criar(tipo);
+          }}
+        />
+      )}
       <div className="app">
         <BarraSuperior
           visor={visorDoTrabalho(trabalho)}
@@ -497,7 +523,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 ocupado={bib.ocupado}
                 aoSelecionar={setSelecionado}
                 aoAbrir={(id) => void abrirItem(id)}
-                aoCriar={() => void criar()}
+                aoCriar={pedirNovoTrabalho}
                 aoTentarDeNovo={() => void recarregar()}
                 aoEscolherPasta={() => comando('escolherPasta')}
                 ofertas={ofertas}
@@ -517,7 +543,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoSalvar={() => void sessao.salvar()}
                 aoFechar={() => void fecharTrabalho()}
                 aoAcao={(a) => void acaoDoAviso(a)}
-                aoCriar={() => void criar()}
+                aoCriar={pedirNovoTrabalho}
                 aoAbrir={() => void abrirPorDialogo()}
                 aoIrParaBiblioteca={() => ir({ aba: 'biblioteca', colecao: 'trabalhos' })}
                 lerSecao={(id) => sessao.secao(id)}

@@ -66,6 +66,8 @@
   --cor-pagina: #FFFFFF;
   --cor-pagina-texto: #111111;
   --cor-sombra: rgba(0, 0, 0, 0.18);
+  /* Fundo atrás de um diálogo modal (M2-T02). */
+  --cor-veu: rgba(0, 0, 0, 0.4);
 
   /* Tipografia da interface (a do documento é outra e vem do perfil normativo). */
   --fonte-ui: "Segoe UI", system-ui, "Noto Sans", "Liberation Sans", Arial, sans-serif;

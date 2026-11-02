@@ -324,3 +324,28 @@ button:disabled { opacity: 0.45; cursor: default; }
 }
 .bd-nota__editor { min-height: 2.5em; outline: none; white-space: pre-wrap; }
 .bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+
+/* Diálogo "Novo trabalho" (M2-T02). */
+.dialogo {
+  border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); padding: 0;
+  background: var(--cor-fundo); color: var(--cor-texto); max-width: min(560px, calc(100vw - 2 * var(--esp-4)));
+  max-height: calc(100vh - 2 * var(--esp-4)); box-shadow: 0 4px 24px var(--cor-sombra);
+}
+.dialogo::backdrop { background: var(--cor-veu); }
+/* Com zoom ou tela baixa, só a lista de tipos rola; título e botões ficam à vista. */
+.dialogo__corpo {
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: var(--esp-3); padding: var(--esp-4) var(--esp-5);
+  max-height: calc(100vh - 2 * var(--esp-4)); box-sizing: border-box;
+}
+.lista-rolavel { overflow: auto; min-height: 0; }
+.dialogo__corpo h2 { margin: 0; }
+.dialogo__acoes { display: flex; gap: var(--esp-2); justify-content: flex-end; }
+.tipos-trabalho { border: 0; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
+.tipos-trabalho legend { padding: 0; margin-bottom: var(--esp-2); font-weight: 600; }
+.tipos-trabalho__opcao {
+  display: grid; grid-template-columns: auto 1fr; column-gap: var(--esp-2); align-items: baseline;
+  padding: var(--esp-2); border: 1px solid var(--cor-borda); border-radius: var(--raio); cursor: default;
+}
+.tipos-trabalho__opcao:has(input:checked) { border-color: var(--cor-destaque); background: var(--cor-superficie); }
+.tipos-trabalho__opcao .dica { grid-column: 2; }
+.tipos-trabalho__nome { font-weight: 600; }
