@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M3-T02 concluído (perfil `uft-2022` em dados), sem commit: aguarda autorização.
-**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T02 ✔).
+**Última atualização:** 2026-11-02 — M3-T03 concluído (motor: estilos e corpo do texto), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T03 ✔).
 
 ## Etapas
 
@@ -15,17 +15,17 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T02 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T03 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M3-T02 (o trabalho está só na pasta).
-2. **M3-T03:** motor `formatar(doc, perfil)`, com `origem` RN em toda propriedade.
-3. Decidir: instalar o .NET para o validador OOXML (R47)? Encerrar os 7 processos ocultos do Word que ficaram abertos?
-3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+1. Autorizar o commit do M3-T03 (o trabalho está só na pasta).
+2. **M3-T04:** seções, paginação, pré e pós-textuais no motor.
+3. .NET autorizado pelo usuário em 2026-11-02: instalar no M3-T07, para o validador OOXML.
+4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Fatos novos para o M3 [VERIFICADO 2026-11-02]
 - Word 16 instalado e acessível por COM (`Word.Application`): a PoC dizia "Word não disponível". DOC-08 pode ser automatizado em parte.
@@ -33,7 +33,8 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 - `docx` 9.15.1 testada na PoC (`docs/relatorios/M3_RELATORIO_MARCO.md`). Sumário estimado igual ao do Word em 15 e 149 páginas.
 - A automação do Word detectou 3 de 6 arquivos inválidos: não prova "abre sem reparo" (R47).
 - Commit do M2-T13: `5f636b9`; do plano: `277d801`; do M3-T01: `d48ad07` (sem `git push`).
-- O .NET não foi autorizado: segue sem validador OOXML até decisão do usuário.
+- Commit do M3-T02: `73fc09c` (sem `git push`).
+- Os 7 processos ocultos do Word foram encerrados por identificador, com autorização do usuário.
 - Valores provisórios de alínea escolhidos da PoC: deslocamento 0,75 cm; subalínea 2,25 e 0,5 cm (D-M3-04 só fixou a letra a 1,25 cm).
 
 ## Decisões do usuário no fechamento do M2 (2026-11-02, "siga suas recomendações")
@@ -459,3 +460,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T13) | Comandos de alíneas e citação longa pela sessão principal, sem revisão independente; prazo de 30 dias para cópias de trabalho excluído; RN-232 e RN-235 como AMBÍGUA. Mutações 12/13, e a sobrevivente ganhou teste. **M2 concluído**, com as ressalvas do relatório. |
 | 2026-11-02 | 5 (M3-T00, T01) | Plano do M3 e decisões D-M3. PoC com `docx` 9.15.1 aberta no Word 16 por COM: paginação estimada igual à real em 149 páginas; filete sem número (L6). Automação detecta 3/6 inválidos (R47). 7 processos ocultos do Word ficaram abertos por falha do script. `verificar:tudo` 1112/1112, E2E 17/17. |
 | 2026-11-02 | 5 (M3-T02) | Perfil em dados pela sessão principal, sem revisão independente: 43 regras, 17 parâmetros, tipos movidos do código. `verificar:tudo` 1174/1174, E2E 17/17; mutações 11/11. |
+| 2026-11-02 | 5 (M3-T03) | Motor normativo pela sessão principal, sem revisão independente: estilos e blocos do corpo com RN de origem. `verificar:tudo` 1220/1220, E2E 17/17; mutações 16/16. |

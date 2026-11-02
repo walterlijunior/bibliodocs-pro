@@ -7,7 +7,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T00 Plano e decisões de formatação (D-M3-01 a 09) | CONCLUÍDA | 2026-11-02 |
 | M3-T01 PoC com `docx` 9.15.1 no Word real | CONCLUÍDA | 2026-11-02 |
 | M3-T02 Perfil `uft-2022` em dados | CONCLUÍDA | 2026-11-02 |
-| M3-T03 a M3-T12 | PENDENTE | — |
+| M3-T03 Motor: estilos e corpo do texto | CONCLUÍDA | 2026-11-02 |
+| M3-T04 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -42,7 +43,7 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - **A automação não prova "abre sem reparo".** Em 6 arquivos estragados de propósito, recusou 3: XML quebrado, célula sem parágrafo e arquivo que não é ZIP. Abriu 3 sem erro: parágrafo com tabela dentro, elemento desconhecido e arquivo sem estilos. Com alertas desligados, não se sabe se o Word os repara em silêncio ou os tolera. Por isso, a conferência manual do usuário continua no fechamento do M3 (risco R47).
 - `@types/node` e `undici-types` entram no inventário como dependências declaradas do `docx`, embora só tragam tipos. O M3-T05 deve deixá-los fora do pacote.
 - O teste do script ainda não está em `verificar:tudo` (M3-T07).
-- Na primeira execução, uma falha de chamada no script deixou 7 processos do Word abertos e ocultos. O script foi corrigido; nas rodadas seguintes o número não aumentou. Esses 7 continuam abertos, porque encerrar todo processo do Word foi bloqueado e poderia atingir um documento do usuário.
+- Na primeira execução, uma falha de chamada no script deixou 7 processos do Word abertos e ocultos. O script foi corrigido; nas rodadas seguintes o número não aumentou. Encerrar todo processo do Word foi bloqueado, porque poderia atingir um documento do usuário. Depois da autorização, foram encerrados só esses 7, por identificador, todos sem janela e iniciados na hora do teste.
 
 **Testes:** `npm run verificar:tudo`: 1112/1112, 388 assinaturas, sem achado alto, E2E 17/17, memória 766 MB. Só a instalação das dependências mudou no app; o exportador ainda não as usa.
 
@@ -63,3 +64,22 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - O motor ainda não lê as regras: nada muda no documento até o M3-T03.
 - O perfil é validado por teste, não ao carregar: ele faz parte do build.
 - Deslocamentos de alínea (0,75 cm), recuo e deslocamento de subalínea (2,25 e 0,5 cm) vêm da PoC, com `origem: provisorio`. Sua decisão D-M3-04 fixou só o recuo da letra.
+
+## M3-T03 — Motor: estilos e corpo do texto
+
+**Implementação:** sessão principal, sem delegar a `especialista-documento`. **Sem revisão independente:** fica para o M3-T12. Nenhuma dependência nova.
+
+**Código**
+- `dominio/normas/formatado.ts`: só tipos, em twips e meios-pontos. `dominio/normas/motor.ts`: `formatar(doc, perfil, ajustes)`, puro.
+- 15 estilos com nomes em português, como "Título 1 – Seção primária". Toda propriedade traz as RN de origem.
+- Ambígua sem valor e PENDENTE-FONTE não provisória não são aplicadas e saem em `regrasAguardando`.
+- Avisos: nota, citação ou alínea vazia e seção além do quinto nível, que sai como quinária.
+
+**Testes** [VERIFICADO 2026-11-02]: `verificar:tudo` 1220/1220, 388 assinaturas, E2E 17/17, memória 755 MB. Mutações no motor: 16/16. Sem nenhuma regra no perfil, todo estilo sai vazio: nenhuma medida vem do código.
+
+**Limitações**
+- O motor ainda não é chamado pelo aplicativo, e nada foi exportado: a saída só foi conferida por teste de unidade.
+- Falta o M3-T04: seções, paginação, pré e pós-textuais; título sem indicativo e referência têm estilo, sem blocos que os usem.
+- `tituloSemIndicativo`, `referencia` e `numeroPagina` não têm entrelinha ou fonte de corpo próprias quando a regra não as define; a conferência no Word fica para o M3-T06 e T07.
+- `rotuloAlineasDobradas` aceita só o valor decidido: não há outra sequência implementada.
+- A opção de Arial existe no motor (`ajustes.fonte`), mas o trabalho ainda não guarda essa escolha, nem há tela: M3-T08.

@@ -74,6 +74,7 @@ incluindo PER-16, que só roda no win32). As provas de mutação registradas nos
 | PER-DESC | Versões descartadas: lista só o que abre, sem caminho; abre sem arquivo e sem alterar nada; prazo, janela, oferta pendente preservada, data e lista incompleta | `tests/recuperacao.test.ts`, `e2e/recuperacao.spec.ts` | PASSOU (M2-T11, 2026-11-02) |
 | ARQ-LIC | Inventário de licenças de produção, recusa de copyleft e `TERCEIROS.txt` em dia e no pacote | `tests/terceiros.test.ts`; arquivo conferido em `dist:fumaca` | PASSOU (M2-T11, 2026-11-02) |
 | ARQ-PERFIL | Perfil em dados: esquema estrito; status e fonte iguais à matriz; provisória só com decisão; sem conflito no mesmo alvo; perfil fictício muda o domínio (RNF-11, RNF-13) | `tests/perfil.test.ts` | PASSOU (M3-T02, 2026-11-02) |
+| NOR-01 | Motor: toda propriedade com RN do perfil; sem regra, estilo vazio; valores de DOC-02 a DOC-06 em twips; parâmetros mudam a saída; ambígua sem valor não aplicada; numeração de seções, alíneas e notas; determinístico | `tests/motor-normativo.test.ts` (só unidade; DOCX no M3-T05 e T06) | PASSOU (M3-T03, 2026-11-02) |
 | UI-AXE | RNF-09 (parte automática): axe-core WCAG 2.1 A/AA sem violação séria ou crítica em Biblioteca vazia, Novo trabalho, Versões descartadas vazia e Escrever. Não cobre lista cheia nem o roteiro manual | `e2e/acessibilidade.spec.ts` | PASSOU (M2-T11, 2026-11-02) |
 
 ## Grupo E2E — Electron real (aplicativo, desde o M1-T13)

@@ -23,3 +23,13 @@ export {
   pendenciasPreTextuais,
   type PendenciaPreTextual,
 } from './pendencias-pre-textuais';
+export { formatar, type AjustesProjeto } from './motor';
+export type {
+  AvisoFormatacao,
+  BlocoFormatado,
+  DocumentoFormatado,
+  EstiloResolvido,
+  ItemDeLista,
+  PropriedadesEstilo,
+  TrechoFormatado,
+} from './formatado';
