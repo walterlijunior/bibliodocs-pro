@@ -12,7 +12,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T07 Árvore de seções na interface e ordem única de desfazer | CONCLUÍDA | 2026-10-17 |
 | M2-T02 Tipos de trabalho como dados e diálogo "Novo trabalho" | CONCLUÍDA | 2026-11-02 |
 | M2-T08 Pré-textuais com campos e pendências | CONCLUÍDA | 2026-11-02 |
-| M2-T09 a M2-T12 | PENDENTE | — |
+| M2-T09 Lugares dos pós-textuais e letras de apêndice e anexo | CONCLUÍDA | 2026-11-02 |
+| M2-T10 a M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -491,3 +492,23 @@ presença por tipo do M2-T02. Só a coleta e a pendência; a forma final (fontes
 - Digitar nos campos usa o desfazer do próprio campo, fora da ordem única; retirar um membro da banca não tem desfazer.
 - Ficha catalográfica é texto colado do sistema da UFT, sem imagem ou PDF (mídia no M5).
 - Roteiro NVDA (R42) não executado.
+
+## M2-T09 — Lugares dos pós-textuais e letras de apêndice e anexo
+
+**Implementação:** sessão principal. **Sem revisão independente.** Nenhuma dependência nova. Conforme o plano, só domínio:
+**não há tela** para incluir apêndice ou anexo nem para digitar o título deles.
+
+**Código**
+- `dominio/modelo/elementos.ts`: `incluirPosTextual` (lugar do Quadro 5, RN-114) e `retirarPosTextual`, puras.
+- `dominio/numeracao/pos-textuais.ts`: `letraPosTextual` e `rotulosPosTextuais`, derivados da posição, nunca gravados.
+- `ElementoPosTextual` como união; `titulo` opcional em apêndice e anexo (aditivo no v1).
+
+**Correção na matriz:** a coluna de validação da RN-232 (e a RN-235, "idem") dizia `AA, AB`, leitura sem fonte: o Manual
+(p. 65–66) diz só "letras maiúsculas dobradas", sem exemplo. Passou a `AA, BB, CC`, o valor de C-A6 para as alíneas,
+provisório até a fonte (P-03). Só muda a partir do 28.º apêndice.
+
+**Aceite** [VERIFICADO 2026-11-02]: `tests/pos-textuais.test.ts` (ordem por tipo, letras, renumerar ao retirar, formato).
+Mutações 8/8. `npm run verificar:tudo`: 1042/1042, 0 vulnerabilidades, build OK, E2E 14/14. Kit: 0 falhas.
+
+**Limites conhecidos:** a forma "APÊNDICE A – Título" e o título geral (RN-237) são do M3; o conteúdo, do M4 e do M6.
+Referências ausentes ainda não aparecem como pendência (verificador, M7).

@@ -37,6 +37,8 @@ export type {
 } from './tipos';
 export {
   ehTipoTrabalhoUft,
+  incluirPosTextual,
+  retirarPosTextual,
   ELEMENTOS_REPETIVEIS,
   MAXIMO_REPETICOES_ELEMENTO,
   ORDEM_POS_TEXTUAIS,

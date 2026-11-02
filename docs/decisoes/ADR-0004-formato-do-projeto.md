@@ -615,3 +615,7 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
 - **A sessão limpa o texto** antes de pôr no modelo (XML 1.0, limites): colar um controle não pode impedir de salvar.
 - **Desfazer:** incluir e retirar entram na ordem única com um inverso só daquele elemento; restaurar uma cópia da lista
   apagaria o que foi digitado depois. Os campos usam o desfazer nativo, como o título.
+
+## Adendo do M2-T09 (2026-11-02) — pós-textuais no formato v1
+
+- **Aditivo:** `titulo` opcional em apêndice e anexo. A letra não é gravada: vem da posição, como o número das seções.

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T08 concluído (pré-textuais com campos e pendências), sem commit: aguarda autorização.
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T08 ✔).
+**Última atualização:** 2026-11-02 — M2-T09 concluído (lugares dos pós-textuais, só domínio), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T09 ✔).
 
 ## Etapas
 
@@ -15,16 +15,21 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T08 ✔, T09–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T09 ✔, T10–T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T08 (o trabalho está só na pasta).
-2. **M2-T09** (lugares dos pós-textuais; apêndice e anexo por letra). Depois M2-T10 e M2-T11.
+1. Autorizar o commit do M2-T09 (o trabalho está só na pasta).
+2. **M2-T10** (backups rotativos e `.bak` acompanhando excluir e renomear). Depois M2-T11 e M2-T12.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T09 (tomada pela sessão principal, pode ser revista)
+- Letras depois do Z: `AA, BB, CC` (RN-232, RN-235), como C-A6; o Manual não exemplifica (P-03).
+- Sem tela nesta tarefa, como no plano. **Falta um marco para a tela de apêndices e anexos** (incluir, retirar, título): proposta, M6.
+- Commit do M2-T08: `9869e03` (sem `git push`).
 
 ## Decisões do M2-T08 (visíveis; tomadas pela sessão principal sob "pode seguir", podem ser revistas)
 - Pendência nunca impede de salvar. Elemento obrigatório pode ser retirado (vira pendência); Ctrl+Z traz de volta com o texto.
@@ -406,3 +411,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-10-17 | 5 (M2-T07) | Árvore de seções na aba Escrever (padrão ARIA tree; nova, subir, descer, recuar, promover, excluir, arrastar; Alt+Shift+setas, Delete, F2, Enter), `HistoricoEdicao` com ordem única de texto e estrutura, barra superior Seção anterior/Próxima, Trabalho › Estrutura de seções…. Domínio: `moverParaCima/Baixo`, `moverJuntoDe`. Achado do E2E: grupo de digitação do ProseMirror juntava passos fora de ordem → `closeHistory`. Revisão do `especialista-interface`: A1, M2–M4, B5–B7 corrigidos; B8 pendente. `verificar:tudo`: 943/943, 0 vulnerabilidades, E2E 12/12. |
 | 2026-11-02 | 5 (M2-T02) | Retomada do código deixado sem commit em 2026-10-17. Seis tipos como dados, `preTextuais`/`posTextuais` no v1, `biblioteca.criar(tipo)`, diálogo "Novo trabalho". Fontes conferidas pela sessão principal contra a matriz e os modelos: sem divergência; 2 comentários corrigidos. Mutações 9/12 → 3 testes novos → 12/12. RN-113 e RN-114 `IMPLEMENTADA`. `verificar:tudo` 981/981, 0 vulnerabilidades, E2E 13/13; kit 0 falhas. Relatório da revisão anterior não encontrado. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T08) | Pré-textuais pela sessão principal, sem revisão independente: dados em `metadados`, campos por elemento, pendências com RN, lista e formulários na aba Escrever, incluir e retirar na ordem única. Mutações 16/16. `verificar:tudo` 1024/1024, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
+| 2026-11-02 | 5 (M2-T09) | Pós-textuais no domínio pela sessão principal, sem revisão independente: inclusão no lugar do Quadro 5, letras derivadas, `titulo` em apêndice e anexo; célula da RN-232 corrigida. Mutações 8/8. `verificar:tudo` 1042/1042, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |

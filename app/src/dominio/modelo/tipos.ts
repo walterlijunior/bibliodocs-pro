@@ -159,12 +159,14 @@ export type ElementoPreTextual =
   | { tipo: 'resumo'; id: Id; texto?: string; palavrasChave?: string[] }
   | { tipo: 'abstract'; id: Id; idioma?: IdiomaResumo; texto?: string; palavrasChave?: string[] };
 
-/** Lugar de um pós-textual no trabalho (M2-T02); os campos chegam no M2-T09/M4/M6. */
-
-export interface ElementoPosTextual {
-  tipo: ElementoPosTextualId;
-  id: Id;
-}
+/**
+ * Lugar de um pós-textual no trabalho (M2-T09). A letra de apêndice e anexo vem da posição (`dominio/numeracao`), nunca
+ * gravada; o conteúdo chega no M4 (referências) e no M6 (os demais).
+ */
+export type ElementoPosTextual =
+  | SoLugar<'referencias' | 'glossario' | 'indice'>
+  | { tipo: 'apendice'; id: Id; titulo?: string }
+  | { tipo: 'anexo'; id: Id; titulo?: string };
 
 /** Pessoa com titulação (orientador, coorientador; RN-127, RN-132). */
 export interface PessoaTitulada {

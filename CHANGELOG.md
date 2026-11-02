@@ -6,6 +6,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T09: lugares dos pós-textuais na ordem do Quadro 5 e letras de apêndice e anexo derivadas da posição
+  (`A…Z, AA, BB`), só no domínio. Formato v1: `titulo` opcional em apêndice e anexo (aditivo).
+
+### Corrigido
+- Matriz normativa, RN-232: sequência `AA, AB` sem fonte trocada por `AA, BB, CC` (como C-A6; provisório, P-03).
+
+### Adicionado
 - Etapa 5, M2-T08: elementos pré-textuais com campos na aba Escrever (RF-04; adendo M2-T08 no ADR-0004).
   - Lista dos elementos com a marca de sugestão e a contagem de pendências; incluir e retirar, com Ctrl+Z.
   - Formulários de capa, folha de rosto, ficha, errata, folha de aprovação com banca, dedicatória, agradecimentos,

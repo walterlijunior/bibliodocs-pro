@@ -6,7 +6,7 @@
  * As restrições que o JSON Schema não expressa estão em `RESTRICOES_SO_NO_CODIGO`.
  */
 import { z } from 'zod';
-import { ORDEM_POS_TEXTUAIS, TIPOS_TRABALHO } from '../modelo';
+import { TIPOS_TRABALHO } from '../modelo';
 import { LIMITES_V1 } from './limites';
 
 export const VERSAO_FORMATO_ATUAL = 1;
@@ -154,8 +154,16 @@ export const esquemaElementoPreTextual = z
     z.strictObject({ tipo: z.literal('abstract'), id, idioma: z.enum(['en', 'es', 'fr']).optional(), texto: campoLongo.optional(), palavrasChave: palavrasChave.optional() }),
   ])
   .meta({ id: 'ElementoPreTextual' });
-/** Lugar de um pós-textual (M2-T02); os campos chegam no M2-T09. */
-export const esquemaElementoPosTextual = z.strictObject({ tipo: z.enum(ORDEM_POS_TEXTUAIS), id }).meta({ id: 'ElementoPosTextual' });
+/** Lugar de um pós-textual (M2-T09); apêndice e anexo têm título, e a letra vem da posição. */
+export const esquemaElementoPosTextual = z
+  .discriminatedUnion('tipo', [
+    soLugar('referencias'),
+    soLugar('glossario'),
+    z.strictObject({ tipo: z.literal('apendice'), id, titulo: campoCurto.optional() }),
+    z.strictObject({ tipo: z.literal('anexo'), id, titulo: campoCurto.optional() }),
+    soLugar('indice'),
+  ])
+  .meta({ id: 'ElementoPosTextual' });
 
 const pessoaTitulada = z.strictObject({ nome: campoCurto.optional(), titulacao: campoCurto.optional() });
 

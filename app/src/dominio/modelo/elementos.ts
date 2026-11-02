@@ -3,7 +3,7 @@
  * pela leitura do `.bdp` e pelas operações; a obrigatoriedade por tipo de trabalho, com as RN, fica em
  * `dominio/normas/tipos-trabalho` (o modelo não conhece regras RN, ADR-0005).
  */
-import type { Documento, ElementoPosTextualId, ElementoPreTextualId, TipoTrabalhoId, TipoTrabalhoUft } from './tipos';
+import type { Documento, ElementoPosTextual, ElementoPosTextualId, ElementoPreTextualId, Id, TipoTrabalhoId, TipoTrabalhoUft } from './tipos';
 
 /** Os seis tipos oferecidos ao criar um trabalho, na ordem em que aparecem para o usuário. */
 export const TIPOS_TRABALHO_UFT: readonly TipoTrabalhoUft[] = [
@@ -46,6 +46,24 @@ export const ELEMENTOS_REPETIVEIS: ReadonlySet<ElementoPosTextualId> = new Set([
 
 /** Apêndices e anexos num trabalho: A–Z e depois letras dobradas (RN-232, RN-235) dão folga de sobra. */
 export const MAXIMO_REPETICOES_ELEMENTO = 200;
+
+/**
+ * Lista com o elemento novo no lugar dele no Quadro 5 (RN-114): apêndice novo depois dos apêndices que já existem.
+ * `null` = o tipo já está na lista e não se repete, ou chegou ao limite de repetições.
+ */
+export function incluirPosTextual(lista: readonly ElementoPosTextual[], tipo: ElementoPosTextualId, id: Id): ElementoPosTextual[] | null {
+  const iguais = lista.filter((e) => e.tipo === tipo).length;
+  if (iguais >= (ELEMENTOS_REPETIVEIS.has(tipo) ? MAXIMO_REPETICOES_ELEMENTO : 1)) return null;
+  const posicao = ORDEM_POS_TEXTUAIS.indexOf(tipo);
+  const i = lista.findIndex((e) => ORDEM_POS_TEXTUAIS.indexOf(e.tipo) > posicao);
+  const novo = { tipo, id } as ElementoPosTextual;
+  return i < 0 ? [...lista, novo] : [...lista.slice(0, i), novo, ...lista.slice(i)];
+}
+
+/** Lista sem o elemento; a mesma lista se o id não está nela. */
+export function retirarPosTextual(lista: ElementoPosTextual[], id: Id): ElementoPosTextual[] {
+  return lista.some((e) => e.id === id) ? lista.filter((e) => e.id !== id) : lista;
+}
 
 export interface ProblemaElementos {
   lista: 'preTextuais' | 'posTextuais';

@@ -800,28 +800,110 @@
       "additionalProperties": false
     },
     "ElementoPosTextual": {
-      "type": "object",
-      "properties": {
-        "tipo": {
-          "type": "string",
-          "enum": [
-            "referencias",
-            "glossario",
-            "apendice",
-            "anexo",
-            "indice"
-          ]
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "referencias"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
         },
-        "id": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "glossario"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "apendice"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "titulo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "anexo"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "titulo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "indice"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
         }
-      },
-      "required": [
-        "tipo",
-        "id"
-      ],
-      "additionalProperties": false
+      ]
     }
   }
 }
