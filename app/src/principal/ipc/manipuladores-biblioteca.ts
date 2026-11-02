@@ -32,6 +32,7 @@ import {
 import { ehTipoTrabalhoUft } from '../../dominio/modelo';
 import {
   codigoErro,
+  descreverErro,
   comSufixo,
   gravarIndice,
   gravarPreferencias,
@@ -428,7 +429,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       try {
         await dep.enviarParaLixeira(caminho);
       } catch (e) {
-        log(`[biblioteca] Lixeira falhou: ${codigoErro(e) ?? (e instanceof Error ? e.message : 'erro')}`);
+        log(`[biblioteca] Lixeira falhou: ${descreverErro(e)}`);
         return falha('LIXEIRA_FALHOU', `Não foi possível enviar “${nomeArquivo}” para a Lixeira. Nada foi apagado.`);
       }
       // O `.bak` tem o texto anterior: vai junto para a Lixeira (R-M1-02). O trabalho já foi; falhar aqui só fica no registro.

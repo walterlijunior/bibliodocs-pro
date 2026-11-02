@@ -123,3 +123,11 @@ export function codigoErro(erro: unknown): string | undefined {
   const c = (erro as { code?: unknown } | null)?.code;
   return typeof c === 'string' ? c : undefined;
 }
+
+/**
+ * O que um erro pode levar ao log (R-M1-07): o código (`ENOENT`) ou o tipo (`TypeError`). Nunca a mensagem, que no Node
+ * traz o caminho completo, e o caminho tem o nome de usuário do Windows e o título do trabalho.
+ */
+export function descreverErro(erro: unknown): string {
+  return codigoErro(erro) ?? (erro instanceof Error ? erro.name : 'erro');
+}

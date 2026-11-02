@@ -12,6 +12,7 @@ export type ComandoMenu =
   | 'fecharTrabalho'
   | 'escolherPasta'
   | 'atualizarBiblioteca'
+  | 'versoesDescartadas' // M2-T11
   | 'sair'
   | 'buscar'
   // M2-T06: menu Editar e Inserir › Nota de rodapé.
@@ -54,6 +55,7 @@ export const MENUS: readonly Menu[] = [
       'separador',
       { rotulo: 'Escolher pasta da biblioteca…', comando: 'escolherPasta' },
       { rotulo: 'Atualizar biblioteca', atalho: 'F5', comando: 'atualizarBiblioteca' },
+      { rotulo: 'Versões descartadas…', comando: 'versoesDescartadas' },
       'separador',
       { rotulo: 'Fechar trabalho', atalho: 'Ctrl+W', comando: 'fecharTrabalho' },
       { rotulo: 'Sair', atalho: 'Alt+F4', comando: 'sair' },

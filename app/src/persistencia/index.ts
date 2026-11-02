@@ -39,6 +39,7 @@ export {
 } from './arquivo/backups-rotativos';
 export {
   codigoErro,
+  descreverErro,
   SISTEMA_ARQUIVOS_NODE,
   type ArquivoAberto,
   type EntradaPasta,

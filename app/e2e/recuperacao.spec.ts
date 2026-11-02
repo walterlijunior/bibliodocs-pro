@@ -2,7 +2,7 @@
  * RNF-04 / FUN-10: encerrar o processo durante a edição (`taskkill /F /T`) e reabrir oferece a versão da última
  * alteração (instantâneo de até ~2 s antes); "Recuperar" e "Abrir o arquivo salvo"; fechamento normal sem oferta.
  */
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { abrirApp, arquivosBdp, criarAmbiente, criarTrabalho, lerDocumento, type Ambiente } from './apoio/app';
@@ -111,4 +111,29 @@ test('RNF-04: matar o processo durante a edição e recuperar a última alteraç
   await d.fechar();
 
   for (const x of [a, b, c, d]) expect(x.problemas).toEqual([]);
+});
+
+test('Versões descartadas: abre como trabalho sem arquivo e não altera nada (M2-T11)', async () => {
+  const a = await abrirApp(amb);
+  await criarTrabalho(a.pagina);
+  await a.pagina.getByLabel('Título do trabalho').fill('Versão guardada');
+  await a.pagina.keyboard.press('Control+S');
+  await expect(a.pagina.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
+  await a.fechar();
+
+  const arquivo = join(amb.trabalhos, arquivosBdp(amb)[0]!);
+  const antigos = join(amb.dados, 'recuperacao-antigos');
+  mkdirSync(antigos, { recursive: true });
+  const guardado = join(antigos, 'prj-20261102-120000-atual.bdp');
+  copyFileSync(arquivo, guardado);
+  const [bytesArquivo, bytesGuardado] = [readFileSync(arquivo), readFileSync(guardado)];
+
+  const b = await abrirApp(amb);
+  await b.pagina.getByRole('menuitem', { name: 'Arquivo' }).click();
+  await b.pagina.getByRole('menuitem', { name: 'Versões descartadas…' }).click();
+  await b.pagina.getByRole('button', { name: /^Abrir a versão de .* de Versão guardada$/ }).click();
+  await expect(b.pagina.getByLabel('Título do trabalho')).toHaveValue('Versão guardada');
+  await expect(b.pagina.getByText(/^Versão descartada de /)).toBeVisible();
+  expect(readFileSync(arquivo).equals(bytesArquivo)).toBe(true);
+  expect(readFileSync(guardado).equals(bytesGuardado)).toBe(true);
 });

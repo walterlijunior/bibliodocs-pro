@@ -6,6 +6,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M2-T11: pendências técnicas do M1. Inventário de licenças com `TERCEIROS.txt` no pacote e recusa de copyleft em
+  produção; `npm audit signatures` no `verificar`; logs só com código ou tipo do erro; Electron 44.9.0; axe-core nos E2E;
+  diálogo Arquivo › Versões descartadas…, que abre o que está em `recuperacao-antigos` sem alterar nenhum arquivo.
 - Etapa 5, M2-T10: backups rotativos em `%LOCALAPPDATA%\BiblioDocsPro\backups\<id>\` (no máximo um a cada 10 minutos; 10
   recentes e 1 por dia em 7 dias); o `.bak` acompanha excluir e renomear (R-M1-02, R-M1-03, R37).
 - Etapa 5, M2-T09: lugares dos pós-textuais na ordem do Quadro 5 e letras de apêndice e anexo derivadas da posição

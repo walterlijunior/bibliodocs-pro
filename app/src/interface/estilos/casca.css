@@ -358,6 +358,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .lista-rolavel { overflow: auto; min-height: 0; }
 .dialogo__corpo h2 { margin: 0; }
 .dialogo__acoes { display: flex; gap: var(--esp-2); justify-content: flex-end; }
+.versoes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
+.versoes__item { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2); }
+.versoes__texto { display: grid; min-width: 0; }
+.versoes__titulo { font-weight: 600; overflow-wrap: anywhere; }
 .tipos-trabalho { border: 0; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
 .tipos-trabalho legend { padding: 0; margin-bottom: var(--esp-2); font-weight: 600; }
 .tipos-trabalho__opcao {

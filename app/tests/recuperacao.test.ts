@@ -17,6 +17,8 @@ import {
   type OfertaRecuperacao,
   type PacoteTransferivel,
   type ResultadoAbrir,
+  type ResultadoAbrirDescartada,
+  type ResultadoListarDescartadas,
   type ResultadoInstantaneo,
   type ResultadoRecuperar,
 } from '../src/aplicacao';
@@ -45,7 +47,7 @@ import {
 import { lerPacoteTransferivel } from '../src/principal/ipc/argumentos';
 import { ErroIpcRecusado } from '../src/principal/ipc/chamada';
 import { criarManipuladoresProjetos } from '../src/principal/ipc/manipuladores-projetos';
-import { criarManipuladoresRecuperacao, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
+import { criarManipuladoresRecuperacao, MAX_VERSOES_DESCARTADAS, MENSAGEM_DESCARTADA_COM_OFERTA, MENSAGEM_DESCARTADA_ILEGIVEL, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
 import { paraRespostaLeitor } from '../src/principal/ipc/protocolo-leitor';
 import type { InfoRemetente } from '../src/principal/ipc/remetente';
 import { RegistroProjetos } from '../src/principal/ipc/registro-projetos';
@@ -140,6 +142,8 @@ function processo(pid = OUTRO_PID, extra: { salvar?: (d: string, p: PacoteProjet
     listar: async () => ((await chamar(CANAIS_RECUPERACAO.listar)) as { ofertas: OfertaRecuperacao[] }).ofertas,
     recuperar: (oferta: string) => chamar(CANAIS_RECUPERACAO.recuperar, oferta) as Promise<ResultadoRecuperar>,
     abrirSalvo: (oferta: string) => chamar(CANAIS_RECUPERACAO.abrirSalvo, oferta) as Promise<ResultadoAbrir>,
+    listarDescartadas: async () => ((await chamar(CANAIS_RECUPERACAO.listarDescartadas)) as ResultadoListarDescartadas).versoes,
+    abrirDescartada: (id: string) => chamar(CANAIS_RECUPERACAO.abrirDescartada, id) as Promise<ResultadoAbrirDescartada>,
     salvar: (id: string, p: PacoteTransferivel) => chamar(CANAIS_PROJETOS.salvar, id, p) as Promise<{ ok: boolean }>,
     fechar: (id: string) => chamar(CANAIS_PROJETOS.fechar, id),
     chamar,
@@ -859,5 +863,107 @@ describe('textos da recuperação', () => {
     expect(textoOferta(oferta({ tipo: 'bak' }), hoje)).toContain('cópia de segurança (.bak) de 15:42 está íntegra');
     expect(avisoRecuperado('instantaneo', oferta({}).quando, hoje)).toMatchObject({ nivel: 'info', texto: expect.stringContaining('ainda não está no arquivo') });
     expect(avisoRecuperado('bak', oferta({}).quando, hoje).texto).toBe('O arquivo foi restaurado a partir da cópia de segurança (.bak) de 15:42.');
+  });
+});
+
+describe('versões descartadas (M2-T11; R-M1-10)', () => {
+  /** Grava um trabalho em `recuperacao-antigos` com o nome dado. */
+  async function guardar(nome: string, titulo: string, id = ID_PROJETO): Promise<string> {
+    mkdirSync(pastas.antigos, { recursive: true });
+    const caminho = join(pastas.antigos, nome);
+    const r = await salvarProjeto(caminho, paraProjeto(pacote(titulo, id)));
+    expect(r.ok).toBe(true);
+    return caminho;
+  }
+
+  it('lista só o que abre, sem expor caminho, e sem pasta a lista é vazia', async () => {
+    const p = processo();
+    expect(await p.listarDescartadas()).toEqual([]);
+    await guardar('a-atual.bdp', 'Rascunho');
+    writeFileSync(join(pastas.antigos, 'b.bdp-danificado'), 'lixo');
+    const versoes = await p.listarDescartadas();
+    expect(versoes.map((v) => v.titulo)).toEqual(['Rascunho']);
+    expect(JSON.stringify(versoes)).not.toContain(raiz);
+    expect(JSON.stringify(versoes)).not.toContain('a-atual');
+  });
+
+  it('abre como trabalho sem arquivo e não altera nem retira nada', async () => {
+    const guardado = await guardar('a-atual.bdp', 'Rascunho');
+    const bytes = readFileSync(guardado);
+    const p = processo();
+    const [v] = await p.listarDescartadas();
+    const r = await p.abrirDescartada(v!.identificador);
+    if (!r.ok) throw new Error(r.mensagem);
+    expect(tituloDe(r.projeto.pacote)).toBe('Rascunho');
+    expect(r.projeto.identificador).toBeNull();
+    expect(readFileSync(guardado).equals(bytes)).toBe(true);
+    expect(await p.listarDescartadas()).toHaveLength(1);
+  });
+
+  it('o que passou de 7 dias sai da lista e é apagado', async () => {
+    const guardado = await guardar('a-atual.bdp', 'Velho');
+    envelhecer(guardado, PRAZO_ANTIGOS_MS / 1000 + 60);
+    expect(await processo().listarDescartadas()).toEqual([]);
+    expect(existsSync(guardado)).toBe(false);
+  });
+
+  it('identificador vencido, de listagem anterior ou de arquivo que sumiu não abre', async () => {
+    const guardado = await guardar('a-atual.bdp', 'Rascunho');
+    const p = processo();
+    const [velha] = await p.listarDescartadas();
+    const [nova] = await p.listarDescartadas();
+    const recusa = { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
+    expect(await p.abrirDescartada(velha!.identificador)).toEqual(recusa);
+    rmSync(guardado);
+    expect(await p.abrirDescartada(nova!.identificador)).toEqual(recusa);
+  });
+
+  it('com oferta do mesmo trabalho pendente, recusa, porque o "Salvar como…" apagaria a oferta', async () => {
+    await guardar('a-atual.bdp', 'Rascunho');
+    const caminho = await gravarTrabalho('Trabalho.bdp', 'Salvo');
+    const antes = processo(111);
+    await antes.instantaneo(antes.abrirArquivo(caminho), pacote('Editado'));
+    const depois = processo(222);
+    const [v] = await depois.listarDescartadas();
+    expect(await depois.abrirDescartada(v!.identificador)).toEqual({ ok: false, mensagem: MENSAGEM_DESCARTADA_COM_OFERTA });
+    expect(existsSync(join(pastaInstantaneos(), NOME_INSTANTANEO))).toBe(true);
+  });
+
+  it('lista no máximo o limite, as guardadas mais recentemente primeiro', async () => {
+    const guardado = await guardar('modelo.bdp', 'Modelo');
+    const bytes = readFileSync(guardado);
+    for (let i = 0; i < MAX_VERSOES_DESCARTADAS + 2; i++) writeFileSync(join(pastas.antigos, `c${i}.bdp`), bytes);
+    expect(await processo().listarDescartadas()).toHaveLength(MAX_VERSOES_DESCARTADAS);
+  });
+
+  it('a versão listada por uma janela não abre em outra', async () => {
+    await guardar('a-atual.bdp', 'Rascunho');
+    const p = processo();
+    const [v] = await p.listarDescartadas();
+    const outra: InfoRemetente = { ...LEGITIMO, idConteudo: OUTRA_JANELA };
+    const m = p.rec.manipuladores[CANAIS_RECUPERACAO.abrirDescartada];
+    expect(await m(outra, [v!.identificador])).toEqual({ ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL });
+  });
+
+  it('com o mesmo trabalho aberto, recusa e avisa', async () => {
+    await guardar('a-atual.bdp', 'Rascunho');
+    const caminho = await gravarTrabalho('Trabalho.bdp', 'Salvo');
+    const antes = processo(111);
+    await antes.instantaneo(antes.abrirArquivo(caminho), pacote('Editado'));
+    const depois = processo(222);
+    const [oferta] = await depois.listar();
+    expect((await depois.recuperar(oferta!.identificador)).ok).toBe(true);
+    const [v] = await depois.listarDescartadas();
+    expect(await depois.abrirDescartada(v!.identificador)).toEqual({ ok: false, mensagem: MENSAGEM_JA_ABERTO });
+  });
+
+  it('argumentos fora do contrato são recusados, e a versão some quando a janela fecha', async () => {
+    await guardar('a-atual.bdp', 'Rascunho');
+    const p = processo();
+    await expect(p.chamar(CANAIS_RECUPERACAO.listarDescartadas, 'extra')).rejects.toBeInstanceOf(ErroIpcRecusado);
+    await expect(p.chamar(CANAIS_RECUPERACAO.abrirDescartada, 'C:\\x.bdp')).rejects.toBeInstanceOf(ErroIpcRecusado);
+    const [v] = await p.listarDescartadas();
+    await p.rec.encerrarDono(JANELA, true);
+    expect(await p.abrirDescartada(v!.identificador)).toEqual({ ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL });
   });
 });

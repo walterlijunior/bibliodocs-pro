@@ -19,6 +19,8 @@ export const CANAIS_RECUPERACAO = {
   listar: 'bibliodocs:recuperacao:listar',
   recuperar: 'bibliodocs:recuperacao:recuperar',
   abrirSalvo: 'bibliodocs:recuperacao:abrir-salvo',
+  listarDescartadas: 'bibliodocs:recuperacao:listar-descartadas',
+  abrirDescartada: 'bibliodocs:recuperacao:abrir-descartada',
 } as const;
 
 export type CanalRecuperacao = (typeof CANAIS_RECUPERACAO)[keyof typeof CANAIS_RECUPERACAO];
@@ -64,6 +66,21 @@ export type ResultadoRecuperar =
     }
   | { ok: false; mensagem: string };
 
+/** Versão guardada em `recuperacao-antigos` que ainda abre (M2-T11). */
+export interface VersaoDescartada {
+  identificador: IdentificadorOferta;
+  /** Título em texto plano (pode ser vazio). */
+  titulo: string;
+  /** Última alteração registrada na versão (ms desde 1970). */
+  quando: number;
+}
+
+export interface ResultadoListarDescartadas {
+  versoes: VersaoDescartada[];
+}
+
+export type ResultadoAbrirDescartada = { ok: true; projeto: ProjetoAberto; quando: number } | { ok: false; mensagem: string };
+
 export interface ApiRecuperacao {
   /** Grava o instantâneo de recuperação do trabalho aberto em `identificador`. */
   instantaneo(identificador: IdentificadorProjeto, pacote: PacoteEnvio): Promise<ResultadoInstantaneo>;
@@ -72,4 +89,8 @@ export interface ApiRecuperacao {
   recuperar(oferta: IdentificadorOferta): Promise<ResultadoRecuperar>;
   /** Só para `instantaneo`: guarda o instantâneo em `recuperacao-antigos` (7 dias) e abre o arquivo do usuário. */
   abrirSalvo(oferta: IdentificadorOferta): Promise<ResultadoAbrir>;
+  /** O que há em `recuperacao-antigos` e ainda abre, da versão mais nova à mais velha. */
+  listarDescartadas(): Promise<ResultadoListarDescartadas>;
+  /** Abre a versão como trabalho sem arquivo (`identificador: null`): nenhum arquivo é alterado. */
+  abrirDescartada(versao: IdentificadorOferta): Promise<ResultadoAbrirDescartada>;
 }

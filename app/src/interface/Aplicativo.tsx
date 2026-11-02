@@ -17,14 +17,17 @@ import type {
   IdentificadorOferta,
   OfertaRecuperacao,
   ResultadoAbrir,
+  ResultadoAbrirDescartada,
   ResultadoRecuperar,
+  VersaoDescartada,
 } from '../aplicacao';
 import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
+import { DialogoVersoesDescartadas } from './biblioteca/DialogoVersoesDescartadas';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
-import { avisoRecuperado } from './biblioteca/recuperacao';
+import { avisoDescartada, avisoRecuperado } from './biblioteca/recuperacao';
 import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista, type Filtro } from './biblioteca/selecao';
 import { FALHA_INESPERADA, useBiblioteca } from './biblioteca/useBiblioteca';
 import { BarraMenus } from './casca/BarraMenus';
@@ -206,6 +209,40 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     [api, exclusivo, irParaEscrever, liberarAtual, listarOfertas, mostrarMensagem, recarregar, sessao],
   );
 
+  const pedirDescartadas = useCallback(async () => {
+    setDescartadas(null);
+    try {
+      const r = await api.recuperacao.listarDescartadas();
+      setDescartadas((atual) => (atual === undefined ? undefined : r.versoes));
+    } catch {
+      setDescartadas((atual) => (atual === undefined ? undefined : []));
+      mostrarMensagem({ tipo: 'erro', texto: FALHA_INESPERADA });
+    }
+  }, [api, mostrarMensagem]);
+
+  const abrirDescartada = useCallback(
+    (id: IdentificadorOferta) =>
+      exclusivo(async () => {
+        setDescartadas(undefined);
+        if (!(await liberarAtual())) return;
+        let r: ResultadoAbrirDescartada;
+        try {
+          r = await api.recuperacao.abrirDescartada(id);
+        } catch {
+          r = { ok: false, mensagem: FALHA_INESPERADA };
+        }
+        if (!r.ok) {
+          mostrarMensagem({ tipo: 'erro', texto: r.mensagem });
+          return;
+        }
+        sessao.abrir(r.projeto, [avisoDescartada(r.quando, new Date()), ...avisosDaAbertura(r.projeto)], { naoSalvo: true });
+        setSaidaPedida(false);
+        irParaEscrever();
+        setFocarTitulo((n) => n + 1);
+      }),
+    [api, exclusivo, irParaEscrever, liberarAtual, mostrarMensagem, sessao],
+  );
+
   const abrirSalvo = useCallback(
     (id: IdentificadorOferta) =>
       exclusivo(async () => {
@@ -224,6 +261,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
 
   // Diálogo de tipo: aberto por "Novo trabalho"; marca o último tipo escolhido na sessão.
   const [escolhendoTipo, setEscolhendoTipo] = useState(false);
+  /** Diálogo "Versões descartadas": `undefined` fechado, `null` listando (M2-T11). */
+  const [descartadas, setDescartadas] = useState<readonly VersaoDescartada[] | null | undefined>(undefined);
   const [ultimoTipo, setUltimoTipo] = useState<TipoTrabalhoUft>('monografia');
 
   // Com outra troca em curso o diálogo não abre: "Criar trabalho" não faria nada (revisão do M2-T02, M3).
@@ -411,6 +450,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'atualizarBiblioteca':
           void recarregar();
           return;
+        case 'versoesDescartadas':
+          void pedirDescartadas();
+          return;
         case 'sair':
           window.close();
           return;
@@ -433,7 +475,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
-      if (escolhendoTipo) return;
+      if (escolhendoTipo || descartadas !== undefined) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -448,7 +490,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [comando, desativados, escolhendoTipo]);
+  }, [comando, descartadas, desativados, escolhendoTipo]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -473,6 +515,14 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
             setUltimoTipo(tipo);
             void criar(tipo);
           }}
+        />
+      )}
+      {descartadas !== undefined && (
+        <DialogoVersoesDescartadas
+          versoes={descartadas}
+          ocupado={bib.ocupado}
+          aoAbrir={(id) => void abrirDescartada(id)}
+          aoFechar={() => setDescartadas(undefined)}
         />
       )}
       <div className="app">

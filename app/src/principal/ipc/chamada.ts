@@ -3,6 +3,7 @@
  * de qualquer diálogo ou acesso ao disco. Falha rejeita a promessa com `ErroIpcRecusado`, de mensagem genérica; o
  * motivo vai só para o registro técnico.
  */
+import { descreverErro } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { remetentePermitido, type InfoRemetente } from './remetente';
 
@@ -18,14 +19,14 @@ export type Manipulador = (remetente: InfoRemetente, argumentos: readonly unknow
 /**
  * Última barreira antes do `ipcMain.handle` (revisão do M1-T09, M1): exceção inesperada de um manipulador (defeito,
  * erro de disco não previsto) volta ao renderer como `ErroIpcRecusado`, de mensagem genérica. O Electron repassa
- * `error.message`, e mensagens do Node trazem o caminho do disco (`ENOENT ... lstat 'C:\…'`); o detalhe fica no log.
+ * `error.message`, e mensagens do Node trazem o caminho do disco (`ENOENT ... lstat 'C:\…'`); o log guarda só o código ou o tipo do erro (R-M1-07).
  */
 export function blindar(canal: string, manipulador: Manipulador, log: (mensagem: string) => void): Manipulador {
   return async (remetente, argumentos) => {
     try {
       return await manipulador(remetente, argumentos);
     } catch (e) {
-      if (!(e instanceof ErroIpcRecusado)) log(`[ipc] ${canal} falhou sem tratamento: ${e instanceof Error ? e.message : String(e)}`);
+      if (!(e instanceof ErroIpcRecusado)) log(`[ipc] ${canal} falhou sem tratamento: ${descreverErro(e)}`);
       throw e instanceof ErroIpcRecusado ? e : new ErroIpcRecusado();
     }
   };

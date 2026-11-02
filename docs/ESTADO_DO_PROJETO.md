@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M2-T10 concluído (backups rotativos; `.bak` em excluir e renomear), sem commit: aguarda autorização.
-**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T10 ✔).
+**Última atualização:** 2026-11-02 — M2-T11 concluído (pendências técnicas do M1), sem commit: aguarda autorização.
+**Etapa atual:** Etapa 5 — Implementação. Marco **M1 concluído**; M2 em andamento (T01–T11 ✔).
 
 ## Etapas
 
@@ -15,16 +15,25 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T10 ✔, T11 e T12 pendentes, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T11 ✔, T12 pendente, ADR-0007 ACEITO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Autorizar o commit do M2-T10 (o trabalho está só na pasta).
-2. **M2-T11** (pendências técnicas do M1: licenças, `npm audit signatures`, logs sem caminho, Electron 44.9.0, axe-core, tela de `recuperacao-antigos`). Depois o M2-T12.
+1. Autorizar o commit do M2-T11 (o trabalho está só na pasta).
+2. **M2-T12**, que precisa cobrir também T08, T09, T10 e T11, feitas sem revisão independente.
 3. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Decisões do M2-T11 (tomadas pela sessão principal, podem ser revistas)
+- Novo item visível no menu aprovado: Arquivo › "Versões descartadas…", depois de "Atualizar biblioteca".
+- Versão descartada abre como trabalho sem arquivo: só "Salvar como…" a grava, e ela continua em `recuperacao-antigos` até o prazo.
+- Versão de trabalho com oferta de recuperação pendente não abre, porque "Salvar como…" apagaria a oferta.
+- Nomes acessíveis "Sobrescrito x²" e "Subscrito x₂" nos botões, exigência do axe (WCAG 2.5.3).
+- Licença fora de MIT, ISC, 0BSD, BSD-2, BSD-3 e Apache-2.0 reprova o inventário até alguém decidir.
+- Lista de terceiros no "Sobre" (RNF-15) não feita: o item do menu ainda não tem tela. Falta um marco para ela.
+- Commit do M2-T10: `3560a53` (sem `git push`).
 
 ## Decisões do M2-T10 (tomadas pela sessão principal, podem ser revistas)
 - Backup também no salvamento automático, não só no explícito (desvio do ADR-0004 §4, adendo do M2-T10).
@@ -418,3 +427,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M2-T08) | Pré-textuais pela sessão principal, sem revisão independente: dados em `metadados`, campos por elemento, pendências com RN, lista e formulários na aba Escrever, incluir e retirar na ordem única. Mutações 16/16. `verificar:tudo` 1024/1024, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T09) | Pós-textuais no domínio pela sessão principal, sem revisão independente: inclusão no lugar do Quadro 5, letras derivadas, `titulo` em apêndice e anexo; célula da RN-232 corrigida. Mutações 8/8. `verificar:tudo` 1042/1042, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
 | 2026-11-02 | 5 (M2-T10) | Backups rotativos e `.bak` em excluir e renomear pela sessão principal, sem revisão independente. Mutações 12/13 (1 revelou condição redundante, removida). `verificar:tudo` 1070/1070, 0 vulnerabilidades, E2E 14/14; kit 0 falhas. Sem commit (aguarda autorização). |
+| 2026-11-02 | 5 (M2-T11) | Pendências técnicas do M1 pela sessão principal, sem revisão independente: `TERCEIROS.txt`, recusa de copyleft, `audit signatures`, `descreverErro`, Electron 44.9.0 (hash igual ao do release; fumaça do pacote abriu), axe-core (achou 2 botões, corrigidos), Versões descartadas. Mutações 14/14, 2 delas depois de novos testes. `verificar:tudo` 1092/1092, 0 vulnerabilidades em produção, E2E 16/16. Memória 806 MB em uma rodada (meta 800): risco R46. |

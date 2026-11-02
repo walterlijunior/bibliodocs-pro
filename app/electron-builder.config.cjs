@@ -28,6 +28,9 @@ module.exports = {
     '!node_modules/**/*.{ts,mts,cts}',
   ],
 
+  // C-19: inventário de licenças (empacotamento/terceiros.cjs), ao lado das licenças do Electron.
+  extraFiles: [{ from: 'recursos-build/TERCEIROS.txt', to: 'TERCEIROS.txt' }],
+
   // Usa o binário do Electron já instalado e conferido (SHA-256, M1-T02) em vez de baixar de novo.
   electronDist: 'node_modules/electron/dist',
   // Tira o default_app.asar e o `version` que a limpeza do electron-builder pula com electronDist próprio.

@@ -14,7 +14,8 @@ Relatório vivo do marco: cada tarefa M2-Txx acrescenta a sua seção. Plano: `d
 | M2-T08 Pré-textuais com campos e pendências | CONCLUÍDA | 2026-11-02 |
 | M2-T09 Lugares dos pós-textuais e letras de apêndice e anexo | CONCLUÍDA | 2026-11-02 |
 | M2-T10 Backups rotativos e `.bak` acompanhando excluir e renomear | CONCLUÍDA | 2026-11-02 |
-| M2-T11 e M2-T12 | PENDENTE | — |
+| M2-T11 Pendências técnicas do M1 | CONCLUÍDA | 2026-11-02 |
+| M2-T12 | PENDENTE | — |
 
 ## M2-T01 — Instantâneo e salvamento com 25 MB e 150 páginas (R-M1-01, R36)
 
@@ -537,3 +538,29 @@ que revelou condição redundante (removida). `npm run verificar:tudo`: 1070/107
   conforme a decisão de nunca apagar dados). Sem tela para reabrir um backup.
 - `.bak` não movido à Lixeira ou não renomeado fica só no registro técnico, sem aviso ao usuário. Lixeira real do `.bak` sem E2E.
 - A cópia acrescenta tempo a um salvamento a cada 10 minutos (não medido com 25 MB).
+
+## M2-T11 — Pendências técnicas do M1 (R-M1-04, 05, 06, 07 e 10)
+
+**Implementação:** sessão principal. **Sem revisão independente**, embora o plano peça `revisor-seguranca`: fica para o M2-T12.
+Dependências de desenvolvimento: `electron` 44.8.0 → 44.9.0 e `axe-core` 4.14.0, que não vai no pacote.
+
+**Código**
+- `empacotamento/terceiros.cjs` gera `recursos-build/TERCEIROS.txt` a partir do lockfile; `extraFiles` o coloca ao lado das licenças do Electron; os `dist*` conferem antes de empacotar.
+- `verificar` ganhou `npm audit signatures`.
+- `descreverErro`: logs só com código ou tipo do erro. Perde-se a mensagem de um defeito inesperado; o tipo fica.
+- `e2e/acessibilidade.spec.ts`: axe-core nas telas atuais. Achou 2 botões cujo nome não continha o texto visível, corrigidos.
+- Arquivo › Versões descartadas…: canais `listarDescartadas` e `abrirDescartada`, identificador opaco por janela e por listagem, no máximo 100 versões.
+
+**Testes** [VERIFICADO 2026-11-02]
+- `npm run verificar:tudo`: 1092/1092, 0 vulnerabilidades em produção, 376 assinaturas verificadas, E2E 16/16. `validar-kit.ps1` e `test_estrutura_kit.py`: 0 falhas.
+- Electron 44.9.0: SHA-256 do zip `88e08039…6931`, igual ao `SHASUMS256.txt` do release e ao `checksums.json`.
+- Fumaça: `dist:fumaca` gerou a pasta com `TERCEIROS.txt`, e o `.exe` abriu `app://interface/index.html` (Chrome/152.0.7977.167) por CDP.
+- Mutações: 14/14 detectadas. Duas sobreviveram na primeira rodada e ganharam testes.
+
+**Limitações**
+- Memória: 806 MB em 1 de 12 rodadas com o 44.9.0 (752–806, meta 800); 711–788 em 6 rodadas com o 44.8.0. Risco R46. A meta não foi afrouxada.
+- `npm audit` completo: 17 vulnerabilidades (16 moderadas, 1 alta) só em dependências de desenvolvimento, fora do pacote. Não tratadas nesta tarefa.
+- Instalador NSIS não regenerado nem instalado com o 44.9.0: só a pasta de fumaça foi conferida.
+- axe não roda sobre a lista cheia de versões nem substitui o roteiro manual do RNF-09.
+- Lista de terceiros no "Sobre" (RNF-15) não feita. O inventário cobre dependências npm de produção; os avisos do Electron e do Chromium vão nos arquivos deles.
+- Com oferta adiada ("Decidir depois"), a versão descartada do mesmo trabalho só abre depois de decidir a oferta.

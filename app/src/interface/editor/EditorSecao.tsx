@@ -141,11 +141,11 @@ function barraDe(estado: EditorState): Barra {
 
 const mesmaBarra = (a: Barra, b: Barra): boolean => (Object.keys(a) as (keyof Barra)[]).every((k) => a[k] === b[k]);
 
-const BOTOES_MARCA: readonly { marca: MarcaTexto; rotulo: string; atalho: string; aria: string; texto: string }[] = [
+const BOTOES_MARCA: readonly { marca: MarcaTexto; rotulo: string; nome?: string; atalho: string; aria: string; texto: string }[] = [
   { marca: 'italico', rotulo: 'Itálico', atalho: 'Ctrl+I', aria: 'Control+I', texto: 'I' },
   { marca: 'negrito', rotulo: 'Negrito', atalho: 'Ctrl+B', aria: 'Control+B', texto: 'N' },
-  { marca: 'sobrescrito', rotulo: 'Sobrescrito', atalho: 'Ctrl+Shift+=', aria: 'Control+Shift+=', texto: 'x²' },
-  { marca: 'subscrito', rotulo: 'Subscrito', atalho: 'Ctrl+=', aria: 'Control+=', texto: 'x₂' },
+  { marca: 'sobrescrito', rotulo: 'Sobrescrito', nome: 'Sobrescrito x²', atalho: 'Ctrl+Shift+=', aria: 'Control+Shift+=', texto: 'x²' },
+  { marca: 'subscrito', rotulo: 'Subscrito', nome: 'Subscrito x₂', atalho: 'Ctrl+=', aria: 'Control+=', texto: 'x₂' },
 ];
 
 export function EditorSecao(p: PropsEditorSecao) {
@@ -269,7 +269,7 @@ export function EditorSecao(p: PropsEditorSecao) {
               aria-pressed={barra[b.marca]}
               aria-keyshortcuts={b.aria}
               title={`${b.rotulo} (${b.atalho})`}
-              aria-label={b.rotulo}
+              aria-label={b.nome ?? b.rotulo} // O nome contém o texto visível (WCAG 2.5.3; axe, M2-T11)
               // Não tira o foco do editor (a seleção continua onde estava).
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => aplicar(b.marca)}

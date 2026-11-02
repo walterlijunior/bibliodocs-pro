@@ -303,6 +303,7 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
       ['Salvar como…', 'Ctrl+Shift+S', 'salvarComo'],
       ['Escolher pasta da biblioteca…', undefined, 'escolherPasta'],
       ['Atualizar biblioteca', 'F5', 'atualizarBiblioteca'],
+      ['Versões descartadas…', undefined, 'versoesDescartadas'], // M2-T11
       ['Fechar trabalho', 'Ctrl+W', 'fecharTrabalho'],
       ['Sair', 'Alt+F4', 'sair'],
     ]);

@@ -27,7 +27,10 @@ import {
   type CanalRecuperacao,
   type OfertaRecuperacao,
   type ResultadoAbrir,
+  type ResultadoAbrirDescartada,
   type ResultadoInstantaneo,
+  type ResultadoListarDescartadas,
+  type VersaoDescartada,
   type ResultadoListarRecuperacao,
   type ResultadoRecuperar,
   type TipoOferta,
@@ -62,6 +65,7 @@ import {
   type ResumoProjeto,
   type Resumir,
   type SistemaArquivos,
+  descreverErro,
 } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerIdentificador, lerPacoteTransferivel, mapaMidias } from './argumentos';
@@ -100,6 +104,11 @@ export const MENSAGEM_JA_ABERTO = 'Este trabalho já está aberto no BiblioDocs 
 const MENSAGEM_ILEGIVEL = 'Não foi possível ler a versão recuperada. Os arquivos de recuperação foram mantidos.';
 const MENSAGEM_JA_ABRE = 'O arquivo já abre normalmente e não foi alterado.';
 const MENSAGEM_SEM_GUARDAR = 'Não foi possível guardar o arquivo danificado antes de restaurar. Nada foi alterado.';
+/** Versões listadas no máximo por vez: cada uma é lida pelo processo leitor. */
+export const MAX_VERSOES_DESCARTADAS = 100;
+export const MENSAGEM_DESCARTADA_ILEGIVEL = 'Não foi possível abrir esta versão. Ela pode ter passado do prazo de 7 dias.';
+export const MENSAGEM_DESCARTADA_COM_OFERTA =
+  'Este trabalho tem uma versão esperando recuperação na Biblioteca. Decida essa recuperação antes de abrir uma versão descartada.';
 const MENSAGEM_DISCO = 'Não foi possível preparar a recuperação por um erro no disco. Nada foi apagado.';
 
 interface SessaoAtiva {
@@ -134,6 +143,8 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   /** Identificador → caminho fictício `oferta:<n>`; os dados ficam em `internas`. */
   const registroOfertas = dep.ofertas ?? new RegistroProjetos();
   const internas = new Map<string, OfertaInterna>();
+  /** Identificador → caminho em `recuperacao-antigos`; valem só para a janela e a listagem mais recente. */
+  const descartadas = new Map<string, { caminho: string; dono: number }>();
   let contador = 0;
 
   const agoraMs = () => dep.agora().getTime();
@@ -149,7 +160,15 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     await arquivarInstantaneos(pastas, idProjeto, agoraMs(), op);
     await apagarTrava(pastas, idProjeto, op);
   };
+  const esquecerDescartadas = (dono: number) => {
+    for (const [id, d] of descartadas) {
+      if (d.dono !== dono) continue;
+      descartadas.delete(id);
+      registroOfertas.esquecer(id, dono);
+    }
+  };
   const esquecerOfertas = (dono: number) => {
+    esquecerDescartadas(dono);
     for (const [id, o] of internas) {
       if (o.dono !== dono) continue;
       internas.delete(id);
@@ -467,7 +486,7 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     const s = await dep.salvar(original, pacote.valor);
     if (!s.ok) {
       // O arquivo volta ao lugar como estava (danificado, mas é o do usuário); a cópia em `recuperacao-antigos` fica.
-      if (guardado !== null) await fs.copiar(guardado, original).catch((e: unknown) => log(`[recuperacao] original não devolvido: ${String(e)}`));
+      if (guardado !== null) await fs.copiar(guardado, original).catch((e: unknown) => log(`[recuperacao] original não devolvido: ${descreverErro(e)}`));
       return { ok: false, mensagem: s.mensagem };
     }
     if (o.tipo === 'temporario') await fs.apagar(candidato).catch(() => undefined);
@@ -523,12 +542,71 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     });
   };
 
+  // ---------- versões descartadas (M2-T11) ----------
+
+  const listarDescartadas: Manipulador = async (r, argumentos): Promise<ResultadoListarDescartadas> => {
+    conferir(CANAIS_RECUPERACAO.listarDescartadas, r, argumentos, 0);
+    return emFila(async () => {
+      esquecerDescartadas(r.idConteudo);
+      await limparAntigos(pastas, agoraMs(), op);
+      const arquivos: { caminho: string; modificadoEmMs: number }[] = [];
+      try {
+        for (const e of await fs.listarPasta(pastas.antigos)) {
+          if (!e.arquivoComum || e.link) continue;
+          const caminho = join(pastas.antigos, e.nome);
+          const i = await infoArquivo(caminho);
+          if (i !== null) arquivos.push({ caminho, modificadoEmMs: i.modificadoEmMs });
+        }
+      } catch {
+        return { versoes: [] }; // pasta ainda não existe ou não abre
+      }
+      arquivos.sort((a, b) => b.modificadoEmMs - a.modificadoEmMs);
+      const lote = arquivos.slice(0, MAX_VERSOES_DESCARTADAS);
+      const resumos = (await dep.resumir(lote.map((a) => a.caminho))) ?? [];
+      const versoes: VersaoDescartada[] = [];
+      lote.forEach((a, i) => {
+        const resumo = resumos[i];
+        if (resumo?.estado !== 'ok') return; // danificado ou de versão futura: não abre aqui
+        const identificador = registroOfertas.registrar(`descartada:${++contador}`, r.idConteudo);
+        descartadas.set(identificador, { caminho: a.caminho, dono: r.idConteudo });
+        const atualizado = Date.parse(resumo.atualizadoEm);
+        versoes.push({ identificador, titulo: resumo.titulo, quando: Number.isNaN(atualizado) ? a.modificadoEmMs : atualizado });
+      });
+      versoes.sort((a, b) => b.quando - a.quando);
+      return { versoes };
+    });
+  };
+
+  const abrirDescartada: Manipulador = async (r, argumentos): Promise<ResultadoAbrirDescartada> => {
+    const canal = CANAIS_RECUPERACAO.abrirDescartada;
+    conferir(canal, r, argumentos, 1);
+    const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'versão');
+    return emFila(async () => {
+      const d = descartadas.get(id);
+      if (d === undefined || d.dono !== r.idConteudo) return { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
+      const lido = await dep.ler(d.caminho);
+      if (!lido.ok) return { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
+      const idProjeto = lido.pacote.manifesto.id;
+      if (sessoes.has(idProjeto)) return { ok: false, mensagem: MENSAGEM_JA_ABERTO };
+      // "Salvar como…" deste trabalho apagaria os instantâneos do mesmo projeto (`aoGravar`), que ainda são uma oferta.
+      if ((await instantaneosDe(pastas, idProjeto, op)).length > 0) return { ok: false, mensagem: MENSAGEM_DESCARTADA_COM_OFERTA };
+      const quando = Date.parse(lido.pacote.manifesto.atualizadoEm);
+      return {
+        ok: true,
+        quando: Number.isNaN(quando) ? agoraMs() : quando,
+        projeto: { identificador: null, nomeArquivo: 'Versão descartada.bdp', pacote: lido.pacote, avisos: [...lido.avisos], atualizacao: null },
+      };
+    });
+  };
+
   return {
     manipuladores: Object.freeze({
       [CANAIS_RECUPERACAO.instantaneo]: instantaneo,
       [CANAIS_RECUPERACAO.listar]: listar,
       [CANAIS_RECUPERACAO.recuperar]: recuperar,
       [CANAIS_RECUPERACAO.abrirSalvo]: abrirSalvo,
+      [CANAIS_RECUPERACAO.listarDescartadas]: listarDescartadas,
+      [CANAIS_RECUPERACAO.abrirDescartada]: abrirDescartada,
     }) as Readonly<Record<CanalRecuperacao, Manipulador>>,
     antesDeGravar,
     aoGravar,

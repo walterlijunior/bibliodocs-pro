@@ -32,6 +32,7 @@ pré-textuais) chega no M2, e a exportação DOCX no M3. Relatório do marco: `d
 | `npm run verificar:tudo` | `verificar` + `build` + E2E. As camadas OOXML e LibreOffice (M3) entram aqui quando existirem |
 | `npm run dist` | `build` + instalador NSIS por usuário em `release/BiblioDocsPro-Instalador-<versão>.exe` (M1-T14). Configuração em `electron-builder.config.cjs`; ganchos em `empacotamento/`. Sem assinatura até a Etapa 7: **não distribuir** |
 | `npm run dist:pasta` | Igual, mas só a pasta `release/win-unpacked/` (sem instalador) |
+| `node empacotamento/terceiros.cjs` | Regrava `recursos-build/TERCEIROS.txt` a partir do lockfile. Rode depois de mudar dependência de produção; com `--conferir`, só verifica (os `dist*` fazem isso) |
 | `npm run icone:gerar` | Regrava `recursos-build/icone.ico` (16 a 256 px) a partir de `recursos-build/icone.svg` e `icone-pequeno.svg`, desenhando no próprio Electron. Rode depois de mudar os SVGs |
 | `npm run dist:fumaca` | Pasta em `release-fumaca/` com a marca `bibliodocsFumaca`, a única que aceita `--remote-debugging-port`, `--user-data-dir` e `--log-net-log` (fumaça por CDP). Nunca distribuir |
 
@@ -280,14 +281,17 @@ porque o controle `app.isPackaged` vem antes.
 
 **Pendentes:**
 - C-1: a atualização do Electron é processo (rodada mensal com `test:e2e` e a fumaça do pacote);
-- inventário de licenças e `TERCEIROS.txt` (C-19, RNF-15);
-- `npm audit signatures` no `verificar` (C-18);
 - assinatura de código (Etapa 7);
 - a trava de sessão não protege o mesmo `.bdp` aberto de outro computador (OneDrive, pasta de rede).
 
-**Logs (limitação).** Algumas mensagens de erro do sistema de arquivos vão ao console com `e.message`, que pode
-conter o caminho completo (achado R-M1-07). O log só vai para o stdout; nada é gravado em disco.
+**Logs.** Erros vão ao console só pelo código (`ENOENT`) ou pelo tipo (`TypeError`), por `descreverErro`, nunca com
+a mensagem, que no Node traz o caminho completo (R-M1-07). O log só vai para o stdout; nada é gravado em disco.
 
 Testes de segurança: `tests/seguranca-politica-urls.test.ts`, `tests/seguranca-protocolo-caminho.test.ts`,
 `tests/seguranca-runtime.test.ts` (CSP e verificação estática do processo principal), `tests/ipc-projetos.test.ts`,
 `tests/seguranca-argumentos.test.ts`, `tests/empacotamento.test.ts` e `e2e/rede-e-seguranca.spec.ts`.
+
+### Versões descartadas (M2-T11)
+
+Arquivo › Versões descartadas… lista o que está em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao-antigos` e ainda abre
+(prazo de 7 dias). A versão abre como trabalho sem arquivo: nada é alterado, e só "Salvar como…" a grava.

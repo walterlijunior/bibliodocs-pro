@@ -758,11 +758,16 @@ describe('revisão M1 — exceção inesperada não leva caminho ao renderer', (
   it('blindar troca qualquer erro por ErroIpcRecusado genérico', async () => {
     const { blindar } = await import('../src/principal/ipc/chamada');
     const logs: string[] = [];
-    const m = blindar('canal', async () => Promise.reject(new Error(`ENOENT: lstat '${raiz}\\x.bdp'`)), (l) => logs.push(l));
+    const m = blindar('canal', async () => Promise.reject(Object.assign(new Error(`ENOENT: lstat '${raiz}\\x.bdp'`), { code: 'ENOENT' })), (l) => logs.push(l));
     const erro = await m(LEGITIMO, []).catch((e: unknown) => e);
     expect(erro).toBeInstanceOf(ErroIpcRecusado);
     expect((erro as Error).message).toBe('chamada recusada');
     expect(logs.join(' ')).toContain('ENOENT');
+    expect(logs.join(' ')).not.toContain(raiz); // R-M1-07
+    const defeito = blindar('canal', async () => Promise.reject(new TypeError(`${raiz}\\x.bdp`)), (l) => logs.push(l));
+    await defeito(LEGITIMO, []).catch(() => undefined);
+    expect(logs.at(-1)).toContain('TypeError');
+    expect(logs.join(' ')).not.toContain(raiz);
     const recusa = blindar('canal', async () => Promise.reject(new ErroIpcRecusado()), (l) => logs.push(l));
     await expect(recusa(LEGITIMO, [])).rejects.toBeInstanceOf(ErroIpcRecusado);
   });
