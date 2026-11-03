@@ -110,6 +110,9 @@ test('EDT-06: digitar, formatar, desfazer, nota, salvar e reabrir idêntico', as
   await expect(editor(p).locator('.bd-nota')).toHaveAttribute('aria-label', 'Nota de rodapé: Fruto típico do Tocantins.');
   await expect(editor(p).locator('.bd-nota')).toHaveAttribute('role', 'doc-noteref');
 
+  // O ProseMirror repõe a própria seleção 20 ms depois de receber o foco (`handlers.focus`): a seleção programada só
+  // vale depois disso. Sem esta espera, o teste falhava em cerca de 1 de 5 rodadas; a pessoa nunca seleciona tão rápido.
+  await p.waitForTimeout(60);
   // Itálico em "cerrado", desfazer e refazer. A seleção é feita no DOM, como a do mouse: andar com as setas por cima da
   // chamada da nota (nó atômico) dá um número de passos que varia entre rodadas.
   await p.evaluate(() => {
@@ -121,7 +124,8 @@ test('EDT-06: digitar, formatar, desfazer, nota, salvar e reabrir idêntico', as
     const s = getSelection()!;
     s.removeAllRanges();
     s.addRange(faixa);
-  });
+    return new Promise((r) => setTimeout(() => r(s.toString()), 50));
+  }).then((selecionado) => expect(selecionado, 'seleção assentada').toBe('cerrado'));
   await expect(p.getByRole('button', { name: 'Itálico' })).toHaveAttribute('aria-pressed', 'false');
   await p.keyboard.press('Control+I');
   await expect(editor(p).locator('p em')).toHaveText('cerrado');

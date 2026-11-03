@@ -14,6 +14,7 @@ export interface Tecla {
 export type AcaoGlobal =
   | 'buscar'
   | 'novoTrabalho'
+  | 'exportarDocx'
   | 'abrir'
   | 'salvar'
   | 'salvarComo'
@@ -28,6 +29,7 @@ export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
   const tecla = t.key.length === 1 ? t.key.toLowerCase() : t.key;
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'f') return 'buscar';
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'n') return 'novoTrabalho';
+  if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'e') return 'exportarDocx';
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'o') return 'abrir';
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 's') return 'salvar';
   if (t.ctrlKey && !t.altKey && t.shiftKey && tecla === 's') return 'salvarComo';

@@ -305,7 +305,7 @@ describe('preload (C-10)', () => {
     expect(chamadas.map((c) => c[0])).toEqual([CANAIS_PROJETOS.abrir, CANAIS_PROJETOS.salvar, CANAIS_PROJETOS.salvarComo, CANAIS_PROJETOS.fechar]);
     expect(chamadas.map((c) => c.length)).toEqual([1, 3, 2, 2]);
     expect(Object.isFrozen(api) && Object.isFrozen(api.projetos)).toBe(true);
-    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao']);
+    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao', 'exportacao']);
   });
 
   it('edicao (M2-T06): `executar` usa só o seu canal, manda só a ação e só com gesto do usuário', async () => {

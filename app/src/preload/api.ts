@@ -5,6 +5,7 @@
  */
 import { CANAIS_BIBLIOTECA, type ApiBiblioteca } from '../aplicacao/portas/biblioteca';
 import { CANAIS_EDICAO, type ApiEdicao } from '../aplicacao/portas/edicao';
+import { CANAIS_EXPORTACAO, type ApiExportacao } from '../aplicacao/portas/exportacao';
 import { CANAIS_PROJETOS, type ApiBiblioDocs } from '../aplicacao/portas/projetos';
 import { CANAIS_RECUPERACAO, type ApiRecuperacao } from '../aplicacao/portas/recuperacao';
 
@@ -55,10 +56,14 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
       await invocar(CANAIS_EDICAO.executar, acao);
     },
   };
+  const exportacao: ApiExportacao = {
+    docx: (pacote, opcoes) => invocar(CANAIS_EXPORTACAO.docx, pacote, opcoes) as ReturnType<ApiExportacao['docx']>,
+  };
   return Object.freeze({
     projetos: Object.freeze(projetos),
     biblioteca: Object.freeze(biblioteca),
     recuperacao: Object.freeze(recuperacao),
     edicao: Object.freeze(edicao),
+    exportacao: Object.freeze(exportacao),
   });
 }

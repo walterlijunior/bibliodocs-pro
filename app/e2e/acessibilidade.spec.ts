@@ -33,7 +33,7 @@ test.beforeEach(() => {
 });
 test.afterEach(async () => amb.apagar());
 
-test('Biblioteca, Novo trabalho, Versões descartadas e Escrever sem violação séria', async ({}, info) => {
+test('Biblioteca, Novo trabalho, Versões descartadas, Escrever e Exportar sem violação séria', async ({}, info) => {
   const { pagina: p } = await abrirApp(amb);
   await conferirAxe(p, 'biblioteca-vazia', info);
 
@@ -52,4 +52,8 @@ test('Biblioteca, Novo trabalho, Versões descartadas e Escrever sem violação 
   await criarTrabalho(p);
   await expect(p.getByLabel('Título do trabalho')).toBeVisible();
   await conferirAxe(p, 'escrever', info);
+
+  await p.keyboard.press('Control+E');
+  await expect(p.getByRole('dialog', { name: 'Exportar DOCX' })).toBeVisible();
+  await conferirAxe(p, 'exportar-docx', info);
 });

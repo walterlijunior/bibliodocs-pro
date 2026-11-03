@@ -15,6 +15,7 @@
 import type { Manifesto } from '../../dominio/esquemas';
 import type { Documento } from '../../dominio/modelo';
 import type { ApiEdicao } from './edicao';
+import type { ApiExportacao } from './exportacao';
 import type { ApiBiblioteca } from './biblioteca';
 import type { ApiRecuperacao } from './recuperacao';
 
@@ -137,4 +138,5 @@ export interface ApiBiblioDocs {
   readonly biblioteca: ApiBiblioteca;
   readonly recuperacao: ApiRecuperacao;
   readonly edicao: ApiEdicao;
+  readonly exportacao: ApiExportacao;
 }

@@ -920,6 +920,12 @@ export class SessaoTrabalho {
     return true;
   }
 
+  /** O trabalho como está na memória, salvo ou não, para exportar. `null` sem trabalho editável aberto. */
+  pacoteAtual(): PacoteTransferivel | null {
+    const a = this.#aberto;
+    return a?.modo === 'edicao' ? a.pacote : null;
+  }
+
   /** "Salvar como…": diálogo do principal; o trabalho passa a ser o arquivo novo. Entra na fila de gravações. */
   salvarComo(): Promise<boolean> {
     const a = this.#aberto;

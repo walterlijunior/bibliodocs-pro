@@ -59,6 +59,7 @@ export {
   type ResultadoRecuperar,
   type TipoOferta,
 } from './portas/recuperacao';
+export { CANAIS_EXPORTACAO, type ApiExportacao, type CanalExportacao, type OpcoesExportacao, type ResultadoExportar } from './portas/exportacao';
 export { ACOES_EDICAO, CANAIS_EDICAO, type AcaoEdicao, type ApiEdicao, type CanalEdicao } from './portas/edicao';
 export {
   criarTrabalhoDoTipo,

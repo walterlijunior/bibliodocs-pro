@@ -13,6 +13,7 @@ export type ComandoMenu =
   | 'escolherPasta'
   | 'atualizarBiblioteca'
   | 'versoesDescartadas' // M2-T11
+  | 'exportarDocx' // M3-T08
   | 'sair'
   | 'buscar'
   // M2-T06: menu Editar e Inserir › Nota de rodapé.
@@ -103,7 +104,7 @@ export const MENUS: readonly Menu[] = [
   },
   {
     rotulo: 'Exportar',
-    itens: [{ rotulo: 'Exportar DOCX…', atalho: 'Ctrl+E' }], // M3 (PDF fica para depois do M7, ADR-0003)
+    itens: [{ rotulo: 'Exportar DOCX…', atalho: 'Ctrl+E', comando: 'exportarDocx' }], // M3 (PDF fica para depois do M7, ADR-0003)
   },
   {
     rotulo: 'Ajuda',
@@ -120,6 +121,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
   const d = new Set<ComandoMenu>();
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvarComo');
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
+  if (trabalho === null || trabalho.somenteLeitura) d.add('exportarDocx');
   if (trabalho === null) d.add('fecharTrabalho');
   if (trabalho === null || trabalho.somenteLeitura) d.add('inserirNota');
   if (trabalho === null) {

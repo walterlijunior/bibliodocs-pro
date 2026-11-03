@@ -25,6 +25,7 @@ import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
+import { DialogoExportar, FONTES_EXPORTACAO, type EstadoExportacao } from './escrever/DialogoExportar';
 import { DialogoVersoesDescartadas } from './biblioteca/DialogoVersoesDescartadas';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
 import { avisoRecuperado, textoDescartada } from './biblioteca/recuperacao';
@@ -60,6 +61,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const { recarregar, escolherPasta, mostrarMensagem } = bib;
   const { sessao, estado: sessaoEstado } = useSessao(api, () => void recarregar());
   const [historico, setHistorico] = useState(() => iniciarHistorico<Local>({ aba: 'biblioteca', colecao: 'trabalhos', filtro: FILTRO_TODOS }));
+  /** Diálogo "Exportar DOCX": `null` fechado (M3-T08). */
+  const [exportacao, setExportacao] = useState<EstadoExportacao | null>(null);
+  const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
@@ -208,6 +212,20 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       }),
     [api, exclusivo, irParaEscrever, liberarAtual, listarOfertas, mostrarMensagem, recarregar, sessao],
   );
+
+  const exportarDocx = useCallback(async () => {
+    const pacote = sessao.pacoteAtual();
+    if (pacote === null) return;
+    setExportacao({ etapa: 'exportando' });
+    try {
+      const r = await api.exportacao.docx(pacote, { fonte: fonteExportacao });
+      if (r.ok) setExportacao({ etapa: 'concluido', nomeArquivo: r.nomeArquivo, avisos: r.avisos });
+      else if (r.motivo === 'CANCELADO') setExportacao({ etapa: 'escolher' });
+      else setExportacao({ etapa: 'erro', mensagem: r.mensagem });
+    } catch {
+      setExportacao({ etapa: 'erro', mensagem: FALHA_INESPERADA });
+    }
+  }, [api, fonteExportacao, sessao]);
 
   const pedirDescartadas = useCallback(async () => {
     setDescartadas(null);
@@ -454,6 +472,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'atualizarBiblioteca':
           void recarregar();
           return;
+        case 'exportarDocx':
+          setExportacao({ etapa: 'escolher' });
+          return;
         case 'versoesDescartadas':
           void pedirDescartadas();
           return;
@@ -479,7 +500,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
-      if (escolhendoTipo || descartadas !== undefined) return;
+      if (escolhendoTipo || descartadas !== undefined || exportacao !== null) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -494,7 +515,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [comando, descartadas, desativados, escolhendoTipo]);
+  }, [comando, descartadas, desativados, escolhendoTipo, exportacao]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -519,6 +540,15 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
             setUltimoTipo(tipo);
             void criar(tipo);
           }}
+        />
+      )}
+      {exportacao !== null && (
+        <DialogoExportar
+          estado={exportacao}
+          fonte={fonteExportacao}
+          aoEscolherFonte={setFonteExportacao}
+          aoExportar={() => void exportarDocx()}
+          aoFechar={() => setExportacao(null)}
         />
       )}
       {descartadas !== undefined && (

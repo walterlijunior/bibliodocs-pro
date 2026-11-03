@@ -12,7 +12,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T05 Exportador DOCX | CONCLUÍDA | 2026-11-02 |
 | M3-T06 Regressão documental | CONCLUÍDA | 2026-11-02 |
 | M3-T07 Camadas externas: validador, LibreOffice e Word | CONCLUÍDA | 2026-11-02 |
-| M3-T08 a M3-T12 | PENDENTE | — |
+| M3-T08 Tela de Exportar DOCX | CONCLUÍDA | 2026-11-02 |
+| M3-T09 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -161,3 +162,24 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - **Conferência manual continua:** aviso de reparo com alertas ligados e aparência final só o usuário vê. Válido no esquema não prova ausência de todo aviso.
 - Regex do sumário no LibreOffice só cobre títulos sem ponto.
 - `ferramentas/` não entra no pacote.
+
+## M3-T08 — Tela de Exportar DOCX
+
+**Implementação:** sessão principal. **Sem revisão independente:** o plano pede `revisor-seguranca`; fica para o M3-T12. Nenhuma dependência nova.
+
+**Código**
+- `aplicacao/portas/exportacao.ts`, `principal/ipc/manipuladores-exportacao.ts`, `interface/escrever/DialogoExportar.tsx`. O motor roda no principal, o DOCX no processo utilitário, e o renderer nunca vê caminho.
+- Exporta o que está na memória, mesmo sem salvar. Uma exportação por vez. Grava por gravação atômica; se o arquivo já existia, sobra um `.bak`.
+
+**Testes** [VERIFICADO 2026-11-02]
+- `verificar:tudo`: unidade, externos 26/26 e E2E, com o número no registro do commit. Mutações no canal: 9/9. Axe sem violação séria no diálogo.
+- **E2E no Electron real:** Ctrl+E, escolhe Arial, grava; o processo utilitário roda de verdade, e o XML gravado traz título e fonte. O diálogo nativo é trocado no teste.
+- Pacote: `dist:fumaca` gerou o `app.asar` com `exportador-docx.js`, `docx` e `docx/layout`, sem `@types/node`; o `.exe` empacotado **não exportou** nesta tarefa.
+
+**Defeito do teste, não do app:** EDT-06 falhava em cerca de 1 de 5 rodadas. Instrumentado, a causa é o `handlers.focus` do ProseMirror, que repõe a seleção 20 ms depois do foco; o teste selecionava antes disso. Com a espera, 30/30. Uma pessoa não seleciona em menos de 20 ms depois de sair da nota.
+
+**Limitações**
+- A fonte vale para a sessão: o trabalho ainda não a guarda, embora D-M3-01 fale em opção por trabalho. Guardar exige campo novo no formato v1.
+- Arquivo aberto no Word: a gravação falha com a mensagem do salvamento, sem perda; não há E2E desse caso, só teste de unidade.
+- O diálogo nativo real e a confirmação de sobrescrever não têm teste automático.
+- Avisos repetidos não são agrupados.

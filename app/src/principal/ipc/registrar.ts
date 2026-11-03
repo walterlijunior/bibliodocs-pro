@@ -6,12 +6,15 @@
 import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
-import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
-import { conciliarBackupsExcluidos, fazerBackupRotativo, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
+import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
+import { conciliarBackupsExcluidos, fazerBackupRotativo, gravarAtomico, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
+import { exportarIsolado } from './exportador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
+import { criarManipuladoresExportacao } from './manipuladores-exportacao';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -181,7 +184,27 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     },
   });
 
+  const exportacao = criarManipuladoresExportacao({
+    origem,
+    conteudosPermitidos,
+    perfil: PERFIL_UFT_2022,
+    escolherDestino: async (id, nome) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showSaveDialog(janela, {
+        title: 'Exportar DOCX',
+        defaultPath: join(app.getPath('documents'), nome),
+        filters: [{ name: 'Documento do Word', extensions: ['docx'] }],
+        properties: ['showOverwriteConfirmation'],
+      });
+      return r.canceled || !r.filePath ? null : r.filePath;
+    },
+    exportar: (f) => exportarIsolado(join(__dirname, 'exportador-docx.js'), f),
+    gravar: (destino, bytes) => gravarAtomico(destino, bytes),
+  });
+
   const todos = [
+    ...Object.entries(exportacao),
     ...Object.entries(manipuladores),
     ...Object.entries(biblioteca.manipuladores),
     ...Object.entries(rec.manipuladores),
@@ -217,7 +240,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     /** Espera as gravações da recuperação terminarem (antes de o app sair). */
     aguardarRecuperacao: (): Promise<void> => rec.aguardar(),
     remover(): void {
-      const canais = [CANAIS_PROJETOS, CANAIS_BIBLIOTECA, CANAIS_RECUPERACAO, CANAIS_EDICAO].flatMap((c) => Object.values(c));
+      const canais = [CANAIS_PROJETOS, CANAIS_BIBLIOTECA, CANAIS_RECUPERACAO, CANAIS_EDICAO, CANAIS_EXPORTACAO].flatMap((c) => Object.values(c));
       for (const canal of canais) {
         ipcMain.removeHandler(canal);
       }
