@@ -396,6 +396,24 @@ describe('abrir da lista', () => {
 });
 
 describe('renomear', () => {
+  it('um .bak antigo no nome novo sai do caminho antes de este .bak ir para lá (R-M2-08)', async () => {
+    await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
+    writeFileSync(join(pastaPadrao, 'a.bdp.bak'), 'deste');
+    writeFileSync(join(pastaPadrao, 'Novo.bdp.bak'), 'de outro');
+    const guardados: [string, string][] = [];
+    const m = montar({
+      guardarBakAlheio: async (c, n) => {
+        guardados.push([readFileSync(c, 'utf8'), n]);
+        rmSync(c);
+        return 'guardado';
+      },
+    });
+    const a = (await listar(m)).itens[0]!;
+    expect((await m.chamar<ResultadoItem>(CANAIS_BIBLIOTECA.renomear, LEGITIMO, a.identificador, 'Novo')).ok).toBe(true);
+    expect(guardados).toEqual([['de outro', 'Novo.bdp.bak-anterior']]);
+    expect(readFileSync(join(pastaPadrao, 'Novo.bdp.bak'), 'utf8')).toBe('deste');
+  });
+
   it('renomeia mantendo o identificador e o resumo', async () => {
     await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
     const m = montar();
@@ -546,6 +564,17 @@ describe('excluir (Lixeira com confirmação)', () => {
     confirmar = true;
     await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador);
     expect(excluidos).toEqual(listas.at(-1));
+  });
+
+  it('restos de gravação interrompida também vão para a Lixeira; os de outro trabalho ficam (R-M2-16)', async () => {
+    await gravarProjeto(pastaPadrao, 'a.bdp', 'Um');
+    writeFileSync(join(pastaPadrao, 'a.bdp.tmp-1-x'), 'resto');
+    writeFileSync(join(pastaPadrao, 'a.bdp.bak.tmp-1-y'), 'resto');
+    writeFileSync(join(pastaPadrao, 'ab.bdp.tmp-1-z'), 'de outro');
+    const m = montar();
+    const a = (await listar(m)).itens[0]!;
+    await m.chamar(CANAIS_BIBLIOTECA.excluir, LEGITIMO, a.identificador);
+    expect(lixeira.map((c) => c.slice(pastaPadrao.length + 1)).sort()).toEqual(['a.bdp', 'a.bdp.bak.tmp-1-y', 'a.bdp.tmp-1-x']);
   });
 
   it('o .bak vai junto para a Lixeira (R-M1-02); o de outro trabalho fica', async () => {

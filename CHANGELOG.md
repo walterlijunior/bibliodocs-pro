@@ -5,6 +5,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M3-T10: versão descartada ou cópia de segurança aberta agora tem cópia de recuperação; o que "Salvar como…" substitui fica 7 dias em Versões descartadas; `.bak` antigo não passa a parecer do trabalho renomeado; excluir leva os restos de gravação para a Lixeira; log sem caminho em argumento recusado.
+
 ### Adicionado
 - Etapa 5, M3-T09: Arquivo › Cópias de segurança…: lista as cópias de `backups\<id>\` e abre como trabalho sem arquivo, sem alterar nada.
 - Etapa 5, M3-T08: Exportar › Exportar DOCX… (Ctrl+E): escolhe a fonte, grava pelo diálogo do sistema e mostra os avisos. É a primeira exportação pelo próprio aplicativo.

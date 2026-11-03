@@ -46,6 +46,8 @@ export interface DependenciasProjetos {
    */
   antesDeGravar?: (idProjeto: string) => number;
   aoGravar?: (caminho: string, idProjeto: string, dono: number, marca: number) => Promise<void>;
+  /** "Salvar como…" sobre um arquivo que existe: guarda o que será substituído (R-M2-06). */
+  antesDeSubstituir?: (caminho: string) => Promise<void>;
   /** Antes de gravar por cima do próprio arquivo: backup rotativo da versão anterior (M2-T10). Não lança. */
   antesDeSobrescrever?: (caminho: string, idProjeto: string) => Promise<void>;
   /** Depois de fechar um arquivo: a sessão de recuperação dele termina (M1-T12). */
@@ -165,6 +167,7 @@ export function criarManipuladoresProjetos(dep: DependenciasProjetos): {
     }
     const idProjeto = p.valor.manifesto.id;
     const marca = dep.antesDeGravar?.(idProjeto) ?? 0;
+    await dep.antesDeSubstituir?.(destino);
     const s = paraResultadoSalvar(await dep.salvar(destino, p.valor), log);
     if (!s.ok) return s;
     await dep.aoGravar?.(destino, idProjeto, r.idConteudo, marca);

@@ -170,6 +170,7 @@ export type Cancelar = () => void;
 
 export interface DependenciasSessao {
   api: Pick<ApiProjetos, 'salvar' | 'salvarComo' | 'fechar'>;
+  fecharSemArquivo?: (copia: string, salvo: boolean) => Promise<void>;
   agora: () => Date;
   agendar: (acao: () => void, ms: number) => Cancelar;
   atrasoAutomaticoMs?: number;
@@ -221,6 +222,8 @@ type Aberto =
       pacote: PacoteTransferivel;
       /** Chaves das mídias que o principal já tem para `identificador` (vão sem os bytes). */
       midiasNoPrincipal: Set<string>;
+      /** Identificador da cópia de recuperação do trabalho sem arquivo (R-M2-04). */
+      copiaRecuperacao: string | null;
     }
   | { modo: 'leitura'; nomeArquivo: string; pacote: PacoteSomenteLeituraTransferivel };
 
@@ -443,7 +446,7 @@ export class SessaoTrabalho {
   #agendarInstantaneo(): void {
     if (this.#dep.instantaneo === undefined || this.#cancelarInstantaneo !== null || this.#instantaneoEmCurso) return;
     const a = this.#aberto;
-    if (a?.modo !== 'edicao' || a.identificador === null) return;
+    if (a?.modo !== 'edicao' || (a.identificador ?? a.copiaRecuperacao) === null) return;
     this.#cancelarInstantaneo = this.#dep.agendar(() => {
       this.#cancelarInstantaneo = null;
       void this.#gravarInstantaneo(a);
@@ -452,7 +455,7 @@ export class SessaoTrabalho {
 
   async #gravarInstantaneo(a: Extract<Aberto, { modo: 'edicao' }>): Promise<void> {
     const enviar = this.#dep.instantaneo;
-    const identificador = a.identificador;
+    const identificador = a.identificador ?? a.copiaRecuperacao;
     // Já gravado no arquivo (o salvamento apaga os instantâneos): nada a guardar.
     if (enviar === undefined || identificador === null || this.#aberto !== a || !this.#temAlteracoes()) return;
     const revisao = this.#revisao;
@@ -490,7 +493,8 @@ export class SessaoTrabalho {
       nomeArquivo: projeto.nomeArquivo,
       pacote: projeto.pacote,
       // O principal guarda as mídias do arquivo que ele mesmo entregou com o identificador.
-      midiasNoPrincipal: chavesDasMidias(projeto.identificador === null ? null : projeto.pacote),
+      midiasNoPrincipal: chavesDasMidias(projeto.identificador === null && projeto.copiaRecuperacao === undefined ? null : projeto.pacote),
+      copiaRecuperacao: projeto.copiaRecuperacao ?? null,
     };
     this.#aberto = a;
     this.#novaGeracao(projeto.pacote.documento.corpo);
@@ -532,6 +536,8 @@ export class SessaoTrabalho {
       // Esquecer o identificador não pode falhar de um jeito que importe: no pior caso ele morre com a janela.
       this.#dep.api.fechar(a.identificador).catch(() => {});
     }
+    // Fechar sem salvar: o que estava escrito fica 7 dias nas versões descartadas.
+    if (a?.modo === 'edicao' && a.copiaRecuperacao !== null) this.#dep.fecharSemArquivo?.(a.copiaRecuperacao, false).catch(() => {});
     this.#aberto = null;
     this.#caminhos = new Map();
     this.#secoes = [];
@@ -961,6 +967,10 @@ export class SessaoTrabalho {
     // O principal guardou com o identificador novo as mídias do pacote gravado.
     a.midiasNoPrincipal = chavesDasMidias(pacote);
     if (antigo !== null && antigo !== r.identificador) this.#dep.api.fechar(antigo).catch(() => {});
+    if (a.copiaRecuperacao !== null) {
+      this.#dep.fecharSemArquivo?.(a.copiaRecuperacao, true).catch(() => {});
+      a.copiaRecuperacao = null;
+    }
     this.#avisos = this.#avisos.filter((x) => !x.acoes.includes('salvarComo'));
     this.#concluir(a, pacote, revisao, r.nomeArquivo, r.avisos);
     return true;

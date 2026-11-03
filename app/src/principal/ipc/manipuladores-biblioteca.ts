@@ -84,6 +84,8 @@ export interface DependenciasBiblioteca {
   confirmarExclusao: (idConteudo: number, nomeArquivo: string) => Promise<boolean>;
   /** `shell.trashItem`: lança se não conseguiu. */
   enviarParaLixeira: (caminho: string) => Promise<void>;
+  /** `.bak` de outro trabalho no caminho do novo nome: sai do caminho, sem perder (R-M2-08). `null` se ficou onde estava. */
+  guardarBakAlheio?: (caminho: string, nome: string) => Promise<string | null>;
   /** Trabalho excluído: as cópias dele em `backups\\<id>\\` entram no prazo de 30 dias. */
   aoExcluir?: (idProjeto: string) => Promise<void>;
   /** Biblioteca listada com sucesso, com os ids presentes. */
@@ -355,6 +357,11 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
           ? falha('JA_EXISTE', `Já existe um trabalho chamado “${v.nomeArquivo}” nesta pasta.`)
           : falhaDisco(rn.erro, 'renomear o trabalho');
       }
+      // Um `.bak` antigo no nome novo pareceria deste trabalho e seria oferecido para restaurar (R-M2-08).
+      if (await fs.info(`${destino}.bak`).then(() => true, () => false)) {
+        const guardado = await dep.guardarBakAlheio?.(`${destino}.bak`, `${v.nomeArquivo}.bak-anterior`);
+        if (!guardado) log('[biblioteca] .bak antigo continua no nome novo');
+      }
       // O `.bak` acompanha (R-M1-02). Falhar aqui não desfaz o renomear: a cópia só fica com o nome antigo.
       if (await fs.info(`${caminho}.bak`).then(() => true, () => false)) {
         const bak = await renomearSemSobrescrever(`${caminho}.bak`, `${destino}.bak`, fs);
@@ -443,6 +450,13 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       if (await fs.info(bak).then(() => true, () => false)) {
         await dep.enviarParaLixeira(bak).catch((e: unknown) => log(`[biblioteca] .bak fora da Lixeira: ${codigoErro(e) ?? 'erro'}`));
       }
+      // Restos de uma gravação interrompida têm o texto e gerariam oferta de restaurar o que foi excluído (R-M2-16).
+      const pasta = dirname(caminho);
+      const restos = await fs.listarPasta(pasta).then(
+        (e) => e.filter((x) => x.arquivoComum && !x.link && (x.nome.startsWith(`${nomeArquivo}.tmp-`) || x.nome.startsWith(`${nomeArquivo}.bak.tmp-`))).map((x) => join(pasta, x.nome)),
+        () => [],
+      );
+      for (const resto of restos) await dep.enviarParaLixeira(resto).catch((e: unknown) => log(`[biblioteca] resto fora da Lixeira: ${descreverErro(e)}`));
       if (resumo?.estado === 'ok') await dep.aoExcluir?.(resumo.id);
       itens.esquecerCaminho(caminho);
       if (indice) await guardarIndice({ ...indice, entradas: indice.entradas.filter((e) => e.nomeArquivo !== nomeArquivo) });

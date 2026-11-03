@@ -42,6 +42,8 @@ import {
   ARQUIVOS_POR_LOTE,
   arquivar,
   arquivarInstantaneos,
+  copiarParaAntigos,
+  nomeConjuntoReservado,
   chaveCaminho,
   ehArquivoProjeto,
   ehReservado,
@@ -147,6 +149,13 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   const registroOfertas = dep.ofertas ?? new RegistroProjetos();
   const internas = new Map<string, OfertaInterna>();
   /** Identificador → caminho em `recuperacao-antigos`; valem só para a janela e a listagem mais recente. */
+  /** Trabalhos sem arquivo abertos, com o conjunto de instantâneos próprio (R-M2-04, R-M2-12). */
+  const semArquivo = new Map<string, { conjunto: string; idProjeto: string; dono: number }>();
+  const abrirSemArquivo = (conjunto: string, idProjeto: string, dono: number, midias: ReadonlyMap<string, Uint8Array>): string => {
+    const token = registroOfertas.registrar(`semarquivo:${++contador}`, dono, idProjeto, midias);
+    semArquivo.set(token, { conjunto, idProjeto, dono });
+    return token;
+  };
   const descartadas = new Map<string, { caminho: string; dono: number; quando: number }>();
   let contador = 0;
 
@@ -216,6 +225,13 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   const encerrarDono = (dono: number, limpo: boolean): Promise<void> =>
     emFila(async () => {
       esquecerOfertas(dono);
+      for (const [token, t] of [...semArquivo]) {
+        if (t.dono !== dono) continue;
+        semArquivo.delete(token);
+        registroOfertas.esquecer(token, dono);
+        // Caiu: os instantâneos ficam, e viram oferta.
+        if (limpo) await arquivarInstantaneos(pastas, t.conjunto, agoraMs(), op);
+      }
       for (const [id, s] of [...sessoes]) {
         if (s.dono !== dono) continue;
         if (limpo) await terminarSessao(id);
@@ -249,7 +265,8 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
   async function ofertasDeInstantaneos(dono: number): Promise<OfertaInterna[]> {
     const ofertas: OfertaInterna[] = [];
     const pendentes = [];
-    const ativo = (conjunto: string) => !ehReservado(conjunto) && sessoes.has(conjunto);
+    const emUso = new Set([...semArquivo.values()].map((t) => t.conjunto));
+    const ativo = (conjunto: string) => emUso.has(conjunto) || (!ehReservado(conjunto) && sessoes.has(conjunto));
     for (const conjunto of await listarIdsComInstantaneos(pastas, op)) {
       if (ativo(conjunto)) continue;
       const instantaneos = await instantaneosDe(pastas, conjunto, op);
@@ -366,6 +383,24 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
     const canal = CANAIS_RECUPERACAO.instantaneo;
     conferir(canal, r, argumentos, 2);
     const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador');
+    const copia = semArquivo.get(id);
+    if (copia !== undefined && copia.dono === r.idConteudo) {
+      const p = lerPacoteTransferivel(argumentos[1], registroOfertas.midias(id, r.idConteudo) ?? new Map());
+      if (!p.ok && p.recusado) return recusarArgumento(canal, `pacote (${p.motivo})`);
+      if (!p.ok) return { ok: false, codigo: p.midiaAusente ? 'MIDIA_AUSENTE' : 'PACOTE_INVALIDO' };
+      if (p.valor.manifesto.id !== copia.idProjeto) return { ok: false, codigo: 'PACOTE_INVALIDO' };
+      const pacote = p.valor;
+      return emFila(async () => {
+        const empacotado = await empacotar(pacote);
+        if (!empacotado.ok) return { ok: false, codigo: 'PACOTE_INVALIDO' };
+        registroOfertas.trocarMidias(id, r.idConteudo, pacote.midias);
+        if (!semArquivo.has(id)) return { ok: false, codigo: 'NAO_ABERTO' }; // fechou enquanto esperava a vez
+        const g = await gravarInstantaneo(pastas, copia.conjunto, empacotado.bytes, op);
+        if (g.ok) return { ok: true };
+        log(`[recuperacao] instantâneo sem arquivo falhou: ${g.detalhe ?? 'erro'}`);
+        return { ok: false, codigo: 'FALHA_DISCO' };
+      });
+    }
     const p = lerPacoteTransferivel(argumentos[1], dep.projetos.midias(id, r.idConteudo) ?? new Map());
     if (!p.ok && p.recusado) return recusarArgumento(canal, `pacote (${p.motivo})`);
     if (dep.projetos.caminho(id, r.idConteudo) === null) return { ok: false, codigo: 'NAO_ABERTO' };
@@ -442,20 +477,29 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       }
     }
     if (lido === null) return { ok: false, mensagem: MENSAGEM_ILEGIVEL };
-    // A versão recuperada vira o conjunto da sessão (protegida até o próximo salvamento).
-    if (!(await promoverConjunto(pastas, conjunto, agoraMs(), op))) return { ok: false, mensagem: MENSAGEM_DISCO };
     const avisos: AvisoProjeto[] = [...lido.avisos];
-    let identificador: string | null = null;
-    if (original !== null && ehArquivoProjeto(basename(original))) {
-      if (await origemAceita(original, idProjeto)) identificador = dep.projetos.registrar(original, dono, idProjeto, mapaMidias(lido.pacote.midias));
-      else {
+    const aceita = original !== null && ehArquivoProjeto(basename(original)) && (await origemAceita(original, idProjeto));
+    // Sem arquivo para gravar: fica no próprio conjunto, sem sessão, e fechar não deixa o trabalho "aberto" (R-M2-12).
+    if (!aceita) {
+      if (original !== null && ehArquivoProjeto(basename(original))) {
         avisos.push({
           caminho: 'arquivo',
           mensagem: `O arquivo “${basename(original)}” agora guarda outro trabalho e não foi alterado. Use “Salvar como…” para guardar a versão recuperada.`,
         });
       }
+      const copiaRecuperacao = abrirSemArquivo(conjunto, idProjeto, dono, mapaMidias(lido.pacote.midias));
+      retirar(id, dono);
+      return {
+        ok: true,
+        tipo: 'instantaneo',
+        quando: o.publica.quando,
+        projeto: { identificador: null, nomeArquivo: o.publica.nomeArquivo, pacote: lido.pacote, avisos, atualizacao: null, copiaRecuperacao },
+      };
     }
-    await iniciarSessao(idProjeto, identificador !== null ? original! : '', dono);
+    // A versão recuperada vira o conjunto da sessão (protegida até o próximo salvamento).
+    if (!(await promoverConjunto(pastas, conjunto, agoraMs(), op))) return { ok: false, mensagem: MENSAGEM_DISCO };
+    const identificador = dep.projetos.registrar(original, dono, idProjeto, mapaMidias(lido.pacote.midias));
+    await iniciarSessao(idProjeto, original, dono);
     retirar(id, dono);
     return {
       ok: true,
@@ -635,13 +679,47 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       if (!lido.ok) return { ok: false, mensagem: ilegivel };
       const idProjeto = lido.pacote.manifesto.id;
       if (sessoes.has(idProjeto)) return { ok: false, mensagem: MENSAGEM_JA_ABERTO };
+      // Nunca um conjunto que já tem instantâneos: pode ser a queda de outra execução, ainda sem decisão.
+      let conjunto = nomeConjuntoReservado(idProjeto, agoraMs(), ++contador);
+      while ((await instantaneosDe(pastas, conjunto, op)).length > 0) conjunto = nomeConjuntoReservado(idProjeto, agoraMs(), ++contador);
       return {
         ok: true,
         quando: d.quando,
-        projeto: { identificador: null, nomeArquivo, pacote: lido.pacote, avisos: [...lido.avisos], atualizacao: null },
+        projeto: {
+          identificador: null,
+          nomeArquivo,
+          pacote: lido.pacote,
+          avisos: [...lido.avisos],
+          atualizacao: null,
+          copiaRecuperacao: abrirSemArquivo(conjunto, idProjeto, r.idConteudo, mapaMidias(lido.pacote.midias)),
+        },
       };
     });
   };
+
+  const fecharSemArquivo: Manipulador = async (r, argumentos): Promise<void> => {
+    const canal = CANAIS_RECUPERACAO.fecharSemArquivo;
+    conferir(canal, r, argumentos, 2);
+    const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'identificador');
+    if (typeof argumentos[1] !== 'boolean') return recusarArgumento(canal, 'salvo');
+    const salvo = argumentos[1];
+    return emFila(async () => {
+      const t = semArquivo.get(id);
+      if (t === undefined || t.dono !== r.idConteudo) return;
+      semArquivo.delete(id);
+      registroOfertas.esquecer(id, r.idConteudo);
+      if (salvo) await apagarInstantaneos(pastas, t.conjunto, op);
+      else await arquivarInstantaneos(pastas, t.conjunto, agoraMs(), op);
+    });
+  };
+
+  /** O arquivo vai ser substituído por "Salvar como…", com a confirmação do usuário: fica uma cópia por 7 dias (R-M2-06). */
+  const guardarSubstituido = (caminho: string): Promise<void> =>
+    emFila(async () => {
+      if ((await infoArquivo(caminho)) === null) return;
+      const copia = await copiarParaAntigos(pastas, caminho, `${basename(caminho)}-substituido`, agoraMs(), fs);
+      if (copia === null) log('[recuperacao] arquivo substituído sem cópia em recuperacao-antigos');
+    });
 
   const abrirDescartada = abrirCopia(CANAIS_RECUPERACAO.abrirDescartada, MENSAGEM_DESCARTADA_ILEGIVEL, 'Versão descartada.bdp');
   const abrirBackup = abrirCopia(CANAIS_RECUPERACAO.abrirBackup, MENSAGEM_BACKUP_ILEGIVEL, 'Cópia de segurança.bdp');
@@ -656,7 +734,9 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       [CANAIS_RECUPERACAO.abrirDescartada]: abrirDescartada,
       [CANAIS_RECUPERACAO.listarBackups]: listarBackups,
       [CANAIS_RECUPERACAO.abrirBackup]: abrirBackup,
+      [CANAIS_RECUPERACAO.fecharSemArquivo]: fecharSemArquivo,
     }) as Readonly<Record<CanalRecuperacao, Manipulador>>,
+    guardarSubstituido,
     antesDeGravar,
     aoGravar,
     aoFechar,

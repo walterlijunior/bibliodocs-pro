@@ -531,3 +531,53 @@ describe('trabalho sem arquivo com texto próprio (R-M2-04, R-M2-10)', () => {
     expect(sessao.obterEstado().avisos.map((a) => a.texto)).toEqual([MENSAGEM_SEM_DESTINO]);
   });
 });
+
+describe('trabalho sem arquivo com cópia de recuperação (R-M2-04)', () => {
+  function montarComCopia() {
+    const fechados: [string, boolean][] = [];
+    const enviados: string[] = [];
+    const agendados: { acao: () => void; cancelado: boolean }[] = [];
+    const api: Pick<ApiProjetos, 'salvar' | 'salvarComo' | 'fechar'> = {
+      salvar: () => Promise.reject(new Error('sem arquivo não salva')),
+      salvarComo: () => Promise.resolve({ ok: true, identificador: ID_NOVO, nomeArquivo: 'Novo.bdp', avisos: [] }),
+      fechar: () => Promise.resolve(),
+    };
+    const sessao = new SessaoTrabalho({
+      api,
+      agora: () => new Date(0),
+      agendar: (acao) => {
+        const a = { acao, cancelado: false };
+        agendados.push(a);
+        return () => void (a.cancelado = true);
+      },
+      instantaneo: async (id) => (enviados.push(id), { ok: true }),
+      fecharSemArquivo: async (c, s) => void fechados.push([c, s]),
+    });
+    const disparar = () => agendados.filter((a) => !a.cancelado).forEach((a) => a.acao());
+    return { sessao, fechados, enviados, disparar };
+  }
+  it('alteração manda instantâneo com o identificador da cópia', () => {
+    const { sessao, enviados, disparar } = montarComCopia();
+    sessao.abrir(projeto({ identificador: null, copiaRecuperacao: 'copia1' }));
+    sessao.alterarTitulo('Novo');
+    disparar();
+    expect(enviados).toEqual(['copia1']);
+  });
+  it('sem cópia, trabalho sem arquivo continua sem instantâneo', () => {
+    const { sessao, enviados, disparar } = montarComCopia();
+    sessao.abrir(projeto({ identificador: null }));
+    sessao.alterarTitulo('Novo');
+    disparar();
+    expect(enviados).toEqual([]);
+  });
+  it('trocar de trabalho encerra guardando; salvar como encerra apagando, e não encerra de novo', async () => {
+    const { sessao, fechados } = montarComCopia();
+    sessao.abrir(projeto({ identificador: null, copiaRecuperacao: 'c1' }));
+    sessao.abrir(projeto({ identificador: null, copiaRecuperacao: 'c2' }));
+    expect(fechados).toEqual([['c1', false]]);
+    expect(await sessao.salvarComo()).toBe(true);
+    expect(fechados).toEqual([['c1', false], ['c2', true]]);
+    sessao.abrir(projeto());
+    expect(fechados).toHaveLength(2);
+  });
+});

@@ -14,7 +14,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T07 Camadas externas: validador, LibreOffice e Word | CONCLUÍDA | 2026-11-02 |
 | M3-T08 Tela de Exportar DOCX | CONCLUÍDA | 2026-11-02 |
 | M3-T09 Tela de cópias de segurança | CONCLUÍDA | 2026-11-02 |
-| M3-T10 a M3-T12 | PENDENTE | — |
+| M3-T10 Achados abertos da revisão do M2 | CONCLUÍDA | 2026-11-02 |
+| M3-T11 e M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -198,3 +199,27 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - A lista mostra título e data do conteúdo: duas cópias do mesmo dia só se distinguem pela hora.
 - Sem backups de trabalho aberto com o mesmo id: abrir a cópia enquanto ele está em edição é recusado como "já aberto".
 - Edições na cópia aberta não têm recuperação até "Salvar como…" (R-M2-04, M3-T10).
+
+## M3-T10 — Achados abertos da revisão do M2
+
+**Implementação:** sessão principal. **Sem revisão independente:** mexe em recuperação e substituição de arquivos; o M3-T12 precisa cobrir.
+
+| Achado | Situação |
+|---|---|
+| R-M2-04 | **Corrigido.** Trabalho sem arquivo manda instantâneo num conjunto reservado próprio, e a queda vira oferta. Fechar sem salvar guarda 7 dias; "Salvar como…" apaga |
+| R-M2-06 | **Corrigido.** O arquivo substituído fica em `recuperacao-antigos` como `<nome>-substituido`, e aparece em Versões descartadas |
+| R-M2-08 | **Corrigido.** `.bak` antigo no nome novo vai para `recuperacao-antigos`; a oferta de `.bak` mostra o título |
+| R-M2-12 | **Corrigido.** Recuperar sem arquivo não abre sessão, então fechar não deixa o trabalho "já aberto" |
+| R-M2-14 | **Corrigido.** Só o nome da chave vai ao log. Sem teste, por estar na inicialização do app empacotado |
+| R-M2-16 | **Corrigido.** Excluir leva `<nome>.tmp-*` e `<nome>.bak.tmp-*` para a Lixeira |
+| R-M2-05 | **Aceito, sem correção.** Dois arquivos com o mesmo id dividem a rotação: só pesa em dupla falha, e a saída é mudar o id no "Salvar como…", decisão maior que o achado. Fica registrado |
+| R-M2-13, R-M2-15 | Sem mudança: Info; crédito do empacotador e política de privacidade na Etapa 7 |
+
+Os testes acharam um defeito meu: dois conjuntos no mesmo segundo, em execuções diferentes, podiam coincidir e apagar uma queda sem decisão. Corrigido: o nome só é usado se não houver instantâneos nele.
+
+**Testes** [VERIFICADO 2026-11-02]: unidade e E2E com queda real por `taskkill`: versão editada, processo morto, texto de volta como oferta. Mutações: 13/13, 2 delas depois de novos testes. Números no registro do commit.
+
+**Limitações**
+- Lixeira real e erros de disco nessas rotas só testados com falsos.
+- Se a cópia do que será substituído falhar, "Salvar como…" segue, porque o usuário confirmou no diálogo: fica o `.bak` e uma linha no log.
+- O nome `-substituido` não é mostrado: a tela só traz título e data.

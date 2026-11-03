@@ -103,7 +103,8 @@ function iniciar(): void {
   if (app.isPackaged) {
     const recusado = argumentoRecusado(process.argv.slice(1), ehArtefatoDeFumaca());
     if (recusado !== null) {
-      console.error(`[seguranca] argumento recusado: ${recusado}`);
+      // Só o nome da chave: o valor pode trazer um caminho (R-M2-14).
+      console.error(`[seguranca] argumento recusado: ${recusado.split('=')[0]}`);
       app.exit(SAIDA_ARGUMENTO_RECUSADO);
       return;
     }

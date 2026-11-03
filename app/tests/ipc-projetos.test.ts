@@ -3,7 +3,7 @@
 // leitura usa abrirProjeto de verdade, na mesma forma que o processo leitor responde.
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ACOES_EDICAO, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
 import type { Manifesto } from '../src/dominio/esquemas';
@@ -429,5 +429,17 @@ describe('canal edicao (M2-T06): menu Editar', () => {
     ];
     for (const [r, args] of recusas) await expect(executar(r, args)).rejects.toBeInstanceOf(ErroIpcRecusado);
     expect(feitos).toEqual([]);
+  });
+});
+
+describe('salvar como por cima (R-M2-06)', () => {
+  it('avisa antes de gravar, com o destino, e a gravação acontece depois', async () => {
+    const ordem: string[] = [];
+    const m = montar({
+      antesDeSubstituir: async (c) => void ordem.push(`guardar ${basename(c)}`),
+      salvar: async (d, p) => (ordem.push('gravar'), salvarProjeto(d, p)),
+    });
+    await salvarComoEm(m, 'Novo.bdp');
+    expect(ordem).toEqual(['guardar Novo.bdp', 'gravar']);
   });
 });

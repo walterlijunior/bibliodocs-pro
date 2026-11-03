@@ -318,6 +318,33 @@ export async function arquivar(
   return null;
 }
 
+/** Nome de conjunto reservado novo: instantâneos que não pertencem a uma sessão de arquivo (R-M2-04). */
+export const nomeConjuntoReservado = (id: string, agoraMs: number, ordem: number): string => `${id}~${carimbo(agoraMs)}-${ordem}`;
+
+/**
+ * Guarda uma cópia em `recuperacao-antigos`, sem tirar o original: o que está para ser substituído por escolha do usuário
+ * continua à mão por 7 dias (R-M2-06). `null` se não copiou; nunca lança.
+ */
+export async function copiarParaAntigos(pastas: PastasRecuperacao, caminho: string, nome: string, agoraMs: number, fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE): Promise<string | null> {
+  try {
+    await fs.criarPasta(pastas.antigos);
+  } catch {
+    return null;
+  }
+  for (let ordem = 1; ordem <= 20; ordem++) {
+    const destino = join(pastas.antigos, ordem === 1 ? nome : `${nome}-${ordem}`);
+    try {
+      await fs.copiar(caminho, destino);
+    } catch (e) {
+      if (codigoErro(e) === 'EEXIST') continue;
+      return null;
+    }
+    await fs.definirModificacao(destino, agoraMs).catch(ignorar);
+    return destino;
+  }
+  return null;
+}
+
 /** Apaga de `recuperacao-antigos` o que tem mais de 7 dias. */
 export async function limparAntigos(pastas: PastasRecuperacao, agoraMs: number, opcoes: OpcoesRecuperacao = {}): Promise<void> {
   const fs = opcoes.fs ?? SISTEMA_ARQUIVOS_NODE;

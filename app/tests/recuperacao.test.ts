@@ -156,6 +156,7 @@ function processo(
     abrirBackup: (id: string) => chamar(CANAIS_RECUPERACAO.abrirBackup, id) as Promise<ResultadoAbrirDescartada>,
     salvar: (id: string, p: PacoteTransferivel) => chamar(CANAIS_PROJETOS.salvar, id, p) as Promise<{ ok: boolean }>,
     fechar: (id: string) => chamar(CANAIS_PROJETOS.fechar, id),
+    fecharSemArquivo: (id: string, salvo: boolean) => chamar(CANAIS_RECUPERACAO.fecharSemArquivo, id, salvo),
     chamar,
   };
 }
@@ -870,7 +871,8 @@ describe('textos da recuperação', () => {
     expect(textoOferta(oferta({ titulo: ' ', arquivoSalvoExiste: false }), hoje)).toContain('com “TCC.bdp” aberto');
     expect(textoOferta(oferta({ arquivoSalvoExiste: false }), hoje)).toMatch(/O arquivo salvo não foi encontrado\.$/);
     expect(textoOferta(oferta({ tipo: 'temporario', arquivoSalvoExiste: false }), hoje)).toMatch(/^“TCC.bdp” não foi encontrado, mas/);
-    expect(textoOferta(oferta({ tipo: 'bak' }), hoje)).toContain('cópia de segurança (.bak) de 15:42 está íntegra');
+    expect(textoOferta(oferta({ tipo: 'bak', titulo: '' }), hoje)).toContain('cópia de segurança (.bak) de 15:42 está íntegra');
+    expect(textoOferta(oferta({ tipo: 'bak', titulo: 'Meu título' }), hoje)).toContain('(.bak) de “Meu título” de 15:42');
     expect(avisoRecuperado('instantaneo', oferta({}).quando, hoje)).toMatchObject({ nivel: 'info', texto: expect.stringContaining('ainda não está no arquivo') });
     expect(avisoRecuperado('bak', oferta({}).quando, hoje).texto).toBe('O arquivo foi restaurado a partir da cópia de segurança (.bak) de 15:42.');
   });
@@ -1094,5 +1096,116 @@ describe('cópias de segurança (M3-T09)', () => {
     expect(r.incompleta).toBe(true);
     await expect(p.chamar(CANAIS_RECUPERACAO.listarBackups, 'extra')).rejects.toBeInstanceOf(ErroIpcRecusado);
     await expect(p.chamar(CANAIS_RECUPERACAO.abrirBackup, 'C:\\x.bdp')).rejects.toBeInstanceOf(ErroIpcRecusado);
+  });
+});
+
+describe('trabalho sem arquivo tem cópia de recuperação (R-M2-04, R-M2-12)', () => {
+  async function abrirVersao(p: ReturnType<typeof processo>): Promise<string> {
+    mkdirSync(pastas.antigos, { recursive: true });
+    expect((await salvarProjeto(join(pastas.antigos, 'prj-x-atual.bdp'), paraProjeto(pacote('Base')))).ok).toBe(true);
+    const [v] = await p.listarDescartadas();
+    const r = await p.abrirDescartada(v!.identificador);
+    if (!r.ok || !r.projeto.copiaRecuperacao) throw new Error('sem cópia');
+    return r.projeto.copiaRecuperacao;
+  }
+  const quedas = () => reservados();
+
+  it('o instantâneo não vai para o conjunto do trabalho nem aparece como oferta enquanto está aberto', async () => {
+    const p = processo();
+    const t = await abrirVersao(p);
+    expect(await p.instantaneo(t, pacote('Editado'))).toEqual({ ok: true });
+    expect(existsSync(pastaInstantaneos())).toBe(false);
+    expect(quedas()).toHaveLength(1);
+    expect(await p.listar()).toEqual([]);
+  });
+
+  it('o app cai: o texto volta como oferta e, recuperado, segue sem arquivo', async () => {
+    const antes = processo(111);
+    const t = await abrirVersao(antes);
+    await antes.instantaneo(t, pacote('Editado na versão'));
+    const depois = processo(222);
+    const [o] = await depois.listar();
+    expect(o).toMatchObject({ titulo: 'Editado na versão', arquivoSalvoExiste: false });
+    const r = await depois.recuperar(o!.identificador);
+    if (!r.ok) throw new Error(r.mensagem);
+    expect(r.projeto.identificador).toBeNull();
+    expect(r.projeto.copiaRecuperacao).toBeDefined();
+    expect(tituloDe(r.projeto.pacote)).toBe('Editado na versão');
+    expect(await depois.instantaneo(r.projeto.copiaRecuperacao!, pacote('Mais'))).toEqual({ ok: true });
+  });
+
+  it('fechar sem salvar guarda em recuperacao-antigos; a oferta não volta', async () => {
+    const p = processo();
+    const t = await abrirVersao(p);
+    await p.instantaneo(t, pacote('Editado'));
+    const antes = arquivosDe(pastas.antigos).length;
+    await p.fecharSemArquivo(t, false);
+    expect(arquivosDe(pastas.antigos).length).toBe(antes + 1);
+    expect(quedas()).toEqual([]);
+    expect(await p.instantaneo(t, pacote('Depois'))).toMatchObject({ ok: false, codigo: 'NAO_ABERTO' });
+  });
+
+  it('salvo como arquivo novo: os instantâneos saem sem guardar', async () => {
+    const p = processo();
+    const t = await abrirVersao(p);
+    await p.instantaneo(t, pacote('Editado'));
+    const antes = arquivosDe(pastas.antigos).length;
+    await p.fecharSemArquivo(t, true);
+    expect(arquivosDe(pastas.antigos).length).toBe(antes);
+    expect(quedas()).toEqual([]);
+  });
+
+  it('a janela fecha normalmente: guarda; a janela cai: fica como oferta', async () => {
+    const a = processo();
+    const t = await abrirVersao(a);
+    await a.instantaneo(t, pacote('Editado'));
+    await a.rec.encerrarDono(JANELA, false);
+    expect(quedas()).toHaveLength(1);
+    const b = processo();
+    const [v] = await b.listarDescartadas();
+    const r = await b.abrirDescartada(v!.identificador);
+    if (!r.ok) throw new Error(r.mensagem);
+    await b.instantaneo(r.projeto.copiaRecuperacao!, pacote('Outro'));
+    await b.rec.encerrarDono(JANELA, true);
+    expect(quedas()).toHaveLength(1); // só a da primeira queda, ainda sem decisão
+  });
+
+  it('pacote de outro trabalho é recusado; identificador de outra janela não passa; argumentos fora do contrato', async () => {
+    const p = processo();
+    const t = await abrirVersao(p);
+    expect(await p.instantaneo(t, pacote('X', 'prj_outroooooooooooo'))).toMatchObject({ ok: false, codigo: 'PACOTE_INVALIDO' });
+    await p.rec.manipuladores[CANAIS_RECUPERACAO.fecharSemArquivo]({ ...LEGITIMO, idConteudo: OUTRA_JANELA }, [t, false]);
+    expect(await p.instantaneo(t, pacote('Y'))).toEqual({ ok: true });
+    await expect(p.chamar(CANAIS_RECUPERACAO.fecharSemArquivo, t, 'sim')).rejects.toBeInstanceOf(ErroIpcRecusado);
+    await expect(p.chamar(CANAIS_RECUPERACAO.fecharSemArquivo, t)).rejects.toBeInstanceOf(ErroIpcRecusado);
+  });
+
+  it('recuperar queda sem arquivo não deixa o trabalho "já aberto" depois de fechar (R-M2-12)', async () => {
+    const antes = processo(111);
+    const t = await abrirVersao(antes);
+    await antes.instantaneo(t, pacote('Queda'));
+    const depois = processo(222);
+    const [o] = await depois.listar();
+    const r = await depois.recuperar(o!.identificador);
+    if (!r.ok) throw new Error(r.mensagem);
+    await depois.fecharSemArquivo(r.projeto.copiaRecuperacao!, false);
+    const v = (await depois.listarDescartadas()).find((x) => x.titulo === 'Queda');
+    expect((await depois.abrirDescartada(v!.identificador)).ok).toBe(true);
+  });
+});
+
+describe('o que seria substituído fica guardado (R-M2-06)', () => {
+  it('guarda uma cópia por 7 dias sem tirar o original; arquivo que não existe não faz nada', async () => {
+    const p = processo();
+    const caminho = await gravarTrabalho('Outro.bdp', 'Outro trabalho');
+    const bytes = readFileSync(caminho);
+    await p.rec.guardarSubstituido(join(biblioteca, 'nao-existe.bdp'));
+    expect(arquivosDe(pastas.antigos)).toEqual([]);
+    expect(logs).toEqual([]); // arquivo novo não é falha
+    await p.rec.guardarSubstituido(caminho);
+    await p.rec.guardarSubstituido(caminho);
+    expect(readFileSync(caminho).equals(bytes)).toBe(true);
+    expect(arquivosDe(pastas.antigos)).toEqual(['Outro.bdp-substituido', 'Outro.bdp-substituido-2']);
+    expect((await p.listarDescartadas()).map((v) => v.titulo)).toEqual(['Outro trabalho', 'Outro trabalho']);
   });
 });

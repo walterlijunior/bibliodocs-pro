@@ -23,6 +23,7 @@ export const CANAIS_RECUPERACAO = {
   abrirDescartada: 'bibliodocs:recuperacao:abrir-descartada',
   listarBackups: 'bibliodocs:recuperacao:listar-backups',
   abrirBackup: 'bibliodocs:recuperacao:abrir-backup',
+  fecharSemArquivo: 'bibliodocs:recuperacao:fechar-sem-arquivo',
 } as const;
 
 export type CanalRecuperacao = (typeof CANAIS_RECUPERACAO)[keyof typeof CANAIS_RECUPERACAO];
@@ -103,4 +104,6 @@ export interface ApiRecuperacao {
   listarBackups(): Promise<ResultadoListarDescartadas>;
   /** Abre a cópia como trabalho sem arquivo: nem ela nem o arquivo do usuário mudam. */
   abrirBackup(copia: IdentificadorOferta): Promise<ResultadoAbrirDescartada>;
+  /** Fim do trabalho sem arquivo: `salvo` apaga os instantâneos; senão, ficam 7 dias nas versões descartadas. */
+  fecharSemArquivo(copia: IdentificadorProjeto, salvo: boolean): Promise<void>;
 }

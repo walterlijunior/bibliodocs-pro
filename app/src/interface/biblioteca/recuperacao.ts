@@ -31,7 +31,8 @@ export function textoOferta(o: OfertaRecuperacao, hoje: Date): string {
         `${quando}, de uma gravação interrompida. Restaurar essa cópia?`
       );
     case 'bak':
-      return `“${o.nomeArquivo}” não pôde ser lido, mas a cópia de segurança (.bak) de ${quando} está íntegra. Restaurar a cópia de segurança?`;
+      // O título mostra de que trabalho é a cópia antes de restaurar (R-M2-08).
+      return `“${o.nomeArquivo}” não pôde ser lido, mas a cópia de segurança (.bak)${o.titulo.trim() !== '' ? ` de “${o.titulo}”` : ''} de ${quando} está íntegra. Restaurar a cópia de segurança?`;
   }
 }
 
@@ -42,7 +43,7 @@ export const rotuloRecuperar = (tipo: TipoOferta) => (tipo === 'instantaneo' ? '
 export function textoDescartada(quando: number, hoje: Date): string {
   return (
     `Versão descartada, guardada em ${quandoLegivel(quando, hoje)}. Nenhum arquivo foi alterado. ` +
-    'O que você escrever aqui não tem cópia de recuperação até usar “Salvar como…”.'
+    'Para mantê-la, use “Salvar como…”.'
   );
 }
 
@@ -64,6 +65,6 @@ export function avisoRecuperado(tipo: TipoOferta, quando: number, hoje: Date): A
 export function textoBackup(quando: number, hoje: Date): string {
   return (
     `Cópia de segurança de ${quandoLegivel(quando, hoje)}. Nenhum arquivo foi alterado. ` +
-    'O que você escrever aqui não tem cópia de recuperação até usar “Salvar como…”.'
+    'Para mantê-la, use “Salvar como…”.'
   );
 }

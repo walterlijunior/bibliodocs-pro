@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
 import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
-import { conciliarBackupsExcluidos, fazerBackupRotativo, gravarAtomico, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, gravarAtomico, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
@@ -112,6 +112,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       if (!b.feito && b.motivo === 'FALHOU') console.warn(`[backups] cópia falhou: ${b.codigo}`);
       if (b.feito && b.avisos.length > 0) console.warn(`[backups] rotação incompleta: ${b.avisos.join(', ')}`);
     },
+    antesDeSubstituir: async (caminho) => recuperacao?.guardarSubstituido(caminho),
     aoFechar: async (caminho, dono) => recuperacao?.aoFechar(caminho, dono),
   });
 
@@ -122,6 +123,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     arquivoIndice: join(dadosLocais, 'biblioteca.json'),
     arquivoPreferencias: join(dadosLocais, 'preferencias.json'),
     ambiente: process.env,
+    guardarBakAlheio: (caminho, nome) => arquivar(pastasRecuperacao(dadosLocais), caminho, nome, Date.now()),
     aoExcluir: (idProjeto) => marcarBackupsExcluidos(pastaBackups, idProjeto, Date.now()),
     aoListar: (ids) => conciliarBackupsExcluidos(pastaBackups, ids, Date.now()),
     escolherPasta: async (id) => {

@@ -87,6 +87,11 @@ export interface ProjetoAberto {
   avisos: AvisoProjeto[];
   /** Arquivo de formato antigo atualizado na abertura; a cópia original ficou na pasta de backups do app. */
   atualizacao: { versaoOrigem: number; nomeBackup: string } | null;
+  /**
+   * Trabalho sem arquivo que tem cópia de recuperação (versão descartada, cópia de segurança; R-M2-04): os instantâneos
+   * vão com este identificador, e `recuperacao.fecharSemArquivo` encerra.
+   */
+  copiaRecuperacao?: IdentificadorProjeto;
 }
 
 export type ResultadoAbrir =

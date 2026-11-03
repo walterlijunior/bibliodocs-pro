@@ -103,6 +103,8 @@ export {
   apagarInstantaneos,
   apagarTrava,
   arquivar,
+  copiarParaAntigos,
+  nomeConjuntoReservado,
   arquivarInstantaneos,
   ehReservado,
   gravarInstantaneo,

@@ -158,3 +158,36 @@ test('Cópias de segurança: abre a cópia guardada sem alterar nada (M3-T09)', 
   await expect(b.pagina.getByText(/^Cópia de segurança de /)).toBeVisible();
   expect(readFileSync(arquivo).equals(bytes)).toBe(true);
 });
+
+test('Versão descartada editada e queda do app: o texto volta como oferta (R-M2-04)', async () => {
+  const a = await abrirApp(amb);
+  await criarTrabalho(a.pagina);
+  await a.pagina.getByLabel('Título do trabalho').fill('Base');
+  await a.pagina.keyboard.press('Control+S');
+  await expect.poll(() => lerDocumento(join(amb.trabalhos, arquivosBdp(amb)[0]!)).titulo).toBe('Base');
+  await a.fechar();
+  const antigos = join(amb.dados, 'recuperacao-antigos');
+  mkdirSync(antigos, { recursive: true });
+  copyFileSync(join(amb.trabalhos, arquivosBdp(amb)[0]!), join(antigos, 'prj-1-atual.bdp'));
+
+  const b = await abrirApp(amb);
+  await b.pagina.getByRole('menuitem', { name: 'Arquivo' }).click();
+  await b.pagina.getByRole('menuitem', { name: 'Versões descartadas…' }).click();
+  await b.pagina.getByRole('button', { name: /^Abrir a versão de .* de Base$/ }).click();
+  const campo = b.pagina.getByLabel('Título do trabalho');
+  await expect(campo).toHaveValue('Base');
+  await campo.fill('Editado depois de abrir');
+  await expect
+    .poll(() => {
+      const pasta = listar(join(amb.dados, 'recuperacao')).find((n) => n.includes('~'));
+      const atual = pasta ? join(amb.dados, 'recuperacao', pasta, 'atual.bdp') : '';
+      return pasta && existsSync(atual) ? lerDocumento(atual).titulo : '';
+    }, { timeout: 15_000 })
+    .toBe('Editado depois de abrir');
+  await b.matar();
+
+  const c = await abrirApp(amb);
+  await expect(c.pagina.getByText(/Editado depois de abrir/)).toBeVisible();
+  await c.pagina.getByRole('button', { name: 'Recuperar', exact: true }).click();
+  await expect(c.pagina.getByLabel('Título do trabalho')).toHaveValue('Editado depois de abrir');
+});

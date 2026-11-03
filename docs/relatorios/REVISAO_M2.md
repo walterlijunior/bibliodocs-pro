@@ -61,3 +61,5 @@ O RF-03 pede alíneas e citação longa no editor. [VERIFICADO: `comandos.ts`, `
 - Colagem real do Word no título (R-M2-03), tempo do backup e da listagem com arquivos grandes, conteúdo do `app.asar`.
 - Instalador NSIS com o Electron 44.10.1: só a pasta de fumaça foi aberta.
 - Memória: a rodada final deu 779 MB; o risco R46 continua aberto, porque 44.10.1 só teve essa rodada.
+
+**Atualização (M3-T10, 2026-11-02):** R-M2-04, 06, 08, 12, 14 e 16 corrigidos; R-M2-05 aceito com motivo. Detalhes em `M3_RELATORIO_MARCO.md`.
