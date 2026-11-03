@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M3-T06: regressão documental: corpus com os seis tipos e um documento difícil, propriedades com a RN na falha e 35 instantâneos de XML aprovados.
 - Etapa 5, M3-T05: exportador DOCX (`exportacao/docx`), com processo utilitário e estilos em português, notas reais, numeração no estilo e sumário com páginas. Sem botão ainda: a tela chega no M3-T08.
 - Etapa 5, M3-T04: motor com seções, paginação, capa, folha de rosto, ficha, folha de aprovação, resumos, sumário e pós-textuais. Perfil com 84 regras e 19 parâmetros. Ainda sem exportação.
 - Etapa 5, M3-T03: motor normativo `formatar(doc, perfil)`: estilos, títulos de 1 a 5, parágrafo, alíneas, citação longa e notas, cada propriedade com a RN de origem. Ainda sem exportação nem mudança visível.

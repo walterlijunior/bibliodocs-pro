@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles mc:Ignorable="w14 w15" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:docDefaults>
+<w:rPrDefault>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:rPrDefault>
+<w:pPrDefault>
+<w:pPr>
+<w:spacing w:after="0" w:before="0" w:line="240" w:lineRule="auto"/>
+</w:pPr>
+</w:pPrDefault>
+</w:docDefaults>
+<w:style w:default="1" w:styleId="Normal" w:type="paragraph">
+<w:name w:val="Normal"/>
+<w:qFormat/>
+</w:style>
+<w:style w:default="true" w:styleId="TableNormal" w:type="table">
+<w:name w:val="Normal Table"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:tblPr>
+<w:tblInd w:type="dxa" w:w="0"/>
+<w:tblCellMar>
+<w:top w:type="dxa" w:w="0"/>
+<w:left w:type="dxa" w:w="108"/>
+<w:bottom w:type="dxa" w:w="0"/>
+<w:right w:type="dxa" w:w="108"/>
+</w:tblCellMar>
+</w:tblPr>
+</w:style>
+<w:style w:styleId="Title" w:type="paragraph">
+<w:name w:val="Title"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:sz w:val="56"/>
+<w:szCs w:val="56"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading1" w:type="paragraph">
+<w:name w:val="Heading 1"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:color w:val="2E74B5"/>
+<w:sz w:val="32"/>
+<w:szCs w:val="32"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading2" w:type="paragraph">
+<w:name w:val="Heading 2"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:color w:val="2E74B5"/>
+<w:sz w:val="26"/>
+<w:szCs w:val="26"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading3" w:type="paragraph">
+<w:name w:val="Heading 3"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:color w:val="1F4D78"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading4" w:type="paragraph">
+<w:name w:val="Heading 4"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+<w:color w:val="2E74B5"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading5" w:type="paragraph">
+<w:name w:val="Heading 5"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:color w:val="2E74B5"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Heading6" w:type="paragraph">
+<w:name w:val="Heading 6"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:color w:val="1F4D78"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Strong" w:type="paragraph">
+<w:name w:val="Strong"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="ListParagraph" w:type="paragraph">
+<w:name w:val="List Paragraph"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+</w:style>
+<w:style w:styleId="Caption" w:type="paragraph">
+<w:name w:val="caption"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="35"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:after="200"/>
+</w:pPr>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+<w:color w:themeColor="dark2" w:val="44546A"/>
+<w:sz w:val="18"/>
+<w:szCs w:val="18"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="Bibliography" w:type="paragraph">
+<w:name w:val="Bibliography"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="37"/>
+<w:unhideWhenUsed/>
+</w:style>
+<w:style w:styleId="TOC6" w:type="paragraph">
+<w:name w:val="toc 6"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="39"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="100"/>
+<w:ind w:left="1200"/>
+</w:pPr>
+</w:style>
+<w:style w:styleId="TOC7" w:type="paragraph">
+<w:name w:val="toc 7"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="39"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="100"/>
+<w:ind w:left="1440"/>
+</w:pPr>
+</w:style>
+<w:style w:styleId="TOC8" w:type="paragraph">
+<w:name w:val="toc 8"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="39"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="100"/>
+<w:ind w:left="1680"/>
+</w:pPr>
+</w:style>
+<w:style w:styleId="TOC9" w:type="paragraph">
+<w:name w:val="toc 9"/>
+<w:basedOn w:val="Normal"/>
+<w:next w:val="Normal"/>
+<w:uiPriority w:val="39"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="100"/>
+<w:ind w:left="1920"/>
+</w:pPr>
+</w:style>
+<w:style w:styleId="Hyperlink" w:type="character">
+<w:name w:val="Hyperlink"/>
+<w:basedOn w:val="DefaultParagraphFont"/>
+<w:uiPriority w:val="99"/>
+<w:unhideWhenUsed/>
+<w:rPr>
+<w:color w:val="0563C1"/>
+<w:u w:val="single"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="FootnoteText" w:type="paragraph">
+<w:name w:val="footnote text"/>
+<w:basedOn w:val="Normal"/>
+<w:link w:val="FootnoteTextChar"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="0" w:line="240" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="FootnoteTextChar" w:type="character">
+<w:name w:val="Footnote Text Char"/>
+<w:basedOn w:val="DefaultParagraphFont"/>
+<w:link w:val="FootnoteText"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:rPr>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="EndnoteReference" w:type="character">
+<w:name w:val="endnote reference"/>
+<w:basedOn w:val="DefaultParagraphFont"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:rPr>
+<w:vertAlign w:val="superscript"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="EndnoteText" w:type="paragraph">
+<w:name w:val="endnote text"/>
+<w:basedOn w:val="Normal"/>
+<w:link w:val="EndnoteTextChar"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:pPr>
+<w:spacing w:after="0" w:line="240" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="EndnoteTextChar" w:type="character">
+<w:name w:val="Endnote Text Char"/>
+<w:basedOn w:val="DefaultParagraphFont"/>
+<w:link w:val="EndnoteText"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+<w:rPr>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="LineNumber" w:type="character">
+<w:name w:val="line number"/>
+<w:basedOn w:val="DefaultParagraphFont"/>
+<w:uiPriority w:val="99"/>
+<w:semiHidden/>
+<w:unhideWhenUsed/>
+</w:style>
+<w:style w:styleId="corpo" w:type="paragraph">
+<w:name w:val="Corpo do texto"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:ind w:firstLine="709"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="titulo1" w:type="paragraph">
+<w:name w:val="Título 1 – Seção primária"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:pageBreakBefore/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="2"/>
+</w:numPr>
+<w:spacing w:after="360" w:before="360" w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+<w:outlineLvl w:val="0"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="titulo2" w:type="paragraph">
+<w:name w:val="Título 2 – Seção secundária"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:numPr>
+<w:ilvl w:val="1"/>
+<w:numId w:val="2"/>
+</w:numPr>
+<w:spacing w:after="360" w:before="360" w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+<w:outlineLvl w:val="1"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="titulo3" w:type="paragraph">
+<w:name w:val="Título 3 – Seção terciária"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:numPr>
+<w:ilvl w:val="2"/>
+<w:numId w:val="2"/>
+</w:numPr>
+<w:spacing w:after="360" w:before="360" w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+<w:outlineLvl w:val="2"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="titulo4" w:type="paragraph">
+<w:name w:val="Título 4 – Seção quaternária"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:numPr>
+<w:ilvl w:val="3"/>
+<w:numId w:val="2"/>
+</w:numPr>
+<w:spacing w:after="360" w:before="360" w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+<w:outlineLvl w:val="3"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:i/>
+<w:iCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="titulo5" w:type="paragraph">
+<w:name w:val="Título 5 – Seção quinária"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:numPr>
+<w:ilvl w:val="4"/>
+<w:numId w:val="2"/>
+</w:numPr>
+<w:spacing w:after="360" w:before="360" w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+<w:outlineLvl w:val="4"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+<w:u w:val="single"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="tituloSemIndicativo" w:type="paragraph">
+<w:name w:val="Título sem indicativo"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="tituloPosTextual" w:type="paragraph">
+<w:name w:val="Título pós-textual"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+<w:outlineLvl w:val="0"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="citacaoLonga" w:type="paragraph">
+<w:name w:val="Citação longa"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:after="360" w:before="360" w:line="240" w:lineRule="auto"/>
+<w:ind w:left="2268"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="textoNota" w:type="paragraph">
+<w:name w:val="Texto de nota"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="alinea" w:type="paragraph">
+<w:name w:val="Alínea"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:ind w:hanging="425" w:left="1134"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="subalinea" w:type="paragraph">
+<w:name w:val="Subalínea"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:ind w:hanging="284" w:left="1559"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="naturezaTrabalho" w:type="paragraph">
+<w:name w:val="Natureza do trabalho"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:ind w:left="4536"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="agradecimentos" w:type="paragraph">
+<w:name w:val="Agradecimentos"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="dedicatoria" w:type="paragraph">
+<w:name w:val="Dedicatória"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:ind w:left="4536"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="resumo" w:type="paragraph">
+<w:name w:val="Resumo"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="capaInstituicao" w:type="paragraph">
+<w:name w:val="Capa – Instituição"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="capaAutoria" w:type="paragraph">
+<w:name w:val="Capa – Autoria"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="capaTitulo" w:type="paragraph">
+<w:name w:val="Capa – Título"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:caps/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="capaLocalAno" w:type="paragraph">
+<w:name w:val="Capa – Local e ano"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="rostoAutoria" w:type="paragraph">
+<w:name w:val="Folha de rosto – Autoria"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="rostoTitulo" w:type="paragraph">
+<w:name w:val="Folha de rosto – Título"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="rostoLocalAno" w:type="paragraph">
+<w:name w:val="Folha de rosto – Local e ano"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="fichaCatalografica" w:type="paragraph">
+<w:name w:val="Ficha catalográfica"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="aprovacaoIdentificacao" w:type="paragraph">
+<w:name w:val="Aprovação – Identificação"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:b/>
+<w:bCs/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="aprovacaoNatureza" w:type="paragraph">
+<w:name w:val="Aprovação – Natureza"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:ind w:left="4536"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="aprovacaoData" w:type="paragraph">
+<w:name w:val="Aprovação – Data"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="aprovacaoBanca" w:type="paragraph">
+<w:name w:val="Aprovação – Banca"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="entradaSumario" w:type="paragraph">
+<w:name w:val="Entrada do sumário"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="identificacaoPosTextual" w:type="paragraph">
+<w:name w:val="Identificação de apêndice e anexo"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="referencia" w:type="paragraph">
+<w:name w:val="Referência"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="numeroPagina" w:type="paragraph">
+<w:name w:val="Número da página"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="TOC1" w:type="paragraph">
+<w:name w:val="toc 1"/>
+<w:basedOn w:val="Normal"/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="TOC2" w:type="paragraph">
+<w:name w:val="toc 2"/>
+<w:basedOn w:val="Normal"/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="TOC3" w:type="paragraph">
+<w:name w:val="toc 3"/>
+<w:basedOn w:val="Normal"/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="TOC4" w:type="paragraph">
+<w:name w:val="toc 4"/>
+<w:basedOn w:val="Normal"/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="TOC5" w:type="paragraph">
+<w:name w:val="toc 5"/>
+<w:basedOn w:val="Normal"/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="FootnoteReference" w:type="character">
+<w:name w:val="footnote reference"/>
+<w:uiPriority w:val="99"/>
+<w:unhideWhenUsed/>
+<w:rPr>
+<w:vertAlign w:val="superscript"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="IndexLink" w:type="character">
+<w:name w:val="Index Link"/>
+<w:uiPriority w:val="99"/>
+<w:unhideWhenUsed/>
+</w:style>
+</w:styles>

@@ -1,0 +1,1259 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document mc:Ignorable="w14 w15 wp14" xmlns:aink="http://schemas.microsoft.com/office/drawing/2016/ink" xmlns:am3d="http://schemas.microsoft.com/office/drawing/2017/model3d" xmlns:cx1="http://schemas.microsoft.com/office/drawing/2015/9/8/chartex" xmlns:cx2="http://schemas.microsoft.com/office/drawing/2015/10/21/chartex" xmlns:cx3="http://schemas.microsoft.com/office/drawing/2016/5/9/chartex" xmlns:cx4="http://schemas.microsoft.com/office/drawing/2016/5/10/chartex" xmlns:cx5="http://schemas.microsoft.com/office/drawing/2016/5/11/chartex" xmlns:cx6="http://schemas.microsoft.com/office/drawing/2016/5/12/chartex" xmlns:cx7="http://schemas.microsoft.com/office/drawing/2016/5/13/chartex" xmlns:cx8="http://schemas.microsoft.com/office/drawing/2016/5/14/chartex" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">
+<w:body>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="capaInstituicao"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Universidade Federal do Tocantins</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Câmpus Fictício</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Curso de Exemplo</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="capaAutoria"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Nome Fictício da Autoria</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="capaTitulo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Título fictício do trabalho</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">subtítulo de teste</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Volume 1</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="capaLocalAno"/>
+<w:sectPr>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal"/>
+<w:vAlign w:val="both"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Palmas, TO</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">2026</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rostoAutoria"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Nome Fictício da Autoria</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rostoTitulo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Título fictício do trabalho</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">subtítulo de teste</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="naturezaTrabalho"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Trabalho apresentado como requisito de teste do aplicativo.</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Área de concentração: Área de exemplo</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Orientador (a): Dra./Orientação Fictícia</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Coorientador (a): Dr./Coorientação Fictícia</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rostoLocalAno"/>
+<w:sectPr>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal" w:start="1"/>
+<w:vAlign w:val="both"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Palmas, TO</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">2026</w:t>
+</w:r>
+</w:p>
+<w:tbl>
+<w:tblPr>
+<w:tblW w:type="dxa" w:w="4253"/>
+<w:tblBorders>
+<w:top w:color="auto" w:sz="4" w:val="single"/>
+<w:left w:color="auto" w:sz="4" w:val="single"/>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+<w:right w:color="auto" w:sz="4" w:val="single"/>
+<w:insideH w:color="auto" w:sz="4" w:val="single"/>
+<w:insideV w:color="auto" w:sz="4" w:val="single"/>
+</w:tblBorders>
+<w:tblLayout w:type="fixed"/>
+</w:tblPr>
+<w:tblGrid>
+<w:gridCol w:w="4253"/>
+</w:tblGrid>
+<w:tr>
+<w:trPr>
+<w:trHeight w:hRule="exact" w:val="7088"/>
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4253"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="fichaCatalografica"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Dados fictícios da ficha.</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+</w:tbl>
+<w:p>
+<w:pPr>
+<w:sectPr>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal"/>
+<w:vAlign w:val="bottom"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:pPr>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoIdentificacao"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Nome Fictício da Autoria</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoIdentificacao"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Título fictício do trabalho</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">subtítulo de teste</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoNatureza"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Trabalho apresentado como requisito de teste do aplicativo.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoNatureza"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Área de concentração: Área de exemplo</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoData"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Data de aprovação: 01/01/2026</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoData"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Banca examinadora</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoBanca"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">________________________________________</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoBanca"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Dra. Banca Um, UFT</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoBanca"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">________________________________________</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="aprovacaoBanca"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Dr. Banca Dois, UFT</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">RESUMO</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="resumo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="resumo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Palavras-chave: Teste. Exemplo.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">ABSTRACT</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="resumo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Fictional text for testing.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="resumo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Keywords: Test. Example.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">SUMÁRIO</w:t>
+</w:r>
+</w:p>
+<w:sdt>
+<w:sdtPr>
+<w:alias w:val="Sumário"/>
+<w:docPartObj>
+<w:docPartGallery w:val="Table of Contents"/>
+<w:docPartUnique/>
+</w:docPartObj>
+</w:sdtPr>
+<w:sdtContent>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:fldChar w:dirty="false" w:fldCharType="begin"/>
+<w:instrText xml:space="preserve">TOC \h \o &quot;1-5&quot; \u</w:instrText>
+<w:fldChar w:fldCharType="separate"/>
+</w:r>
+<w:hyperlink w:anchor="_Toc_1" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">1 INTRODUÇÃO À AÇÃO</w:t>
+<w:tab/>
+<w:t xml:space="default">7</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC2"/>
+<w:tabs>
+<w:tab w:pos="8786" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_2" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">1.1 Seção secundária</w:t>
+<w:tab/>
+<w:t xml:space="default">9</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC3"/>
+<w:tabs>
+<w:tab w:pos="8546" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_3" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">1.1.1 Seção terciária</w:t>
+<w:tab/>
+<w:t xml:space="default">9</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC4"/>
+<w:tabs>
+<w:tab w:pos="8306" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_4" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">1.1.1.1 Seção quaternária</w:t>
+<w:tab/>
+<w:t xml:space="default">9</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC5"/>
+<w:tabs>
+<w:tab w:pos="8066" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_5" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">1.1.1.1.1 Seção quinária</w:t>
+<w:tab/>
+<w:t xml:space="default">9</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_6" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">2 CONSIDERAÇÕES FINAIS</w:t>
+<w:tab/>
+<w:t xml:space="default">10</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_7" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">REFERÊNCIAS</w:t>
+<w:tab/>
+<w:t xml:space="default">11</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_8" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">GLOSSÁRIO</w:t>
+<w:tab/>
+<w:t xml:space="default">12</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_9" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">APÊNDICES</w:t>
+<w:tab/>
+<w:t xml:space="default">13</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_10" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">ANEXO</w:t>
+<w:tab/>
+<w:t xml:space="default">14</w:t>
+</w:r>
+</w:hyperlink>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="TOC1"/>
+<w:tabs>
+<w:tab w:pos="9026" w:val="clear"/>
+<w:tab w:leader="dot" w:pos="9025" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:hyperlink w:anchor="_Toc_11" w:history="1">
+<w:r>
+<w:rPr>
+<w:rStyle w:val="IndexLink"/>
+</w:rPr>
+<w:t xml:space="default">ÍNDICE</w:t>
+<w:tab/>
+<w:t xml:space="default">15</w:t>
+</w:r>
+</w:hyperlink>
+<w:r>
+<w:fldChar w:fldCharType="end"/>
+</w:r>
+</w:p>
+</w:sdtContent>
+</w:sdt>
+<w:p>
+<w:pPr>
+<w:sectPr>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:pPr>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo1"/>
+</w:pPr>
+<w:bookmarkStart w:id="1" w:name="_Toc_1"/>
+<w:r>
+<w:t xml:space="preserve">INTRODUÇÃO À AÇÃO</w:t>
+</w:r>
+<w:bookmarkEnd w:id="1"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real. Com nota</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rStyle w:val="FootnoteReference"/>
+</w:rPr>
+<w:footnoteReference w:id="1"/>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> e </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+</w:rPr>
+<w:t xml:space="preserve">itálico</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> e H</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:vertAlign w:val="subscript"/>
+</w:rPr>
+<w:t xml:space="preserve">2</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">O.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="citacaoLonga"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real. Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real. Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rStyle w:val="FootnoteReference"/>
+</w:rPr>
+<w:footnoteReference w:id="2"/>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="2"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">primeira;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="subalinea"/>
+<w:numPr>
+<w:ilvl w:val="1"/>
+<w:numId w:val="2"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">subalínea;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="subalinea"/>
+<w:numPr>
+<w:ilvl w:val="1"/>
+<w:numId w:val="2"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">outra subalínea;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="2"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">segunda;</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:rStyle w:val="FootnoteReference"/>
+</w:rPr>
+<w:footnoteReference w:id="3"/>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="2"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">terceira.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Texto entre listas.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 1;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 2;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 3;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 4;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 5;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 6;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 7;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 8;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 9;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 10;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 11;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 12;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 13;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 14;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 15;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 16;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 17;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 18;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 19;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 20;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 21;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 22;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 23;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 24;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 25;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 26;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 27;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="alinea"/>
+<w:numPr>
+<w:ilvl w:val="0"/>
+<w:numId w:val="3"/>
+</w:numPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">item 28;</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pageBreakBefore/>
+</w:pPr>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Depois da quebra pedida pelo autor.</w:t>
+</w:r>
+<w:r>
+<w:br/>
+<w:t xml:space="preserve">Com quebra de linha</w:t>
+<w:tab/>
+<w:t xml:space="preserve">e tabulação.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo2"/>
+</w:pPr>
+<w:bookmarkStart w:id="2" w:name="_Toc_2"/>
+<w:r>
+<w:t xml:space="preserve">Seção secundária</w:t>
+</w:r>
+<w:bookmarkEnd w:id="2"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo3"/>
+</w:pPr>
+<w:bookmarkStart w:id="3" w:name="_Toc_3"/>
+<w:r>
+<w:t xml:space="preserve">Seção terciária</w:t>
+</w:r>
+<w:bookmarkEnd w:id="3"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo4"/>
+</w:pPr>
+<w:bookmarkStart w:id="4" w:name="_Toc_4"/>
+<w:r>
+<w:t xml:space="preserve">Seção quaternária</w:t>
+</w:r>
+<w:bookmarkEnd w:id="4"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo5"/>
+</w:pPr>
+<w:bookmarkStart w:id="5" w:name="_Toc_5"/>
+<w:r>
+<w:t xml:space="preserve">Seção quinária</w:t>
+</w:r>
+<w:bookmarkEnd w:id="5"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="titulo1"/>
+</w:pPr>
+<w:bookmarkStart w:id="6" w:name="_Toc_6"/>
+<w:r>
+<w:t xml:space="preserve">CONSIDERAÇÕES FINAIS</w:t>
+</w:r>
+<w:bookmarkEnd w:id="6"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+<w:sectPr>
+<w:headerReference r:id="rId6" w:type="default"/>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloPosTextual"/>
+</w:pPr>
+<w:bookmarkStart w:id="7" w:name="_Toc_7"/>
+<w:r>
+<w:t xml:space="preserve">REFERÊNCIAS</w:t>
+</w:r>
+<w:bookmarkEnd w:id="7"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloPosTextual"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:bookmarkStart w:id="8" w:name="_Toc_8"/>
+<w:r>
+<w:t xml:space="preserve">GLOSSÁRIO</w:t>
+</w:r>
+<w:bookmarkEnd w:id="8"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloPosTextual"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:bookmarkStart w:id="9" w:name="_Toc_9"/>
+<w:r>
+<w:t xml:space="preserve">APÊNDICES</w:t>
+</w:r>
+<w:bookmarkEnd w:id="9"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="identificacaoPosTextual"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">APÊNDICE A – Roteiro de exemplo</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="identificacaoPosTextual"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">APÊNDICE B – Questionário de exemplo</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloPosTextual"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:bookmarkStart w:id="10" w:name="_Toc_10"/>
+<w:r>
+<w:t xml:space="preserve">ANEXO</w:t>
+</w:r>
+<w:bookmarkEnd w:id="10"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="identificacaoPosTextual"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">ANEXO A – Documento de exemplo</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloPosTextual"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:bookmarkStart w:id="11" w:name="_Toc_11"/>
+<w:r>
+<w:t xml:space="preserve">ÍNDICE</w:t>
+</w:r>
+<w:bookmarkEnd w:id="11"/>
+</w:p>
+<w:sectPr>
+<w:headerReference r:id="rId7" w:type="default"/>
+<w:type w:val="nextPage"/>
+<w:pgSz w:h="16838" w:orient="portrait" w:w="11906"/>
+<w:pgMar w:bottom="1134" w:footer="708" w:gutter="0" w:header="709" w:left="1701" w:right="1134" w:top="1701"/>
+<w:pgNumType w:fmt="decimal"/>
+<w:docGrid w:linePitch="360"/>
+</w:sectPr>
+</w:body>
+</w:document>

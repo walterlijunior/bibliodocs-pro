@@ -10,7 +10,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T03 Motor: estilos e corpo do texto | CONCLUÍDA | 2026-11-02 |
 | M3-T04 Motor: seções, paginação, pré e pós-textuais | CONCLUÍDA | 2026-11-02 |
 | M3-T05 Exportador DOCX | CONCLUÍDA | 2026-11-02 |
-| M3-T06 a M3-T12 | PENDENTE | — |
+| M3-T06 Regressão documental | CONCLUÍDA | 2026-11-02 |
+| M3-T07 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -127,3 +128,19 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - Filete das notas: é o nativo do Word, curto, como D-M3-08; `fileteTw` ainda não é gravado no arquivo.
 - Distribuição vertical na folha de rosto também é aproximada; o LibreOffice não foi conferido em imagem.
 - O arquivo traz a data de geração em `docProps/core.xml`: não é byte a byte determinístico. A regressão do M3-T06 normaliza isso.
+
+## M3-T06 — Regressão documental
+
+**Implementação:** sessão principal, sem delegar a `engenheiro-qualidade`. **Sem revisão independente.** Conteúdo do corpus: fictício.
+
+**Código**
+- `tests/corpus/corpus.ts`: seis tipos e um documento difícil, com 5 níveis, notas, citação, listas de 28 itens, marcas, apêndices e anexos.
+- `tests/regressao-docx.test.ts`: propriedades com a RN na mensagem e valores escritos a partir do Manual, fora do perfil; um erro no perfil, portanto, reprova. Toda marca dos estilos do motor precisa de RN (RF-05), e parágrafos não têm formatação direta.
+- `tests/apoio/docx-normalizado.ts` e `tests/instantaneos/`: 35 instantâneos, sem data nem ids gerados. Aprovados nesta tarefa como linha de base da saída atual: **não é aprovação da aparência**.
+
+**Limitações**
+- Sem tabelas, figuras e equações, que chegam no M5.
+- Propriedades conferem o que está em DOC-01 a DOC-06 e parte dos pré-textuais; o resto só tem instantâneo. DOC-07 e DOC-08 dependem do M3-T07.
+- `toMatchFileSnapshot` grava instantâneo novo fora de CI: um arquivo apagado seria recriado em silêncio. Em CI, falha.
+
+**Testes do M3-T06** [VERIFICADO 2026-11-02]: `verificar:tudo` 1421/1421, 388 assinaturas, sem achado alto, E2E 17/17, memória 753 MB. Mutações: 7/7, em CI, sem gravar instantâneo novo; o valor errado no perfil reprovou citando RN-004.

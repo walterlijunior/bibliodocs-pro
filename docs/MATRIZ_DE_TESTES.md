@@ -77,6 +77,7 @@ incluindo PER-16, que só roda no win32). As provas de mutação registradas nos
 | NOR-01 | Motor: toda propriedade com RN do perfil; sem regra, estilo vazio; valores de DOC-02 a DOC-06 em twips; parâmetros mudam a saída; ambígua sem valor não aplicada; numeração de seções, alíneas e notas; determinístico | `tests/motor-normativo.test.ts` (só unidade; DOCX no M3-T05 e T06) | PASSOU (M3-T03, 2026-11-02) |
 | NOR-02 | Motor: A4 e margens; seis tipos com seções na ordem; contagem da folha de rosto, número do texto em diante; capa, rosto, ficha, aprovação, dedicatória, resumos, sumário, apêndices e anexos; toda origem existe no perfil | `tests/motor-elementos.test.ts` (só unidade; DOCX no M3-T05) | PASSOU (M3-T04, 2026-11-02) |
 | EXP-01 | Exportador: XML bem formado, estilos e numeração definidos, seções, A4, margens, contagem, notas reais, listas que recomeçam, sumário em campo com página, ficha, metadados; sem RN no código | `tests/exportador-docx.test.ts`; aberto no Word 16 e no LibreOffice pelo script, manualmente | PASSOU (M3-T05, 2026-11-02) |
+| REG-01 | Regressão: seis tipos e documento difícil; RN na falha; marca sem RN reprova; sem formatação direta; instantâneo do XML normalizado; duas exportações iguais | `tests/regressao-docx.test.ts` | PASSOU (M3-T06, 2026-11-02) |
 | UI-AXE | RNF-09 (parte automática): axe-core WCAG 2.1 A/AA sem violação séria ou crítica em Biblioteca vazia, Novo trabalho, Versões descartadas vazia e Escrever. Não cobre lista cheia nem o roteiro manual | `e2e/acessibilidade.spec.ts` | PASSOU (M2-T11, 2026-11-02) |
 
 ## Grupo E2E — Electron real (aplicativo, desde o M1-T13)
@@ -173,12 +174,12 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/editor-conversao.tes
 
 | ID | Propriedade conferida no DOCX | Fonte do esperado | Status |
 |---|---|---|---|
-| DOC-01 | Página A4 (11906 × 16838 twips) | `RN` de formato de papel (Etapa 3) | NÃO EXECUTADO |
-| DOC-02 | Margens 3/3/2/2 cm (sup/esq/inf/dir) = 1701/1701/1134/1134 twips | RN-002 (Manual UFT p. 15) | NÃO EXECUTADO |
-| DOC-03 | Fonte Times New Roman ou Arial 12 no corpo; 10 em citação longa, notas e legendas | RN-001 | NÃO EXECUTADO |
-| DOC-04 | Espaçamento 1,5 no corpo (`w:line=360`), simples nos casos previstos | RN-006 | NÃO EXECUTADO |
-| DOC-05 | Recuo de primeira linha 1,25 cm (709 twips); citação longa com recuo de 4 cm (2268 twips) | RN-003, RN-004 | NÃO EXECUTADO |
-| DOC-06 | Estilos de título por nível conforme Quadro 1 do Manual | RN-010 a RN-014 | NÃO EXECUTADO |
+| DOC-01 | Página A4 (11906 × 16838 twips) | `RN` de formato de papel (Etapa 3) | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
+| DOC-02 | Margens 3/3/2/2 cm (sup/esq/inf/dir) = 1701/1701/1134/1134 twips | RN-002 (Manual UFT p. 15) | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
+| DOC-03 | Fonte Times New Roman ou Arial 12 no corpo; 10 em citação longa, notas e legendas | RN-001 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
+| DOC-04 | Espaçamento 1,5 no corpo (`w:line=360`), simples nos casos previstos | RN-006 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
+| DOC-05 | Recuo de primeira linha 1,25 cm (709 twips); citação longa com recuo de 4 cm (2268 twips) | RN-003, RN-004 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
+| DOC-06 | Estilos de título por nível conforme Quadro 1 do Manual | RN-010 a RN-014 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
 | DOC-07 | Sumário presente e coerente com os títulos | `RN` de sumário (Etapa 3) | NÃO EXECUTADO |
 | DOC-08 | DOCX abre sem reparo no Word e no LibreOffice | RNF-05 | NÃO EXECUTADO (manual) |
 
