@@ -180,8 +180,8 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/editor-conversao.tes
 | DOC-04 | Espaçamento 1,5 no corpo (`w:line=360`), simples nos casos previstos | RN-006 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
 | DOC-05 | Recuo de primeira linha 1,25 cm (709 twips); citação longa com recuo de 4 cm (2268 twips) | RN-003, RN-004 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
 | DOC-06 | Estilos de título por nível conforme Quadro 1 do Manual | RN-010 a RN-014 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
-| DOC-07 | Sumário presente e coerente com os títulos | `RN` de sumário (Etapa 3) | NÃO EXECUTADO |
-| DOC-08 | DOCX abre sem reparo no Word e no LibreOffice | RNF-05 | NÃO EXECUTADO (manual) |
+| DOC-07 | Sumário presente e coerente com os títulos | `RN` de sumário (Etapa 3) | PASSOU (M3-T07, 2026-11-02; `tests/externos/libreoffice.externo.ts`, Word) |
+| DOC-08 | DOCX abre sem reparo no Word e no LibreOffice | RNF-05 | PARCIAL: automático PASSOU (M3-T07, 2026-11-02: validador, LibreOffice, Word); falta a conferência manual |
 
 ## Grupo UI — layout
 

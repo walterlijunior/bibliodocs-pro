@@ -17,13 +17,17 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.puro.json && tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.e2e.json",
     "test": "vitest run",
     "verificar": "npm run typecheck && vitest run && npm audit --audit-level=high && npm audit signatures",
-    "verificar:tudo": "npm run verificar && npm run build && playwright test",
+    "verificar:tudo": "npm run verificar && npm run test:externos && npm run build && playwright test",
     "test:e2e": "npm run build && playwright test",
     "dist": "node empacotamento/terceiros.cjs --conferir && npm run build && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
     "dist:pasta": "node empacotamento/terceiros.cjs --conferir && npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never",
     "dist:fumaca": "node empacotamento/terceiros.cjs --conferir && npm run build && electron-builder --config electron-builder.config.cjs --win dir --x64 --publish never -c.extraMetadata.bibliodocsFumaca=true -c.directories.output=release-fumaca",
     "icone:gerar": "electron empacotamento/gerar-icone.cjs",
-    "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts"
+    "esquemas:gerar": "vitest run tests/esquemas-json-schema.test.ts",
+    "test:ooxml": "vitest run -c vitest.externos.config.mts tests/externos/ooxml.externo.ts",
+    "test:libreoffice": "vitest run -c vitest.externos.config.mts tests/externos/libreoffice.externo.ts",
+    "test:word": "vitest run -c vitest.externos.config.mts tests/externos/word.externo.ts",
+    "test:externos": "vitest run -c vitest.externos.config.mts"
   },
   "dependencies": {
     "docx": "9.15.1",
@@ -50,6 +54,7 @@
     "electron-builder": "26.15.3",
     "electron-vite": "6.0.0",
     "fast-xml-parser": "5.11.2",
+    "pdfjs-dist": "6.4.299",
     "typescript": "7.0.2",
     "vite": "8.3.4",
     "vitest": "5.0.5"

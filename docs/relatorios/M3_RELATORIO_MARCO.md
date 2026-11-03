@@ -11,7 +11,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T04 Motor: seções, paginação, pré e pós-textuais | CONCLUÍDA | 2026-11-02 |
 | M3-T05 Exportador DOCX | CONCLUÍDA | 2026-11-02 |
 | M3-T06 Regressão documental | CONCLUÍDA | 2026-11-02 |
-| M3-T07 a M3-T12 | PENDENTE | — |
+| M3-T07 Camadas externas: validador, LibreOffice e Word | CONCLUÍDA | 2026-11-02 |
+| M3-T08 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -144,3 +145,19 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - `toMatchFileSnapshot` grava instantâneo novo fora de CI: um arquivo apagado seria recriado em silêncio. Em CI, falha.
 
 **Testes do M3-T06** [VERIFICADO 2026-11-02]: `verificar:tudo` 1421/1421, 388 assinaturas, sem achado alto, E2E 17/17, memória 753 MB. Mutações: 7/7, em CI, sem gravar instantâneo novo; o valor errado no perfil reprovou citando RN-004.
+
+## M3-T07 — Validador OOXML, LibreOffice e Word
+
+**Implementação:** sessão principal. **Sem revisão independente.** Instalado: .NET SDK 10.0.403 (`winget`, global, autorizado pelo usuário). Local: `DocumentFormat.OpenXml` 3.5.1, com `packages.lock.json`, e `pdfjs-dist` 6.4.299, ambos só para teste.
+
+**Testes** [VERIFICADO 2026-11-02, nos 7 documentos do corpus]
+- **Validador OOXML (Office 2021):** os 7 válidos, sem erro. Os 2 controles que a automação do Word deixou passar, parágrafo com tabela e elemento desconhecido, são reprovados. **R47 cai de risco:** agora há conferência de esquema automática.
+- **LibreOffice:** os 7 convertem, com a capa numa só página; no documento difícil, cada entrada do sumário está na página indicada (DOC-07), e o número aparece do texto em diante.
+- **Word 16:** os 7 abrem; sumário gravado igual ao atualizado, mesmas páginas, 3 notas e 6 seções no documento difícil.
+- Mutação: página do sumário somada em 1 é reprovada no Word e no LibreOffice.
+
+**Limitações**
+- `verificar:tudo` agora abre o Word e o LibreOffice, e pede o SDK: sem o programa, o grupo pula com aviso. Se o Word travar num diálogo, o processo oculto pode ficar aberto; não é encerrado à força, para não atingir um Word do usuário.
+- **Conferência manual continua:** aviso de reparo com alertas ligados e aparência final só o usuário vê. Válido no esquema não prova ausência de todo aviso.
+- Regex do sumário no LibreOffice só cobre títulos sem ponto.
+- `ferramentas/` não entra no pacote.

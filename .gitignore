@@ -36,3 +36,7 @@ Desktop.ini
 .DS_Store
 *.tmp
 ~$*
+
+# Saída de build do validador OOXML (M3-T07)
+app/ferramentas/validar-ooxml/bin/
+app/ferramentas/validar-ooxml/obj/

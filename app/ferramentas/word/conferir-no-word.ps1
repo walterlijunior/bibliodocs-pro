@@ -6,6 +6,7 @@ param(
   [string]$Pdf = ''
 )
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $saida = [ordered]@{ arquivo = (Split-Path -Leaf $Arquivo); abriu = $false }
 $word = $null
 $doc = $null
