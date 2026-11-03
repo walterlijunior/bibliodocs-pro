@@ -163,6 +163,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     origem,
     conteudosPermitidos,
     pastas: pastasRecuperacao(dadosLocais),
+    pastaBackups,
     projetos: registro,
     pastaBiblioteca: () => biblioteca.pastaAtual(),
     ler,

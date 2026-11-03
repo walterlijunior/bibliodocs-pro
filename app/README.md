@@ -299,3 +299,7 @@ Testes de segurança: `tests/seguranca-politica-urls.test.ts`, `tests/seguranca-
 Arquivo › Versões descartadas… lista o que está em `%LOCALAPPDATA%\BiblioDocsPro\recuperacao-antigos` e ainda abre
 (prazo de 7 dias). A versão abre como trabalho sem arquivo: nada é alterado, e só "Salvar como…" a grava.
 Até lá, o que for escrito nela não tem salvamento automático nem cópia de recuperação (R-M2-04).
+
+### Cópias de segurança (M3-T09)
+
+Arquivo › Cópias de segurança… lista `backups\<id>\` e abre a cópia como trabalho sem arquivo: nada é alterado, e só "Salvar como…" a grava.

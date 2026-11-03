@@ -49,6 +49,8 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     abrirSalvo: (oferta) => invocar(cr.abrirSalvo, oferta) as RetornoRecuperacao<'abrirSalvo'>,
     listarDescartadas: () => invocar(cr.listarDescartadas) as RetornoRecuperacao<'listarDescartadas'>,
     abrirDescartada: (versao) => invocar(cr.abrirDescartada, versao) as RetornoRecuperacao<'abrirDescartada'>,
+    listarBackups: () => invocar(cr.listarBackups) as RetornoRecuperacao<'listarBackups'>,
+    abrirBackup: (copia) => invocar(cr.abrirBackup, copia) as RetornoRecuperacao<'abrirBackup'>,
   };
   const edicao: ApiEdicao = {
     executar: async (acao) => {

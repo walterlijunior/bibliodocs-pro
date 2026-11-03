@@ -44,11 +44,13 @@ import {
   salvarProjeto,
   type PastasRecuperacao,
   type ResumoProjeto,
+  type SistemaArquivos,
+  SISTEMA_ARQUIVOS_NODE,
 } from '../src/persistencia';
 import { lerPacoteTransferivel } from '../src/principal/ipc/argumentos';
 import { ErroIpcRecusado } from '../src/principal/ipc/chamada';
 import { criarManipuladoresProjetos } from '../src/principal/ipc/manipuladores-projetos';
-import { criarManipuladoresRecuperacao, MAX_VERSOES_DESCARTADAS, MENSAGEM_DESCARTADA_ILEGIVEL, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
+import { criarManipuladoresRecuperacao, MAX_VERSOES_DESCARTADAS, MENSAGEM_BACKUP_ILEGIVEL, MENSAGEM_DESCARTADA_ILEGIVEL, MENSAGEM_JA_ABERTO, MENSAGEM_OFERTA_VENCIDA, pastasRecuperacao } from '../src/principal/ipc/manipuladores-recuperacao';
 import { paraRespostaLeitor } from '../src/principal/ipc/protocolo-leitor';
 import type { InfoRemetente } from '../src/principal/ipc/remetente';
 import { RegistroProjetos } from '../src/principal/ipc/registro-projetos';
@@ -104,7 +106,7 @@ const ADIANTE_MS = 60 * 60 * 1000;
 
 function processo(
   pid = OUTRO_PID,
-  extra: { salvar?: (d: string, p: PacoteProjetoTeste) => ReturnType<typeof salvarProjeto>; resumir?: (c: string[]) => Promise<ResumoProjeto[] | null> } = {},
+  extra: { salvar?: (d: string, p: PacoteProjetoTeste) => ReturnType<typeof salvarProjeto>; resumir?: (c: string[]) => Promise<ResumoProjeto[] | null>; fs?: SistemaArquivos } = {},
 ) {
   const registro = new RegistroProjetos();
   const ler = async (c: string) => paraRespostaLeitor(await abrirProjeto(c, { pastaBackups: join(raiz, 'backups') }));
@@ -112,6 +114,8 @@ function processo(
     origem: ORIGEM_PRODUCAO,
     conteudosPermitidos: () => new Set([JANELA, OUTRA_JANELA]),
     pastas,
+    pastaBackups: join(raiz, 'local', 'backups'),
+    ...(extra.fs ? { fs: extra.fs } : {}),
     projetos: registro,
     pastaBiblioteca: async () => biblioteca,
     ler,
@@ -148,6 +152,8 @@ function processo(
     abrirSalvo: (oferta: string) => chamar(CANAIS_RECUPERACAO.abrirSalvo, oferta) as Promise<ResultadoAbrir>,
     listarDescartadas: async () => ((await chamar(CANAIS_RECUPERACAO.listarDescartadas)) as ResultadoListarDescartadas).versoes,
     abrirDescartada: (id: string) => chamar(CANAIS_RECUPERACAO.abrirDescartada, id) as Promise<ResultadoAbrirDescartada>,
+    listarBackups: async () => (await chamar(CANAIS_RECUPERACAO.listarBackups)) as ResultadoListarDescartadas,
+    abrirBackup: (id: string) => chamar(CANAIS_RECUPERACAO.abrirBackup, id) as Promise<ResultadoAbrirDescartada>,
     salvar: (id: string, p: PacoteTransferivel) => chamar(CANAIS_PROJETOS.salvar, id, p) as Promise<{ ok: boolean }>,
     fechar: (id: string) => chamar(CANAIS_PROJETOS.fechar, id),
     chamar,
@@ -999,5 +1005,94 @@ describe('versões descartadas (M2-T11; R-M1-10)', () => {
     const [v] = await p.listarDescartadas();
     await p.rec.encerrarDono(JANELA, true);
     expect(await p.abrirDescartada(v!.identificador)).toEqual({ ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL });
+  });
+});
+
+describe('cópias de segurança (M3-T09)', () => {
+  const pasta = (id = ID_PROJETO) => join(raiz, 'local', 'backups', id);
+  async function copia(nome: string, titulo: string, id = ID_PROJETO): Promise<string> {
+    mkdirSync(pasta(id), { recursive: true });
+    const caminho = join(pasta(id), nome);
+    expect((await salvarProjeto(caminho, paraProjeto(pacote(titulo, id)))).ok).toBe(true);
+    return caminho;
+  }
+
+  it('sem pasta, a lista é vazia e completa', async () => {
+    expect(await processo().listarBackups()).toEqual({ versoes: [], incompleta: false });
+  });
+
+  it('lista de todos os trabalhos, a mais nova primeiro, pela data do nome e sem expor caminho', async () => {
+    await copia('20261001-120000.bdp', 'Antiga');
+    await copia('20261101-120000.bdp', 'Nova');
+    await copia('20261015-120000.bdp', 'Outro trabalho', 'prj_outroooooooooooo');
+    const r = await processo().listarBackups();
+    expect(r.versoes.map((v) => v.titulo)).toEqual(['Nova', 'Outro trabalho', 'Antiga']);
+    expect(new Date(r.versoes[0]!.quando).getFullYear()).toBe(2026);
+    expect(new Date(r.versoes[0]!.quando).getMonth()).toBe(10);
+    expect(JSON.stringify(r)).not.toContain(raiz);
+    expect(JSON.stringify(r)).not.toContain('20261101');
+  });
+
+  it('ignora marca de excluído, temporário, arquivo danificado e link; backup de migração entra', async () => {
+    await copia('20261001-120000.bdp', 'Boa');
+    await copia('20261002-120000-000-formato-v1.bdp', 'Migração');
+    writeFileSync(join(pasta(), 'excluido-1.marca'), '');
+    writeFileSync(join(pasta(), '20261003-120000.bdp.tmp'), readFileSync(join(pasta(), '20261001-120000.bdp')));
+    writeFileSync(join(pasta(), '20261004-120000.bdp'), 'danificado');
+    const r = await processo().listarBackups();
+    expect(r.versoes.map((v) => v.titulo).sort()).toEqual(['Boa', 'Migração']);
+  });
+
+  it('arquivo solto na pasta de backups é ignorado, sem dizer que a lista está incompleta', async () => {
+    await copia('20261001-120000.bdp', 'Boa');
+    writeFileSync(join(raiz, 'local', 'backups', 'solto.bdp'), 'x');
+    expect(await processo().listarBackups()).toMatchObject({ incompleta: false, versoes: [{ titulo: 'Boa' }] });
+  });
+
+  it('pasta de um trabalho que não abre: a lista avisa, e os outros aparecem', async () => {
+    await copia('20261001-120000.bdp', 'Boa');
+    await copia('20261002-120000.bdp', 'Outra', 'prj_outroooooooooooo');
+    const bloqueada = pasta('prj_outroooooooooooo');
+    const fs: SistemaArquivos = { ...SISTEMA_ARQUIVOS_NODE, listarPasta: (c) => (c === bloqueada ? Promise.reject(new Error('EPERM')) : SISTEMA_ARQUIVOS_NODE.listarPasta(c)) };
+    expect(await processo(OUTRO_PID, { fs }).listarBackups()).toMatchObject({ incompleta: true, versoes: [{ titulo: 'Boa' }] });
+  });
+
+  it('abre como trabalho sem arquivo, sem alterar nem retirar a cópia', async () => {
+    const c = await copia('20261001-120000.bdp', 'Boa');
+    const bytes = readFileSync(c);
+    const p = processo();
+    const { versoes } = await p.listarBackups();
+    const r = await p.abrirBackup(versoes[0]!.identificador);
+    if (!r.ok) throw new Error(r.mensagem);
+    expect(r.projeto.identificador).toBeNull();
+    expect(r.projeto.nomeArquivo).toBe('Cópia de segurança.bdp');
+    expect(tituloDe(r.projeto.pacote)).toBe('Boa');
+    expect(r.quando).toBe(versoes[0]!.quando);
+    expect(readFileSync(c).equals(bytes)).toBe(true);
+  });
+
+  it('identificador antigo, de outra janela ou de arquivo que sumiu não abre', async () => {
+    const c = await copia('20261001-120000.bdp', 'Boa');
+    const p = processo();
+    const velha = (await p.listarBackups()).versoes[0]!;
+    const nova = (await p.listarBackups()).versoes[0]!;
+    const recusa = { ok: false, mensagem: MENSAGEM_BACKUP_ILEGIVEL };
+    expect(await p.abrirBackup(velha.identificador)).toEqual(recusa);
+    const m = p.rec.manipuladores[CANAIS_RECUPERACAO.abrirBackup];
+    expect(await m({ ...LEGITIMO, idConteudo: OUTRA_JANELA }, [nova.identificador])).toEqual(recusa);
+    rmSync(c);
+    expect(await p.abrirBackup(nova.identificador)).toEqual(recusa);
+  });
+
+  it('acima do limite, avisa que a lista está incompleta; argumentos fora do contrato são recusados', async () => {
+    const c = await copia('20260101-000000.bdp', 'Modelo');
+    const bytes = readFileSync(c);
+    for (let i = 0; i <= MAX_VERSOES_DESCARTADAS; i++) writeFileSync(join(pasta(), `202601${String((i % 28) + 2).padStart(2, '0')}-${String(100000 + i)}.bdp`), bytes);
+    const p = processo();
+    const r = await p.listarBackups();
+    expect(r.versoes).toHaveLength(MAX_VERSOES_DESCARTADAS);
+    expect(r.incompleta).toBe(true);
+    await expect(p.chamar(CANAIS_RECUPERACAO.listarBackups, 'extra')).rejects.toBeInstanceOf(ErroIpcRecusado);
+    await expect(p.chamar(CANAIS_RECUPERACAO.abrirBackup, 'C:\\x.bdp')).rejects.toBeInstanceOf(ErroIpcRecusado);
   });
 });

@@ -21,6 +21,8 @@ export const CANAIS_RECUPERACAO = {
   abrirSalvo: 'bibliodocs:recuperacao:abrir-salvo',
   listarDescartadas: 'bibliodocs:recuperacao:listar-descartadas',
   abrirDescartada: 'bibliodocs:recuperacao:abrir-descartada',
+  listarBackups: 'bibliodocs:recuperacao:listar-backups',
+  abrirBackup: 'bibliodocs:recuperacao:abrir-backup',
 } as const;
 
 export type CanalRecuperacao = (typeof CANAIS_RECUPERACAO)[keyof typeof CANAIS_RECUPERACAO];
@@ -97,4 +99,8 @@ export interface ApiRecuperacao {
   listarDescartadas(): Promise<ResultadoListarDescartadas>;
   /** Abre a versão como trabalho sem arquivo (`identificador: null`): nenhum arquivo é alterado. */
   abrirDescartada(versao: IdentificadorOferta): Promise<ResultadoAbrirDescartada>;
+  /** Cópias de segurança de `backups\\<id>\\`, da mais nova à mais velha (M3-T09). */
+  listarBackups(): Promise<ResultadoListarDescartadas>;
+  /** Abre a cópia como trabalho sem arquivo: nem ela nem o arquivo do usuário mudam. */
+  abrirBackup(copia: IdentificadorOferta): Promise<ResultadoAbrirDescartada>;
 }

@@ -26,9 +26,9 @@ import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { DialogoExportar, FONTES_EXPORTACAO, type EstadoExportacao } from './escrever/DialogoExportar';
-import { DialogoVersoesDescartadas } from './biblioteca/DialogoVersoesDescartadas';
+import { DialogoVersoes, type OrigemVersoes } from './biblioteca/DialogoVersoes';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
-import { avisoRecuperado, textoDescartada } from './biblioteca/recuperacao';
+import { avisoRecuperado, textoBackup, textoDescartada } from './biblioteca/recuperacao';
 import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista, type Filtro } from './biblioteca/selecao';
 import { FALHA_INESPERADA, useBiblioteca } from './biblioteca/useBiblioteca';
 import { BarraMenus } from './casca/BarraMenus';
@@ -64,6 +64,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   /** Diálogo "Exportar DOCX": `null` fechado (M3-T08). */
   const [exportacao, setExportacao] = useState<EstadoExportacao | null>(null);
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
+  const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
@@ -227,11 +228,12 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     }
   }, [api, fonteExportacao, sessao]);
 
-  const pedirDescartadas = useCallback(async () => {
+  const pedirVersoes = useCallback(async (origem: OrigemVersoes) => {
+    setOrigemVersoes(origem);
     setDescartadas(null);
     setDescartadasIncompleta(false);
     try {
-      const r = await api.recuperacao.listarDescartadas();
+      const r = await (origem === 'backups' ? api.recuperacao.listarBackups() : api.recuperacao.listarDescartadas());
       setDescartadas((atual) => (atual === undefined ? undefined : r.versoes));
       setDescartadasIncompleta(r.incompleta);
     } catch {
@@ -241,14 +243,14 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     }
   }, [api, mostrarMensagem]);
 
-  const abrirDescartada = useCallback(
-    (id: IdentificadorOferta) =>
+  const abrirVersao = useCallback(
+    (id: IdentificadorOferta, origem: OrigemVersoes) =>
       exclusivo(async () => {
         setDescartadas(undefined);
         if (!(await liberarAtual())) return;
         let r: ResultadoAbrirDescartada;
         try {
-          r = await api.recuperacao.abrirDescartada(id);
+          r = await (origem === 'backups' ? api.recuperacao.abrirBackup(id) : api.recuperacao.abrirDescartada(id));
         } catch {
           r = { ok: false, mensagem: FALHA_INESPERADA };
         }
@@ -256,7 +258,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           mostrarMensagem({ tipo: 'erro', texto: r.mensagem });
           return;
         }
-        sessao.abrir(r.projeto, avisosDaAbertura(r.projeto), { naoSalvo: true, textoSemDestino: textoDescartada(r.quando, new Date()) });
+        sessao.abrir(r.projeto, avisosDaAbertura(r.projeto), { naoSalvo: true, textoSemDestino: (origem === 'backups' ? textoBackup : textoDescartada)(r.quando, new Date()) });
         setSaidaPedida(false);
         irParaEscrever();
         setFocarTitulo((n) => n + 1);
@@ -476,7 +478,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           setExportacao({ etapa: 'escolher' });
           return;
         case 'versoesDescartadas':
-          void pedirDescartadas();
+          void pedirVersoes('descartadas');
+          return;
+        case 'copiasSeguranca':
+          void pedirVersoes('backups');
           return;
         case 'sair':
           window.close();
@@ -552,11 +557,12 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         />
       )}
       {descartadas !== undefined && (
-        <DialogoVersoesDescartadas
+        <DialogoVersoes
+          origem={origemVersoes}
           versoes={descartadas}
           incompleta={descartadasIncompleta}
           ocupado={bib.ocupado}
-          aoAbrir={(id) => void abrirDescartada(id)}
+          aoAbrir={(id) => void abrirVersao(id, origemVersoes)}
           aoFechar={() => setDescartadas(undefined)}
         />
       )}

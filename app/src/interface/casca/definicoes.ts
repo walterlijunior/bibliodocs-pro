@@ -13,6 +13,7 @@ export type ComandoMenu =
   | 'escolherPasta'
   | 'atualizarBiblioteca'
   | 'versoesDescartadas' // M2-T11
+  | 'copiasSeguranca' // M3-T09
   | 'exportarDocx' // M3-T08
   | 'sair'
   | 'buscar'
@@ -57,6 +58,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Escolher pasta da biblioteca…', comando: 'escolherPasta' },
       { rotulo: 'Atualizar biblioteca', atalho: 'F5', comando: 'atualizarBiblioteca' },
       { rotulo: 'Versões descartadas…', comando: 'versoesDescartadas' },
+      { rotulo: 'Cópias de segurança…', comando: 'copiasSeguranca' },
       'separador',
       { rotulo: 'Fechar trabalho', atalho: 'Ctrl+W', comando: 'fecharTrabalho' },
       { rotulo: 'Sair', atalho: 'Alt+F4', comando: 'sair' },

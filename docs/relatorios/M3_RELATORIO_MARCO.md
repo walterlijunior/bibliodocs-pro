@@ -13,7 +13,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T06 Regressão documental | CONCLUÍDA | 2026-11-02 |
 | M3-T07 Camadas externas: validador, LibreOffice e Word | CONCLUÍDA | 2026-11-02 |
 | M3-T08 Tela de Exportar DOCX | CONCLUÍDA | 2026-11-02 |
-| M3-T09 a M3-T12 | PENDENTE | — |
+| M3-T09 Tela de cópias de segurança | CONCLUÍDA | 2026-11-02 |
+| M3-T10 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -183,3 +184,17 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - Arquivo aberto no Word: a gravação falha com a mensagem do salvamento, sem perda; não há E2E desse caso, só teste de unidade.
 - O diálogo nativo real e a confirmação de sobrescrever não têm teste automático.
 - Avisos repetidos não são agrupados.
+
+## M3-T09 — Cópias de segurança
+
+**Implementação:** sessão principal. **Sem revisão independente.** Nenhuma dependência nova.
+
+**Código:** canais `listarBackups` e `abrirBackup`; `DialogoVersoes` agora serve às versões descartadas e às cópias. Novo item visível: Arquivo › Cópias de segurança…. Identificador opaco por janela e por listagem; no máximo 100 cópias, com aviso quando há mais.
+
+**Testes** [VERIFICADO 2026-11-02]: unidade e E2E no Electron real: abrir a cópia não altera o arquivo nem a cópia. Mutações: 6/6, 3 delas depois de novos testes. Números no registro do commit.
+
+**Limitações**
+- Abre e deixa salvar como arquivo novo; **não substitui o original** por um clique. Para voltar, o autor escolhe o arquivo no "Salvar como…" (R-M2-05, R-M2-06).
+- A lista mostra título e data do conteúdo: duas cópias do mesmo dia só se distinguem pela hora.
+- Sem backups de trabalho aberto com o mesmo id: abrir a cópia enquanto ele está em edição é recusado como "já aberto".
+- Edições na cópia aberta não têm recuperação até "Salvar como…" (R-M2-04, M3-T10).

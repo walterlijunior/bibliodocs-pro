@@ -137,3 +137,24 @@ test('Versões descartadas: abre como trabalho sem arquivo e não altera nada (M
   expect(readFileSync(arquivo).equals(bytesArquivo)).toBe(true);
   expect(readFileSync(guardado).equals(bytesGuardado)).toBe(true);
 });
+
+test('Cópias de segurança: abre a cópia guardada sem alterar nada (M3-T09)', async () => {
+  const a = await abrirApp(amb);
+  await criarTrabalho(a.pagina);
+  // O arquivo nasce sem título; a primeira gravação por cima guarda essa versão em backups\\<id>\\ (M2-T10).
+  await a.pagina.getByLabel('Título do trabalho').fill('Versão salva');
+  await a.pagina.keyboard.press('Control+S');
+  await expect.poll(() => lerDocumento(join(amb.trabalhos, arquivosBdp(amb)[0]!)).titulo).toBe('Versão salva');
+  await a.fechar();
+  const arquivo = join(amb.trabalhos, arquivosBdp(amb)[0]!);
+  const bytes = readFileSync(arquivo);
+
+  const b = await abrirApp(amb);
+  await b.pagina.getByRole('menuitem', { name: 'Arquivo' }).click();
+  await b.pagina.getByRole('menuitem', { name: 'Cópias de segurança…' }).click();
+  await expect(b.pagina.getByRole('dialog', { name: 'Cópias de segurança' })).toBeVisible();
+  await b.pagina.getByRole('button', { name: /^Abrir a cópia de .* de trabalho sem título$/ }).click();
+  await expect(b.pagina.getByLabel('Título do trabalho')).toHaveValue('');
+  await expect(b.pagina.getByText(/^Cópia de segurança de /)).toBeVisible();
+  expect(readFileSync(arquivo).equals(bytes)).toBe(true);
+});

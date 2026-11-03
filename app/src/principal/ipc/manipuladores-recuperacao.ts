@@ -38,6 +38,7 @@ import {
 import {
   apagarInstantaneos,
   apagarTrava,
+  dataDoBackup,
   ARQUIVOS_POR_LOTE,
   arquivar,
   arquivarInstantaneos,
@@ -79,6 +80,8 @@ export interface DependenciasRecuperacao {
   origem: OrigemPermitida;
   conteudosPermitidos: () => ReadonlySet<number>;
   pastas: PastasRecuperacao;
+  /** `%LOCALAPPDATA%\\BiblioDocsPro\\backups`; sem ela, a lista de cópias de segurança fica vazia (M3-T09). */
+  pastaBackups?: string;
   /** Registro dos projetos abertos (o mesmo dos canais `projetos`). */
   projetos: RegistroProjetos;
   /** Pasta atual da biblioteca, onde se procuram os restos de gravação; `null` se não houver. */
@@ -108,6 +111,7 @@ const MENSAGEM_SEM_GUARDAR = 'Não foi possível guardar o arquivo danificado an
 /** Versões listadas no máximo por vez: cada uma é lida pelo processo leitor. */
 export const MAX_VERSOES_DESCARTADAS = 100;
 export const MENSAGEM_DESCARTADA_ILEGIVEL = 'Não foi possível abrir esta versão. Ela pode ter passado do prazo de 7 dias.';
+export const MENSAGEM_BACKUP_ILEGIVEL = 'Não foi possível abrir esta cópia. Tente outra da lista.';
 const MENSAGEM_DISCO = 'Não foi possível preparar a recuperação por um erro no disco. Nada foi apagado.';
 
 interface SessaoAtiva {
@@ -560,17 +564,23 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       } catch {
         return { versoes: [], incompleta: false }; // pasta ainda não existe ou não abre
       }
+      return listarCopias(arquivos, r.idConteudo);
+    });
+  };
+
+  /** Resume os arquivos e dá um identificador opaco a cada um que abre. Os mais novos primeiro, até o limite. */
+  async function listarCopias(arquivos: { caminho: string; modificadoEmMs: number }[], dono: number): Promise<ResultadoListarDescartadas> {
       arquivos.sort((a, b) => b.modificadoEmMs - a.modificadoEmMs);
       const lote = arquivos.slice(0, MAX_VERSOES_DESCARTADAS);
       const resumos = await resumirTodos(lote.map((a) => a.caminho));
-      let incompleta = false;
+      let incompleta = arquivos.length > lote.length;
       const versoes: VersaoDescartada[] = [];
       lote.forEach((a) => {
         const resumo = resumos.get(a.caminho);
         if (resumo === null || resumo === undefined) incompleta = true; // o leitor falhou: não é o mesmo que não haver versão
         if (resumo?.estado !== 'ok') return; // danificado ou de versão futura: não abre aqui
-        const identificador = registroOfertas.registrar(`descartada:${++contador}`, r.idConteudo);
-        descartadas.set(identificador, { caminho: a.caminho, dono: r.idConteudo, quando: a.modificadoEmMs });
+        const identificador = registroOfertas.registrar(`descartada:${++contador}`, dono);
+        descartadas.set(identificador, { caminho: a.caminho, dono, quando: a.modificadoEmMs });
         // `atualizadoEm` é a data do último salvamento, não a do texto: vale a hora em que a versão foi guardada (R-M2-09).
         versoes.push({
           identificador,
@@ -580,27 +590,61 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
         });
       });
       return { versoes, incompleta };
+  }
+
+  const listarBackups: Manipulador = async (r, argumentos): Promise<ResultadoListarDescartadas> => {
+    conferir(CANAIS_RECUPERACAO.listarBackups, r, argumentos, 0);
+    return emFila(async () => {
+      esquecerDescartadas(r.idConteudo);
+      const raiz = dep.pastaBackups;
+      if (raiz === undefined) return { versoes: [], incompleta: false };
+      const arquivos: { caminho: string; modificadoEmMs: number }[] = [];
+      let pastasDeTrabalho;
+      try {
+        pastasDeTrabalho = await fs.listarPasta(raiz);
+      } catch {
+        return { versoes: [], incompleta: false }; // ainda não há cópia nenhuma
+      }
+      let falhou = false;
+      for (const p of pastasDeTrabalho) {
+        if (p.arquivoComum || p.link) continue;
+        try {
+          for (const e of await fs.listarPasta(join(raiz, p.nome))) {
+            if (!e.arquivoComum || e.link || !e.nome.endsWith('.bdp')) continue;
+            const caminho = join(raiz, p.nome, e.nome);
+            const i = await infoArquivo(caminho);
+            // A data do nome é a da cópia; a do arquivo vale para os backups de migração, que têm outro nome.
+            if (i !== null) arquivos.push({ caminho, modificadoEmMs: dataDoBackup(e.nome)?.getTime() ?? i.modificadoEmMs });
+          }
+        } catch {
+          falhou = true;
+        }
+      }
+      const lista = await listarCopias(arquivos, r.idConteudo);
+      return falhou ? { ...lista, incompleta: true } : lista;
     });
   };
 
-  const abrirDescartada: Manipulador = async (r, argumentos): Promise<ResultadoAbrirDescartada> => {
-    const canal = CANAIS_RECUPERACAO.abrirDescartada;
+  const abrirCopia = (canal: CanalRecuperacao, ilegivel: string, nomeArquivo: string): Manipulador => async (r, argumentos): Promise<ResultadoAbrirDescartada> => {
     conferir(canal, r, argumentos, 1);
     const id = lerIdentificador(argumentos[0]) ?? recusarArgumento(canal, 'versão');
     return emFila(async () => {
       const d = descartadas.get(id);
-      if (d === undefined || d.dono !== r.idConteudo) return { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
+      if (d === undefined || d.dono !== r.idConteudo) return { ok: false, mensagem: ilegivel };
       const lido = await dep.ler(d.caminho);
-      if (!lido.ok) return { ok: false, mensagem: MENSAGEM_DESCARTADA_ILEGIVEL };
+      if (!lido.ok) return { ok: false, mensagem: ilegivel };
       const idProjeto = lido.pacote.manifesto.id;
       if (sessoes.has(idProjeto)) return { ok: false, mensagem: MENSAGEM_JA_ABERTO };
       return {
         ok: true,
         quando: d.quando,
-        projeto: { identificador: null, nomeArquivo: 'Versão descartada.bdp', pacote: lido.pacote, avisos: [...lido.avisos], atualizacao: null },
+        projeto: { identificador: null, nomeArquivo, pacote: lido.pacote, avisos: [...lido.avisos], atualizacao: null },
       };
     });
   };
+
+  const abrirDescartada = abrirCopia(CANAIS_RECUPERACAO.abrirDescartada, MENSAGEM_DESCARTADA_ILEGIVEL, 'Versão descartada.bdp');
+  const abrirBackup = abrirCopia(CANAIS_RECUPERACAO.abrirBackup, MENSAGEM_BACKUP_ILEGIVEL, 'Cópia de segurança.bdp');
 
   return {
     manipuladores: Object.freeze({
@@ -610,6 +654,8 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       [CANAIS_RECUPERACAO.abrirSalvo]: abrirSalvo,
       [CANAIS_RECUPERACAO.listarDescartadas]: listarDescartadas,
       [CANAIS_RECUPERACAO.abrirDescartada]: abrirDescartada,
+      [CANAIS_RECUPERACAO.listarBackups]: listarBackups,
+      [CANAIS_RECUPERACAO.abrirBackup]: abrirBackup,
     }) as Readonly<Record<CanalRecuperacao, Manipulador>>,
     antesDeGravar,
     aoGravar,

@@ -333,6 +333,8 @@ describe('preload (C-10)', () => {
     await api.recuperacao.abrirSalvo('of');
     await api.recuperacao.listarDescartadas();
     await api.recuperacao.abrirDescartada('v');
+    await api.recuperacao.listarBackups();
+    await api.recuperacao.abrirBackup('c');
     expect(chamadas.map((c) => c[0])).toEqual([
       CANAIS_RECUPERACAO.instantaneo,
       CANAIS_RECUPERACAO.listar,
@@ -340,8 +342,10 @@ describe('preload (C-10)', () => {
       CANAIS_RECUPERACAO.abrirSalvo,
       CANAIS_RECUPERACAO.listarDescartadas,
       CANAIS_RECUPERACAO.abrirDescartada,
+      CANAIS_RECUPERACAO.listarBackups,
+      CANAIS_RECUPERACAO.abrirBackup,
     ]);
-    expect(chamadas.map((c) => c.length)).toEqual([3, 1, 2, 2, 1, 2]);
+    expect(chamadas.map((c) => c.length)).toEqual([3, 1, 2, 2, 1, 2, 1, 2]);
     expect(Object.isFrozen(api.recuperacao)).toBe(true);
   });
 

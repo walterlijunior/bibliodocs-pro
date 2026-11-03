@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M3-T09: Arquivo › Cópias de segurança…: lista as cópias de `backups\<id>\` e abre como trabalho sem arquivo, sem alterar nada.
 - Etapa 5, M3-T08: Exportar › Exportar DOCX… (Ctrl+E): escolhe a fonte, grava pelo diálogo do sistema e mostra os avisos. É a primeira exportação pelo próprio aplicativo.
 - Etapa 5, M3-T07: `test:ooxml`, `test:libreoffice`, `test:word` e `test:externos`, parte de `verificar:tudo`. Validador em `app/ferramentas/validar-ooxml/`. .NET SDK 10 instalado na máquina, com autorização; `pdfjs-dist` como dependência de desenvolvimento.
 - Etapa 5, M3-T06: regressão documental: corpus com os seis tipos e um documento difícil, propriedades com a RN na falha e 35 instantâneos de XML aprovados.

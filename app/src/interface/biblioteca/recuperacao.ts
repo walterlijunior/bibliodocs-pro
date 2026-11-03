@@ -59,3 +59,11 @@ export function avisoRecuperado(tipo: TipoOferta, quando: number, hoje: Date): A
   const origem = tipo === 'bak' ? 'da cópia de segurança (.bak)' : 'da cópia da gravação interrompida';
   return { nivel: 'info', texto: `O arquivo foi restaurado a partir ${origem} de ${q}.`, acoes: [] };
 }
+
+/** Aviso da cópia aberta pelo diálogo "Cópias de segurança" (M3-T09). */
+export function textoBackup(quando: number, hoje: Date): string {
+  return (
+    `Cópia de segurança de ${quandoLegivel(quando, hoje)}. Nenhum arquivo foi alterado. ` +
+    'O que você escrever aqui não tem cópia de recuperação até usar “Salvar como…”.'
+  );
+}
