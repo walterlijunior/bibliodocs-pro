@@ -9,6 +9,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainIn
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
 import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
 import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, gravarAtomico, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { ehArtefatoDeFumaca } from '../seguranca/fumaca';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
@@ -192,6 +193,9 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     conteudosPermitidos,
     perfil: PERFIL_UFT_2022,
     escolherDestino: async (id, nome) => {
+      // Só o artefato de fumaça, que não tem como responder ao diálogo nativo (`ferramentas/fumaca-exportar.mjs`).
+      const destinoFumaca = process.env['BIBLIODOCS_FUMACA_DESTINO_DOCX'];
+      if (destinoFumaca && app.isPackaged && ehArtefatoDeFumaca()) return destinoFumaca;
       const janela = janelaDe(id);
       if (!janela) return null;
       const r = await dialog.showSaveDialog(janela, {

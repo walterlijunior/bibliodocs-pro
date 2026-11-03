@@ -14,6 +14,7 @@ export type ComandoMenu =
   | 'atualizarBiblioteca'
   | 'versoesDescartadas' // M2-T11
   | 'copiasSeguranca' // M3-T09
+  | 'sobre' // M3-T11
   | 'exportarDocx' // M3-T08
   | 'sair'
   | 'buscar'
@@ -110,7 +111,7 @@ export const MENUS: readonly Menu[] = [
   },
   {
     rotulo: 'Ajuda',
-    itens: [{ rotulo: 'Guia rápido', atalho: 'F1' }, { rotulo: 'Atalhos de teclado' }, { rotulo: 'Sobre o BiblioDocs Pro' }],
+    itens: [{ rotulo: 'Guia rápido', atalho: 'F1' }, { rotulo: 'Atalhos de teclado' }, { rotulo: 'Sobre o BiblioDocs Pro', comando: 'sobre' }],
   },
 ];
 

@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M3-T10 concluído (achados da revisão do M2).
-**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T10 ✔).
+**Última atualização:** 2026-11-02 — M3-T11 concluído (medidas, instalador, Sobre).
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T11 ✔).
 
 ## Etapas
 
@@ -15,7 +15,7 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T10 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
@@ -23,7 +23,7 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 
 ## Próximo passo
 1. Pendente do usuário: arquivo do brasão da UFT (RN-118).
-2. **M3-T11:** medir RNF-06/07 com exportação, rever R46, gerar e testar o instalador, lista de terceiros no "Sobre".
+2. **M3-T12:** revisão independente de T01 a T11 e fechamento do marco.
 3. Conferência manual do usuário no Word, já possível pelo próprio aplicativo (Ctrl+E).
 4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
@@ -33,7 +33,7 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 - `docx` 9.15.1 testada na PoC (`docs/relatorios/M3_RELATORIO_MARCO.md`). Sumário estimado igual ao do Word em 15 e 149 páginas.
 - A automação do Word detectou 3 de 6 arquivos inválidos; o validador OOXML cobre os outros de esquema (R47).
 - Commit do M2-T13: `5f636b9`; do plano: `277d801`; do M3-T01: `d48ad07` (sem `git push`).
-- Commit do M3-T02: `73fc09c`; do M3-T03: `632abfb`; do M3-T04: `142c14c`; do M3-T05: `796fc03`; do M3-T06: `62a1942`; do M3-T07: `d2cf8ba`; do M3-T08: `4922648`; do M3-T09: `a0ed34f` (sem `git push`). Commits locais delegados pelo usuário em 2026-11-02.
+- Commit do M3-T02: `73fc09c`; do M3-T03: `632abfb`; do M3-T04: `142c14c`; do M3-T05: `796fc03`; do M3-T06: `62a1942`; do M3-T07: `d2cf8ba`; do M3-T08: `4922648`; do M3-T09: `a0ed34f`; do M3-T10: `71974fd` (sem `git push`). Commits locais delegados pelo usuário em 2026-11-02.
 - Os 7 processos ocultos do Word foram encerrados por identificador, com autorização do usuário.
 - Valores provisórios de alínea escolhidos da PoC: deslocamento 0,75 cm; subalínea 2,25 e 0,5 cm (D-M3-04 só fixou a letra a 1,25 cm).
 
@@ -468,3 +468,4 @@ O usuário escreveu: "deixo essas decisões para você".
 | 2026-11-02 | 5 (M3-T08) | Exportar DOCX pela sessão principal, sem revisão independente. E2E exporta pelo processo utilitário. EDT-06 intermitente explicado e corrigido no teste. Fonte só por sessão. |
 | 2026-11-02 | 5 (M3-T09) | Cópias de segurança no menu Arquivo pela sessão principal, sem revisão independente; abre sem alterar nada. |
 | 2026-11-02 | 5 (M3-T10) | R-M2-04, 06, 08, 12, 14, 16 corrigidos; R-M2-05 aceito com motivo. Sem revisão independente. E2E de queda em versão descartada. |
+| 2026-11-02 | 5 (M3-T11) | Exportar 150 páginas em 4,2–4,7 s; memória 718–779 MB em 23 rodadas; instalador 113 MB, ciclo limpo; primeira exportação pelo `.exe` empacotado; Sobre com licenças. Sem revisão independente. |

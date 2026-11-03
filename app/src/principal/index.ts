@@ -19,9 +19,9 @@
  * (M1-T03). M1-T14 (A-1): argumentos de linha de comando recusados no app empacotado (seguranca/argumentos.ts).
  * M1-T12 — recuperação (instantâneos, trava de sessão, restos de gravação) em ipc/manipuladores-recuperacao.ts.
  */
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app, BrowserWindow, Menu, session } from 'electron';
+import { ehArtefatoDeFumaca } from './seguranca/fumaca';
 import { argumentoRecusado, SAIDA_ARGUMENTO_RECUSADO } from './seguranca/argumentos';
 import {
   endurecerSessao,
@@ -87,15 +87,6 @@ function criarJanelaPrincipal(urlInicial: string): BrowserWindow {
   return janela;
 }
 
-/** Marca do artefato de fumaça (`npm run dist:fumaca`) no package.json do ASAR. */
-function ehArtefatoDeFumaca(): boolean {
-  try {
-    const pacote = JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')) as Record<string, unknown>;
-    return pacote['bibliodocsFumaca'] === true;
-  } catch {
-    return false;
-  }
-}
 
 function iniciar(): void {
   // A-1 (M1-T14): no app empacotado, chave de linha de comando fora da lista sai antes de tudo (ex.: a porta CDP de

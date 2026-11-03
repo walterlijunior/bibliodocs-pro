@@ -56,4 +56,12 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever e Exportar sem v
   await p.keyboard.press('Control+E');
   await expect(p.getByRole('dialog', { name: 'Exportar DOCX' })).toBeVisible();
   await conferirAxe(p, 'exportar-docx', info);
+  await p.getByRole('button', { name: 'Cancelar' }).click();
+
+  await p.getByRole('menuitem', { name: 'Ajuda' }).click();
+  await p.getByRole('menuitem', { name: 'Sobre o BiblioDocs Pro' }).click();
+  const sobre = p.getByRole('dialog', { name: 'Sobre o BiblioDocs Pro' });
+  await expect(sobre).toContainText('Versão 0.1.0');
+  await expect(sobre).toContainText('docx 9.15.1 (MIT)');
+  await conferirAxe(p, 'sobre', info);
 });

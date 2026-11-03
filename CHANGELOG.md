@@ -5,6 +5,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M3-T11: Ajuda › Sobre, com versão e licenças de terceiros (RNF-15); `npm run medir` e `npm run fumaca:exportar`.
+
 ### Corrigido
 - Etapa 5, M3-T10: versão descartada ou cópia de segurança aberta agora tem cópia de recuperação; o que "Salvar como…" substitui fica 7 dias em Versões descartadas; `.bak` antigo não passa a parecer do trabalho renomeado; excluir leva os restos de gravação para a Lixeira; log sem caminho em argumento recusado.
 

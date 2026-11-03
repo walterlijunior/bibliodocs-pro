@@ -15,7 +15,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T08 Tela de Exportar DOCX | CONCLUÍDA | 2026-11-02 |
 | M3-T09 Tela de cópias de segurança | CONCLUÍDA | 2026-11-02 |
 | M3-T10 Achados abertos da revisão do M2 | CONCLUÍDA | 2026-11-02 |
-| M3-T11 e M3-T12 | PENDENTE | — |
+| M3-T11 Medidas, instalador e Sobre | CONCLUÍDA | 2026-11-02 |
+| M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -223,3 +224,31 @@ Os testes acharam um defeito meu: dois conjuntos no mesmo segundo, em execuçõe
 - Lixeira real e erros de disco nessas rotas só testados com falsos.
 - Se a cópia do que será substituído falhar, "Salvar como…" segue, porque o usuário confirmou no diálogo: fica o `.bak` e uma linha no log.
 - O nome `-substituido` não é mostrado: a tela só traz título e data.
+
+## M3-T11 — Medidas, instalador e Sobre
+
+**Implementação:** sessão principal. **Sem revisão independente.**
+
+**Medidas** [VERIFICADO 2026-11-02, Electron 44.10.1]
+
+| Item | Resultado | Meta |
+|---|---|---|
+| Exportar 150 páginas (`npm run medir`, 3 rodadas, no Node) | 4,2–4,7 s; motor até 5 ms; 88 KB | < 10 s (RNF-06) |
+| Pico de memória, 23 rodadas, com a soma de `workingSetSize` | 718–779 MB | < 800 MB (RNF-07) |
+| Instalador / instalado | 113 MB / 381 MB | < 200 MB (RNF-08) |
+| Pacote de fumaça exportando pelo processo utilitário, com fuses e ASAR (documento pequeno) | 351 ms | — |
+
+**R46:** nenhuma rodada passou de 800 MB com o 44.10.1, mas a margem segue pequena, de 3 a 10%; continua aberto até as figuras reais do M5. Uma rodada do E2E de desempenho falhou sem a causa capturada, com a instância do instalador ainda aberta na máquina; não voltou em 9 rodadas seguidas.
+
+**Instalador:** ciclo instalar, abrir, fechar e desinstalar passou, sem pasta, registro nem atalho sobrando. Dados locais só são criados ao usar.
+
+**Código**
+- `ferramentas/fumaca-exportar.mjs`, `seguranca/fumaca.ts`: destino por variável só com a marca de fumaça, que o instalador não tem (teste estático). É a primeira exportação pelo `.exe` empacotado.
+- `DialogoSobre`: versão e o texto de `TERCEIROS.txt`, com axe sem violação séria. RNF-15 cumprido, exceto a licença do produto (Etapa 7).
+
+**Incidente durante o teste:** o primeiro ciclo errou o processo a fechar, deixou a janela do app aberta na área de trabalho por alguns minutos, travou o desinstalador e apagou arquivos dele. Foram encerrados só os processos daquela pasta e daquele desinstalador, e removidos a chave de registro e o atalho criados pelo próprio teste, depois de conferir que não existiam antes. O segundo ciclo saiu limpo. Nada do usuário foi tocado.
+
+**Limitações**
+- O `.exe` do instalador foi aberto, mas a exportação nele só foi exercitada no artefato de fumaça, equivalente exceto pela marca.
+- Exportação medida no Node; no utilitário, com 150 páginas, não foi medida.
+- Atalho na Área de Trabalho não apareceu no ciclo silencioso e não foi conferido na instalação normal.

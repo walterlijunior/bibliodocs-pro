@@ -27,7 +27,9 @@
     "test:ooxml": "vitest run -c vitest.externos.config.mts tests/externos/ooxml.externo.ts",
     "test:libreoffice": "vitest run -c vitest.externos.config.mts tests/externos/libreoffice.externo.ts",
     "test:word": "vitest run -c vitest.externos.config.mts tests/externos/word.externo.ts",
-    "test:externos": "vitest run -c vitest.externos.config.mts"
+    "test:externos": "vitest run -c vitest.externos.config.mts",
+    "medir": "vitest run -c vitest.externos.config.mts tests/externos/medir.externo.ts",
+    "fumaca:exportar": "npm run dist:fumaca && node ferramentas/fumaca-exportar.mjs"
   },
   "dependencies": {
     "docx": "9.15.1",

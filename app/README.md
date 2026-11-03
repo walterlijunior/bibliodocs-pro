@@ -36,13 +36,15 @@ pré-textuais) chega no M2, e a exportação DOCX no M3. Relatório do marco: `d
 | `node empacotamento/terceiros.cjs` | Regrava `recursos-build/TERCEIROS.txt` a partir do lockfile. Rode depois de mudar dependência de produção; com `--conferir`, só verifica (os `dist*` fazem isso) |
 | `powershell -NoProfile -File ferramentas/word/conferir-no-word.ps1 -Arquivo x.docx [-Pdf x.pdf]` | Abre o DOCX no Word real, em somente leitura, e informa páginas, seções, notas, campos e sumário. **Não prova** ausência de reparo (R47) |
 | Ctrl+E no aplicativo | Exportar › Exportar DOCX…: o motor roda no principal e o DOCX, em processo utilitário (`principal/exportador-docx.ts`) |
+| `npm run medir` | Tempo e memória de exportar 150 páginas, contra o RNF-06 |
+| `npm run fumaca:exportar` | Gera o artefato de fumaça e exporta um DOCX pelo `.exe`, com fuses e ASAR ligados |
 | `npm run icone:gerar` | Regrava `recursos-build/icone.ico` (16 a 256 px) a partir de `recursos-build/icone.svg` e `icone-pequeno.svg`, desenhando no próprio Electron. Rode depois de mudar os SVGs |
 | `npm run dist:fumaca` | Pasta em `release-fumaca/` com a marca `bibliodocsFumaca`, a única que aceita `--remote-debugging-port`, `--user-data-dir` e `--log-net-log` (fumaça por CDP). Nunca distribuir |
 
 ### Instalador (M1-T14)
 
 - Por usuário, sem administrador: vai para `%LOCALAPPDATA%\Programs\bibliodocs-pro`, com atalhos na Área de Trabalho e
-  no Menu Iniciar e registro só em `HKCU`. Medido em 2026-10-17: instalador 111,8 MB, instalado 390,2 MB (meta RNF-08:
+  no Menu Iniciar e registro só em `HKCU`. Medido em 2026-11-02: instalador 113 MB, instalado 381 MB (meta RNF-08:
   < 200 MB para o instalador).
 - Fuses (C-13) e integridade do ASAR (C-14) ligados: o Playwright não dirige o `.exe`, e o E2E roda sobre `out/`.
 - O app empacotado recusa toda chave de linha de comando (`-x`, `--x`, `/x`) antes de um `--`, exceto `--updated`

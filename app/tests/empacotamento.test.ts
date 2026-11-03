@@ -156,3 +156,12 @@ describe('gancho afterPack', () => {
     await expect(gancho.default({ appOutDir: pasta })).resolves.toBeUndefined();
   });
 });
+
+describe('atalho do destino na fumaça (M3-T11)', () => {
+  it('a variável só vale no pacote com a marca de fumaça, que o instalador não tem', () => {
+    const fonte = lerFonte('src/principal/ipc/registrar.ts');
+    expect(fonte).toContain("if (destinoFumaca && app.isPackaged && ehArtefatoDeFumaca()) return destinoFumaca;");
+    expect(fonte.match(/BIBLIODOCS_FUMACA_DESTINO_DOCX/g)).toHaveLength(1);
+    expect(pacote.scripts['dist']).not.toContain('bibliodocsFumaca');
+  });
+});

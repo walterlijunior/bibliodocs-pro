@@ -25,6 +25,7 @@ import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
+import { DialogoSobre } from './casca/DialogoSobre';
 import { DialogoExportar, FONTES_EXPORTACAO, type EstadoExportacao } from './escrever/DialogoExportar';
 import { DialogoVersoes, type OrigemVersoes } from './biblioteca/DialogoVersoes';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
@@ -65,6 +66,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [exportacao, setExportacao] = useState<EstadoExportacao | null>(null);
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
+  const [sobreAberto, setSobreAberto] = useState(false);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
@@ -474,6 +476,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'atualizarBiblioteca':
           void recarregar();
           return;
+        case 'sobre':
+          setSobreAberto(true);
+          return;
         case 'exportarDocx':
           setExportacao({ etapa: 'escolher' });
           return;
@@ -505,7 +510,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
-      if (escolhendoTipo || descartadas !== undefined || exportacao !== null) return;
+      if (escolhendoTipo || descartadas !== undefined || exportacao !== null || sobreAberto) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -520,7 +525,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [comando, descartadas, desativados, escolhendoTipo, exportacao]);
+  }, [comando, descartadas, desativados, escolhendoTipo, exportacao, sobreAberto]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -547,6 +552,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           }}
         />
       )}
+      {sobreAberto && <DialogoSobre aoFechar={() => setSobreAberto(false)} />}
       {exportacao !== null && (
         <DialogoExportar
           estado={exportacao}
