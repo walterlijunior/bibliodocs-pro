@@ -25,6 +25,11 @@ module.exports = {
     '!node_modules/rope-sequence/**',
     '!node_modules/w3c-keyname/**',
     '!node_modules/**/src/**',
+    // O `docx` declara estes dois como dependência, mas eles só trazem tipos; e os formatos que o Node não carrega ficam fora.
+    '!node_modules/@types/**',
+    '!node_modules/undici-types/**',
+    '!node_modules/docx/dist/*.iife.js',
+    '!node_modules/docx/dist/*.umd.cjs',
     '!node_modules/**/*.{ts,mts,cts}',
   ],
 

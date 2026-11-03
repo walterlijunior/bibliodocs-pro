@@ -36,6 +36,8 @@ export interface EstiloResolvido {
   origem: Partial<Record<keyof PropriedadesEstilo, readonly string[]>>;
   /** Nível de estrutura do Word (`w:outlineLvl`), de 0 a 4, nos títulos. */
   nivelEstrutura?: number;
+  /** A numeração progressiva acompanha o estilo; títulos sem indicativo entram no sumário sem número. */
+  numerado?: true;
 }
 
 export type TrechoFormatado =
@@ -59,6 +61,8 @@ export interface EntradaSumario {
   /** Vazio em títulos sem indicativo, como REFERÊNCIAS. */
   indicativo: string;
   texto: string;
+  /** Marcador do título no corpo. */
+  ancora: string;
 }
 
 export type BlocoFormatado =
@@ -69,6 +73,8 @@ export type BlocoFormatado =
       /** Indicativo da seção ("1.1"), já resolvido (RN-039). */
       indicativo?: string;
       lista?: ItemDeLista;
+      /** Marcador para o sumário apontar a página. */
+      ancora?: string;
       /** Começa em página nova; o estilo não diz porque depende do elemento (RN-148, RN-151, RN-171). */
       novaPagina?: true;
       /** Espaço antes só deste parágrafo (dedicatória abaixo do meio da folha, RN-146). */
@@ -124,6 +130,8 @@ export interface SecaoFormatada {
 
 export interface DocumentoFormatado {
   perfil: { id: string; versao: string };
+  /** Propriedades do arquivo: título e autor em texto simples. */
+  metadados: { titulo: string; autor: string };
   estilos: readonly EstiloResolvido[];
   /** Vale para todas as seções. */
   pagina: PaginaResolvida;

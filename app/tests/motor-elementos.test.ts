@@ -102,9 +102,7 @@ describe('folha de rosto e ficha', () => {
     expect(paragrafos(s).map((b) => [b.estilo, texto(b)])).toEqual([
       ['rostoAutoria', 'Ana Souza'],
       ['rostoTitulo', 'Título\nsubtítulo'],
-      ['naturezaTrabalho', 'Monografia apresentada.'],
-      ['naturezaTrabalho', 'Área de concentração: Linguística'],
-      ['naturezaTrabalho', 'Orientador (a): Dra./Bia Lima'],
+      ['naturezaTrabalho', 'Monografia apresentada.\nÁrea de concentração: Linguística\nOrientador (a): Dra./Bia Lima'],
       ['rostoLocalAno', 'Palmas, TO\n2026'],
     ]);
   });
@@ -177,12 +175,39 @@ describe('demais pré-textuais', () => {
     const b = s.blocos[1] as Extract<BlocoFormatado, { tipo: 'sumario' }>;
     expect(texto(s.blocos[0]!)).toBe('SUMÁRIO');
     expect(b.entradas).toHaveLength(5);
-    expect(b.entradas[1]).toEqual({ nivel: 2, indicativo: '1.1', texto: 'N2' });
+    expect(b.entradas[1]).toMatchObject({ nivel: 2, indicativo: '1.1', texto: 'N2' });
   });
   it('listas ainda não saem: só aviso, sem título vazio', () => {
     const d = fmt({ preTextuais: pre({ tipo: 'listaTabelas' }) });
     expect(d.secoes.map((s) => s.papel)).toEqual(['textual']);
     expect(d.avisos.map((a) => a.codigo)).toEqual(['ELEMENTO_ADIADO']);
+  });
+});
+
+describe('sumário e títulos', () => {
+  it('título 1 fica em maiúsculas no texto e na entrada; títulos pós-textuais entram no fim; âncoras batem', () => {
+    const d = fmt({
+      corpo: [{ id: 's', titulo: [{ tipo: 'texto', texto: 'Introdução à ação' }], blocos: [], subsecoes: [] }],
+      preTextuais: pre({ tipo: 'sumario' }),
+      posTextuais: pos({ tipo: 'referencias' }),
+    });
+    const t = paragrafos(secao(d, 'textual'))[0]!;
+    expect(texto(t)).toBe('INTRODUÇÃO À AÇÃO');
+    const e = (secao(d, 'preTextual').blocos[1] as Extract<BlocoFormatado, { tipo: 'sumario' }>).entradas;
+    expect(e.map((x) => [x.indicativo, x.texto])).toEqual([['1', 'INTRODUÇÃO À AÇÃO'], ['', 'REFERÊNCIAS']]);
+    expect(e[0]!.ancora).toBe(t.ancora);
+    expect(e[1]!.ancora).toBe(paragrafos(secao(d, 'posTextual'))[0]!.ancora);
+    expect(new Set(e.map((x) => x.ancora)).size).toBe(2);
+  });
+  it('só o título pós-textual entra na estrutura; o pré-textual fica fora do sumário, e nenhum dos dois é numerado', () => {
+    const e = (id: string) => fmt({}).estilos.find((x) => x.id === id)!;
+    expect(e('tituloPosTextual')).toMatchObject({ nivelEstrutura: 0 });
+    expect(e('tituloPosTextual').numerado).toBeUndefined();
+    expect(e('tituloSemIndicativo').nivelEstrutura).toBeUndefined();
+    expect(e('titulo1').numerado).toBe(true);
+  });
+  it('metadados do arquivo vêm do trabalho', () => {
+    expect(fmt({}).metadados).toEqual({ titulo: 'Título', autor: 'Ana Souza' });
   });
 });
 
@@ -192,11 +217,11 @@ describe('pós-textuais', () => {
     const b = blocos({ tipo: 'referencias' }, { tipo: 'glossario' }, { tipo: 'indice' });
     expect(b.map(texto)).toEqual(['REFERÊNCIAS', 'GLOSSÁRIO', 'ÍNDICE']);
     expect(b.map((x) => x.novaPagina)).toEqual([undefined, true, true]);
-    expect(new Set(b.map((x) => x.estilo))).toEqual(new Set(['tituloSemIndicativo']));
+    expect(new Set(b.map((x) => x.estilo))).toEqual(new Set(['tituloPosTextual']));
   });
   it('um apêndice: título no singular e identificação à esquerda (C-B17, C-A5)', () => {
     expect(blocos({ tipo: 'apendice', titulo: 'Roteiro' }).map((x) => [x.estilo, texto(x)])).toEqual([
-      ['tituloSemIndicativo', 'APÊNDICE'],
+      ['tituloPosTextual', 'APÊNDICE'],
       ['identificacaoPosTextual', 'APÊNDICE A – Roteiro'],
     ]);
   });

@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M3-T05: exportador DOCX (`exportacao/docx`), com processo utilitário e estilos em português, notas reais, numeração no estilo e sumário com páginas. Sem botão ainda: a tela chega no M3-T08.
 - Etapa 5, M3-T04: motor com seções, paginação, capa, folha de rosto, ficha, folha de aprovação, resumos, sumário e pós-textuais. Perfil com 84 regras e 19 parâmetros. Ainda sem exportação.
 - Etapa 5, M3-T03: motor normativo `formatar(doc, perfil)`: estilos, títulos de 1 a 5, parágrafo, alíneas, citação longa e notas, cada propriedade com a RN de origem. Ainda sem exportação nem mudança visível.
 - Etapa 5, M3-T02: perfil `uft-2022` em dados (43 regras, 17 parâmetros), com esquema e conferência contra a matriz. Elementos por tipo e limites do resumo saem do código e passam a vir do perfil. Sem mudança visível no aplicativo.

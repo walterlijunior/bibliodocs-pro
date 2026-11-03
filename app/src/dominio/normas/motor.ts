@@ -56,6 +56,7 @@ interface DefinicaoEstilo {
   /** Propriedades do alvo que este estilo não herda. */
   semHerdar?: readonly Chave[];
   nivelEstrutura?: number;
+  numerado?: true;
   /** Lê de `parametros` o que a regra deixou como valor de perfil. */
   parametros?: (v: (chave: string) => unknown) => Saida;
 }
@@ -74,6 +75,7 @@ const titulo = (n: 1 | 2 | 3 | 4 | 5, ordem: string): DefinicaoEstilo => ({
   nome: `Título ${n} – Seção ${ordem}`,
   alvos: ['documento', 'titulo', `titulo.nivel${n}`],
   nivelEstrutura: n - 1,
+  numerado: true,
   parametros: espacoTitulos,
 });
 
@@ -86,6 +88,8 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
   titulo(4, 'quaternária'),
   titulo(5, 'quinária'),
   { id: 'tituloSemIndicativo', nome: 'Título sem indicativo', alvos: ['documento', 'titulo.semIndicativo'] },
+  // Com nível de estrutura, para continuar no sumário quando o autor o atualizar no Word; os pré-textuais ficam fora dele.
+  { id: 'tituloPosTextual', nome: 'Título pós-textual', alvos: ['documento', 'titulo.semIndicativo'], nivelEstrutura: 0 },
   {
     id: 'citacaoLonga',
     nome: 'Citação longa',
@@ -186,6 +190,7 @@ function resolverEstilo(d: DefinicaoEstilo, regras: readonly RegraNormativa[], p
     propriedades: propriedades as PropriedadesEstilo,
     origem,
     ...(d.nivelEstrutura !== undefined ? { nivelEstrutura: d.nivelEstrutura } : {}),
+    ...(d.numerado ? { numerado: true as const } : {}),
   };
 }
 
@@ -253,7 +258,19 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
       }
       return [{ tipo: 'nota', numero: ++proximaNota, trechos: trechos(i.conteudo), estilo: 'textoNota', origem: rnNotas }];
     });
-  const deTitulo = (conteudo: readonly InlineDeTitulo[]): TrechoFormatado[] => trechos(conteudo);
+  // Em maiúsculas no próprio texto, além do estilo: o sumário do Word copia o texto, não a caixa do estilo (RN-010).
+  const emMaiusculas = (estilo: string): boolean => estilos.find((e) => e.id === estilo)?.propriedades.maiusculas === true;
+  const caixa = (estilo: string, texto: string): string => (emMaiusculas(estilo) ? texto.toLocaleUpperCase('pt-BR') : texto);
+  const deTitulo = (conteudo: readonly InlineDeTitulo[], estilo: string): TrechoFormatado[] =>
+    trechos(conteudo).map((t) => (t.tipo === 'texto' ? { ...t, texto: caixa(estilo, t.texto) } : t));
+  const ancoras = new Map<string, string>();
+  const ancoraDe = (id: string): string => {
+    const atual = ancoras.get(id);
+    if (atual) return atual;
+    const nova = `_Toc_${ancoras.size + 1}`;
+    ancoras.set(id, nova);
+    return nova;
+  };
 
   const bloco = (b: Bloco): BlocoFormatado[] => {
     switch (b.tipo) {
@@ -298,7 +315,8 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
       {
         tipo: 'paragrafo',
         estilo: `titulo${nivel}`,
-        trechos: deTitulo(n.secao.titulo),
+        trechos: deTitulo(n.secao.titulo, `titulo${nivel}`),
+        ...(n.alemDoLimite ? {} : { ancora: ancoraDe(n.secao.id) }),
         ...(rnNumeracao !== null ? { indicativo: n.indicativo } : {}),
         origem: [rnNumeracao, rnDestaque].filter((x): x is string => x !== null),
       },
@@ -307,12 +325,25 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   });
 
   const pagina = paginaDe(regras, perfil);
+  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos).map((b, i): BlocoFormatado =>
+    b.tipo === 'paragrafo' && b.estilo === 'tituloPosTextual' ? { ...b, ancora: ancoraDe(`pos:${i}`) } : b,
+  );
+  const titulosPos = blocosPos.flatMap((b) =>
+    b.tipo === 'paragrafo' && b.ancora ? [{ ancora: b.ancora, texto: b.trechos.map((t) => (t.tipo === 'texto' ? t.texto : '')).join('') }] : [],
+  );
   const entradas = (): BlocoFormatado => ({
     tipo: 'sumario',
     estilo: 'entradaSumario',
     entradas: numerarSecoes(doc.corpo)
       .filter((n) => !n.alemDoLimite) // RN-169: não passa da quinária
-      .map((n) => ({ nivel: n.nivel, indicativo: rnNumeracao === null ? '' : n.indicativo, texto: n.secao.titulo.map((t) => t.texto).join('') })),
+      .map((n) => ({
+        nivel: n.nivel,
+        indicativo: rnNumeracao === null ? '' : n.indicativo,
+        texto: caixa(`titulo${n.nivel}`, n.secao.titulo.map((t) => t.texto).join('')),
+        ancora: ancoraDe(n.secao.id),
+      }))
+      // Títulos sem indicativo depois do texto, como REFERÊNCIAS (RN-170 vale para os indicativos; a ordem é a do trabalho).
+      .concat(titulosPos.map((t) => ({ nivel: 1, indicativo: '', texto: t.texto, ancora: t.ancora }))),
     origem: ['RN-169', 'RN-170', 'RN-171'],
   });
   const m: Metadados = doc.metadados ?? { titulo: [] };
@@ -343,7 +374,6 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, { meioDaAreaUtilTw, avisos, entradas }));
   if (blocosPre.length > 0) secoes.push({ papel: 'preTextual', exibirNumero: false, blocos: semQuebraNaPrimeira(blocosPre), origem: ['RN-067', 'RN-068'] });
   secoes.push({ papel: 'textual', exibirNumero: true, blocos, origem: ['RN-068', 'RN-069'] });
-  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos);
   if (blocosPos.length > 0) secoes.push({ papel: 'posTextual', exibirNumero: true, blocos: semQuebraNaPrimeira(blocosPos), origem: ['RN-073'] });
   // RN-067: a capa não conta; a primeira folha depois dela é a 1, e as seguintes continuam.
   const primeira = secoes.find((x) => x.papel !== 'capa')!;
@@ -353,6 +383,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const filete = perfil.parametros['fileteNotasCm']?.valor;
   return {
     perfil: { id: perfil.id, versao: perfil.versao },
+    metadados: { titulo: m.titulo.map((t) => t.texto).join(''), autor: m.autoria ?? '' },
     estilos,
     pagina,
     notas: {

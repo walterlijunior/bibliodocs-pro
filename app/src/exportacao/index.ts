@@ -4,6 +4,6 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Ver exportacao/docx/index.ts.
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Implementado no M3-T05.
  */
-export {};
+export { exportarDocx } from './docx';

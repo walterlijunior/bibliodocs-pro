@@ -18,6 +18,8 @@ export default defineConfig({
           index: resolve(raiz, 'src/principal/index.ts'),
           'leitor-projeto': resolve(raiz, 'src/principal/leitor-projeto.ts'),
           empacotador: resolve(raiz, 'src/principal/empacotador.ts'),
+          // exportador-docx: processo utilitário que gera o DOCX (M3-T05).
+          'exportador-docx': resolve(raiz, 'src/principal/exportador-docx.ts'),
         },
       },
     },

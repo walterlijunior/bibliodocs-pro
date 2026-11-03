@@ -5,6 +5,6 @@
  * - Importa apenas os tipos de dominio/normas/formatado e a biblioteca docx (regra 5).
  * - Não lê o Perfil nem o Documento; não conhece números RN nem medidas.
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * Implementado no M3-T05.
  */
-export {};
+export { exportarDocx } from './exportador';

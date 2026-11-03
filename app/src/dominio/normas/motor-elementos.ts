@@ -57,21 +57,20 @@ const pessoa = (rotulo: string, p: PessoaTitulada | undefined): string | undefin
   if (!p?.nome && !p?.titulacao) return undefined;
   return `${rotulo}: ${[p.titulacao, p.nome].filter(Boolean).join('/')}`;
 };
-function natureza(m: Metadados, comOrientacao: boolean, estilo: string, origem: readonly string[]): BlocoFormatado[] {
-  return [
-    ...deTexto(estilo, m.natureza, origem),
-    ...deTexto(estilo, m.areaConcentracao ? `Área de concentração: ${m.areaConcentracao}` : undefined, origem),
-    ...(comOrientacao
-      ? [...deTexto(estilo, pessoa('Orientador (a)', m.orientador), ['RN-132']), ...deTexto(estilo, pessoa('Coorientador (a)', m.coorientador), ['RN-132'])]
-      : []),
-  ];
+function natureza(m: Metadados, estilo: string, origem: readonly string[]): BlocoFormatado[] {
+  return [...deTexto(estilo, m.natureza, origem), ...deTexto(estilo, m.areaConcentracao ? `Área de concentração: ${m.areaConcentracao}` : undefined, origem)];
 }
 
 export function blocosFolhaRosto(m: Metadados): BlocoFormatado[] {
   return [
     ...quando('rostoAutoria', linhas(m.autoria), ['RN-127', 'RN-128', 'RN-130']),
     ...quando('rostoTitulo', tituloCompleto(m), ['RN-127', 'RN-129', 'RN-130']),
-    ...natureza(m, true, 'naturezaTrabalho', ['RN-127', 'RN-131']),
+    // Um parágrafo só: a distribuição vertical da folha separaria a natureza do orientador (Figura 5).
+    ...quando(
+      'naturezaTrabalho',
+      linhas(m.natureza, m.areaConcentracao ? `Área de concentração: ${m.areaConcentracao}` : undefined, pessoa('Orientador (a)', m.orientador), pessoa('Coorientador (a)', m.coorientador)),
+      ['RN-127', 'RN-131', 'RN-132'],
+    ),
     ...quando('rostoLocalAno', linhas(m.local, m.ano), ['RN-127', 'RN-134']),
   ];
 }
@@ -92,7 +91,7 @@ export function blocosPreTextual(e: ElementoPreTextual, m: Metadados, opcoes: { 
       const blocos: BlocoFormatado[] = [
         ...quando('aprovacaoIdentificacao', linhas(m.autoria), ['RN-140', 'RN-141']),
         ...quando('aprovacaoIdentificacao', tituloCompleto(m), ['RN-140', 'RN-141']),
-        ...natureza(m, false, 'aprovacaoNatureza', ['RN-140', 'RN-142']),
+        ...natureza(m, 'aprovacaoNatureza', ['RN-140', 'RN-142']),
         ...deTexto('aprovacaoData', e.dataAprovacao ? `Data de aprovação: ${e.dataAprovacao}` : 'Data de aprovação: ____/____/_____', ['RN-143']),
         paragrafo('aprovacaoData', [trecho('Banca examinadora')], ['RN-140']),
         ...banca.flatMap((b) => [paragrafo('aprovacaoBanca', [trecho('_'.repeat(40))], ['RN-144']), paragrafo('aprovacaoBanca', [trecho(membro(b))], ['RN-144'])]),
@@ -151,7 +150,7 @@ function resumo(titulo: string, rotulo: string, texto: string | undefined, palav
 
 export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: AvisoFormatacao[]): BlocoFormatado[] {
   const blocos: BlocoFormatado[] = [];
-  const titulo = (texto: string, origem: readonly string[]) => blocos.push(paragrafo('tituloSemIndicativo', [trecho(texto)], origem, { novaPagina: true }));
+  const titulo = (texto: string, origem: readonly string[]) => blocos.push(paragrafo('tituloPosTextual', [trecho(texto)], origem, { novaPagina: true }));
   const contar = (tipo: 'apendice' | 'anexo') => lista.filter((e) => e.tipo === tipo).length;
   const vistos = { apendice: 0, anexo: 0 };
   for (const e of lista) {

@@ -9,7 +9,8 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T02 Perfil `uft-2022` em dados | CONCLUÍDA | 2026-11-02 |
 | M3-T03 Motor: estilos e corpo do texto | CONCLUÍDA | 2026-11-02 |
 | M3-T04 Motor: seções, paginação, pré e pós-textuais | CONCLUÍDA | 2026-11-02 |
-| M3-T05 a M3-T12 | PENDENTE | — |
+| M3-T05 Exportador DOCX | CONCLUÍDA | 2026-11-02 |
+| M3-T06 a M3-T12 | PENDENTE | — |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -100,7 +101,29 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 - **Brasão (RN-118):** a capa sai sem ele e com aviso; não há o arquivo no projeto.
 - **Distribuição vertical:** usa `vAlign=both`, que espalha todos os parágrafos, aproximando a Figura 3. O LibreOffice pode ignorá-lo; conferir no M3-T05 e T07.
 - **Sem conteúdo ainda:** referências (M4), glossário, índice, listas e corpo de apêndice e anexo (M6): saem título e identificação; as listas, só aviso.
-- **Sumário:** todas as entradas com o mesmo estilo (RN-171); forma por nível fica para o M6, e títulos sem indicativo ainda não entram nas entradas.
+- **Sumário:** todas as entradas com o mesmo estilo (RN-171); forma por nível fica para o M6.
 - **Epígrafe:** sai como corpo, com aviso, porque RN-037 depende da NBR 10520.
 - **Folha de aprovação:** o alinhamento central da banca vem do desenho, porque a anotação do Manual está cortada (RN-144). Os títulos fixos e os rótulos ("Keywords", "Área de concentração") estão no motor, não no perfil: um perfil em outra língua exigiria código, o que limita o RNF-13.
 - Assinatura da banca é uma linha de sublinhados em texto.
+
+## M3-T05 — Exportador DOCX
+
+**Implementação:** sessão principal. **Sem revisão independente:** o plano pede `revisor-seguranca` no processo utilitário; fica para o M3-T12.
+
+**Código**
+- `exportacao/docx/exportador.ts`: `exportarDocx(formatado)`, sem decisão normativa, com duas passadas para o sumário sair com a página calculada.
+- `principal/exportador-docx.ts`, `ipc/exportador-isolado.ts` e `ipc/protocolo-exportacao.ts`: processo utilitário, um por pedido, com prazo de 180 s.
+- Motor: título 1 em maiúsculas também no texto, porque o sumário do Word copia o texto; âncoras; metadados do arquivo; estilo `tituloPosTextual`.
+- `@types/node`, `undici-types` e os formatos `iife` e `umd` do `docx` saem do pacote. O `app.asar` ficou com 14 MB.
+
+**Testes** [VERIFICADO 2026-11-02]
+- `verificar:tudo`: 1341/1341 antes do ajuste final de um teste, E2E 17/17, memória 742 MB. Mutações: 15/15, depois de 3 testes acrescentados.
+- **Word 16:** documento de monografia abriu com 11 páginas, 6 seções, 1 nota, 1 quadro; sumário gravado igual ao atualizado. Páginas da capa, da folha de rosto e da ficha conferidas em imagem. LibreOffice: mesmas 11 páginas.
+- **O teste no Word achou um defeito** que o XML não mostrava: atualizar o sumário tirava REFERÊNCIAS e APÊNDICE. Corrigido com nível de estrutura só nos títulos pós-textuais.
+
+**Limitações**
+- **O processo utilitário e o pacote não exportaram nada ainda:** `exportarDocx` foi testada direto no Node. O caminho completo só roda com a tela, no M3-T08, e o `dist:fumaca` só confirmou que o pacote é gerado.
+- Sem mídia: figuras e tabelas chegam no M5.
+- Filete das notas: é o nativo do Word, curto, como D-M3-08; `fileteTw` ainda não é gravado no arquivo.
+- Distribuição vertical na folha de rosto também é aproximada; o LibreOffice não foi conferido em imagem.
+- O arquivo traz a data de geração em `docProps/core.xml`: não é byte a byte determinístico. A regressão do M3-T06 normaliza isso.
