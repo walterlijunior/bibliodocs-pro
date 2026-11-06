@@ -16,7 +16,7 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T09 Tela de cópias de segurança | CONCLUÍDA | 2026-11-02 |
 | M3-T10 Achados abertos da revisão do M2 | CONCLUÍDA | 2026-11-02 |
 | M3-T11 Medidas, instalador e Sobre | CONCLUÍDA | 2026-11-02 |
-| M3-T12 Revisão independente e fechamento | AGUARDANDO USUÁRIO (conferência no Word e decisões N-M3-02 a 05) | 2026-11-05 |
+| M3-T12 Revisão independente e fechamento | AGUARDANDO USUÁRIO (conferência no Word) | 2026-11-05 |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -263,7 +263,10 @@ Os testes acharam um defeito meu: dois conjuntos no mesmo segundo, em execuçõe
   - R-M3-02: espaço de nomes próprio para a cópia aberta.
   - R-M3-08: comentário fora do lugar.
 - **Testes novos:** 3 em `tests/recuperacao.test.ts`. Ficha corrigida no motor, no exportador e nos 6 instantâneos.
-- **Aguardando o usuário:**
-  - Conferência no Word (DOC-08).
-  - Decisões N-M3-02 a 05, que mudam o documento visível.
-  - R-M3-06: o `.docx.bak` que fica na pasta.
+- **Decisões do usuário (2026-11-05, "pode seguir", com as recomendações):**
+  - Banca centralizada e folha de rosto distribuída como nas Fig. 7 e 5: RN-313 e RN-314, provisórias.
+  - "Palabras clave" e "Mots-clés": RN-315, provisórios, com aviso ao exportar.
+  - Subalínea com travessão, no perfil (D-M3-10).
+  - Exportação sem `.bak`.
+  - O documento exportado não muda: os instantâneos de XML são os mesmos. Testes novos no motor, no exportador e no canal, com mutação.
+- **Aguardando o usuário:** conferência no Word (DOC-08).

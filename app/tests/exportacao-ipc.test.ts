@@ -1,10 +1,14 @@
 // M3-T08: canal de exportação, sem Electron: recusas, cancelar, falhas e o que volta ao renderer.
 import { describe, expect, it } from 'vitest';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { CANAIS_EXPORTACAO, criarTrabalhoDoTipo, type PacoteTransferivel, type ResultadoExportar } from '../src/aplicacao';
 import { PERFIL_UFT_2022 as PERFIL } from '../src/aplicacao/perfil-padrao';
 import { ErroIpcRecusado } from '../src/principal/ipc/chamada';
 import {
   criarManipuladoresExportacao,
+  gravarExportacao,
   MENSAGEM_EXPORTACAO_EM_CURSO,
   MENSAGEM_EXPORTACAO_FALHOU,
   MENSAGEM_EXPORTACAO_INVALIDA,
@@ -122,5 +126,22 @@ describe('recusas (C-11)', () => {
     await expect(x.chamar(pacote(), { fonte: 1 })).rejects.toBeInstanceOf(ErroIpcRecusado);
     await expect(x.chamar(pacote(), { fonte: 'x'.repeat(65) })).rejects.toBeInstanceOf(ErroIpcRecusado);
     expect(x.gravados).toEqual([]);
+  });
+});
+
+describe('gravação do .docx (R-M3-06, decisão do usuário 2026-11-05)', () => {
+  it('substitui o arquivo confirmado no diálogo sem deixar .bak na pasta', async () => {
+    const pasta = mkdtempSync(join(tmpdir(), 'bdp-exportar-'));
+    try {
+      const destino = join(pasta, 'Trabalho.docx');
+      writeFileSync(destino, 'antigo');
+      const r = await gravarExportacao(destino, new TextEncoder().encode('novo'));
+      expect(r.ok).toBe(true);
+      expect(readFileSync(destino, 'utf8')).toBe('novo');
+      expect(existsSync(`${destino}.bak`)).toBe(false);
+      expect(readdirSync(pasta)).toEqual(['Trabalho.docx']);
+    } finally {
+      rmSync(pasta, { recursive: true, force: true });
+    }
   });
 });

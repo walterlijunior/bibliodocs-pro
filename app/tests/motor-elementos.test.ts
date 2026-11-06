@@ -259,3 +259,57 @@ describe('rastreabilidade nos seis tipos', () => {
     expect(formatar(documento, PERFIL).secoes.map((s) => s.papel)).toEqual(['capa', 'folhaRosto', 'ficha', 'preTextual', 'textual', 'posTextual']);
   });
 });
+
+describe('decisões do usuário de 2026-11-05 (revisão do M3: D-M3-10 a 12)', () => {
+  type PerfilMutavel = { regras: { id: string }[]; parametros: Record<string, { valor: unknown }> };
+  const semRegra = (id: string) => {
+    const p = structuredClone(PERFIL) as unknown as PerfilMutavel;
+    p.regras = p.regras.filter((r) => r.id !== id);
+    return p as unknown as typeof PERFIL;
+  };
+  const com = (perfil: typeof PERFIL, d: Partial<DocumentoParaFormatar>) => formatar({ corpo: [], metadados: M, ...d }, perfil);
+
+  it('capa e folha de rosto: distribuição vertical vem do perfil, provisória (RN-125, RN-314)', () => {
+    const d = fmt({ preTextuais: pre({ tipo: 'capa' }, { tipo: 'folhaRosto' }) });
+    expect(secao(d, 'capa')).toMatchObject({ alinhamentoVertical: 'distribuido', origem: ['RN-067', 'RN-125'] });
+    expect(secao(d, 'folhaRosto')).toMatchObject({ alinhamentoVertical: 'distribuido', origem: ['RN-067', 'RN-068', 'RN-314'] });
+    const sem = com(semRegra('RN-314'), { preTextuais: pre({ tipo: 'folhaRosto' }) });
+    expect(secao(sem, 'folhaRosto').alinhamentoVertical).toBeUndefined();
+    expect(secao(sem, 'folhaRosto').origem).toEqual(['RN-067', 'RN-068']);
+  });
+
+  it('banca centralizada pela RN-313, provisória; a RN-144 não dá mais o alinhamento', () => {
+    const banca = fmt({}).estilos.find((e) => e.id === 'aprovacaoBanca')!;
+    expect(banca.propriedades).toMatchObject({ alinhamento: 'centralizado' });
+    expect(banca.origem['alinhamento']).toEqual(['RN-313']);
+    const sem = com(semRegra('RN-313'), {}).estilos.find((e) => e.id === 'aprovacaoBanca')!;
+    expect(sem.propriedades).not.toHaveProperty('alinhamento');
+  });
+
+  it('rótulo em espanhol ou francês sai do perfil com aviso de provisório (RN-315)', () => {
+    const d = fmt({ preTextuais: pre({ tipo: 'abstract', idioma: 'es', palavrasChave: ['A'] }) });
+    expect(paragrafos(secao(d, 'preTextual')).map(texto)).toEqual(['RESUMEN', 'Palabras clave: A.']);
+    expect(d.avisos).toEqual([expect.objectContaining({ codigo: 'ROTULO_PROVISORIO', mensagem: expect.stringContaining('RN-315') })]);
+    expect(fmt({ preTextuais: pre({ tipo: 'abstract', palavrasChave: ['A'] }) }).avisos).toEqual([]);
+  });
+
+  it('sem a RN-315, o rótulo é "Keywords" e o aviso diz que falta fonte', () => {
+    const d = com(semRegra('RN-315'), { preTextuais: pre({ tipo: 'abstract', idioma: 'fr', palavrasChave: ['A'] }) });
+    expect(paragrafos(secao(d, 'preTextual')).map(texto)).toEqual(['RÉSUMÉ', 'Keywords: A.']);
+    expect(d.avisos.map((a) => a.codigo)).toEqual(['FORMA_SEM_FONTE']);
+  });
+
+  it('sinal da subalínea vem do parâmetro, e sem ele a subalínea sai sem marcador (RN-026, D-M3-10)', () => {
+    const corpo = [{ id: 's', titulo: [{ tipo: 'texto' as const, texto: 'T' }], subsecoes: [], blocos: [{ tipo: 'alineas' as const, id: 'l', itens: [{ conteudo: [{ tipo: 'texto' as const, texto: 'x' }], subalineas: [[{ tipo: 'texto' as const, texto: 'y' }]] }] }] }];
+    const sub = (d: DocumentoFormatado) => d.secoes.flatMap((s) => s.blocos).find((b) => b.tipo === 'paragrafo' && b.estilo === 'subalinea') as Extract<BlocoFormatado, { tipo: 'paragrafo' }>;
+    const padrao = fmt({ corpo: corpo as never });
+    expect(padrao.listas.marcadorSubalinea).toBe('–');
+    expect(sub(padrao)).toMatchObject({ lista: { rotulo: '–' }, origem: ['RN-026'] });
+    const p = structuredClone(PERFIL) as unknown as PerfilMutavel;
+    p.parametros['marcadorSubalinea']!.valor = '-';
+    expect(sub(com(p as unknown as typeof PERFIL, { corpo: corpo as never })).lista?.rotulo).toBe('-');
+    const sem = com(semRegra('RN-026'), { corpo: corpo as never });
+    expect(sem.listas.marcadorSubalinea).toBeNull();
+    expect(sub(sem)).toMatchObject({ lista: { rotulo: null }, origem: [] });
+  });
+});

@@ -161,7 +161,7 @@ function numeracoes(f: DocumentoFormatado) {
         reference: 'alineas',
         levels: [
           { level: 0, format: LevelFormat.LOWER_LETTER, text: '%1)', alignment: AlignmentType.LEFT, style: { paragraph: recuo(a) } },
-          { level: 1, format: LevelFormat.BULLET, text: '–', alignment: AlignmentType.LEFT, style: { paragraph: recuo(s) } },
+          { level: 1, format: LevelFormat.BULLET, text: f.listas.marcadorSubalinea ?? '', alignment: AlignmentType.LEFT, style: { paragraph: recuo(s) } },
         ],
       },
     ],

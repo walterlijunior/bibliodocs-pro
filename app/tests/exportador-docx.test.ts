@@ -205,3 +205,18 @@ describe('fronteira e protocolo', () => {
     expect(lerRespostaExportacao({ ok: true, bytes: new Uint8Array(1) })).toMatchObject({ ok: true });
   });
 });
+
+describe('sinal da subalínea no DOCX (RN-026, D-M3-10)', () => {
+  // Na lista das alíneas (a que tem `lowerLetter`), o texto do nível 1. A biblioteca define outras listas de marcadores.
+  const nivel1 = (xml: string) => {
+    const alineas = (xml.match(/<w:abstractNum .*?<\/w:abstractNum>/gs) ?? []).find((a) => a.includes('w:val="lowerLetter"')) ?? '';
+    return /<w:lvl w:ilvl="1"[^>]*>(?:(?!<\/w:lvl>).)*?<w:lvlText w:val="([^"]*)"/s.exec(alineas)?.[1];
+  };
+  it('o nível 1 da lista usa o sinal que o motor entregou, sem valor fixo no exportador', async () => {
+    expect(nivel1(partes['word/numbering.xml']!)).toBe('–');
+    const outro = structuredClone(PERFIL) as unknown as { parametros: Record<string, { valor: unknown }> };
+    outro.parametros['marcadorSubalinea']!.valor = '•';
+    const z = unzipSync(await exportarDocx(formatar(trabalho(), outro as unknown as typeof PERFIL)));
+    expect(nivel1(strFromU8(z['word/numbering.xml']!))).toBe('•');
+  });
+});

@@ -174,6 +174,41 @@
     "RN-136"
    ],
    "origem": "norma"
+  },
+  "marcadorSubalinea": {
+   "valor": "–",
+   "ajustavel": false,
+   "rn": [
+    "RN-026"
+   ],
+   "origem": "decisao-usuario-2026-11-05"
+  },
+  "aprovacaoBancaAlinhamento": {
+   "valor": "figura-7",
+   "ajustavel": false,
+   "rn": [
+    "RN-313"
+   ],
+   "origem": "decisao-usuario-2026-11-05"
+  },
+  "rostoDistribuicao": {
+   "valor": "figura-5",
+   "ajustavel": false,
+   "rn": [
+    "RN-314"
+   ],
+   "origem": "decisao-usuario-2026-11-05"
+  },
+  "rotulosPalavrasChave": {
+   "valor": {
+    "es": "Palabras clave",
+    "fr": "Mots-clés"
+   },
+   "ajustavel": false,
+   "rn": [
+    "RN-315"
+   ],
+   "origem": "decisao-usuario-2026-11-05"
   }
  },
  "regras": [
@@ -459,7 +494,10 @@
    "fonte": "M, p. 16, seção 2.5",
    "tipo": "procedimento",
    "alvo": "subalinea",
-   "procedimento": "travessaoDeSubalinea"
+   "procedimento": "travessaoDeSubalinea",
+   "parametros": [
+    "marcadorSubalinea"
+   ]
   },
   {
    "id": "RN-027",
@@ -586,6 +624,18 @@
    "procedimento": "distribuirCapa",
    "parametros": [
     "capaDistribuicao"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-314",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, Fig. 5, p. 34 (desenho)",
+   "tipo": "procedimento",
+   "alvo": "folhaRosto",
+   "procedimento": "distribuirFolhaRosto",
+   "parametros": [
+    "rostoDistribuicao"
    ],
    "provisoria": true
   },
@@ -829,10 +879,23 @@
    "tipo": "estilo",
    "alvo": "folhaAprovacao.banca",
    "propriedades": {
-    "alinhamento": "centralizado",
     "corpoPt": 12,
     "entrelinha": "1,5"
    }
+  },
+  {
+   "id": "RN-313",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, Fig. 7, p. 37 (desenho)",
+   "tipo": "estilo",
+   "alvo": "folhaAprovacao.banca",
+   "propriedades": {
+    "alinhamento": "centralizado"
+   },
+   "parametros": [
+    "aprovacaoBancaAlinhamento"
+   ],
+   "provisoria": true
   },
   {
    "id": "RN-146",
@@ -979,6 +1042,18 @@
    "fonte": "M, p. 41, anotação da Fig. 11",
    "tipo": "estrutura",
    "alvo": "documento"
+  },
+  {
+   "id": "RN-315",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, Fig. 11, p. 41 (só \"Keywords:\")",
+   "tipo": "procedimento",
+   "alvo": "preTextual.resumo",
+   "procedimento": "rotuloPalavrasChaveEstrangeiro",
+   "parametros": [
+    "rotulosPalavrasChave"
+   ],
+   "provisoria": true
   },
   {
    "id": "RN-169",

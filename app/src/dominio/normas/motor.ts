@@ -244,6 +244,9 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const rnDestaque = temProcedimento(regras, 'indicativoComDestaqueDoTitulo');
   const rnAlinea = temProcedimento(regras, 'rotuloDeAlinea');
   const rnSubalinea = temProcedimento(regras, 'travessaoDeSubalinea');
+  // D-M3-10: o sinal vem do perfil; sem ele, a subalínea sai sem marcador, como sem a regra.
+  const marcador = perfil.parametros['marcadorSubalinea']?.valor;
+  const marcadorSubalinea = rnSubalinea !== null && typeof marcador === 'string' && marcador !== '' ? marcador : null;
   const rnNotas = perfil.regras.filter((r) => r.alvo === 'nota.numeracao' && regras.includes(r)).map((r) => r.id);
   let proximaNota = 0;
   let proximaLista = 0;
@@ -297,8 +300,8 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
               tipo: 'paragrafo',
               estilo: 'subalinea',
               trechos: trechos(sub),
-              lista: { lista, nivel: 1, rotulo: rnSubalinea === null ? null : '–', posicao: s },
-              origem: rnSubalinea === null ? [] : [rnSubalinea],
+              lista: { lista, nivel: 1, rotulo: marcadorSubalinea, posicao: s },
+              origem: marcadorSubalinea === null ? [] : [rnSubalinea!],
             })),
           ];
         });
@@ -354,9 +357,14 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   if (capa) {
     // RN-118: o brasão é identidade visual da instituição; o arquivo ainda não existe no projeto.
     avisos.push({ codigo: 'BRASAO_AUSENTE', id: capa.id, mensagem: 'A capa saiu sem o brasão da UFT: o aplicativo ainda não tem o arquivo.' });
-    secoes.push({ papel: 'capa', exibirNumero: false, alinhamentoVertical: 'distribuido', blocos: blocosCapa(m), origem: ['RN-067', 'RN-125'] });
+    const rn = temProcedimento(regras, 'distribuirCapa');
+    secoes.push({ papel: 'capa', exibirNumero: false, ...(rn !== null ? { alinhamentoVertical: 'distribuido' as const } : {}), blocos: blocosCapa(m), origem: ['RN-067', ...(rn !== null ? [rn] : [])] });
   }
-  if (tem('folhaRosto')) secoes.push({ papel: 'folhaRosto', exibirNumero: false, alinhamentoVertical: 'distribuido', blocos: blocosFolhaRosto(m), origem: ['RN-067', 'RN-068'] });
+  if (tem('folhaRosto')) {
+    // RN-314 (D-M3-11): só o desenho da Fig. 5 indica a distribuição; provisória, como a da capa.
+    const rn = temProcedimento(regras, 'distribuirFolhaRosto');
+    secoes.push({ papel: 'folhaRosto', exibirNumero: false, ...(rn !== null ? { alinhamentoVertical: 'distribuido' as const } : {}), blocos: blocosFolhaRosto(m), origem: ['RN-067', 'RN-068', ...(rn !== null ? [rn] : [])] });
+  }
   const ficha = tem('fichaCatalografica');
   if (ficha) {
     const texto = ficha.tipo === 'fichaCatalografica' ? (ficha.texto ?? '') : '';
@@ -371,7 +379,15 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     });
   }
   const meioDaAreaUtilTw = Math.round((pagina.alturaTw - pagina.margemSuperiorTw - pagina.margemInferiorTw) / 2) || null;
-  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, { meioDaAreaUtilTw, avisos, entradas }));
+  // RN-315 (D-M3-12): rótulos de espanhol e francês só vêm do perfil, e saem com aviso de provisórios.
+  const rnRotulos = temProcedimento(regras, 'rotuloPalavrasChaveEstrangeiro');
+  const rotulos = perfil.parametros['rotulosPalavrasChave']?.valor as Partial<Record<'es' | 'fr', unknown>> | undefined;
+  const rotulosPalavrasChave = {
+    rn: rnRotulos,
+    es: rnRotulos !== null && typeof rotulos?.es === 'string' ? rotulos.es : null,
+    fr: rnRotulos !== null && typeof rotulos?.fr === 'string' ? rotulos.fr : null,
+  };
+  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, { meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave }));
   if (blocosPre.length > 0) secoes.push({ papel: 'preTextual', exibirNumero: false, blocos: semQuebraNaPrimeira(blocosPre), origem: ['RN-067', 'RN-068'] });
   secoes.push({ papel: 'textual', exibirNumero: true, blocos, origem: ['RN-068', 'RN-069'] });
   if (blocosPos.length > 0) secoes.push({ papel: 'posTextual', exibirNumero: true, blocos: semQuebraNaPrimeira(blocosPos), origem: ['RN-073'] });
@@ -391,6 +407,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
       fileteTw: rnNotasFilete.length > 0 && typeof filete === 'number' ? cmParaTw(filete) : null,
       origem: [...rnNotas, ...rnNotasFilete],
     },
+    listas: { marcadorSubalinea },
     secoes,
     regrasAguardando,
     avisos,

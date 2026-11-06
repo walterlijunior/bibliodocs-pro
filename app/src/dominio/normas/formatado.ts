@@ -98,7 +98,8 @@ export interface AvisoFormatacao {
     | 'FICHA_VAZIA'
     | 'FORMA_SEM_FONTE'
     | 'ELEMENTO_ADIADO'
-    | 'LETRA_SEM_FONTE';
+    | 'LETRA_SEM_FONTE'
+    | 'ROTULO_PROVISORIO';
   /** Id do elemento no modelo. */
   id: string;
   mensagem: string;
@@ -137,6 +138,8 @@ export interface DocumentoFormatado {
   pagina: PaginaResolvida;
   /** Numeração contínua e filete curto (RN-102, RN-104). */
   notas: { numeracao: string; fileteTw: number | null; origem: readonly string[] };
+  /** Sinal da subalínea (RN-026, D-M3-10); `null` sem a regra ou sem o parâmetro. */
+  listas: { marcadorSubalinea: string | null };
   secoes: readonly SecaoFormatada[];
   /** Regras do perfil que não foram aplicadas por falta de decisão ou de fonte. */
   regrasAguardando: readonly string[];

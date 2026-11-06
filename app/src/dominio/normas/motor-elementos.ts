@@ -8,11 +8,16 @@ import { letraPosTextual, letraSemFonte } from '../numeracao';
 import type { ElementoPosTextual, ElementoPreTextual, IdiomaResumo, InlineDeTitulo, MembroBanca, Metadados, PessoaTitulada } from '../modelo';
 import type { AvisoFormatacao, BlocoFormatado, TrechoFormatado } from './formatado';
 
-const TITULOS_RESUMO: Readonly<Record<IdiomaResumo, { titulo: string; palavras: string }>> = {
-  en: { titulo: 'ABSTRACT', palavras: 'Keywords' },
-  es: { titulo: 'RESUMEN', palavras: 'Palabras clave' },
-  fr: { titulo: 'RÉSUMÉ', palavras: 'Mots-clés' },
-};
+/** Títulos da RN-158. Só "Keywords" tem fonte (Fig. 11); espanhol e francês vêm do perfil (RN-315, D-M3-12). */
+const TITULOS_RESUMO: Readonly<Record<IdiomaResumo, string>> = { en: 'ABSTRACT', es: 'RESUMEN', fr: 'RÉSUMÉ' };
+const IDIOMA_LEGIVEL: Readonly<Record<'es' | 'fr', string>> = { es: 'espanhol', fr: 'francês' };
+
+/** Rótulos provisórios das palavras-chave em espanhol e francês; `null` sem a regra ou sem o valor. */
+export interface RotulosPalavrasChave {
+  rn: string | null;
+  es: string | null;
+  fr: string | null;
+}
 const SEPARADOR = ' – '; // C-A5, RN-053
 
 const trecho = (texto: string): TrechoFormatado => ({ tipo: 'texto', texto, marcas: [] });
@@ -81,7 +86,11 @@ function membro(b: MembroBanca): string {
 }
 
 /** Elemento pré-textual fora de capa, folha de rosto e ficha, que têm seção própria. */
-export function blocosPreTextual(e: ElementoPreTextual, m: Metadados, opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado }): BlocoFormatado[] {
+export function blocosPreTextual(
+  e: ElementoPreTextual,
+  m: Metadados,
+  opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado; rotulosPalavrasChave: RotulosPalavrasChave },
+): BlocoFormatado[] {
   const titulo = (texto: string, origem: readonly string[]) => paragrafo('tituloSemIndicativo', [trecho(texto)], origem, { novaPagina: true });
   switch (e.tipo) {
     case 'errata':
@@ -117,8 +126,19 @@ export function blocosPreTextual(e: ElementoPreTextual, m: Metadados, opcoes: { 
     case 'resumo':
       return resumo('RESUMO', 'Palavras-chave', e.texto, e.palavrasChave, ['RN-007', 'RN-045', 'RN-151'], ['RN-150', 'RN-152', 'RN-153']);
     case 'abstract': {
-      const r = TITULOS_RESUMO[e.idioma ?? 'en'];
-      return resumo(r.titulo, r.palavras, e.texto, e.palavrasChave, ['RN-007', 'RN-045', 'RN-158'], ['RN-157', 'RN-152', 'RN-153']);
+      const idioma = e.idioma ?? 'en';
+      if (idioma === 'en') return resumo(TITULOS_RESUMO.en, 'Keywords', e.texto, e.palavrasChave, ['RN-007', 'RN-045', 'RN-158'], ['RN-157', 'RN-152', 'RN-153']);
+      const rotulo = opcoes.rotulosPalavrasChave[idioma];
+      const { rn } = opcoes.rotulosPalavrasChave;
+      if ((e.palavrasChave ?? []).length > 0) {
+        opcoes.avisos.push(
+          rotulo === null || rn === null
+            ? { codigo: 'FORMA_SEM_FONTE', id: e.id, mensagem: `O Manual não diz o rótulo das palavras-chave em ${IDIOMA_LEGIVEL[idioma]}: saiu "Keywords".` }
+            : { codigo: 'ROTULO_PROVISORIO', id: e.id, mensagem: `O rótulo "${rotulo}:" é provisório: o Manual só mostra "Keywords:" (${rn}).` },
+        );
+      }
+      const origem = rotulo !== null && rn !== null ? ['RN-157', 'RN-152', 'RN-153', rn] : ['RN-157', 'RN-152', 'RN-153'];
+      return resumo(TITULOS_RESUMO[idioma], rotulo ?? 'Keywords', e.texto, e.palavrasChave, ['RN-007', 'RN-045', 'RN-158'], origem);
     }
     case 'sumario':
       return [titulo('SUMÁRIO', ['RN-007', 'RN-045', 'RN-171']), opcoes.entradas()];

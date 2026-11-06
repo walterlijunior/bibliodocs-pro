@@ -8,14 +8,14 @@ import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
 import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
-import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, gravarAtomico, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
+import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import { ehArtefatoDeFumaca } from '../seguranca/fumaca';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { blindar } from './chamada';
 import { criarEmpacotador } from './empacotador-isolado';
 import { exportarIsolado } from './exportador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
-import { criarManipuladoresExportacao } from './manipuladores-exportacao';
+import { criarManipuladoresExportacao, gravarExportacao } from './manipuladores-exportacao';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -207,7 +207,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       return r.canceled || !r.filePath ? null : r.filePath;
     },
     exportar: (f) => exportarIsolado(join(__dirname, 'exportador-docx.js'), f),
-    gravar: (destino, bytes) => gravarAtomico(destino, bytes),
+    gravar: gravarExportacao,
   });
 
   const todos = [

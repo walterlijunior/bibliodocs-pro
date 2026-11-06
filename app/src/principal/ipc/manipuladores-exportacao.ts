@@ -1,11 +1,11 @@
 /**
  * Canal de exportação DOCX (M3-T08; RF-06). Confere remetente e pacote, abre o diálogo, formata com o perfil, gera no
- * processo utilitário e grava por gravação atômica, que mantém um `.bak` se o arquivo já existia. Uma exportação por vez.
+ * processo utilitário e grava por gravação atômica, sem `.bak`: o diálogo do sistema já confirmou a substituição (R-M3-06). Uma exportação por vez.
  */
 import { basename } from 'node:path';
 import { CANAIS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
 import { formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
-import { limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
+import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
 import { textoPlano } from '../../dominio/modelo';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerPacoteTransferivel } from './argumentos';
@@ -17,6 +17,9 @@ export const MENSAGEM_EXPORTACAO_INVALIDA = 'O trabalho tem conteúdo que não p
 export const MENSAGEM_EXPORTACAO_FALHOU = 'Não foi possível gerar o arquivo. Nada foi gravado. Tente de novo.';
 export const MENSAGEM_EXTENSAO_DOCX = 'O arquivo precisa terminar em .docx.';
 export const MENSAGEM_EXPORTACAO_EM_CURSO = 'Já há uma exportação em andamento. Espere terminar.';
+
+/** Grava o .docx sem deixar `.bak` na pasta do usuário: o diálogo do sistema já confirmou a substituição (R-M3-06). */
+export const gravarExportacao = (destino: string, bytes: Uint8Array): Promise<ResultadoGravacao> => gravarAtomico(destino, bytes, { semBak: true });
 
 export interface DependenciasExportacao {
   origem: OrigemPermitida;

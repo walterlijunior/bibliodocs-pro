@@ -16,7 +16,7 @@
 | Normativa (N-M3) | 0 | 1 | 4 | 5 | 3 |
 
 - **Corrigidos nesta tarefa:** o achado Alto (N-M3-01), o Médio verificado (R-M3-01) e dois menores (R-M3-02, R-M3-08).
-- **Ficam para decisão do usuário:** os Médios normativos N-M3-02 a 05. Todos mudam o que aparece no documento.
+- **Decididos pelo usuário em 2026-11-05** ("pode seguir", aceitando as recomendações) e feitos: N-M3-02 a 05 e R-M3-06.
 
 ## Comandos executados (em `app/`)
 
@@ -42,7 +42,16 @@
 
 ## Achados abertos
 
-### Normativos (decisão do usuário: mudam o documento visível)
+### Normativos
+
+**Atualização 2026-11-05.** O usuário aceitou as recomendações. Os quatro Médios foram feitos sem mudar a aparência do documento: os instantâneos de XML não mudaram.
+
+- **N-M3-02:** RN-313, provisória; banca centralizada.
+- **N-M3-03:** RN-314, provisória. O motor passa a ler do perfil as distribuições da capa e da folha de rosto.
+- **N-M3-04:** RN-315, provisória, com aviso `ROTULO_PROVISORIO` ao exportar.
+- **N-M3-05:** travessão no parâmetro `marcadorSubalinea` (D-M3-10). O exportador não tem mais o sinal fixo.
+
+As decisões são a D-M3-10 a 12 na matriz.
 
 | ID | Sev. | RN | Problema | Recomendação |
 |---|---|---|---|---|
@@ -67,7 +76,7 @@
 | R-M3-03 | Baixa | Uma cópia de um trabalho aberto e ainda sem instantâneo abre: a recusa "já aberto" só vale depois do primeiro instantâneo. O relatório do M3-T09 dizia o contrário | Aberto. O texto do relatório foi corrigido |
 | R-M3-04 | Baixa | O timeout, a queda e a mensagem fora do protocolo do processo utilitário não têm teste. Um `fork` que lança fica só para o `blindar` | Aberto (engenheiro-qualidade) |
 | R-M3-05 | Baixa | Na 21ª substituição do mesmo nome em 7 dias, o original não é guardado, e nada aparece na tela | Aberto |
-| R-M3-06 | Info | Exportar por cima de um `.docx` deixa um `.docx.bak` permanente na pasta do usuário | Decisão do usuário (visível) |
+| R-M3-06 | Info | Exportar por cima de um `.docx` deixa um `.docx.bak` permanente na pasta do usuário | **Feito (2026-11-05):** `gravarExportacao` grava sem `.bak`, por decisão do usuário. Teste com mutação |
 | R-M3-07 | Info | Versões descartadas e cópias de segurança dividem o mapa de identificadores | Aberto; só muda o nome exibido |
 | R-M3-09 | Info | O teste da fumaça confere uma string literal do código | Aceito |
 | R-M3-10 | Info | 7 moderados do `npm audit`, só no empacotador | Acompanhar o `electron-builder` |
