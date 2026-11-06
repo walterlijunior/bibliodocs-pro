@@ -138,6 +138,29 @@ página; listas de ilustrações, siglas e remissivas ficam no M6, e tabelas, fi
 ### M4 — Citações e referências
 **Aceite:** RF-07, RF-08; verificador de órfãs/não citadas.
 
+#### Tarefas do M4 (proposta de 2026-11-05; aguarda as decisões do M4-T00)
+Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro.
+- **Base normativa:** Manual, cap. 3 (citações, RN-077 a 103) e 5.19 (referências, RN-175 a 229), quase tudo
+  `CONFIRMADA`. Lacunas: RN-085 e RN-094 a 097 (NBR 10520) e PF-09, de (a) a (j) (NBR 6023), que o projeto não tem.
+- **Limite do marco:** os tipos de obra da primeira leva (M4-T04). Os demais tipos do 5.19 entram no M4-T09 ou
+  ficam como "não suportado" com aviso. Detecção de citações em texto colado só sugere vínculo, nunca liga em silêncio.
+
+| ID | Tarefa | Agente | Depende | Critério de aceite | Verificação |
+|---|---|---|---|---|---|
+| M4-T00 | Decisões do usuário: NBRs disponíveis; P-11, P-12, P-14, P-15; PF-09 (a)–(j); tipos da primeira leva | usuário + especialista-normas | — | Cada decisão na matriz como parâmetro de perfil ou PENDENTE-FONTE provisória | Revisão da matriz |
+| M4-T01 | Adendo ao ADR-0004: `bibliografia.json` no `.bdp` (aditivo; arquivo antigo abre sem ele); modelo de obra tipado (pessoas, entidade, título, edição, local, editora, ano, páginas, volume, número, URL, acesso, DOI) e de chamada (obra, localizador, forma, apud) | arquiteto-software + especialista-referencias | T00 | Esquema estrito; v1 sem bibliografia abre igual; teste de ida e volta | `npm run verificar` |
+| M4-T02 | Domínio: formatadores puros obra → trechos com destaque, por tipo, cada elemento com a RN; datas e meses (RN-190); autores (RN-180 a 187); ordenação pt-BR com desempate (RN-176, PF-09 g) | especialista-referencias | T01 | Tabela entrada → saída esperada → página do Manual para cada tipo | `npm run verificar` |
+| M4-T03 | Domínio: chamadas (RN-077 a 099) parentética e narrativa, página, apud, entrada pelo título, sufixo a/b; perfil 2002 e opção 2023 provisória (C-01) | especialista-referencias | T01 | Mudar o ano da obra muda todas as chamadas (aceite do RF-07); chamada sem obra não existe no modelo | `npm run verificar` |
+| M4-T04 | Primeira leva de tipos: livro (RN-194 a 199, 204, 205), capítulo (200, 201), trabalho acadêmico (206), artigo de periódico (212 a 214), trabalho em anais (209), artigo de jornal (215 a 218), norma (222), legislação (223), documento on-line (189) | especialista-referencias | T02 | Cada tipo com caso tirado do exemplo do Manual | `npm run verificar` |
+| M4-T05 | Motor e exportador: lista REFERÊNCIAS gerada das obras citadas (opção de incluir não citadas), estilo RN-034/177 com separação (N-M3-10); chamada no texto como trecho | especialista-documento | T03, T04 | DOCX com lista ordenada e chamadas; instantâneos novos explicados | `npm run verificar:tudo` |
+| M4-T06 | Tela: cadastro de obras por tipo (formulário com os campos do tipo, prévia da referência formatada), lista de obras, excluir com aviso se citada | especialista-interface | T04 | Sem obra inválida salva; axe; E2E | `npm run verificar:tudo` |
+| M4-T07 | Editor: inserir citação (Ctrl+Alt+C?) escolhendo a obra; forma, página, apud; a chamada é um nó do ProseMirror ligado ao id; colagem de texto com "(AUTOR, ano)" sugere vínculo | especialista-interface + especialista-referencias | T03, T06 | Aceite do RF-07; desfazer junto com o texto | `npm run verificar:tudo` |
+| M4-T08 | Verificador: órfãs, não citadas, a/b ausente, grafia divergente do mesmo autor, prenomes não uniformes (RN-182) | especialista-referencias | T05 | Documento com 1 órfã e 1 não citada diagnosticado (aceite da skill) | `npm run verificar` |
+| M4-T09 | Importar BibTeX e RIS em subconjunto próprio, sem dependência nova: campos mapeados, não reconhecidos listados, prévia antes de gravar; demais tipos do 5.19 conforme o T00 | especialista-referencias | T04, T06 | Arquivos de exemplo com acentos e campos estranhos importados sem perda silenciosa | `npm run verificar:tudo` |
+| M4-T10 | Fechamento: `REVISAO_M4.md` com revisão independente (normativa e segurança da importação), relatório do marco, matriz de testes | sessão principal | T01–T09 | Aceite do M4 demonstrado | `npm run verificar:tudo` |
+
+Paralelização: T02 e T03 tocam arquivos diferentes; T06 pode começar depois do T01 com dados fictícios.
+
 ### M5 — Tabelas e elementos visuais
 - Estudo visual (estudo Capcom, usado só como exemplo de trabalho formatado) concluído antes da implementação.
 **Aceite:** RF-09, RF-10, RF-11 (legenda/fonte/numeração).
