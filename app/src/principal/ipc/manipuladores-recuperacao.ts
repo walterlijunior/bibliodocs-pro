@@ -44,6 +44,7 @@ import {
   arquivarInstantaneos,
   copiarParaAntigos,
   nomeConjuntoReservado,
+  ORDEM_MAXIMA_RESERVADO,
   chaveCaminho,
   ehArquivoProjeto,
   ehReservado,
@@ -115,6 +116,7 @@ export const MAX_VERSOES_DESCARTADAS = 100;
 export const MENSAGEM_DESCARTADA_ILEGIVEL = 'Não foi possível abrir esta versão. Ela pode ter passado do prazo de 7 dias.';
 export const MENSAGEM_BACKUP_ILEGIVEL = 'Não foi possível abrir esta cópia. Tente outra da lista.';
 const MENSAGEM_DISCO = 'Não foi possível preparar a recuperação por um erro no disco. Nada foi apagado.';
+const MENSAGEM_SEM_CONJUNTO = 'Não foi possível preparar a cópia de recuperação agora. Tente de novo em alguns segundos. Nada foi alterado.';
 
 interface SessaoAtiva {
   /** Arquivo do usuário (vazio quando a versão recuperada não tem arquivo conhecido). */
@@ -679,9 +681,17 @@ export function criarManipuladoresRecuperacao(dep: DependenciasRecuperacao) {
       if (!lido.ok) return { ok: false, mensagem: ilegivel };
       const idProjeto = lido.pacote.manifesto.id;
       if (sessoes.has(idProjeto)) return { ok: false, mensagem: MENSAGEM_JA_ABERTO };
-      // Nunca um conjunto que já tem instantâneos: pode ser a queda de outra execução, ainda sem decisão.
-      let conjunto = nomeConjuntoReservado(idProjeto, agoraMs(), ++contador);
-      while ((await instantaneosDe(pastas, conjunto, op)).length > 0) conjunto = nomeConjuntoReservado(idProjeto, agoraMs(), ++contador);
+      // Nunca um conjunto que já tem instantâneos (pode ser a queda de outra execução, ainda sem decisão) nem um já dado a
+      // outra cópia aberta, que só cria a pasta no primeiro instantâneo. A ordem é local: um contador global passava de 99
+      // com o uso e gerava nome inválido, e a cópia ficava sem instantâneo (R-M3-01).
+      const agora = agoraMs();
+      const emUsoSemArquivo = new Set([...semArquivo.values()].map((s) => s.conjunto));
+      let conjunto: string | null = null;
+      for (let ordem = 1; ordem <= ORDEM_MAXIMA_RESERVADO && conjunto === null; ordem++) {
+        const candidato = nomeConjuntoReservado(idProjeto, agora, ordem);
+        if (!emUsoSemArquivo.has(candidato) && (await instantaneosDe(pastas, candidato, op)).length === 0) conjunto = candidato;
+      }
+      if (conjunto === null) return { ok: false, mensagem: MENSAGEM_SEM_CONJUNTO };
       return {
         ok: true,
         quando: d.quando,

@@ -147,7 +147,7 @@
 </w:p>
 <w:tbl>
 <w:tblPr>
-<w:tblW w:type="dxa" w:w="4253"/>
+<w:tblW w:type="dxa" w:w="7088"/>
 <w:tblBorders>
 <w:top w:color="auto" w:sz="4" w:val="single"/>
 <w:left w:color="auto" w:sz="4" w:val="single"/>
@@ -159,15 +159,15 @@
 <w:tblLayout w:type="fixed"/>
 </w:tblPr>
 <w:tblGrid>
-<w:gridCol w:w="4253"/>
+<w:gridCol w:w="7088"/>
 </w:tblGrid>
 <w:tr>
 <w:trPr>
-<w:trHeight w:hRule="exact" w:val="7088"/>
+<w:trHeight w:hRule="exact" w:val="4253"/>
 </w:trPr>
 <w:tc>
 <w:tcPr>
-<w:tcW w:type="dxa" w:w="4253"/>
+<w:tcW w:type="dxa" w:w="7088"/>
 </w:tcPr>
 <w:p>
 <w:pPr>

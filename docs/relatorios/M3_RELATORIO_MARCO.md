@@ -16,7 +16,7 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 | M3-T09 Tela de cópias de segurança | CONCLUÍDA | 2026-11-02 |
 | M3-T10 Achados abertos da revisão do M2 | CONCLUÍDA | 2026-11-02 |
 | M3-T11 Medidas, instalador e Sobre | CONCLUÍDA | 2026-11-02 |
-| M3-T12 | PENDENTE | — |
+| M3-T12 Revisão independente e fechamento | AGUARDANDO USUÁRIO (conferência no Word e decisões N-M3-02 a 05) | 2026-11-05 |
 
 ## M3-T01 — PoC com `docx` 9.15.1 no Word real
 
@@ -198,7 +198,7 @@ Relatório vivo do marco: cada tarefa M3-Txx acrescenta a sua seção. Plano: `d
 **Limitações**
 - Abre e deixa salvar como arquivo novo; **não substitui o original** por um clique. Para voltar, o autor escolhe o arquivo no "Salvar como…" (R-M2-05, R-M2-06).
 - A lista mostra título e data do conteúdo: duas cópias do mesmo dia só se distinguem pela hora.
-- Sem backups de trabalho aberto com o mesmo id: abrir a cópia enquanto ele está em edição é recusado como "já aberto".
+- Abrir a cópia de um trabalho em edição é recusado como "já aberto" **só depois do primeiro instantâneo dele**; antes disso, a cópia abre (correção da revisão, R-M3-03 em `REVISAO_M3.md`).
 - Edições na cópia aberta não têm recuperação até "Salvar como…" (R-M2-04, M3-T10).
 
 ## M3-T10 — Achados abertos da revisão do M2
@@ -252,3 +252,18 @@ Os testes acharam um defeito meu: dois conjuntos no mesmo segundo, em execuçõe
 - O `.exe` do instalador foi aberto, mas a exportação nele só foi exercitada no artefato de fumaça, equivalente exceto pela marca.
 - Exportação medida no Node; no utilitário, com 150 páginas, não foi medida.
 - Atalho na Área de Trabalho não apareceu no ciclo silencioso e não foi conferido na instalação normal.
+
+## M3-T12 — Revisão independente e fechamento
+
+**Implementação:** sessão principal; revisão por dois agentes independentes, só leitura. Relatório: `docs/relatorios/REVISAO_M3.md`.
+
+- **Corrigido:**
+  - N-M3-01 (Alta): ficha catalográfica deitada, 12,5 × 7,5 cm (Manual, Fig. 6, p. 35).
+  - R-M3-01 (Média): cópia aberta sem instantâneo depois de muito uso.
+  - R-M3-02: espaço de nomes próprio para a cópia aberta.
+  - R-M3-08: comentário fora do lugar.
+- **Testes novos:** 3 em `tests/recuperacao.test.ts`. Ficha corrigida no motor, no exportador e nos 6 instantâneos.
+- **Aguardando o usuário:**
+  - Conferência no Word (DOC-08).
+  - Decisões N-M3-02 a 05, que mudam o documento visível.
+  - R-M3-06: o `.docx.bak` que fica na pasta.

@@ -160,7 +160,7 @@
    "origem": "decisao-usuario-2026-10-15"
   },
   "fichaLarguraCm": {
-   "valor": 7.5,
+   "valor": 12.5,
    "ajustavel": false,
    "rn": [
     "RN-136"
@@ -168,7 +168,7 @@
    "origem": "norma"
   },
   "fichaAlturaCm": {
-   "valor": 12.5,
+   "valor": 7.5,
    "ajustavel": false,
    "rn": [
     "RN-136"

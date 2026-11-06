@@ -28,6 +28,7 @@ import {
   apagarInstantaneos,
   arquivar,
   arquivarInstantaneos,
+  ehReservado,
   gravarInstantaneo,
   gravarTrava,
   IDADE_MINIMA_RESTO_MS,
@@ -38,6 +39,8 @@ import {
   MAX_RESTOS_POR_LISTAGEM,
   NOME_INSTANTANEO,
   NOME_INSTANTANEO_ANTERIOR,
+  nomeConjuntoReservado,
+  ORDEM_MAXIMA_RESERVADO,
   PRAZO_ANTIGOS_MS,
   procurarRestos,
   resumirProjeto,
@@ -1178,6 +1181,36 @@ describe('trabalho sem arquivo tem cópia de recuperação (R-M2-04, R-M2-12)', 
     expect(await p.instantaneo(t, pacote('Y'))).toEqual({ ok: true });
     await expect(p.chamar(CANAIS_RECUPERACAO.fecharSemArquivo, t, 'sim')).rejects.toBeInstanceOf(ErroIpcRecusado);
     await expect(p.chamar(CANAIS_RECUPERACAO.fecharSemArquivo, t)).rejects.toBeInstanceOf(ErroIpcRecusado);
+  });
+
+  it('depois de mais de 100 itens listados, a cópia aberta ainda tem instantâneo (R-M3-01)', async () => {
+    const p = processo();
+    await abrirVersao(p);
+    for (let i = 0; i < 110; i++) await p.listarDescartadas();
+    const [v] = await p.listarDescartadas();
+    const r = await p.abrirDescartada(v!.identificador);
+    if (!r.ok || !r.projeto.copiaRecuperacao) throw new Error('sem cópia');
+    expect(await p.instantaneo(r.projeto.copiaRecuperacao, pacote('Depois de muito uso'))).toEqual({ ok: true });
+  });
+
+  it('duas cópias abertas no mesmo segundo ficam em conjuntos diferentes (R-M3-02)', async () => {
+    const p = processo();
+    const a = await abrirVersao(p);
+    const [v] = await p.listarDescartadas();
+    const r = await p.abrirDescartada(v!.identificador);
+    if (!r.ok || !r.projeto.copiaRecuperacao) throw new Error('sem cópia');
+    expect(await p.instantaneo(a, pacote('A'))).toEqual({ ok: true });
+    expect(await p.instantaneo(r.projeto.copiaRecuperacao, pacote('B'))).toEqual({ ok: true });
+    expect(quedas()).toHaveLength(2);
+  });
+
+  it('nome de conjunto da cópia: espaço próprio, sempre válido, ordem limitada (R-M3-01, R-M3-02)', () => {
+    const t = Date.UTC(2026, 10, 5, 12, 0, 0);
+    const nome = nomeConjuntoReservado(ID_PROJETO, t, ORDEM_MAXIMA_RESERVADO);
+    expect(nome).toMatch(/~\d{8}-\d{6}-c99$/);
+    expect(ehReservado(nome)).toBe(true);
+    expect(() => nomeConjuntoReservado(ID_PROJETO, t, ORDEM_MAXIMA_RESERVADO + 1)).toThrow(RangeError);
+    expect(() => nomeConjuntoReservado(ID_PROJETO, t, 0)).toThrow(RangeError);
   });
 
   it('recuperar queda sem arquivo não deixa o trabalho "já aberto" depois de fechar (R-M2-12)', async () => {

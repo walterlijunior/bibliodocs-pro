@@ -172,9 +172,9 @@ describe('conteúdo', () => {
     // Com as páginas calculadas, o Word não precisa perguntar se atualiza os campos ao abrir (L4).
     expect(/<w:fldChar[^>]*w:dirty="true"/.test(doc())).toBe(false);
   });
-  it('ficha numa caixa de 7,5 × 12,5 cm', () => {
-    expect(doc()).toMatch(/<w:tblW w:type="dxa" w:w="4253"|<w:tblW w:w="4253"/);
-    expect(doc()).toMatch(/<w:trHeight [^>]*w:val="7088"/);
+  it('ficha numa caixa deitada de 12,5 × 7,5 cm (largura × altura; Manual, Fig. 6, p. 35)', () => {
+    expect(doc()).toMatch(/<w:tblW w:type="dxa" w:w="7088"|<w:tblW w:w="7088"/);
+    expect(doc()).toMatch(/<w:trHeight [^>]*w:val="4253"/);
     expect(doc()).toMatch(/<w:trHeight [^>]*w:hRule="exact"/);
     expect(doc()).toContain('Dados da ficha');
   });

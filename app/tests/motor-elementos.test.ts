@@ -106,10 +106,10 @@ describe('folha de rosto e ficha', () => {
       ['rostoLocalAno', 'Palmas, TO\n2026'],
     ]);
   });
-  it('ficha: página própria, no pé, com 7,5 × 12,5 cm (RN-071, RN-135, RN-136)', () => {
+  it('ficha: página própria, no pé, deitada: 12,5 cm de largura × 7,5 cm de altura (RN-071, RN-135, RN-136; Manual, Fig. 6, p. 35)', () => {
     const s = secao(fmt({ preTextuais: pre({ tipo: 'fichaCatalografica', texto: 'Dados' }) }), 'ficha');
     expect(s.alinhamentoVertical).toBe('inferior');
-    expect(s.blocos[0]).toMatchObject({ tipo: 'quadro', larguraTw: 4253, alturaTw: 7088 });
+    expect(s.blocos[0]).toMatchObject({ tipo: 'quadro', larguraTw: 7088, alturaTw: 4253 });
     expect(texto(s.blocos[0]!)).toBe('Dados');
   });
   it('ficha vazia reserva a página e avisa', () => {

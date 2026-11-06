@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-02 — M3-T11 concluído (medidas, instalador, Sobre).
-**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T11 ✔).
+**Última atualização:** 2026-11-05 — M3-T12: revisão independente feita e correções aplicadas; fechamento aguardando o usuário.
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T11 ✔; T12 aguardando o usuário).
 
 ## Etapas
 
@@ -15,17 +15,25 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔, T12 AGUARDANDO USUÁRIO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
-1. Pendente do usuário: arquivo do brasão da UFT (RN-118).
-2. **M3-T12:** revisão independente de T01 a T11 e fechamento do marco.
-3. Conferência manual do usuário no Word, já possível pelo próprio aplicativo (Ctrl+E).
+1. **Pendente do usuário para fechar o M3 (M3-T12):**
+   - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos ou diferença;
+   - decisões N-M3-02 a 05 e R-M3-06 (`docs/relatorios/REVISAO_M3.md`).
+2. Pendente do usuário: arquivo do brasão da UFT (RN-118).
+3. Depois do fechamento: plano do M4.
 4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
+
+## Revisão do M3 (M3-T12, 2026-11-05)
+- Dois revisores independentes, só leitura: segurança e integridade (R-M3) e fidelidade normativa (N-M3).
+- Corrigidos: N-M3-01 (Alta, ficha deitada 12,5 × 7,5 cm), R-M3-01 (Média), R-M3-02 e R-M3-08.
+- Abertos: N-M3-02 a 13, R-M3-03 a 07 e R-M3-09 a 14. R-M3-11 é hipótese de perda de proteção e deve ser reproduzida no próximo incremento que mexer na recuperação.
+- Exportar 150 páginas variou de 6,7 a 10,7 s com a máquina carregada, contra 4,2–4,7 s no M3-T11 (R-M3-13): a folga até a meta de 10 s é pequena.
 
 ## Fatos novos para o M3 [VERIFICADO 2026-11-02]
 - Word 16 instalado e acessível por COM (`Word.Application`): a PoC dizia "Word não disponível". DOC-08 pode ser automatizado em parte.

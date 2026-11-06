@@ -105,6 +105,7 @@ export {
   arquivar,
   copiarParaAntigos,
   nomeConjuntoReservado,
+  ORDEM_MAXIMA_RESERVADO,
   arquivarInstantaneos,
   ehReservado,
   gravarInstantaneo,

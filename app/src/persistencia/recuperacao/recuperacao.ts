@@ -68,8 +68,11 @@ const esquemaTrava = z.strictObject({
 
 export type TravaSessao = Omit<z.infer<typeof esquemaTrava>, 'formato'>;
 
-/** Conjunto reservado: `<id>~AAAAMMDD-HHMMSS` (com `-2`, `-3`… se repetir). O `~` não existe no `PADRAO_ID`. */
-const RE_RESERVADO = /^([A-Za-z0-9_-]{8,64})~\d{8}-\d{6}(-\d{1,2})?$/;
+/**
+ * Conjunto reservado: `<id>~AAAAMMDD-HHMMSS` (com `-2`, `-3`… se repetir), ou `<id>~AAAAMMDD-HHMMSS-cN` para a cópia
+ * aberta sem arquivo (`nomeConjuntoReservado`), em espaço de nomes próprio (R-M3-02). O `~` não existe no `PADRAO_ID`.
+ */
+const RE_RESERVADO = /^([A-Za-z0-9_-]{8,64})~\d{8}-\d{6}(-c?\d{1,2})?$/;
 
 /** Nome de um conjunto de instantâneos: o id do projeto ou um conjunto reservado dele. */
 const idValido = (nome: string) => PADRAO_ID.test(nome) || RE_RESERVADO.test(nome);
@@ -318,8 +321,17 @@ export async function arquivar(
   return null;
 }
 
-/** Nome de conjunto reservado novo: instantâneos que não pertencem a uma sessão de arquivo (R-M2-04). */
-export const nomeConjuntoReservado = (id: string, agoraMs: number, ordem: number): string => `${id}~${carimbo(agoraMs)}-${ordem}`;
+/** Maior `ordem` aceita por `nomeConjuntoReservado` (o nome tem de continuar válido no `RE_RESERVADO`, R-M3-01). */
+export const ORDEM_MAXIMA_RESERVADO = 99;
+
+/**
+ * Nome de conjunto reservado novo: instantâneos que não pertencem a uma sessão de arquivo (R-M2-04). `ordem` vai de 1 a
+ * `ORDEM_MAXIMA_RESERVADO`; fora disso, `RangeError` (um nome inválido deixaria a cópia sem instantâneo, R-M3-01).
+ */
+export const nomeConjuntoReservado = (id: string, agoraMs: number, ordem: number): string => {
+  if (!Number.isInteger(ordem) || ordem < 1 || ordem > ORDEM_MAXIMA_RESERVADO) throw new RangeError('ordem');
+  return `${id}~${carimbo(agoraMs)}-c${ordem}`;
+};
 
 /**
  * Guarda uma cópia em `recuperacao-antigos`, sem tirar o original: o que está para ser substituído por escolha do usuário

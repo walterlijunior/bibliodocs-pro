@@ -5,6 +5,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M3-T12 (revisão do M3): a ficha catalográfica sai deitada, com 12,5 cm de largura por 7,5 cm de altura, como na Fig. 6 do Manual (RN-136); antes saía em pé. A cópia aberta sem arquivo não perde mais o instantâneo de recuperação depois de muitas listagens (R-M3-01), e não divide o conjunto com outra cópia nem com uma queda reservada (R-M3-02).
+
 ### Adicionado
 - Etapa 5, M3-T11: Ajuda › Sobre, com versão e licenças de terceiros (RNF-15); `npm run medir` e `npm run fumaca:exportar`.
 

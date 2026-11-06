@@ -9,10 +9,10 @@ const RAIZ = join(__dirname, '..');
 const DESTINO = join(RAIZ, 'recursos-build', 'TERCEIROS.txt');
 const PREFIXO = 'node_modules/';
 
-/** Licença fora desta lista exige decisão de uma pessoa: o inventário falha em vez de deixar passar. */
 /** Dependências declaradas que só trazem tipos: não vão no pacote (`electron-builder.config.cjs`). */
 const FORA_DO_PACOTE = new Set(['@types/node', 'undici-types']);
 
+/** Licença fora desta lista exige decisão de uma pessoa: o inventário falha em vez de deixar passar. */
 const PERMITIDAS = new Set(['MIT', 'ISC', '0BSD', 'BSD-2-Clause', 'BSD-3-Clause', 'Apache-2.0']);
 
 /** @param {{ packages: Record<string, { version?: string, license?: string, dev?: boolean, devOptional?: boolean }> }} trava */
