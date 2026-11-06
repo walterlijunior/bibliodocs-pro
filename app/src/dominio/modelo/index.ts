@@ -14,7 +14,10 @@ export type {
   BlocoCitacaoLonga,
   BlocoParagrafo,
   BlocoQuebraPagina,
+  Autor,
   Documento,
+  EventoObra,
+  FuncaoResponsavel,
   ElementoPosTextual,
   ElementoPosTextualId,
   ElementoPreTextual,
@@ -22,6 +25,7 @@ export type {
   Id,
   IdiomaResumo,
   Inline,
+  InlineCitacao,
   InlineDeNota,
   InlineDeTitulo,
   InlineNota,
@@ -30,8 +34,12 @@ export type {
   MarcaTexto,
   MembroBanca,
   Metadados,
+  Obra,
+  ObraCitada,
+  ObraNoTodo,
   PessoaTitulada,
   Secao,
+  TipoObra,
   TipoTrabalhoId,
   TipoTrabalhoUft,
 } from './tipos';
@@ -49,6 +57,7 @@ export {
   type ProblemaElementos,
 } from './elementos';
 export { conteudosDoBloco, idsDoBloco } from './percorrer';
+export { citacoesDoDocumento, FUNCOES_RESPONSAVEL, TIPOS_OBRA } from './obras';
 export { textoPlano } from './texto-plano';
 export {
   alturaSecao,

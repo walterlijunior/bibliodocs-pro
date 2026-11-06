@@ -5,6 +5,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M4-T01: obras da bibliografia e citações ligadas a elas no formato v1, de modo aditivo, com citação sem obra recusada na leitura. Ainda sem tela: cadastro no M4-T06 e inserção no M4-T07.
+
 ### Corrigido
 - Etapa 5, M3-T12 (revisão do M3): a ficha catalográfica sai deitada, com 12,5 cm de largura por 7,5 cm de altura, como na Fig. 6 do Manual (RN-136); antes saía em pé. A cópia aberta sem arquivo não perde mais o instantâneo de recuperação depois de muitas listagens (R-M3-01), e não divide o conjunto com outra cópia nem com uma queda reservada (R-M3-02).
 - Etapa 5, M3-T12: exportar por cima de um `.docx` não deixa mais um `.docx.bak` na pasta (decisão do usuário).

@@ -35,6 +35,10 @@ export const LIMITES_V1 = {
   campoCurto: 2_000,
   palavrasChave: 50,
   membrosBanca: 30,
+  /** Obras da bibliografia, autores por obra e obras numa mesma chamada (M4-T01). */
+  obras: 5_000,
+  autoresPorObra: 100,
+  obrasPorCitacao: 50,
   /** Campos curtos: versões, ids de perfil. */
   textoCurto: 64,
   /** Erros listados por validação; o restante é resumido. */

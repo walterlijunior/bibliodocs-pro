@@ -125,6 +125,19 @@ const nos: Record<string, NodeSpec> = {
     parseDOM: [{ tag: 'span.bd-nota', getAttrs: idDoElemento }],
     toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-nota', no), 0],
   },
+
+  /**
+   * Chamada de citação (M4-T01): folha atômica que guarda a ligação com as obras em `dados` (JSON do `InlineCitacao` sem
+   * o id). Ainda sem `parseDOM`: colar nunca cria citação, porque a obra pode não existir neste trabalho; inserir e
+   * mostrar a chamada formatada chegam no M4-T07.
+   */
+  chamadaCitacao: {
+    group: 'inline',
+    inline: true,
+    atom: true,
+    attrs: { ...atributoId, dados: { validate: 'string' } },
+    toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-citacao', no), 'citação'],
+  },
 };
 
 const marcas: Record<MarcaTexto, MarkSpec> = {
@@ -157,4 +170,5 @@ export const PREFIXO_ID: Readonly<Record<string, string>> = {
   citacaoLonga: 'cit',
   quebraPagina: 'qbr',
   nota: 'nta',
+  chamadaCitacao: 'cta',
 };

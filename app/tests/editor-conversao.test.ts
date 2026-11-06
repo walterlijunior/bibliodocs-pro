@@ -54,6 +54,7 @@ const conteudo = (s: Secao): ConteudoSecao => ({ titulo: s.titulo, blocos: s.blo
 const DOCUMENTOS: [string, Documento, boolean][] = [
   ['documento-valido.json', lerDocumento('documento-valido.json'), true],
   ['documento-bordas-m2.json', lerDocumento('documento-bordas-m2.json'), true],
+  ['documento-bordas-m4.json', lerDocumento('documento-bordas-m4.json'), true],
   ['documento grande (20 páginas)', gerarDocumentoGrande({ paginas: 20, midias: 0 }).pacote.documento, false],
 ];
 
@@ -264,7 +265,8 @@ describe('EDT — toDOM só com classes e data-* (CSP; ADR-0007, seção 2)', ()
     const amostras: [string, DOMOutputSpec][] = [];
     for (const [nome, tipo] of Object.entries(esquemaEditor.nodes)) {
       if (!tipo.spec.toDOM) continue;
-      const no: NoPm = tipo.createAndFill(nome in PREFIXO_ID ? { id: 'par_amostra01' } : null)!;
+      const attrs = nome === 'chamadaCitacao' ? { id: 'cta_amostra01', dados: '{}' } : nome in PREFIXO_ID ? { id: 'par_amostra01' } : null;
+      const no: NoPm = tipo.createAndFill(attrs)!;
       amostras.push([nome, tipo.spec.toDOM(no)]);
     }
     for (const [nome, tipo] of Object.entries(esquemaEditor.marks)) {

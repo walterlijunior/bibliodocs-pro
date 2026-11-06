@@ -6,7 +6,7 @@
  * As restrições que o JSON Schema não expressa estão em `RESTRICOES_SO_NO_CODIGO`.
  */
 import { z } from 'zod';
-import { TIPOS_TRABALHO } from '../modelo';
+import { FUNCOES_RESPONSAVEL, TIPOS_OBRA, TIPOS_TRABALHO } from '../modelo';
 import { LIMITES_V1 } from './limites';
 
 export const VERSAO_FORMATO_ATUAL = 1;
@@ -58,9 +58,14 @@ export const esquemaInlineTexto = z
  * da validação).
  */
 function conteudoSoTexto(mensagemNota: string) {
-  const ehNota = (v: unknown) => typeof v === 'object' && v !== null && (v as { tipo?: unknown }).tipo === 'nota';
+  const tipoDe = (v: unknown) => (typeof v === 'object' && v !== null ? (v as { tipo?: unknown }).tipo : undefined);
   const trecho = z.discriminatedUnion('tipo', [esquemaInlineTexto], {
-    error: (issue) => (ehNota(issue.input) ? mensagemNota : undefined),
+    error: (issue) => {
+      const tipo = tipoDe(issue.input);
+      if (tipo === 'nota') return mensagemNota;
+      if (tipo === 'citacao') return 'citação não é permitida aqui: só no texto corrido';
+      return undefined;
+    },
   });
   return z.array(trecho).max(LIMITES_V1.inlinesPorConteudo);
 }
@@ -73,7 +78,30 @@ export const esquemaInlineNota = z
   .strictObject({ tipo: z.literal('nota'), id, conteudo: conteudoSoTexto('nota de rodapé não pode conter outra nota') })
   .meta({ id: 'InlineNota' });
 
-export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota]).meta({ id: 'Inline' });
+const paginaCitada = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[0-9A-Za-z][0-9A-Za-z .,–-]*$/, { error: 'página inválida: use números, letras e "-" (ex.: 27 ou 27-29)' });
+
+export const esquemaObraCitada = z
+  .strictObject({ obra: id, pagina: paginaCitada.optional(), semPaginacao: z.literal(true).optional() })
+  .refine((o) => !(o.pagina !== undefined && o.semPaginacao), { error: 'página e "sem paginação" não podem ser usados juntos' })
+  .meta({ id: 'ObraCitada' });
+
+/** Chamada de citação ligada às obras (M4-T01; RN-077 a RN-099); só no texto corrido, por enquanto não em nota. */
+export const esquemaInlineCitacao = z
+  .strictObject({
+    tipo: z.literal('citacao'),
+    id,
+    forma: z.enum(['parentetica', 'narrativa']),
+    obras: z.array(esquemaObraCitada).min(1, { error: 'a citação precisa de pelo menos uma obra' }).max(LIMITES_V1.obrasPorCitacao),
+    apud: esquemaObraCitada.optional(),
+    grifo: z.enum(['nosso', 'doAutor']).optional(),
+  })
+  .meta({ id: 'InlineCitacao' });
+
+export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao]).meta({ id: 'Inline' });
 
 const conteudoInline = z.array(esquemaInline).max(LIMITES_V1.inlinesPorConteudo);
 
@@ -167,6 +195,58 @@ export const esquemaElementoPosTextual = z
 
 const pessoaTitulada = z.strictObject({ nome: campoCurto.optional(), titulacao: campoCurto.optional() });
 
+const tituloObra = conteudoTitulo.min(1, { error: 'o título da obra não pode ficar vazio' });
+export const esquemaAutor = z
+  .discriminatedUnion('tipo', [
+    z.strictObject({ tipo: z.literal('pessoa'), sobrenome: campoCurto, prenomes: campoCurto.optional() }),
+    z.strictObject({ tipo: z.literal('entidade'), nome: campoCurto }),
+  ])
+  .meta({ id: 'Autor' });
+const autores = z.array(esquemaAutor).min(1).max(LIMITES_V1.autoresPorObra);
+const funcao = z.enum(FUNCOES_RESPONSAVEL);
+const inteiro = (maximo: number) => z.int().min(1).max(maximo);
+
+/** Obra da bibliografia (M4-T01; `Obra` em `dominio/modelo`): campos de todos os tipos, todos opcionais menos o título. */
+export const esquemaObra = z
+  .strictObject({
+    id,
+    tipo: z.enum(TIPOS_OBRA),
+    autores: autores.optional(),
+    funcao: funcao.optional(),
+    titulo: tituloObra,
+    subtitulo: conteudoTitulo.min(1).optional(),
+    edicao: inteiro(999).optional(),
+    traducao: campoCurto.optional(),
+    local: campoCurto.optional(),
+    editora: campoCurto.optional(),
+    ano: inteiro(9999).optional(),
+    anoIncerto: z.enum(['provavel', 'naoImpresso']).optional(),
+    paginas: campoCurto.optional(),
+    folhas: inteiro(1_000_000).optional(),
+    volume: campoCurto.optional(),
+    numero: campoCurto.optional(),
+    ebook: z.literal(true).optional(),
+    noTodo: z
+      .strictObject({ autores: autores.optional(), funcao: funcao.optional(), titulo: tituloObra, subtitulo: conteudoTitulo.min(1).optional() })
+      .optional(),
+    periodico: campoCurto.optional(),
+    secao: campoCurto.optional(),
+    dataPublicacao: campoCurto.optional(),
+    evento: z.strictObject({ nome: campoCurto, numero: inteiro(10_000).optional(), ano: inteiro(9999).optional(), local: campoCurto.optional() }).optional(),
+    natureza: campoCurto.optional(),
+    instituicao: campoCurto.optional(),
+    programa: campoCurto.optional(),
+    jurisdicao: campoCurto.optional(),
+    identificacao: campoCurto.optional(),
+    ementa: campoLongo.optional(),
+    publicacao: campoCurto.optional(),
+    url: campoCurto.regex(/^https?:\/\/\S+$/, { error: 'endereço inválido: use http:// ou https://' }).optional(),
+    acesso: z.iso.date({ error: 'data de acesso inválida: use AAAA-MM-DD' }).optional(),
+    doi: campoCurto.optional(),
+  })
+  .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
+  .meta({ id: 'Obra' });
+
 export const esquemaDocumentoV1 = z.strictObject({
   id,
   tipoTrabalho: esquemaTipoTrabalho,
@@ -189,6 +269,7 @@ export const esquemaDocumentoV1 = z.strictObject({
   preTextuais: z.array(esquemaElementoPreTextual).min(1).max(LIMITES_V1.elementosPreTextuais).optional(),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),
   posTextuais: z.array(esquemaElementoPosTextual).min(1).max(LIMITES_V1.elementosPosTextuais).optional(),
+  obras: z.array(esquemaObra).min(1, { error: 'lista de obras vazia: omita o campo quando não houver obras' }).max(LIMITES_V1.obras).optional(),
 });
 
 // ---------- manifesto.json ----------
@@ -248,7 +329,9 @@ export const RESTRICOES_SO_NO_CODIGO = [
   'maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo)',
   'caminho da mídia coerente com sha256 e tipo',
   'sha256 único na lista de mídias do manifesto',
-  'ids únicos no documento (elementos pré e pós-textuais, seções, blocos e notas)',
+  'ids únicos no documento (elementos pré e pós-textuais, seções, blocos, notas, citações e obras)',
+  'toda obra citada (e a do apud) existe na lista de obras',
+  'obra citada não tem página e "sem paginação" juntos; ano incerto só com ano',
   'elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico',
   'sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas)',
 ] as const;

@@ -1,0 +1,140 @@
+{
+  "descricao": "Lista de obras vazia",
+  "erros": [
+    {
+      "caminho": "documento.obras",
+      "mensagem": "lista de obras vazia: omita o campo quando não houver obras"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM4",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M4"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM401",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Citações"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_bordm4001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Segundo "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4001",
+                "forma": "narrativa",
+                "obras": [
+                  {
+                    "obra": "obr_livro0001",
+                    "pagina": "27-29"
+                  }
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": ", há "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4002",
+                "forma": "parentetica",
+                "obras": [
+                  {
+                    "obra": "obr_capitul01"
+                  },
+                  {
+                    "obra": "obr_academi01",
+                    "semPaginacao": true
+                  }
+                ],
+                "grifo": "nosso"
+              },
+              {
+                "tipo": "texto",
+                "texto": "."
+              }
+            ]
+          },
+          {
+            "tipo": "citacaoLonga",
+            "id": "cit_bordm4001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Texto longo. "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4003",
+                "forma": "parentetica",
+                "obras": [
+                  {
+                    "obra": "obr_periodi01",
+                    "pagina": "12"
+                  }
+                ],
+                "apud": {
+                  "obra": "obr_evento001",
+                  "pagina": "5"
+                }
+              }
+            ]
+          },
+          {
+            "tipo": "alineas",
+            "id": "aln_bordm4001",
+            "itens": [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "citacao",
+                    "id": "cta_bordm4004",
+                    "forma": "parentetica",
+                    "obras": [
+                      {
+                        "obra": "obr_jornal01"
+                      }
+                    ],
+                    "grifo": "doAutor"
+                  }
+                ],
+                "subalineas": [
+                  [
+                    {
+                      "tipo": "citacao",
+                      "id": "cta_bordm4005",
+                      "forma": "narrativa",
+                      "obras": [
+                        {
+                          "obra": "obr_norma0001"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ],
+    "obras": []
+  }
+}

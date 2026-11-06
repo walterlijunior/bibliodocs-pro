@@ -25,7 +25,7 @@ const colar = (html: string) => lerHtmlColado(lerHtmlMinimo(html), sequencial())
 
 /** Texto visível de um conteúdo, com as notas entre colchetes. */
 const plano = (c: readonly Inline[]): string =>
-  c.map((i) => (i.tipo === 'texto' ? i.texto : `[${plano(i.conteudo)}]`)).join('');
+  c.map((i) => (i.tipo === 'texto' ? i.texto : i.tipo === 'nota' ? `[${plano(i.conteudo)}]` : '{citação}')).join('');
 
 /** Resumo legível dos blocos: tipo e texto (alíneas com as subalíneas). */
 function resumo(blocos: readonly Bloco[]): string[] {

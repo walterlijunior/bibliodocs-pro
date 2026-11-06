@@ -44,12 +44,36 @@ export interface InlineNota {
   conteudo: InlineDeNota[];
 }
 
-/** Trecho do texto corrido. */
-export type Inline = InlineTexto | InlineNota;
+/** Obra citada e o ponto citado: página ou intervalo ("27", "27-29"), ou documento sem paginação (D-M4-04). */
+export interface ObraCitada {
+  obra: Id;
+  pagina?: string;
+  semPaginacao?: true;
+}
 
 /**
- * Trecho do conteúdo de uma nota: tudo menos outra nota. Hoje só texto; o M4 (citação) e o M6 (remissiva, sigla)
- * alargam aqui e em `esquemaInlineNota`.
+ * Chamada de citação no ponto do texto (RF-07; RN-077 a RN-099; M4-T01). Guarda só a ligação com a obra, nunca o texto
+ * da chamada: mudar o ano da obra muda todas as chamadas. Toda obra citada existe em `Documento.obras` (validado na
+ * leitura), então não existe citação sem obra. Várias obras na mesma chamada: `obras` com mais de uma (RN-096).
+ */
+export interface InlineCitacao {
+  tipo: 'citacao';
+  id: Id;
+  /** `parentetica`: (SOBRENOME, ano, p. X); `narrativa`: Sobrenome (ano, p. X) (RN-083). */
+  forma: 'parentetica' | 'narrativa';
+  obras: ObraCitada[];
+  /** Citação de citação: `obras` é o original, `apud` a obra consultada (RN-098). */
+  apud?: ObraCitada;
+  /** RN-090. */
+  grifo?: 'nosso' | 'doAutor';
+}
+
+/** Trecho do texto corrido. */
+export type Inline = InlineTexto | InlineNota | InlineCitacao;
+
+/**
+ * Trecho do conteúdo de uma nota: tudo menos outra nota. Hoje só texto: citação dentro de nota espera o editor de nota
+ * guardar mais que texto (M4-T07); o M6 (remissiva, sigla) também alarga aqui e em `esquemaInlineNota`.
  */
 export type InlineDeNota = InlineTexto;
 
@@ -193,6 +217,97 @@ export interface Metadados {
   bolsista?: true;
 }
 
+/**
+ * Tipos de obra da primeira leva (D-M4-06). Os padrões de cada um estão no Manual, 5.19 (RN-189 a RN-223); os demais
+ * tipos do 5.19 chegam numa segunda leva.
+ */
+export type TipoObra =
+  | 'livro'
+  | 'capitulo'
+  | 'trabalhoAcademico'
+  | 'artigoPeriodico'
+  | 'trabalhoEvento'
+  | 'artigoJornal'
+  | 'norma'
+  | 'legislacao'
+  | 'documentoOnline';
+
+/** Autor pessoal (RN-180, RN-181: "Filho", "Neto" fazem parte do sobrenome) ou entidade (RN-187). */
+export type Autor = { tipo: 'pessoa'; sobrenome: string; prenomes?: string } | { tipo: 'entidade'; nome: string };
+
+/** Função do responsável por obra coletiva (RN-186): (org.), (coord.), (ed.), (comp.). */
+export type FuncaoResponsavel = 'org' | 'coord' | 'ed' | 'comp';
+
+/** Obra no todo, de que a parte faz parte (capítulo, verbete: RN-200 a RN-203). */
+export interface ObraNoTodo {
+  autores?: Autor[];
+  funcao?: FuncaoResponsavel;
+  titulo: InlineDeTitulo[];
+  subtitulo?: InlineDeTitulo[];
+}
+
+/** Evento em que o trabalho foi apresentado (RN-207, RN-209). */
+export interface EventoObra {
+  nome: string;
+  numero?: number;
+  ano?: number;
+  local?: string;
+}
+
+/**
+ * Obra da bibliografia do trabalho (RF-08; M4-T01). Campos de todos os tipos num registro só: cada tipo usa os seus
+ * (tabela no formatador, M4-T02), e o que falta vira aviso, não recusa. Sem texto formatado: a referência é sempre
+ * gerada. Campo vazio fica ausente.
+ */
+export interface Obra {
+  id: Id;
+  tipo: TipoObra;
+  /** Sem autoria: entrada pelo título (RN-179, RN-199). */
+  autores?: Autor[];
+  funcao?: FuncaoResponsavel;
+  /** Com marcas: nome científico em itálico, por exemplo. */
+  titulo: InlineDeTitulo[];
+  subtitulo?: InlineDeTitulo[];
+  /** A 1.ª edição é omitida na referência (D-M4-05). */
+  edicao?: number;
+  /** Nome de quem traduziu (RN-204). */
+  traducao?: string;
+  local?: string;
+  editora?: string;
+  ano?: number;
+  /** `provavel`: "[2016?]"; `naoImpresso`: "[2016]" (D-M4-04, D-M4-05). */
+  anoIncerto?: 'provavel' | 'naoImpresso';
+  /** Total ("192 p.") ou intervalo da parte ("15-30"). */
+  paginas?: string;
+  /** Trabalho acadêmico: "222 f." (D-M4-05). */
+  folhas?: number;
+  volume?: string;
+  numero?: string;
+  /** RN-191. */
+  ebook?: true;
+  noTodo?: ObraNoTodo;
+  /** Título do periódico ou do jornal (RN-212, RN-215). */
+  periodico?: string;
+  /** Seção ou caderno do jornal (RN-215). */
+  secao?: string;
+  /** Data da publicação do jornal ou do fascículo, como no documento ("12 maio 2020"). */
+  dataPublicacao?: string;
+  evento?: EventoObra;
+  /** Trabalho acadêmico (RN-206): natureza com grau e área, instituição e programa (C-B15). */
+  natureza?: string;
+  instituicao?: string;
+  programa?: string;
+  /** Norma e legislação (RN-222, RN-223): jurisdição ou entidade, número, ementa e onde foi publicada. */
+  jurisdicao?: string;
+  identificacao?: string;
+  ementa?: string;
+  publicacao?: string;
+  /** Documento on-line (RN-189). `acesso` em AAAA-MM-DD. */
+  url?: string;
+  acesso?: string;
+  doi?: string;
+}
+
 export interface Documento {
   id: Id;
   tipoTrabalho: TipoTrabalhoId;
@@ -204,4 +319,6 @@ export interface Documento {
   preTextuais?: ElementoPreTextual[];
   corpo: Secao[];
   posTextuais?: ElementoPosTextual[];
+  /** Obras da bibliografia (M4-T01). Ausente quando não há obra (a lista vazia é recusada na leitura). */
+  obras?: Obra[];
 }

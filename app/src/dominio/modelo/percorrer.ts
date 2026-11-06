@@ -17,11 +17,11 @@ export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
   }
 }
 
-/** O id do bloco seguido dos ids das notas, na ordem de leitura (com repetição, se houver). */
+/** O id do bloco seguido dos ids das notas e das citações, na ordem de leitura (com repetição, se houver). */
 export function idsDoBloco(bloco: Bloco): Id[] {
   const ids = [bloco.id];
   for (const conteudo of conteudosDoBloco(bloco)) {
-    for (const inline of conteudo) if (inline.tipo === 'nota') ids.push(inline.id);
+    for (const inline of conteudo) if (inline.tipo === 'nota' || inline.tipo === 'citacao') ids.push(inline.id);
   }
   return ids;
 }

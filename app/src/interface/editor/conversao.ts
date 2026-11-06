@@ -18,6 +18,7 @@ import type {
   Inline,
   InlineDeNota,
   InlineDeTitulo,
+  InlineCitacao,
   InlineTexto,
   ItemAlinea,
   MarcaTexto,
@@ -74,6 +75,10 @@ export function normalizarConteudo(conteudo: readonly Inline[]): Inline[] {
   for (const i of conteudo) {
     if (i.tipo === 'nota') {
       saida.push({ tipo: 'nota', id: i.id, conteudo: normalizarConteudo(i.conteudo) });
+      continue;
+    }
+    if (i.tipo === 'citacao') {
+      saida.push(i);
       continue;
     }
     const valor = i.texto.replace(CARACTERES_FORA_DO_XML, '');
@@ -134,6 +139,11 @@ function inlinesParaNos(conteudo: readonly Inline[]): NoPm[] {
   for (const i of conteudo) {
     if (i.tipo === 'nota') {
       nos.push(tipos['nota']!.create({ id: i.id }, inlinesParaNos(i.conteudo)));
+      continue;
+    }
+    if (i.tipo === 'citacao') {
+      const { id, tipo: _tipo, ...dados } = i;
+      nos.push(tipos['chamadaCitacao']!.create({ id, dados: JSON.stringify(dados) }));
       continue;
     }
     const marcas = marcasPm(i.marcas);
@@ -209,6 +219,7 @@ function nosParaInlines(pai: NoPm): Inline[] {
     if (no.isText) bruto.push(texto(no.text ?? '', marcasDe(no)));
     else if (no.type === tipos['quebraLinha']) bruto.push(texto('\n', marcasDe(no)));
     else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: soTexto(nosParaInlines(no)) });
+    else if (no.type === tipos['chamadaCitacao']) bruto.push({ ...(JSON.parse(String(no.attrs['dados'])) as Omit<InlineCitacao, 'tipo' | 'id'>), tipo: 'citacao', id: idDe(no) });
   });
   return normalizarConteudo(bruto);
 }

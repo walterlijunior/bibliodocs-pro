@@ -3,7 +3,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { conteudosDoBloco, idsDoBloco, inserirSecao, textoPlano, type Bloco, type Documento, type InlineTexto, type Secao } from '../src/dominio/modelo';
+import { citacoesDoDocumento, conteudosDoBloco, idsDoBloco, inserirSecao, textoPlano, TIPOS_OBRA, type Bloco, type Documento, type Inline, type InlineTexto, type Secao } from '../src/dominio/modelo';
+import { PERFIL_UFT_2022 } from '../src/aplicacao/perfil-padrao';
+import { formatar } from '../src/dominio/normas';
 import { rotuloAlinea } from '../src/dominio/numeracao';
 import { descreverErros, LIMITES_V1, validarDocumentoV1, type ErroValidacao, type Manifesto } from '../src/dominio/esquemas';
 import { empacotarProjeto, lerProjeto } from '../src/persistencia';
@@ -17,7 +19,7 @@ interface FixtureInvalida {
   documento: unknown;
 }
 
-const VALIDAS = ['documento-valido.json', 'documento-bordas-m2.json'];
+const VALIDAS = ['documento-valido.json', 'documento-bordas-m2.json', 'documento-bordas-m4.json'];
 const INVALIDAS = readdirSync(join(pastaFixtures, 'invalidos'))
   .filter((n) => n.endsWith('.json'))
   .sort();
@@ -45,7 +47,7 @@ describe('fixtures válidas do M2', () => {
         pilha.push(...s.subsecoes);
       }
     }
-    expect([...tipos].sort()).toEqual(['alineas', 'citacaoLonga', 'nota', 'paragrafo', 'quebraPagina', 'subalinea', 'texto']);
+    expect([...tipos].sort()).toEqual(['alineas', 'citacao', 'citacaoLonga', 'nota', 'paragrafo', 'quebraPagina', 'subalinea', 'texto']);
   });
 
   it.each(VALIDAS)('%s: empacotar → ler (.bdp) devolve o documento idêntico', (nome) => {
@@ -178,5 +180,30 @@ describe('operações de seção conferem os ids das notas', () => {
   it('inserir seção com notas de ids novos é aceito', () => {
     const r = inserirSecao([comNota('sec_existente', 'nta_comum001')], comNota('sec_novaaaaa', 'nta_outra001'), { paiId: null, indice: 1 });
     expect(r.ok).toBe(true);
+  });
+});
+
+describe('obras e citações no modelo (M4-T01)', () => {
+  const doc = lerJson<Documento>('documento-bordas-m4.json');
+
+  it('as citações saem em ordem de leitura, inclusive em citação longa, alínea e subalínea', () => {
+    expect(citacoesDoDocumento(doc).map((c) => c.id)).toEqual(['cta_bordm4001', 'cta_bordm4002', 'cta_bordm4003', 'cta_bordm4004', 'cta_bordm4005']);
+  });
+
+  it('a fixture tem uma obra de cada tipo da primeira leva (D-M4-06)', () => {
+    expect((doc.obras ?? []).map((o) => o.tipo)).toEqual([...TIPOS_OBRA]);
+  });
+
+  it('o id da citação conta como id do bloco nas operações de seção', () => {
+    expect(idsDoBloco(doc.corpo[0]!.blocos[0]!)).toEqual(['par_bordm4001', 'cta_bordm4001', 'cta_bordm4002']);
+  });
+
+  it('o texto simples deixa a chamada de fora, como a nota', () => {
+    expect(textoPlano((doc.corpo[0]!.blocos[0] as { conteudo: Inline[] }).conteudo)).toBe('Segundo , há .');
+  });
+
+  it('o motor não deixa a citação sumir em silêncio enquanto a chamada não é formatada (até o M4-T03)', () => {
+    const f = formatar(doc, PERFIL_UFT_2022);
+    expect(f.avisos.filter((a) => a.codigo === 'CITACAO_ADIADA').map((a) => a.id)).toEqual(['cta_bordm4001', 'cta_bordm4002', 'cta_bordm4003', 'cta_bordm4004', 'cta_bordm4005']);
   });
 });

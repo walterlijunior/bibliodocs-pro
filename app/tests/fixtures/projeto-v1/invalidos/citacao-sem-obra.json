@@ -1,0 +1,347 @@
+{
+  "descricao": "Citação que aponta para obra fora da bibliografia",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].conteudo[1].obras[0].obra",
+      "mensagem": "a citação aponta para uma obra que não está na bibliografia"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM4",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M4"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM401",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Citações"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "paragrafo",
+            "id": "par_bordm4001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Segundo "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4001",
+                "forma": "narrativa",
+                "obras": [
+                  {
+                    "obra": "obr_naoexiste",
+                    "pagina": "27-29"
+                  }
+                ]
+              },
+              {
+                "tipo": "texto",
+                "texto": ", há "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4002",
+                "forma": "parentetica",
+                "obras": [
+                  {
+                    "obra": "obr_capitul01"
+                  },
+                  {
+                    "obra": "obr_academi01",
+                    "semPaginacao": true
+                  }
+                ],
+                "grifo": "nosso"
+              },
+              {
+                "tipo": "texto",
+                "texto": "."
+              }
+            ]
+          },
+          {
+            "tipo": "citacaoLonga",
+            "id": "cit_bordm4001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "Texto longo. "
+              },
+              {
+                "tipo": "citacao",
+                "id": "cta_bordm4003",
+                "forma": "parentetica",
+                "obras": [
+                  {
+                    "obra": "obr_periodi01",
+                    "pagina": "12"
+                  }
+                ],
+                "apud": {
+                  "obra": "obr_evento001",
+                  "pagina": "5"
+                }
+              }
+            ]
+          },
+          {
+            "tipo": "alineas",
+            "id": "aln_bordm4001",
+            "itens": [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "citacao",
+                    "id": "cta_bordm4004",
+                    "forma": "parentetica",
+                    "obras": [
+                      {
+                        "obra": "obr_jornal01"
+                      }
+                    ],
+                    "grifo": "doAutor"
+                  }
+                ],
+                "subalineas": [
+                  [
+                    {
+                      "tipo": "citacao",
+                      "id": "cta_bordm4005",
+                      "forma": "narrativa",
+                      "obras": [
+                        {
+                          "obra": "obr_norma0001"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ],
+    "obras": [
+      {
+        "id": "obr_livro0001",
+        "tipo": "livro",
+        "autores": [
+          {
+            "tipo": "pessoa",
+            "sobrenome": "SILVA NETO",
+            "prenomes": "João"
+          },
+          {
+            "tipo": "pessoa",
+            "sobrenome": "Souza",
+            "prenomes": "A. B."
+          }
+        ],
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Estudo de "
+          },
+          {
+            "tipo": "texto",
+            "texto": "Caryocar brasiliense",
+            "marcas": [
+              "italico"
+            ]
+          }
+        ],
+        "subtitulo": [
+          {
+            "tipo": "texto",
+            "texto": "um caso"
+          }
+        ],
+        "edicao": 2,
+        "traducao": "Ana Lima",
+        "local": "Palmas",
+        "editora": "EDUFT",
+        "ano": 2016,
+        "anoIncerto": "provavel",
+        "paginas": "192",
+        "ebook": true
+      },
+      {
+        "id": "obr_capitul01",
+        "tipo": "capitulo",
+        "autores": [
+          {
+            "tipo": "pessoa",
+            "sobrenome": "Lima",
+            "prenomes": "Bia"
+          }
+        ],
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Capítulo"
+          }
+        ],
+        "local": "São Paulo",
+        "editora": "Ática",
+        "ano": 2010,
+        "paginas": "15-30",
+        "noTodo": {
+          "autores": [
+            {
+              "tipo": "pessoa",
+              "sobrenome": "Costa",
+              "prenomes": "Rui"
+            }
+          ],
+          "funcao": "org",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Coletânea"
+            }
+          ]
+        }
+      },
+      {
+        "id": "obr_academi01",
+        "tipo": "trabalhoAcademico",
+        "autores": [
+          {
+            "tipo": "pessoa",
+            "sobrenome": "Pereira Júnior",
+            "prenomes": "Carlos"
+          }
+        ],
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Dissertação"
+          }
+        ],
+        "local": "Palmas",
+        "ano": 2014,
+        "folhas": 222,
+        "natureza": "Dissertação (Mestrado em Educação)",
+        "instituicao": "Universidade Federal do Tocantins",
+        "programa": "Programa de Pós-Graduação em Educação"
+      },
+      {
+        "id": "obr_periodi01",
+        "tipo": "artigoPeriodico",
+        "autores": [
+          {
+            "tipo": "entidade",
+            "nome": "UNIVERSIDADE FEDERAL DO TOCANTINS"
+          }
+        ],
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Artigo"
+          }
+        ],
+        "local": "Palmas",
+        "ano": 2020,
+        "paginas": "10-20",
+        "volume": "3",
+        "numero": "2",
+        "periodico": "Revista Exemplo",
+        "url": "https://exemplo.org/a",
+        "acesso": "2026-11-05",
+        "doi": "10.1000/xyz"
+      },
+      {
+        "id": "obr_evento001",
+        "tipo": "trabalhoEvento",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Trabalho"
+          }
+        ],
+        "ano": 2020,
+        "anoIncerto": "naoImpresso",
+        "evento": {
+          "nome": "CONGRESSO DE EXEMPLO",
+          "numero": 1,
+          "ano": 2020,
+          "local": "Palmas"
+        }
+      },
+      {
+        "id": "obr_jornal01",
+        "tipo": "artigoJornal",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Notícia"
+          }
+        ],
+        "paginas": "3",
+        "periodico": "Jornal do Tocantins",
+        "secao": "Cidades",
+        "dataPublicacao": "12 maio 2020"
+      },
+      {
+        "id": "obr_norma0001",
+        "tipo": "norma",
+        "autores": [
+          {
+            "tipo": "entidade",
+            "nome": "ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS"
+          }
+        ],
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Informação e documentação"
+          }
+        ],
+        "local": "Rio de Janeiro",
+        "editora": "ABNT",
+        "ano": 2018,
+        "identificacao": "NBR 6023"
+      },
+      {
+        "id": "obr_legisla01",
+        "tipo": "legislacao",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Lei n.º 9.610"
+          }
+        ],
+        "ano": 1998,
+        "jurisdicao": "BRASIL",
+        "ementa": "Altera, atualiza e consolida a legislação sobre direitos autorais.",
+        "publicacao": "Diário Oficial da União"
+      },
+      {
+        "id": "obr_online001",
+        "tipo": "documentoOnline",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Página"
+          }
+        ],
+        "url": "http://exemplo.org",
+        "acesso": "2026-01-31"
+      }
+    ]
+  }
+}

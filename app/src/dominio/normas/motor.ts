@@ -254,6 +254,11 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
     conteudo.flatMap((i): TrechoFormatado[] => {
       if (i.tipo === 'texto') return [{ tipo: 'texto', texto: i.texto, marcas: i.marcas ?? [] }];
+      // A chamada formatada chega no M4-T03; até lá a citação não some em silêncio.
+      if (i.tipo === 'citacao') {
+        avisos.push({ codigo: 'CITACAO_ADIADA', id: i.id, mensagem: 'As chamadas de citação chegam numa versão seguinte: esta ainda não foi exportada.' });
+        return [];
+      }
       // Nota vazia não vira `w:footnote` vazia nem conta na numeração (ADR-0007, B6): sai só com aviso.
       if (textoVazio(i.conteudo)) {
         avisos.push({ codigo: 'NOTA_VAZIA', id: i.id, mensagem: 'Nota de rodapé sem texto: não foi exportada.' });

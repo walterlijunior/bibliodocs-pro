@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:bibliodocs:esquemas:projeto-v1:documento",
   "title": "BiblioDocs Pro — documento.json (formato v1)",
-  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (elementos pré e pós-textuais, seções, blocos e notas); elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico; sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
+  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (elementos pré e pós-textuais, seções, blocos, notas, citações e obras); toda obra citada (e a do apud) existe na lista de obras; obra citada não tem página e \"sem paginação\" juntos; ano incerto só com ano; elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico; sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
   "type": "object",
   "properties": {
     "id": {
@@ -167,6 +167,14 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/ElementoPosTextual"
+      }
+    },
+    "obras": {
+      "minItems": 1,
+      "maxItems": 5000,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Obra"
       }
     }
   },
@@ -738,6 +746,9 @@
         },
         {
           "$ref": "#/$defs/InlineNota"
+        },
+        {
+          "$ref": "#/$defs/InlineCitacao"
         }
       ]
     },
@@ -768,6 +779,74 @@
         "tipo",
         "id",
         "conteudo"
+      ],
+      "additionalProperties": false
+    },
+    "InlineCitacao": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "citacao"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "forma": {
+          "type": "string",
+          "enum": [
+            "parentetica",
+            "narrativa"
+          ]
+        },
+        "obras": {
+          "minItems": 1,
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObraCitada"
+          }
+        },
+        "apud": {
+          "$ref": "#/$defs/ObraCitada"
+        },
+        "grifo": {
+          "type": "string",
+          "enum": [
+            "nosso",
+            "doAutor"
+          ]
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
+        "forma",
+        "obras"
+      ],
+      "additionalProperties": false
+    },
+    "ObraCitada": {
+      "type": "object",
+      "properties": {
+        "obra": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "pagina": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z .,–-]*$"
+        },
+        "semPaginacao": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "obra"
       ],
       "additionalProperties": false
     },
@@ -900,6 +979,353 @@
           "required": [
             "tipo",
             "id"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Obra": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "livro",
+            "capitulo",
+            "trabalhoAcademico",
+            "artigoPeriodico",
+            "trabalhoEvento",
+            "artigoJornal",
+            "norma",
+            "legislacao",
+            "documentoOnline"
+          ]
+        },
+        "autores": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Autor"
+          }
+        },
+        "funcao": {
+          "type": "string",
+          "enum": [
+            "org",
+            "coord",
+            "ed",
+            "comp"
+          ]
+        },
+        "titulo": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "subtitulo": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "edicao": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 999
+        },
+        "traducao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "local": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "editora": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "ano": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999
+        },
+        "anoIncerto": {
+          "type": "string",
+          "enum": [
+            "provavel",
+            "naoImpresso"
+          ]
+        },
+        "paginas": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "folhas": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "volume": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "numero": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "ebook": {
+          "type": "boolean",
+          "const": true
+        },
+        "noTodo": {
+          "type": "object",
+          "properties": {
+            "autores": {
+              "minItems": 1,
+              "maxItems": 100,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Autor"
+              }
+            },
+            "funcao": {
+              "type": "string",
+              "enum": [
+                "org",
+                "coord",
+                "ed",
+                "comp"
+              ]
+            },
+            "titulo": {
+              "minItems": 1,
+              "maxItems": 10000,
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/InlineTexto"
+                  }
+                ]
+              }
+            },
+            "subtitulo": {
+              "minItems": 1,
+              "maxItems": 10000,
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/InlineTexto"
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "titulo"
+          ],
+          "additionalProperties": false
+        },
+        "periodico": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "secao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "dataPublicacao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "evento": {
+          "type": "object",
+          "properties": {
+            "nome": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "numero": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "ano": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9999
+            },
+            "local": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "nome"
+          ],
+          "additionalProperties": false
+        },
+        "natureza": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "instituicao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "programa": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "jurisdicao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "identificacao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "ementa": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "publicacao": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "allOf": [
+            {
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            {
+              "pattern": "^https?:\\/\\/\\S+$"
+            }
+          ]
+        },
+        "acesso": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+        },
+        "doi": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        }
+      },
+      "required": [
+        "id",
+        "tipo",
+        "titulo"
+      ],
+      "additionalProperties": false
+    },
+    "Autor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "pessoa"
+            },
+            "sobrenome": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "prenomes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "sobrenome"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
+              "const": "entidade"
+            },
+            "nome": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            }
+          },
+          "required": [
+            "tipo",
+            "nome"
           ],
           "additionalProperties": false
         }

@@ -229,7 +229,7 @@ class Leitor {
       if (aparado === '') conteudo.pop();
       else conteudo[conteudo.length - 1] = { ...ultimo, texto: aparado };
     }
-    const temAlgo = conteudo.some((i) => i.tipo === 'nota' || i.texto.replace(/[\s\u00a0]/g, '') !== '');
+    const temAlgo = conteudo.some((i) => i.tipo !== 'texto' || i.texto.replace(/[\s\u00a0]/g, '') !== '');
     if (temAlgo) this.linhas.push({ tipo: linha.tipo, conteudo });
   }
 

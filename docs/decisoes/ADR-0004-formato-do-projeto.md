@@ -627,3 +627,36 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
 - O intervalo vem dos nomes na pasta, então vale depois de reiniciar. Data futura (relógio mudado) não trava os novos.
 - `Salvar como` não faz backup: o que seria sobrescrito pode ser de outro projeto.
 - Excluir o trabalho mantém `backups\<id>\`.
+
+## Adendo do M4-T01 (2026-11-05) — obras e citações no formato v1
+
+- **Desvio da seção 1:** as obras ficam em `documento.json` (`obras`, opcional; lista vazia recusada), e não em
+  `bibliografia.json`.
+  - Um arquivo novo no `.bdp` teria de passar pelo contêiner, pelo pacote transferível do IPC, pelos instantâneos de
+    recuperação e pelos backups. O documento já passa por todos eles.
+  - A citação e a obra ficam no mesmo JSON, então a integridade entre as duas é conferida numa validação só.
+  - `bibliografia.json` continua recusado sem ser descomprimido, e o nome fica reservado para siglas e demais coleções
+    (M6), se precisarem.
+- **Aditivo:** arquivo v1 sem `obras` e sem citação abre igual. O formato continua v1, como nos adendos do M2.
+- **Obra:** um registro com os campos de todos os tipos da primeira leva (D-M4-06), todos opcionais menos `id`, `tipo`
+  e `titulo`.
+  - O título e o subtítulo são `InlineDeTitulo[]`, para guardar o itálico de nome científico.
+  - Não há texto formatado: a referência é sempre gerada. O que falta para o tipo vira aviso do formatador (M4-T02),
+    não recusa na leitura.
+  - Isso permite importar BibTeX e RIS incompletos (M4-T09) sem perder o registro.
+- **Citação:** `Inline` novo, `{ tipo: 'citacao', id, forma, obras: [{ obra, pagina? | semPaginacao? }], apud?, grifo? }`.
+  - Guarda a ligação e nunca o texto da chamada: mudar o ano da obra muda todas as chamadas (aceite do RF-07).
+- **Integridade (só no código):**
+  - ids de citação e de obra entram na conferência de ids únicos;
+  - toda obra citada e a do `apud` existe em `obras`, e assim não existe citação sem obra;
+  - página e "sem paginação" não andam juntos; ano incerto só com ano.
+- **Limites:** 5.000 obras, 100 autores por obra e 50 obras por chamada.
+- **Onde a citação é aceita:** só no texto corrido (parágrafo, citação longa, alínea e subalínea).
+  - Em título, recusada com mensagem própria.
+  - Em nota de rodapé, também recusada por enquanto: o editor de nota guarda só texto e a apagaria. Alargar junto com
+    o editor (M4-T07).
+- **Consumidores:**
+  - O editor guarda a citação num nó atômico `chamadaCitacao`, com os dados em JSON, e a ida e volta é exata (fixture
+    `documento-bordas-m4.json`).
+  - O nó não tem `parseDOM`: colar não cria citação, porque a obra pode não existir no trabalho de destino.
+  - O motor avisa `CITACAO_ADIADA` até o M4-T03. O texto simples deixa a chamada de fora, como a nota.

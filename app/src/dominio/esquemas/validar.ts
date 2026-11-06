@@ -88,38 +88,51 @@ const MENSAGENS_ELEMENTOS = {
   repeticoesDemais: 'apêndices ou anexos demais',
 } as const;
 
-/**
- * Primeiro id de elemento, seção, bloco ou nota repetido no documento, em ordem de leitura (pré-textuais, corpo,
- * pós-textuais) e sem recursão.
- */
-function idRepetido(doc: Documento): readonly PropertyKey[] | null {
-  const vistos = new Set<string>();
-  for (const [i, e] of (doc.preTextuais ?? []).entries()) {
-    if (vistos.has(e.id)) return ['preTextuais', i, 'id'];
-    vistos.add(e.id);
-  }
-  const corpo = doc.corpo;
+/** Seções, blocos e trechos do corpo em ordem de leitura, com o caminho de cada um, sem recursão. */
+function* percorrerCorpo(corpo: readonly Secao[]): Generator<
+  { tipo: 'secao'; id: string; caminho: PropertyKey[] } | { tipo: 'bloco'; id: string; caminho: PropertyKey[] } | { tipo: 'inline'; inline: Inline; caminho: PropertyKey[] }
+> {
   const pilha: { s: Secao; caminho: PropertyKey[] }[] = corpo.map((s, i) => ({ s, caminho: ['corpo', i] })).reverse();
   while (pilha.length > 0) {
     const { s, caminho } = pilha.pop()!;
-    if (vistos.has(s.id)) return [...caminho, 'id'];
-    vistos.add(s.id);
+    yield { tipo: 'secao', id: s.id, caminho };
     for (const [i, b] of s.blocos.entries()) {
-      if (vistos.has(b.id)) return [...caminho, 'blocos', i, 'id'];
-      vistos.add(b.id);
+      yield { tipo: 'bloco', id: b.id, caminho: [...caminho, 'blocos', i] };
       for (const c of conteudosComCaminho(b)) {
-        for (const [k, inline] of c.conteudo.entries()) {
-          if (inline.tipo !== 'nota') continue;
-          if (vistos.has(inline.id)) return [...caminho, 'blocos', i, ...c.caminho, k, 'id'];
-          vistos.add(inline.id);
-        }
+        for (const [k, inline] of c.conteudo.entries()) yield { tipo: 'inline', inline, caminho: [...caminho, 'blocos', i, ...c.caminho, k] };
       }
     }
     for (let i = s.subsecoes.length - 1; i >= 0; i--) pilha.push({ s: s.subsecoes[i]!, caminho: [...caminho, 'subsecoes', i] });
   }
-  for (const [i, e] of (doc.posTextuais ?? []).entries()) {
-    if (vistos.has(e.id)) return ['posTextuais', i, 'id'];
-    vistos.add(e.id);
+}
+
+/**
+ * Primeiro id de elemento, seção, bloco, nota, citação ou obra repetido no documento, em ordem de leitura
+ * (pré-textuais, corpo, pós-textuais, obras) e sem recursão.
+ */
+function idRepetido(doc: Documento): readonly PropertyKey[] | null {
+  const vistos = new Set<string>();
+  const novo = (id: string) => (vistos.has(id) ? false : (vistos.add(id), true));
+  for (const [i, e] of (doc.preTextuais ?? []).entries()) if (!novo(e.id)) return ['preTextuais', i, 'id'];
+  for (const p of percorrerCorpo(doc.corpo)) {
+    if (p.tipo !== 'inline') {
+      if (!novo(p.id)) return [...p.caminho, 'id'];
+    } else if (p.inline.tipo !== 'texto' && !novo(p.inline.id)) return [...p.caminho, 'id'];
+  }
+  for (const [i, e] of (doc.posTextuais ?? []).entries()) if (!novo(e.id)) return ['posTextuais', i, 'id'];
+  for (const [i, o] of (doc.obras ?? []).entries()) if (!novo(o.id)) return ['obras', i, 'id'];
+  return null;
+}
+
+/** Primeira citação que aponta para obra fora de `obras` (RF-07: não existe citação sem obra). */
+function citacaoSemObra(doc: Documento): readonly PropertyKey[] | null {
+  const obras = new Set((doc.obras ?? []).map((o) => o.id));
+  for (const p of percorrerCorpo(doc.corpo)) {
+    if (p.tipo !== 'inline' || p.inline.tipo !== 'citacao') continue;
+    const c = p.inline;
+    const k = c.obras.findIndex((o) => !obras.has(o.obra));
+    if (k >= 0) return [...p.caminho, 'obras', k, 'obra'];
+    if (c.apud && !obras.has(c.apud.obra)) return [...p.caminho, 'apud', 'obra'];
   }
   return null;
 }
@@ -153,6 +166,10 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
   const repetido = idRepetido(r.valor);
   if (repetido) {
     return { ok: false, erros: [{ caminho: formatarCaminho('documento', repetido), mensagem: 'identificador repetido no documento' }] };
+  }
+  const semObra = citacaoSemObra(r.valor);
+  if (semObra) {
+    return { ok: false, erros: [{ caminho: formatarCaminho('documento', semObra), mensagem: 'a citação aponta para uma obra que não está na bibliografia' }] };
   }
   return r;
 }
