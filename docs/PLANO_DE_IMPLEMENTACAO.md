@@ -138,7 +138,7 @@ página; listas de ilustrações, siglas e remissivas ficam no M6, e tabelas, fi
 ### M4 — Citações e referências
 **Aceite:** RF-07, RF-08; verificador de órfãs/não citadas.
 
-#### Tarefas do M4 (proposta de 2026-11-05; aguarda as decisões do M4-T00)
+#### Tarefas do M4 (2026-11-05; decisões D-M4 na matriz)
 Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro.
 - **Base normativa:** Manual, cap. 3 (citações, RN-077 a 103) e 5.19 (referências, RN-175 a 229), quase tudo
   `CONFIRMADA`. Lacunas: RN-085 e RN-094 a 097 (NBR 10520) e PF-09, de (a) a (j) (NBR 6023), que o projeto não tem.
@@ -147,7 +147,7 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 
 | ID | Tarefa | Agente | Depende | Critério de aceite | Verificação |
 |---|---|---|---|---|---|
-| M4-T00 | Decisões do usuário: NBRs disponíveis; P-11, P-12, P-14, P-15; PF-09 (a)–(j); tipos da primeira leva | usuário + especialista-normas | — | Cada decisão na matriz como parâmetro de perfil ou PENDENTE-FONTE provisória | Revisão da matriz |
+| M4-T00 ✔ | Decisões do usuário: NBRs disponíveis; P-11, P-12, P-14, P-15; PF-09 (a)–(j); tipos da primeira leva | usuário + especialista-normas | — | Cada decisão na matriz como parâmetro de perfil ou PENDENTE-FONTE provisória | Revisão da matriz |
 | M4-T01 | Adendo ao ADR-0004: `bibliografia.json` no `.bdp` (aditivo; arquivo antigo abre sem ele); modelo de obra tipado (pessoas, entidade, título, edição, local, editora, ano, páginas, volume, número, URL, acesso, DOI) e de chamada (obra, localizador, forma, apud) | arquiteto-software + especialista-referencias | T00 | Esquema estrito; v1 sem bibliografia abre igual; teste de ida e volta | `npm run verificar` |
 | M4-T02 | Domínio: formatadores puros obra → trechos com destaque, por tipo, cada elemento com a RN; datas e meses (RN-190); autores (RN-180 a 187); ordenação pt-BR com desempate (RN-176, PF-09 g) | especialista-referencias | T01 | Tabela entrada → saída esperada → página do Manual para cada tipo | `npm run verificar` |
 | M4-T03 | Domínio: chamadas (RN-077 a 099) parentética e narrativa, página, apud, entrada pelo título, sufixo a/b; perfil 2002 e opção 2023 provisória (C-01) | especialista-referencias | T01 | Mudar o ano da obra muda todas as chamadas (aceite do RF-07); chamada sem obra não existe no modelo | `npm run verificar` |

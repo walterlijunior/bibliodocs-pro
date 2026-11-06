@@ -25,7 +25,7 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 1. **Pendente do usuário para fechar o M3 (M3-T12):**
    - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos (o espaço entre títulos seguidos, N-M3-07, já foi medido no Word por automação e não dobra).
 2. Pendente do usuário: arquivo do brasão da UFT (RN-118).
-3. **M4-T00:** plano do M4 proposto em `docs/PLANO_DE_IMPLEMENTACAO.md` (2026-11-05). Aguarda as decisões do usuário: NBR 10520 e NBR 6023 disponíveis? P-11, P-12, P-14, P-15, PF-09 (a)–(j) e tipos de obra da primeira leva.
+3. **M4:** plano em `docs/PLANO_DE_IMPLEMENTACAO.md`. M4-T00 ✔ (decisões D-M4-01 a 07 na matriz, 2026-11-05, "siga as recomendações"; NBR 10520 e 6023 não disponíveis, tudo provisório). Próximo: **M4-T01** (adendo ao ADR-0004, `bibliografia.json` e modelo de obra e chamada).
 4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Revisão do M3 (M3-T12, 2026-11-05)
