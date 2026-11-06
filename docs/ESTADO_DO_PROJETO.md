@@ -23,7 +23,7 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 
 ## Próximo passo
 1. **Pendente do usuário para fechar o M3 (M3-T12):**
-   - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos ou dois títulos seguidos com espaço demais (N-M3-07).
+   - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos (o espaço entre títulos seguidos, N-M3-07, já foi medido no Word por automação e não dobra).
 2. Pendente do usuário: arquivo do brasão da UFT (RN-118).
 3. Depois do fechamento: plano do M4.
 4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.

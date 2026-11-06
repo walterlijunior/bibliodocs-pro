@@ -60,7 +60,8 @@ As decisões são a D-M3-10 a 12 na matriz.
 | N-M3-04 | Média | RN-158 / PF-06 | "Palabras clave" e "Mots-clés" estão fixos no código como definitivos. O Manual só mostra "Keywords:" | Passar para o perfil como provisórios, com aviso |
 | N-M3-05 | Média | RN-026 | A subalínea usa travessão "–" fixo no código. O texto do Manual diz "travessão", mas o exemplo da p. 16 usa hífen, e não há decisão registrada | Decidir o sinal e levá-lo para o perfil |
 | N-M3-06 | Baixa | RN-027 | O traço da subalínea fica a 2,25 cm. No exemplo, ele fica alinhado ao texto da alínea, a cerca de 2,0 cm | Considerar 2,0 cm ao confirmar os valores provisórios |
-| N-M3-07 | Baixa | RN-033 | 18 pt antes e depois de cada título: dois títulos seguidos podem somar duas linhas [HIPÓTESE] | Conferir no Word, junto com o DOC-08 |
+| N-M3-07 | Baixa | RN-033 | 18 pt antes e depois de cada título: dois títulos seguidos poderiam somar duas linhas | **Refutado no Word 16 (2026-11-05, automação COM).** Título 2 seguido de título 3: 39 pt entre os topos (linha de 21 pt + 18 pt); título seguido de texto: 38,4 pt. O espaço não dobra |
+| N-M3-14 | Baixa | RN-008, D-M3-02 | [VERIFICADO no Word 16] O primeiro título da parte textual começa 18 pt abaixo da margem (topo a 103,2 pt), e os capítulos seguintes começam na margem (85,2 pt). O Word mantém o espaço antes depois de uma quebra de seção e o descarta depois de uma quebra de página | Aberto. Uniformizar no M6: sem espaço antes no título que abre página, ou o mesmo nos dois casos |
 | N-M3-08 | Baixa | RN-171 | O "justificado" da anotação da Fig. 16 não está no sumário | Já previsto em PF-08 e no M6 |
 | N-M3-09 | Baixa | RN-140/143 | Redação fixa ("Data de aprovação:", "Banca examinadora") difere em detalhe da Fig. 7 (exemplo) | Uniformizar com a figura |
 | N-M3-10 | Baixa | RN-034 | O estilo das referências não separa uma referência da outra por linha simples (2.6 f) | No M4 (referências) |
