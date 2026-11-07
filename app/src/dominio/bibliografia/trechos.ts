@@ -15,7 +15,10 @@ export type CodigoAvisoReferencia =
   | 'ANO_AUSENTE'
   | 'ACESSO_AUSENTE'
   | 'URL_AUSENTE'
-  | 'TIPO_SEM_FORMATADOR';
+  | 'TIPO_SEM_FORMATADOR'
+  | 'OBRA_INEXISTENTE'
+  | 'SOBRENOME_E_ANO_REPETIDOS'
+  | 'NARRATIVA_COM_VARIAS_OBRAS';
 
 export interface AvisoReferencia {
   codigo: CodigoAvisoReferencia;

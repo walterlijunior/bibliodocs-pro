@@ -7,6 +7,7 @@ Relatório vivo do marco: cada tarefa M4-Txx acrescenta a sua seção. Plano: `d
 | M4-T00 Decisões D-M4-01 a 07 | CONCLUÍDA | 2026-11-05 |
 | M4-T01 Obras e citações no formato | CONCLUÍDA | 2026-11-05 |
 | M4-T02 Formatadores de referência (base e livro) | CONCLUÍDA | 2026-11-07 |
+| M4-T03 Chamadas de citação | CONCLUÍDA | 2026-11-07 |
 
 ## M4-T00 — Decisões
 
@@ -70,3 +71,34 @@ O usuário aceitou as recomendações ("siga as recomendações", 2026-11-05). C
 - Na primeira rodada, `tests/recuperacao.test.ts` (R-M2-09) falhou. A data fixa do teste, 2026-10-30, venceu os 7 dias de Versões descartadas em 2026-11-06. O código não regrediu: o teste passou a usar uma data de dois dias atrás.
 - No `verificar:tudo`, 20 de 21 E2E passaram. O de desempenho mediu pico de memória de 814 MB, com meta abaixo de 800. Repetido sozinho duas vezes, passou com 781 e 775 MB. A interface não importa `bibliografia`. É a instabilidade da medida do R46, e a folga ficou pequena.
 - `npm audit` mostra 7 avisos moderados novos (`minimatch`, `fast-uri`), todos na cadeia do `electron-builder`. Com `--omit=dev` dá 0 vulnerabilidades, e ficam no R35.
+
+## M4-T03 — Chamadas de citação
+
+**Implementação:** sessão principal, em `app/src/dominio/bibliografia/chamadas.ts`, sem dependência nova. **Sem revisão independente:** fica para o M4-T10.
+
+**Código**
+- `formatarChamada(citacao, contexto, opcoes)` devolve trechos com a RN de origem e avisos. A chamada é gerada da obra a cada vez, então mudar o ano ou o autor muda todas as chamadas (aceite do RF-07).
+- Formas:
+  - parentética (SOBRENOME, ano, p. X) e narrativa Sobrenome (ano, p. X) (RN-082, RN-083);
+  - apud com a página das duas obras, sem itálico (RN-098); na narrativa, a obra consultada fica dentro dos parênteses, em maiúsculas (RN-099);
+  - grifo dentro dos parênteses, depois da página (RN-090);
+  - entrada pelo título, "(ANTEPROJETO..., 1987, p. 55)": artigo ou monossílabo inicial leva a palavra seguinte (RN-091).
+- Decisões provisórias:
+  - "; " entre autores na parentética; mais de três, *et al.* (D-M4-02);
+  - várias obras com "; " e sufixos a, b iguais aos da referência (D-M4-03);
+  - "[2016?]" e "não paginado" (D-M4-04).
+- `contextoDeChamadas(obras)` calcula uma vez por documento os sufixos e as obras cujas chamadas sairiam iguais sem serem do mesmo autor, que geram o aviso `SOBRENOME_E_ANO_REPETIDOS` (D-M4-03).
+- Perfil: `edicaoNbr10520` vale "2002" por padrão, como o Manual (C-01). "2023" é opção provisória: caixa mista também nos parênteses, com a origem C-01. A ligação ao perfil fica para o M4-T05.
+
+**Testes:** `tests/bibliografia-chamadas.test.ts`, com 32 casos. Os 12 exemplos das p. 22–26 do Manual saem iguais. Também cobre as decisões D-M4-02 a 04, C-01 (2002 e 2023), entrada pelo título, RF-07 e obra ausente.
+
+**Escolhas sem exemplo no Manual (provisórias, para a revisão do M4-T10)**
+- Três autores na narrativa: "Lima, Costa e Souza (2010)". O Manual só mostra dois ("Aranha e Martins").
+- Narrativa com várias obras: cada obra com o seu ano, separadas por "; ", e aviso `NARRATIVA_COM_VARIAS_OBRAS`.
+- Obra sem ano: a chamada sai sem data, "(LIMA, p. 5)", com aviso. D-M4-04 só trata a data provável.
+- Sobrenome digitado todo em maiúsculas desce na narrativa ("SILVA NETO" → "Silva Neto", com "da", "de", "do" minúsculas). Digitado em caixa mista fica como está. Nome de entidade fica como digitado na narrativa, para siglas como ABNT não descerem.
+- Monossílabo reconhecido por ter um só grupo de vogais, o que erra em hiatos curtos ("Rio").
+- Volume na chamada, "(CANDIDO, 1993, v. 2, p. 12)", p. 23: não há campo de volume em `ObraCitada`. Fica para quando o editor de citação existir (M4-T07).
+- A pontuação final em volta da chamada (D-M4-01) depende do texto do usuário. Fica para o motor (M4-T05) ou o verificador (M4-T08).
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1549 testes unitários, 27 externos e 21 de 21 E2E. O pico de memória foi de 744 MB.

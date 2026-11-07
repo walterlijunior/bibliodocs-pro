@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T03: chamadas de citação no domínio, geradas da obra a cada vez:
+  - parentética e narrativa, apud, grifo, entrada pelo título, várias obras e sufixos a/b;
+  - perfil 2002 como padrão e opção 2023 provisória.
+
+  Ainda sem mudança visível.
 - Etapa 5, M4-T02: formatador de referência no domínio. A referência sai em trechos com destaque e a RN de cada elemento. Autores, meses, ano incerto, ordenação pt-BR com desempate e sufixos a/b. Por enquanto só o livro; os demais tipos avisam até o M4-T04. Ainda sem mudança visível.
 - Etapa 5, M4-T01: obras da bibliografia e citações ligadas a elas no formato v1, de modo aditivo, com citação sem obra recusada na leitura. Ainda sem tela: cadastro no M4-T06 e inserção no M4-T07.
 
