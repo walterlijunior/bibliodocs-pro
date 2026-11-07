@@ -395,3 +395,86 @@ Recomendação aceita pelo usuário em 2026-11-07 ("siga as recomendações").
 - D-M4-10 é provisória: aguarda a revisão do usuário.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1673 testes unitários, 27 externos e 24 de 24 E2E. O pico de memória foi de 760 MB.
+
+## M4-T09 — Importação de BibTeX e RIS
+
+**Implementação:** sessão principal, sem delegar. **Sem revisão independente:** fica para o M4-T10, que inclui a segurança da importação.
+
+**Decisão técnica (recomendação aceita, 2026-11-07):** leitor próprio, sem biblioteca nova, para os campos usados pelos tipos da primeira leva.
+
+**Leitor** (`dominio/bibliografia/importacao.ts`, puro)
+
+| BibTeX | RIS | Tipo |
+|---|---|---|
+| book | BOOK, EBOOK (e-book), EDBOOK | livro |
+| inbook, incollection | CHAP, ECHAP | capítulo |
+| phdthesis ("Tese (Doutorado)"), mastersthesis ("Dissertação (Mestrado)"), thesis | THES (natureza do M3) | trabalho acadêmico |
+| article | JOUR, EJOUR, JFULL | artigo de periódico |
+| inproceedings, conference | CONF, CPAPER | trabalho em evento |
+| — | NEWS | artigo de jornal |
+| standard | STAND | norma |
+| online, electronic, www, misc com url | ELEC, WEB, BLOG | documento on-line |
+
+- Os outros tipos (techreport, manual, RPRT…) ficam como não suportados, sem formatador na primeira leva (D-M4-06), e não são importados.
+- Os campos sem lugar no modelo, ou sem lugar no tipo, são listados como "ficou de fora".
+
+**Como o arquivo é lido**
+- Autores: "Sobrenome, Prenomes", "Prenomes Sobrenome" ou "Sobrenome, Jr, Prenomes".
+  - Filho, Júnior, Neto e Sobrinho ficam com o sobrenome (RN-181).
+  - A partícula fica nos prenomes (RN-180).
+  - Nome inteiro entre chaves no BibTeX é entidade (RN-187).
+  - "and others" vira aviso.
+- O "editor" do BibTeX e os campos A2/ED do RIS viram a função "(ed.)" (RN-186), a tradução literal. Livro só com editores entra por eles. O usuário troca para "(org.)" no cadastro, se for o caso.
+- Título: o primeiro ": " separa o subtítulo.
+- Acentos e símbolos do LaTeX viram caracteres.
+- `pagetotal` vira "191 p." no livro e folhas no trabalho acadêmico.
+- Páginas "10--20" viram "10-20".
+- O DOI perde o "https://doi.org/".
+- `urldate` e Y2 viram a data de acesso.
+- O RIS junta SP e EP nas páginas e tira o ano de "2003///".
+- Inproceedings sem `eventtitle`: o nome do evento vem do `booktitle`, com aviso para conferir.
+
+**Limites do arquivo, que vem de fora**
+- Até 4 MB, lido como UTF-8. Se não for UTF-8 válido, o arquivo é lido como Windows-1252, com aviso.
+- Até 2 milhões de caracteres e 2.000 registros.
+- Até 32 níveis de chaves aninhadas.
+- Uma entrada mal formada é pulada com aviso, e a leitura continua na próxima "@".
+
+O texto só entra no modelo pela validação do esquema v1 (`validarObra`), e a tela mostra tudo como texto.
+
+**Aplicação e tela**
+- `prepararImportacao` põe cada registro na forma única do cadastro e valida. Ela também marca as duplicadas: as obras com mesmo título, ano e primeiro sobrenome que já estão no trabalho ou repetem um registro anterior, sem distinguir acentos e maiúsculas.
+- `SessaoTrabalho.importarObras` inclui as obras num passo só do Ctrl+Z. As que passaram a ser citadas não saem pelo desfazer.
+- O botão "Importar BibTeX ou RIS…" da Bibliografia abre a janela "Importar obras". Ela mostra cada registro com:
+  - a referência formatada;
+  - o que impede gravar;
+  - os avisos;
+  - o que ficou de fora do arquivo.
+- Vêm marcadas as obras válidas que ainda não estão no trabalho. O botão diz quantas entram ("Importar 3 obras").
+
+**Testes**
+- `tests/importacao-bibliografia.test.ts`, com 12 casos:
+  - os arquivos `tests/fixtures/importacao/exemplo.bib` e `exemplo.ris`;
+  - referências de cada tipo e o que ficou de fora;
+  - tipo não suportado e entrada quebrada;
+  - acentos do LaTeX e autores;
+  - livro só com editores e ano fora do padrão;
+  - registro RIS sem ER;
+  - formato não reconhecido, chaves aninhadas demais e limite de registros;
+  - duplicadas;
+  - importação na sessão com um Ctrl+Z e recusa das inválidas.
+- E2E FUN-15 (`e2e/importacao.spec.ts`):
+  - a janela com 5 registros, 1 desativado, e o que ficou de fora;
+  - desmarcar um e importar 3;
+  - um Ctrl+Z tira as 3 e o Ctrl+Y devolve;
+  - o mesmo arquivo de novo vem com as duplicadas desmarcadas;
+  - salvar grava as obras.
+- axe na janela de importação.
+
+**Limitações**
+- Itálico dentro do título (`\textit{…}`) chega como texto simples.
+- O BibTeX com `crossref` não herda os campos da entrada referida.
+- O mês do periódico é ignorado: o artigo usa só o ano.
+- Os arquivos de exemplo são fictícios. Falta conferir exportações reais do Zotero e do Mendeley, de preferência em arquivos do usuário.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1685 testes unitários, 27 externos e 25 de 25 E2E. O pico de memória foi de 778 MB. O `npm audit` continua com os mesmos 7 avisos moderados da cadeia do electron-builder (R35), nenhum alto.

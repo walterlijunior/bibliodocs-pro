@@ -22,7 +22,12 @@ export type InversoElemento = { acao: 'retirar'; id: Id } | { acao: 'incluir'; e
  * Incluir e excluir obra da bibliografia (M4-T06). Como nos elementos, a edição dos campos usa o desfazer do próprio
  * campo; só a obra entra ou sai. `posicao` devolve a obra ao mesmo lugar da lista gravada.
  */
-export type InversoObra = { acao: 'retirar'; id: Id } | { acao: 'incluir'; obra: Obra; posicao: number };
+export type InversoObra =
+  | { acao: 'retirar'; id: Id }
+  | { acao: 'incluir'; obra: Obra; posicao: number }
+  /** Importação (M4-T09): várias obras num passo só. */
+  | { acao: 'retirarVarias'; ids: Id[] }
+  | { acao: 'incluirVarias'; obras: { obra: Obra; posicao: number }[] };
 
 export type EntradaHistorico =
   | { tipo: 'texto'; secaoId: Id }

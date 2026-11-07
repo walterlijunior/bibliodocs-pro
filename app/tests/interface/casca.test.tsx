@@ -194,7 +194,7 @@ describe('aba Escrever (M1-T11)', () => {
       ocupado: false,
       aoAlterarTitulo: nada,
       elementos: { alterarDados: nada, alterarSubtitulo: nada, alterar: nada, incluir: () => null, retirar: () => false },
-      obras: { incluir: () => ({ ok: false, mensagem: '' }), alterar: () => ({ ok: false, mensagem: '' }), excluir: () => ({ ok: false, mensagem: '' }), verificar: () => [] },
+      obras: { incluir: () => ({ ok: false, mensagem: '' }), alterar: () => ({ ok: false, mensagem: '' }), excluir: () => ({ ok: false, mensagem: '' }), verificar: () => [], importar: () => ({ ok: false, mensagem: '' }) },
       aoSalvar: nada,
       aoFechar: nada,
       aoAcao: nada,

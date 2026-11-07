@@ -5,9 +5,9 @@
 // de `useEstrutura`, acima da aba. M2-T08: a lista dos elementos pré-textuais e o formulário do escolhido, no lugar do
 // editor da seção. M4-T06: a bibliografia (lista das obras e o formulário da obra, também no lugar do editor). M4-T07: a
 // janela da citação, pedida pelo editor. M4-T08: a conferência da bibliografia, no lugar do editor, com "Ir ao texto" e
-// "Abrir obra". Texto sempre como texto (nunca HTML).
+// "Abrir obra". M4-T09: importar BibTeX ou RIS, com a janela que mostra o que entra. Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { formatadorDeChamadas, reconhecerChamadasEscritas, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
+import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecerChamadasEscritas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
@@ -16,6 +16,7 @@ import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
 import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
+import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
@@ -68,6 +69,8 @@ export interface PropsAreaEscrever {
     excluir: (id: string) => ResultadoObra;
     /** Conferência da bibliografia do trabalho aberto (M4-T08). */
     verificar: () => readonly ProblemaBibliografia[];
+    /** Importação (M4-T09): inclui as obras num passo só do desfazer. */
+    importar: (obras: readonly Obra[]) => { ok: true; ids: string[]; recusadas: number } | { ok: false; mensagem: string };
   };
   /** O formulário de um elemento está no lugar do editor: o menu Inserir › Nota de rodapé fica desativado. */
   aoMudarFormulario?: (aberto: boolean) => void;
@@ -109,6 +112,29 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   // Conferência da bibliografia (M4-T08) no lugar do editor, e o ponto do texto a mostrar depois de "Ir ao texto".
   const [conferencia, setConferencia] = useState<readonly ProblemaBibliografia[] | null>(null);
   const [irAoTexto, setIrAoTexto] = useState<Extract<LocalProblema, { tipo: 'texto' }> | null>(null);
+  // Importação (M4-T09): o arquivo lido, à espera da escolha do usuário.
+  const [importacao, setImportacao] = useState<{ nomeArquivo: string; previa: PreviaImportacao; aviso: string | null } | null>(null);
+  const obrasAtuais = t?.obras;
+  const lerArquivoImportado = useCallback(
+    async (arquivo: File) => {
+      if (arquivo.size > LIMITE_BYTES_IMPORTACAO) {
+        setAnuncioObra(`“${arquivo.name}” é grande demais para importar (limite de ${LIMITE_BYTES_IMPORTACAO / 1024 / 1024} MB).`);
+        return;
+      }
+      const bytes = new Uint8Array(await arquivo.arrayBuffer());
+      let texto: string;
+      let aviso: string | null = null;
+      try {
+        texto = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      } catch {
+        texto = new TextDecoder('windows-1252').decode(bytes);
+        aviso = 'O arquivo não está em UTF-8: foi lido como Windows-1252. Confira os acentos.';
+      }
+      setAnuncioObra(null);
+      setImportacao({ nomeArquivo: arquivo.name, previa: prepararImportacao(texto, (obrasAtuais ?? []).map((o) => o.obra)), aviso });
+    },
+    [obrasAtuais],
+  );
   const ativaId = e.ativa?.id ?? null;
   useEffect(() => {
     setElementoId(null);
@@ -287,6 +313,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             setConferencia(null);
             setObraAberta({ id });
           }}
+          aoImportar={(arquivo) => void lerArquivoImportado(arquivo)}
           aoConferir={() => {
             setElementoId(null);
             setObraAberta(null);
@@ -301,6 +328,23 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           }}
           aoHistorico={e.historico}
         />
+        {importacao !== null && (
+          <DialogoImportacao
+            nomeArquivo={importacao.nomeArquivo}
+            previa={importacao.previa}
+            avisoArquivo={importacao.aviso}
+            aoFechar={() => setImportacao(null)}
+            aoImportar={(itens: readonly ItemImportacao[]) => {
+              setImportacao(null);
+              const r = p.obras.importar(itens.flatMap((i) => (i.obra ? [i.obra] : [])));
+              if (!r.ok) setAnuncioObra(r.mensagem);
+              else {
+                const n = r.ids.length;
+                setAnuncioObra(`${n === 1 ? '1 obra importada' : `${n} obras importadas`}${r.recusadas > 0 ? ` (${r.recusadas} recusada${r.recusadas === 1 ? '' : 's'})` : ''}. Ctrl+Z desfaz.`);
+              }
+            }}
+          />
+        )}
         </div>
 
         <section

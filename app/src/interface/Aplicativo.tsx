@@ -662,6 +662,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   alterar: (obra) => sessao.alterarObra(obra),
                   excluir: (id) => sessao.excluirObra(id),
                   verificar: () => sessao.verificarBibliografia(),
+                  importar: (obras) => sessao.importarObras(obras),
                 }}
                 lerSecao={(id) => sessao.secao(id)}
                 aoAlterarSecao={(id, conteudo) => {

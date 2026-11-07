@@ -6,6 +6,10 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T09: "Importar BibTeX ou RIS…" na Bibliografia.
+  - A janela mostra cada registro com a referência formatada, o que impede gravar e o que ficou de fora do arquivo. As obras que já estão no trabalho vêm desmarcadas.
+  - Só as escolhidas entram, num passo só do Ctrl+Z.
+  - Tipos fora da primeira leva não são importados.
 - Etapa 5, M4-T08: "Conferir citações e referências" na Bibliografia.
   - Aponta chamada escrita como texto (sem ligação com a obra), obra não citada, falta do elemento REFERÊNCIAS, chamadas iguais para obras diferentes, mesmo autor com grafias diferentes, prenomes não uniformes e os avisos das chamadas e referências.
   - "Ir ao texto" seleciona o trecho; "Abrir obra" abre o formulário.

@@ -28,3 +28,15 @@ export {
   type ReferenciaFormatada,
   type TrechoReferencia,
 } from './trechos';
+export {
+  autorDeNome,
+  detectarFormato,
+  ID_RASCUNHO_IMPORTADO,
+  LIMITE_REGISTROS_IMPORTACAO,
+  LIMITE_TEXTO_IMPORTACAO,
+  lerBibliografiaImportada,
+  textoDoLatex,
+  type FormatoImportacao,
+  type RegistroImportado,
+  type ResultadoImportacao,
+} from './importacao';

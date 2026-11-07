@@ -745,6 +745,35 @@ export class SessaoTrabalho {
     return { ok: true, id };
   }
 
+  /**
+   * Importação (M4-T09): inclui as obras com ids novos, num passo só do desfazer. Só entram as que o formato v1 aceita;
+   * acima do limite de obras do trabalho, nenhuma entra.
+   */
+  importarObras(rascunhos: readonly Obra[]): { ok: true; ids: Id[]; recusadas: number } | { ok: false; mensagem: string } {
+    const a = this.#aberto;
+    const gerar = this.#dep.gerarIdObra;
+    if (a?.modo !== 'edicao' || gerar === undefined) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = a.pacote.documento.obras ?? [];
+    if (lista.length + rascunhos.length > LIMITES_V1.obras) {
+      return { ok: false, mensagem: `O trabalho passaria do máximo de ${LIMITES_V1.obras} obras.` };
+    }
+    const novas: Obra[] = [];
+    const usados = new Set<string>();
+    for (const rascunho of rascunhos) {
+      let id = gerar();
+      while (this.#idEmUso(a, id) || usados.has(id)) id = gerar();
+      const r = validarObra({ ...rascunho, id });
+      if (!r.ok) continue;
+      usados.add(id);
+      novas.push(r.obra);
+    }
+    if (novas.length === 0) return { ok: false, mensagem: 'Nenhuma das obras escolhidas pode ser gravada.' };
+    const ids = novas.map((o) => o.id);
+    this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'retirarVarias', ids } });
+    this.#trocarObras(a, [...lista, ...novas]);
+    return { ok: true, ids, recusadas: rascunhos.length - novas.length };
+  }
+
   /** Troca os campos de uma obra presente. Usa o desfazer do próprio campo; obra inválida não é gravada. */
   alterarObra(obra: Obra): ResultadoObra {
     const a = this.#aberto;
@@ -784,6 +813,22 @@ export class SessaoTrabalho {
 
   #aplicarInversoObra(a: Extract<Aberto, { modo: 'edicao' }>, inverso: InversoObra): EntradaHistorico | null {
     const lista = a.pacote.documento.obras ?? [];
+    if (inverso.acao === 'incluirVarias') {
+      const nova = [...lista];
+      const voltaram = inverso.obras.filter(({ obra }) => !this.#idEmUso(a, obra.id));
+      for (const { obra, posicao } of voltaram) nova.splice(Math.min(posicao, nova.length), 0, obra);
+      if (voltaram.length === 0) return null;
+      this.#trocarObras(a, nova);
+      return { tipo: 'obra', inverso: { acao: 'retirarVarias', ids: voltaram.map((x) => x.obra.id) } };
+    }
+    if (inverso.acao === 'retirarVarias') {
+      // As que passaram a ser citadas ficam (a chamada ficaria sem obra).
+      const sair = new Set(inverso.ids.filter((id) => this.citacoesDaObra(id) === 0));
+      const saem = lista.flatMap((obra, posicao) => (sair.has(obra.id) ? [{ obra, posicao }] : []));
+      if (saem.length === 0) return null;
+      this.#trocarObras(a, lista.filter((o) => !sair.has(o.id)));
+      return { tipo: 'obra', inverso: { acao: 'incluirVarias', obras: saem } };
+    }
     if (inverso.acao === 'incluir') {
       if (this.#idEmUso(a, inverso.obra.id)) return null;
       const nova = [...lista];

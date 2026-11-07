@@ -286,6 +286,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .conferencia__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
 .conferencia__item { display: grid; gap: var(--esp-1); justify-items: start; overflow-wrap: anywhere; }
 .conferencia__onde { color: var(--cor-texto-sec); font-size: var(--tam-peq); }
+/* Importação (M4-T09). */
+.importacao__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); max-height: 50vh; }
+.importacao__item { display: grid; gap: var(--esp-1); padding-bottom: var(--esp-2); border-bottom: 1px solid var(--cor-borda); }
+.importacao__notas { margin: 0; padding-left: var(--esp-5); font-size: var(--tam-peq); color: var(--cor-texto-sec); overflow-wrap: anywhere; }
+.importacao__erro { color: var(--cor-erro); }
 .escrever__secoes h2, .escrever__numero { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
 /* Árvore de seções (M2-T07): recuo por nível, item ativo destacado, linha onde a seção arrastada vai entrar. */
 .arvore-secoes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }

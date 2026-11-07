@@ -33,7 +33,7 @@ test.beforeEach(() => {
 });
 test.afterEach(async () => amb.apagar());
 
-test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra, citação, conferência e Exportar sem violação séria', async ({}, info) => {
+test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra, citação, conferência, importação e Exportar sem violação séria', async ({}, info) => {
   const { pagina: p } = await abrirApp(amb);
   await conferirAxe(p, 'biblioteca-vazia', info);
 
@@ -79,6 +79,12 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obr
   await expect(p.getByRole('region', { name: 'Conferência da bibliografia' })).toContainText('Obra não citada');
   await conferirAxe(p, 'conferencia-bibliografia', info);
   await p.getByRole('region', { name: 'Conferência da bibliografia' }).getByRole('button', { name: 'Fechar' }).click();
+
+  // M4-T09: janela da importação.
+  await p.getByLabel('Arquivo BibTeX ou RIS').setInputFiles(join(RAIZ_APP, 'tests', 'fixtures', 'importacao', 'exemplo.ris'));
+  await expect(p.getByRole('dialog', { name: 'Importar obras' })).toContainText('5 registros');
+  await conferirAxe(p, 'importar-obras', info);
+  await p.getByRole('dialog', { name: 'Importar obras' }).getByRole('button', { name: 'Cancelar' }).click();
 
   await p.keyboard.press('Control+E');
   await expect(p.getByRole('dialog', { name: 'Exportar DOCX' })).toBeVisible();

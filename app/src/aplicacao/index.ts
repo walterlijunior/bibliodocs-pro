@@ -117,6 +117,12 @@ export {
   type ResultadoValidacaoCitacao,
 } from './servicos/citacoes';
 export {
+  LIMITE_BYTES_IMPORTACAO,
+  prepararImportacao,
+  type ItemImportacao,
+  type PreviaImportacao,
+} from './servicos/importacao-bibliografia';
+export {
   CAMPOS_DO_TIPO,
   obraVazia,
   prepararObra,

@@ -2,7 +2,7 @@
 // formulário da obra escolhida ou nova, com os campos do tipo e a prévia da referência como sairá no documento.
 // Obra existente: cada alteração válida é gravada na hora (como os pré-textuais). Obra nova: só entra no trabalho pelo
 // botão "Incluir obra", quando o formato a aceita. Texto sempre como texto (nunca HTML).
-import { useId, useState, type KeyboardEvent } from 'react';
+import { useId, useState, type KeyboardEvent, useRef } from 'react';
 import {
   CAMPOS_DO_TIPO,
   previaDaObra,
@@ -91,11 +91,14 @@ export interface PropsListaObras {
   aoNova: () => void;
   /** Abre a conferência da bibliografia (M4-T08). */
   aoConferir: () => void;
+  /** Arquivo BibTeX ou RIS escolhido para importar (M4-T09). */
+  aoImportar: (arquivo: File) => void;
   aoHistorico: (sentido: 'desfazer' | 'refazer') => boolean;
 }
 
 export function ListaObras(p: PropsListaObras) {
   const base = useId();
+  const refArquivo = useRef<HTMLInputElement>(null);
   const aoTeclar = (ev: KeyboardEvent) => {
     if (!ev.ctrlKey || ev.altKey || p.somenteLeitura) return;
     const k = ev.key.toLowerCase();
@@ -124,6 +127,25 @@ export function ListaObras(p: PropsListaObras) {
         <button type="button" className="btn-secundario" onClick={p.aoNova}>
           Nova obra
         </button>
+      )}
+      {!p.somenteLeitura && (
+        <>
+          <button type="button" className="btn-secundario" onClick={() => refArquivo.current?.click()}>
+            Importar BibTeX ou RIS…
+          </button>
+          <input
+            ref={refArquivo}
+            type="file"
+            accept=".bib,.ris,.txt"
+            hidden
+            aria-label="Arquivo BibTeX ou RIS"
+            onChange={(ev) => {
+              const arquivo = ev.target.files?.[0];
+              ev.target.value = '';
+              if (arquivo) p.aoImportar(arquivo);
+            }}
+          />
+        </>
       )}
       <button type="button" className="btn-secundario" onClick={p.aoConferir}>
         Conferir citações e referências
