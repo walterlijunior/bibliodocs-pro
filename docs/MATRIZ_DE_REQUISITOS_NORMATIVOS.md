@@ -455,6 +455,7 @@ constante no código. As alternativas ficam como opções de perfil.
 | D-M4-06 | Tipos de obra da primeira leva | RN-189, 194–201, 204–206, 209, 212–218, 222, 223 | Livro, capítulo, trabalho acadêmico, periódico, anais, jornal, norma, legislação, on-line; os demais "não suportado" até a segunda leva (2026-11-05) |
 | D-M4-07 | NBR 10520 e NBR 6023 | — | Não disponíveis no projeto; as decisões acima ficam provisórias até haver a norma (2026-11-05) |
 | D-M4-08 | Chamadas sem exemplo no Manual (M4-T03) | RN-093, RN-095, RN-096, RN-097 | Três autores na narrativa "A, B e C (ano)"; *et al.* em itálico; narrativa com várias obras separadas por ";" com aviso; sem ano, chamada sem data com aviso (2026-11-07, "siga as recomendações") |
+| D-M4-09 | Campos do cadastro de obras (M4-T06) | RN-194, RN-204, RN-212, RN-223 | Coleção ou série, título original, suplemento do periódico e ano do veículo oficial entram no cadastro; dois eventos na mesma referência e legislação em coletânea ficam para a segunda leva (2026-11-07, "siga as recomendações") |
 | — | Recomendações das frentes aceitas no mesmo ato | RN-042, 059, 103, 302, 308 | Destaque do título no indicativo; ilustração centralizada; "(informação verbal)" como no exemplo; "Tabela n – Título"; uma linha simples antes do título e depois do rodapé |
 
 Quando a regra não tem norma no projeto (RN-261, 310, 311, 312, 182, 313, 314, 315), o status continua `PENDENTE-FONTE`.

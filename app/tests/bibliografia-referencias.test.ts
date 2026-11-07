@@ -68,9 +68,14 @@ describe('livro: exemplos do Manual, 5.19.1 a 5.19.6', () => {
       'MANUAL de editoração de texto. Rio de Janeiro: Livros Técnicos, 2000. 51 p.',
     ],
     [
-      'p. 53, traduzido (RN-204; "Título original" ainda sem campo)',
-      livro({ autores: [p('Bauman', 'Zygmunt'), p('May', 'Tim')], titulo: t('Aprendendo a pensar com a sociologia'), traducao: 'Alexandre Werneck', local: 'Rio de Janeiro', editora: 'Zahar', ano: 2010 }),
-      'BAUMAN, Zygmunt; MAY, Tim. **Aprendendo a pensar com a sociologia**. Tradução de Alexandre Werneck. Rio de Janeiro: Zahar, 2010.',
+      'p. 53, traduzido, com título original (RN-204)',
+      livro({ autores: [p('Bauman', 'Zygmunt'), p('May', 'Tim')], titulo: t('Aprendendo a pensar com a sociologia'), traducao: 'Alexandre Werneck', local: 'Rio de Janeiro', editora: 'Zahar', ano: 2010, tituloOriginal: 'Thinking Sociologically' }),
+      'BAUMAN, Zygmunt; MAY, Tim. **Aprendendo a pensar com a sociologia**. Tradução de Alexandre Werneck. Rio de Janeiro: Zahar, 2010. Título original: Thinking Sociologically.',
+    ],
+    [
+      'RN-194: coleção ou série entre parênteses depois das páginas (o Manual não traz exemplo)',
+      livro({ autores: [p('Cagliari', 'Luiz Carlos')], titulo: t('Alfabetização & Linguística'), local: 'São Paulo', editora: 'Scipione', ano: 2003, paginas: '191', colecao: 'Pensamento e ação no magistério' }),
+      'CAGLIARI, Luiz Carlos. **Alfabetização & Linguística**. São Paulo: Scipione, 2003. 191 p. (Pensamento e ação no magistério).',
     ],
     [
       'p. 53, exemplo 1, on-line (RN-205, RN-189, RN-190)',

@@ -1,6 +1,6 @@
 // M4-T04 (RF-08): formatadores dos tipos da primeira leva além do livro (D-M4-06). Cada caso é um exemplo do Manual
-// UFT, 5.19, com a página. Elementos sem campo no modelo ficam fora do esperado e estão anotados no caso:
-// suplemento (DOREA), "ano 138" do Diário Oficial (Lei 9.979), dois eventos juntos (ZUBEN), "In: VADE mecum".
+// UFT, 5.19, com a página. Elementos sem campo no modelo ficam fora do esperado e estão anotados no caso: dois
+// eventos juntos (ZUBEN) e "In: VADE mecum", deixados para a segunda leva (decisão do usuário, 2026-11-07).
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -66,9 +66,9 @@ const casos: [string, Obra, string][] = [
     'DANTAS, José Alves _et al._ Regulação da auditoria em sistemas bancários: análise do cenário internacional e fatores determinantes. **Revista Contabilidade & Finanças**, São Paulo, v. 25, n. 64, p. 7-18, jan./abr. 2014. DOI: http://dx.doi.org/10.1590/S1519-70772014000100002. Disponível em: https://www.scielo.br/scielo.php?pid=S1519-70772014000100002&script=sci_arttext&tlng=pt. Acesso em: 20 maio 2014.',
   ],
   [
-    'p. 56, DOREA com os três primeiros autores (o exemplo tem seis) e sem o suplemento (RN-212)',
-    obra({ tipo: 'artigoPeriodico', autores: [p('Dorea', 'R. D.'), p('Costa', 'J. N.'), p('Batita', 'J. M.')], titulo: t('Reticuloperitonite traumática associada à esplenite e hepatite em bovino'), subtitulo: t('relato de caso'), periodico: 'Veterinária e Zootecnia', local: 'São Paulo', volume: '18', numero: '4', paginas: '199-202', ano: 2011 }),
-    'DOREA, R. D.; COSTA, J. N.; BATITA, J. M. Reticuloperitonite traumática associada à esplenite e hepatite em bovino: relato de caso. **Veterinária e Zootecnia**, São Paulo, v. 18, n. 4, p. 199-202, 2011.',
+    'p. 56, DOREA com os três primeiros autores (o exemplo tem seis) e o suplemento (RN-212)',
+    obra({ tipo: 'artigoPeriodico', autores: [p('Dorea', 'R. D.'), p('Costa', 'J. N.'), p('Batita', 'J. M.')], titulo: t('Reticuloperitonite traumática associada à esplenite e hepatite em bovino'), subtitulo: t('relato de caso'), periodico: 'Veterinária e Zootecnia', local: 'São Paulo', volume: '18', numero: '4', paginas: '199-202', ano: 2011, suplemento: '3' }),
+    'DOREA, R. D.; COSTA, J. N.; BATITA, J. M. Reticuloperitonite traumática associada à esplenite e hepatite em bovino: relato de caso. **Veterinária e Zootecnia**, São Paulo, v. 18, n. 4, p. 199-202, 2011. Supl. 3.',
   ],
   [
     'p. 56, sem autoria (RN-213)',
@@ -125,9 +125,9 @@ const casos: [string, Obra, string][] = [
     'BRASIL. Constituição (1988). **Constituição da República Federativa do Brasil**: 1988. Brasília, DF: Câmara dos Deputados, 2005. 437 p.',
   ],
   [
-    'p. 60, lei no Diário Oficial: negrito no veículo (RN-223, C-B16; sem o "ano 138")',
-    obra({ tipo: 'legislacao', jurisdicao: 'BRASIL', titulo: t('Lei nº 9.979, de 5 de julho de 2000'), ementa: 'Abre ao Orçamento Fiscal da União, em favor da Justiça Eleitoral, crédito suplementar no valor de R$155.000.000,00, para reforço de dotações consignadas no vigente orçamento.', publicacao: 'Diário Oficial [da] República Federativa do Brasil', secao: 'seção 1', local: 'Brasília, DF', numero: '129', paginas: '4', dataPublicacao: '6 jul. 2000' }),
-    'BRASIL. Lei nº 9.979, de 5 de julho de 2000. Abre ao Orçamento Fiscal da União, em favor da Justiça Eleitoral, crédito suplementar no valor de R$155.000.000,00, para reforço de dotações consignadas no vigente orçamento. **Diário Oficial [da] República Federativa do Brasil**: seção 1, Brasília, DF, n. 129, p. 4, 6 jul. 2000.',
+    'p. 60, lei no Diário Oficial: negrito no veículo (RN-223, C-B16)',
+    obra({ tipo: 'legislacao', jurisdicao: 'BRASIL', titulo: t('Lei nº 9.979, de 5 de julho de 2000'), ementa: 'Abre ao Orçamento Fiscal da União, em favor da Justiça Eleitoral, crédito suplementar no valor de R$155.000.000,00, para reforço de dotações consignadas no vigente orçamento.', publicacao: 'Diário Oficial [da] República Federativa do Brasil', secao: 'seção 1', local: 'Brasília, DF', anoVeiculo: '138', numero: '129', paginas: '4', dataPublicacao: '6 jul. 2000' }),
+    'BRASIL. Lei nº 9.979, de 5 de julho de 2000. Abre ao Orçamento Fiscal da União, em favor da Justiça Eleitoral, crédito suplementar no valor de R$155.000.000,00, para reforço de dotações consignadas no vigente orçamento. **Diário Oficial [da] República Federativa do Brasil**: seção 1, Brasília, DF, ano 138, n. 129, p. 4, 6 jul. 2000.',
   ],
   [
     'p. 60, Constituição on-line com data não impressa "[2016]" (RN-223, D-M4-05)',

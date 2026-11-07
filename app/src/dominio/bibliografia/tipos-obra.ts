@@ -43,9 +43,7 @@ function faltando(ctx: Contexto, rn: string, elemento: string): void {
 
 /**
  * Livro (RN-194 a RN-199): AUTOR. **Título**: subtítulo. Tradução de Nome (RN-204). Edição. Local: Editora, ano.
- * Páginas. Disponível em … Acesso em … (RN-205). *E-book* (RN-191).
- *
- * Fora por falta de campo no modelo: coleção ou série (RN-194) e "Título original" (RN-204).
+ * Páginas. (Coleção) (RN-194). Título original: … (RN-204). Disponível em … Acesso em … (RN-205). *E-book* (RN-191).
  */
 function formatarLivro(obra: Obra, ctx: Contexto): void {
   const { m } = ctx;
@@ -57,6 +55,14 @@ function formatarLivro(obra: Obra, ctx: Contexto): void {
   escreverEdicao(m, obra);
   escreverImprenta(obra, ctx);
   escreverTotalDePaginas(m, obra);
+  if (obra.colecao?.trim()) {
+    m.texto(`(${obra.colecao.trim()})`, ['RN-194']);
+    m.ponto(['RN-194']);
+  }
+  if (obra.tituloOriginal?.trim()) {
+    m.texto(`Título original: ${obra.tituloOriginal.trim()}`, ['RN-204']);
+    m.ponto(['RN-204']);
+  }
   escreverOnline(m, obra, ctx.avisos);
   if (obra.ebook) {
     m.texto('E-book', ['RN-191'], ['italico']);
@@ -155,6 +161,11 @@ function formatarArtigoPeriodico(obra: Obra, ctx: Contexto): void {
     ['RN-212'],
   );
   m.ponto(['RN-212']);
+  const supl = obra.suplemento?.trim();
+  if (supl) {
+    m.texto(/^supl/iu.test(supl) ? supl : `Supl. ${supl}`, ['RN-212']);
+    m.ponto(['RN-212']);
+  }
   escreverDoi(m, obra);
   escreverOnline(m, obra, ctx.avisos);
 }
@@ -293,6 +304,7 @@ function formatarLegislacao(obra: Obra, ctx: Contexto): void {
     const paginas = paginasDaParte(obra.paginas);
     const resto = [
       obra.local?.trim() ? { texto: obra.local.trim(), origem: ['RN-223'] } : null,
+      obra.anoVeiculo?.trim() ? { texto: /^ano/iu.test(obra.anoVeiculo.trim()) ? obra.anoVeiculo.trim() : `ano ${obra.anoVeiculo.trim()}`, origem: ['RN-223'] } : null,
       numero ? { texto: `n. ${numero}`, origem: ['RN-223'] } : null,
       paginas ? { texto: paginas, origem: ['RN-223'] } : null,
       dataDaPublicacao(obra, ctx, 'RN-223'),

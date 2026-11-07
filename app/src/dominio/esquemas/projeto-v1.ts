@@ -243,6 +243,10 @@ export const esquemaObra = z
     url: campoCurto.regex(/^https?:\/\/\S+$/, { error: 'endereço inválido: use http:// ou https://' }).optional(),
     acesso: z.iso.date({ error: 'data de acesso inválida: use AAAA-MM-DD' }).optional(),
     doi: campoCurto.optional(),
+    colecao: campoCurto.optional(),
+    tituloOriginal: campoCurto.optional(),
+    suplemento: campoCurto.optional(),
+    anoVeiculo: campoCurto.optional(),
   })
   .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
   .meta({ id: 'Obra' });

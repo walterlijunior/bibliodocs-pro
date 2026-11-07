@@ -308,6 +308,14 @@ export interface Obra {
   url?: string;
   acesso?: string;
   doi?: string;
+  /** Coleção ou série do livro, sem os parênteses (RN-194; M4-T06). */
+  colecao?: string;
+  /** Título na língua de origem do livro traduzido (RN-204; M4-T06). */
+  tituloOriginal?: string;
+  /** Suplemento do fascículo: "3" sai "Supl. 3" (exemplo DOREA, p. 56; M4-T06). */
+  suplemento?: string;
+  /** Ano do veículo oficial: "138" sai "ano 138" (exemplo da Lei 9.979, p. 60; M4-T06). */
+  anoVeiculo?: string;
 }
 
 export interface Documento {
