@@ -940,9 +940,11 @@ describe('versões descartadas (M2-T11; R-M1-10)', () => {
   });
 
   it('a data é a de quando foi guardada, e a cópia anterior vem marcada (R-M2-09)', async () => {
-    const quando = new Date('2026-10-30T12:00:00Z');
-    const atual = await guardar('prj-20261030-120000-atual.bdp', 'A');
-    const anterior = await guardar('prj-20261030-120000-anterior.bdp', 'A');
+    // Dois dias atrás, dentro dos 7 dias de Versões descartadas: uma data fixa vence com o calendário.
+    const quando = new Date(Math.floor((Date.now() - 2 * 86_400_000) / 1000) * 1000);
+    const carimbo = quando.toISOString().replace(/[-:]/gu, '').replace('T', '-').slice(0, 15);
+    const atual = await guardar(`prj-${carimbo}-atual.bdp`, 'A');
+    const anterior = await guardar(`prj-${carimbo}-anterior.bdp`, 'A');
     utimesSync(atual, quando, quando);
     utimesSync(anterior, quando, quando);
     const versoes = await processo().listarDescartadas();

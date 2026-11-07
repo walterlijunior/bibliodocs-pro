@@ -1,9 +1,19 @@
 /**
- * Módulo `dominio/bibliografia` — Obra, Citacao e formatadores de referência e de chamada.
+ * Módulo `dominio/bibliografia` — formatadores de referência e de chamada, ordenação da lista.
  *
  * Regras de dependência (ADR-0005, seção 2):
  * - Importa dominio/modelo e dominio/numeracao (regra 2).
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * M4-T02: referência em trechos com a RN de cada elemento, autores, datas, ordenação e sufixos de ano; livro.
  */
-export {};
+export { abreviaturaFuncao, maiusculas, nomeDeEntrada, type OpcoesAutoria } from './autores';
+export { anoDaReferencia, dataAbreviada, MESES_ABREVIADOS } from './datas';
+export { compararReferencias, ordenarReferencias, sufixosDeAno } from './ordenacao';
+export { formatarReferencia, tiposComFormatador, type OpcoesReferencia } from './referencia';
+export {
+  textoDaReferencia,
+  type AvisoReferencia,
+  type CodigoAvisoReferencia,
+  type ReferenciaFormatada,
+  type TrechoReferencia,
+} from './trechos';
