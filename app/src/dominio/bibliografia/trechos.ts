@@ -38,6 +38,32 @@ export function textoDaReferencia(ref: Pick<ReferenciaFormatada, 'trechos'>): st
   return ref.trechos.map((t) => t.texto).join('');
 }
 
+/**
+ * Origens sem fonte no Manual, aplicadas como provisórias (POLÍTICA §2.2; revisão N-M4-06): as decisões D-M4 e as RN
+ * PENDENTE-FONTE dos formatadores. A tela mostra quais entraram na referência ou na chamada.
+ */
+export const ORIGENS_PROVISORIAS: Readonly<Record<string, string>> = {
+  'RN-094': 'separador de autores na chamada',
+  'RN-095': 'mais de três autores na chamada',
+  'RN-096': 'várias obras e mesmo autor e ano',
+  'RN-097': 'chamada sem data ou sem página',
+  'RN-182': 'prenomes por extenso ou abreviados',
+  'RN-193': 'sem local, sem editora ou data incerta',
+  'D-M4-02': 'autores na chamada',
+  'D-M4-03': 'sufixo a, b e várias obras',
+  'D-M4-04': 'data provável e documento sem paginação',
+  'D-M4-05': 'forma de elementos sem exemplo no Manual',
+  'D-M4-06': 'tipo de obra da primeira leva',
+  'D-M4-08': 'chamada sem exemplo no Manual',
+};
+
+/** As origens provisórias presentes nos trechos, na ordem em que aparecem, como "descrição (código)". */
+export function origensProvisorias(trechos: readonly Pick<TrechoReferencia, 'origem'>[]): string[] {
+  const vistas: string[] = [];
+  for (const t of trechos) for (const o of t.origem) if (Object.hasOwn(ORIGENS_PROVISORIAS, o) && !vistas.includes(o)) vistas.push(o);
+  return vistas.map((o) => `${ORIGENS_PROVISORIAS[o]} (${o})`);
+}
+
 /** Montador de trechos com a pontuação de fecho dos elementos ("." sem repetir o ponto de abreviatura). */
 export class Montador {
   readonly trechos: TrechoReferencia[] = [];

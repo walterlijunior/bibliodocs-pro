@@ -84,3 +84,29 @@ describe('chamadas escritas no texto colado', () => {
     expect(achar('Mascagliari (2003)')).toEqual([]);
   });
 });
+
+describe('revisão de segurança do M4 (R-M4-03)', () => {
+  it('o reconhecedor é montado uma vez: 1000 obras e 600 parágrafos sem demora', async () => {
+    const { reconhecedorDeChamadas } = await import('../src/aplicacao');
+    const muitas = Array.from({ length: 1000 }, (_, k) => livro(`obr_muitas${String(k).padStart(8, '0')}`, `Autor${k}`, 1900 + (k % 100)));
+    const t0 = performance.now();
+    const reconhecer = reconhecedorDeChamadas(muitas);
+    for (let k = 0; k < 600; k++) reconhecer(`Parágrafo ${k} (AUTOR${k % 1000}, ${1900 + ((k % 1000) % 100)}) e mais texto.`);
+    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(reconhecer('(AUTOR7, 1907, p. 3)').map((c) => c.dados.obras[0])).toEqual([{ obra: 'obr_muitas00000007', pagina: '3' }]);
+  });
+});
+
+describe('formas provisórias à vista (revisão N-M4-06)', () => {
+  it('a chamada e a prévia da obra dizem quais formas sem fonte entraram', async () => {
+    const { previaDaObra } = await import('../src/aplicacao');
+    const dois = livro('obr_doisautores01', 'Lima', 2020);
+    const comDois = { ...dois, autores: [...dois.autores!, { tipo: 'pessoa' as const, sobrenome: 'Costa' }] };
+    expect(formatadorDeChamadas([comDois])({ forma: 'parentetica', obras: [{ obra: comDois.id }] }).provisorias).toEqual([
+      'separador de autores na chamada (RN-094)',
+      'autores na chamada (D-M4-02)',
+    ]);
+    expect(formatadorDeChamadas([cagliari])({ forma: 'parentetica', obras: [{ obra: cagliari.id }] }).provisorias).toEqual([]);
+    expect(previaDaObra(livro('obr_semlocal00001', 'Lima', 2020)).provisorias.join('; ')).toContain('(RN-193)');
+  });
+});

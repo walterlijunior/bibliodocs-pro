@@ -160,3 +160,11 @@ describe('chamadas escritas como texto', () => {
     expect(chamadasEscritas([t('(SILVA'), cita('cta_verifica0001', 'obr_x'), t(', 2001)')])).toEqual([]);
   });
 });
+
+describe('revisão de segurança do M4 (R-M4-07)', () => {
+  it('lista longa de nomes sem parêntese não custa tempo quadrático', () => {
+    const t0 = performance.now();
+    chamadasEscritas([t('Aaaa, '.repeat(20_000))]);
+    expect(performance.now() - t0).toBeLessThan(800);
+  });
+});

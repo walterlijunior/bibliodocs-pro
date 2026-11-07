@@ -161,6 +161,7 @@ export function DialogoCitacao(p: PropsDialogoCitacao) {
                   <span key={i}>{x.marcas.includes('italico') ? <em>{x.texto}</em> : x.texto}</span>
                 ))}
               </p>
+              {previa.provisorias.length > 0 && <p className="dica">Forma provisória, sem fonte no Manual: {previa.provisorias.join('; ')}.</p>}
             </section>
 
             {!validacao.ok && (

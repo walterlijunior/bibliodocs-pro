@@ -16,6 +16,12 @@ import type { Autor, FuncaoResponsavel, Obra, TipoObra } from '../modelo';
 
 export const LIMITE_TEXTO_IMPORTACAO = 2_000_000;
 export const LIMITE_REGISTROS_IMPORTACAO = 2_000;
+/** Teto de um valor depois das macros `@string` (R-M4-01: macros que dobram de tamanho a cada linha). */
+export const LIMITE_VALOR_IMPORTACAO = 20_000;
+/** Teto da soma dos valores de um arquivo, já com as macros. */
+const LIMITE_TOTAL_VALORES = 2 * LIMITE_TEXTO_IMPORTACAO;
+/** Chave e tipo vindos do arquivo, como aparecem na tela (R-M4-09). */
+const LIMITE_ROTULO = 200;
 const PROFUNDIDADE_MAXIMA = 32;
 /** "editor" do BibTeX e A2/ED do RIS: a função editor, "(ed.)" (RN-186), a tradução literal; o usuário troca no cadastro. */
 const FUNCAO_EDITOR: FuncaoResponsavel = 'ed';
@@ -43,8 +49,9 @@ export interface ResultadoImportacao {
 }
 
 export function detectarFormato(texto: string): FormatoImportacao | null {
-  if (/^\s*TY {2}- /mu.test(texto)) return 'ris';
-  if (/@\s*[A-Za-z]+\s*[{(]/u.test(texto)) return 'bibtex';
+  // Só espaço e tabulação antes da marca: `\s*` com a flag `m` atravessaria as quebras (custo quadrático, R-M4-02).
+  if (/^[ \t]*TY {2}- /mu.test(texto)) return 'ris';
+  if (/@[ \t]*[A-Za-z]+[ \t]*[{(]/u.test(texto)) return 'bibtex';
   return null;
 }
 
@@ -113,7 +120,11 @@ export function autorDeNome(nome: string, entidade = false): Autor | null {
   const palavras = n.split(' ');
   if (palavras.length === 1) return { tipo: 'pessoa', sobrenome: n };
   let corte = palavras.length - 1;
-  if (SUFIXOS_PARENTESCO.test(palavras[corte]!) && corte > 1) corte--;
+  if (SUFIXOS_PARENTESCO.test(palavras[corte]!)) {
+    // "Silva Neto" sem prenome: o nome todo é o sobrenome (RN-181; revisão N-M4-09).
+    if (palavras.length === 2) return { tipo: 'pessoa', sobrenome: n };
+    corte--;
+  }
   // Partícula antes do sobrenome fica nos prenomes ("José da" + "Silva"), como no exemplo da RN-180.
   const prenomes = palavras.slice(0, corte).join(' ');
   return { tipo: 'pessoa', sobrenome: palavras.slice(corte).join(' '), ...(prenomes ? { prenomes } : {}) };
@@ -178,7 +189,8 @@ function obraDosCampos(c: Campos, avisos: string[]): Obra | null {
     ...(c.identificacao ? { identificacao: c.identificacao } : {}),
     ...(c.url ? { url: c.url } : {}),
     ...(c.acesso ? { acesso: c.acesso } : {}),
-    ...(c.doi ? { doi: c.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//iu, '') } : {}),
+    // Como veio no arquivo: a forma do DOI não tem fonte (PF-09 i); o único exemplo do Manual traz a URL (revisão N-M4-07).
+    ...(c.doi ? { doi: c.doi } : {}),
     ...(c.colecao ? { colecao: c.colecao } : {}),
   };
   // A obra no todo (capítulo, anais) e o evento.
@@ -195,6 +207,8 @@ function obraDosCampos(c: Campos, avisos: string[]): Obra | null {
   if (c.tipo === 'artigoPeriodico' && !obra.periodico && c.tituloSecundario) obra.periodico = c.tituloSecundario;
   if (editores.length > 0 && c.tipo !== 'capitulo' && !(c.tipo === 'livro' && autores.length === 0)) {
     avisos.push('Organizadores ou editores do arquivo não entram neste tipo de obra.');
+  } else if (editores.length > 0) {
+    avisos.push('Os responsáveis do arquivo entraram como editores, "(ed.)": confira se a função é org., coord. ou ed. (RN-186).');
   }
   return obra;
 }
@@ -258,6 +272,7 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
     ['jul', 'jul.'], ['aug', 'ago.'], ['sep', 'set.'], ['oct', 'out.'], ['nov', 'nov.'], ['dec', 'dez.'],
   ]);
   let i = 0;
+  let totalValores = 0;
   const n = texto.length;
   const espacos = () => {
     while (i < n && /\s/u.test(texto[i]!)) i++;
@@ -343,6 +358,7 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
       // Valor: partes ligadas por "#".
       let valor = '';
       let brutoAutores = '';
+      let cortado = false;
       for (;;) {
         espacos();
         const ch = texto[i];
@@ -353,7 +369,7 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
             break;
           }
           valor += v;
-          brutoAutores += v;
+          if (nome === 'author' || nome === 'editor') brutoAutores += v;
         } else {
           const m = /^[\w.:-]+/u.exec(texto.slice(i, i + 80));
           if (!m) {
@@ -364,6 +380,10 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
           const macro = macros.get(m[0].toLowerCase());
           valor += /^\d+$/u.test(m[0]) ? m[0] : (macro ?? m[0]);
         }
+        if (valor.length > LIMITE_VALOR_IMPORTACAO) {
+          valor = valor.slice(0, LIMITE_VALOR_IMPORTACAO);
+          cortado = true;
+        }
         espacos();
         if (texto[i] === '#') {
           i++;
@@ -372,6 +392,12 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
         break;
       }
       if (quebrada) break;
+      if (cortado) avisos.push(`Campo "${nome.slice(0, 40)}" grande demais: cortado em ${LIMITE_VALOR_IMPORTACAO.toLocaleString('pt-BR')} caracteres.`);
+      totalValores += valor.length;
+      if (totalValores > LIMITE_TOTAL_VALORES) {
+        avisos.push('O arquivo se expande demais com as abreviações (@string): a leitura parou.');
+        return entradas;
+      }
       if (tipo === 'string') macros.set(nome, valor);
       else {
         if (nome === 'author' || nome === 'editor') {
@@ -384,13 +410,24 @@ function lerEntradasBibtex(texto: string, avisos: string[]): EntradaBibtex[] {
     }
     if (quebrada) {
       avisos.push(`Entrada ${chave ? `"${chave}"` : `@${tipo}`} mal formada: o que vinha depois do problema foi ignorado.`);
-      // Recomeça na próxima linha que começa com "@".
-      const prox = texto.slice(i).search(/\n\s*@/u);
-      i = prox < 0 ? n : i + prox + 1;
+      // Recomeça na próxima linha que começa com "@" (laço linear, sem regex que volte atrás: R-M4-02).
+      i = proximaLinhaComArroba(texto, i);
     }
     if (tipo !== 'string' && (campos.size > 0 || chave !== '')) entradas.push({ tipo, chave, campos, entidades });
   }
   return entradas;
+}
+
+/** Início da próxima linha cujo primeiro caractere não branco é "@"; o fim do texto se não houver. */
+function proximaLinhaComArroba(texto: string, de: number): number {
+  let k = texto.indexOf('\n', de);
+  while (k >= 0) {
+    let j = k + 1;
+    while (j < texto.length && (texto[j] === ' ' || texto[j] === '\t' || texto[j] === '\r')) j++;
+    if (texto[j] === '@') return j;
+    k = texto.indexOf('\n', j);
+  }
+  return texto.length;
 }
 
 /** "{Universidade Federal do Tocantins}" é uma chave que abre no começo e fecha só no fim. */
@@ -411,9 +448,10 @@ function dividirAutores(valor: string): string[] {
   const partes: string[] = [];
   let nivel = 0;
   let atual = '';
-  const palavras = valor.split(/(\s+and\s+)/iu);
+  // Espaços normalizados antes: `\s+and\s+` sobre muitos espaços seguidos é quadrático (R-M4-02).
+  const palavras = valor.replace(/\s+/gu, ' ').split(/( and )/iu);
   for (const p of palavras) {
-    if (/^\s+and\s+$/iu.test(p) && nivel === 0) {
+    if (/^ and $/iu.test(p) && nivel === 0) {
       partes.push(atual);
       atual = '';
       continue;
@@ -428,12 +466,12 @@ function dividirAutores(valor: string): string[] {
 function lerBibtex(texto: string): { registros: RegistroImportado[]; avisos: string[] } {
   const avisos: string[] = [];
   const registros = lerEntradasBibtex(texto, avisos).map((e): RegistroImportado => {
-    const mapa = TIPOS_BIBTEX[e.tipo];
+    const mapa = Object.hasOwn(TIPOS_BIBTEX, e.tipo) ? TIPOS_BIBTEX[e.tipo] : undefined;
     const tipoMisc: { tipo: TipoObra; natureza?: string } | undefined = e.tipo === 'misc' && e.campos.has('url') ? { tipo: 'documentoOnline' } : undefined;
     const destino = mapa ?? tipoMisc;
     const ignorados = [...e.campos.keys()].filter((k) => !CAMPOS_BIBTEX.has(k));
     if (!destino) {
-      return { origem: e.chave || `@${e.tipo}`, tipoOriginal: e.tipo, obra: null, ignorados: [], avisos: [`Tipo "@${e.tipo}" sem formatador na primeira leva (D-M4-06): não importado.`] };
+      return { origem: (e.chave || `@${e.tipo}`).slice(0, LIMITE_ROTULO), tipoOriginal: e.tipo.slice(0, LIMITE_ROTULO), obra: null, ignorados: [], avisos: [`Tipo "@${e.tipo}" sem formatador na primeira leva (D-M4-06): não importado.`] };
     }
     const v = (k: string): string | undefined => {
       const bruto = e.campos.get(k);
@@ -445,9 +483,11 @@ function lerBibtex(texto: string): { registros: RegistroImportado[]; avisos: str
     const maisAutores = autoresBrutos.some((a) => a.toLowerCase() === 'others');
     const autores = autoresBrutos.filter((a) => a.toLowerCase() !== 'others').map(textoDoLatex);
     const tipoTese = v('type');
+    const avisosRegistroPrevios: string[] = [];
     const c: Campos = {
       tipo: destino.tipo,
-      ...(destino.natureza ? { natureza: destino.natureza } : tipoTese ? { natureza: tipoTese } : {}),
+      // O "type" do arquivo tem a área ("Tese (Doutorado em Educação)"); sem ele, a categoria do tipo BibTeX (revisão N-M4-05).
+      ...(tipoTese ? { natureza: tipoTese } : destino.natureza ? { natureza: destino.natureza } : {}),
       autores,
       autoresEntidade: e.entidades,
       editores: dividirAutores(e.campos.get('editor') ?? '').map(textoDoLatex),
@@ -483,11 +523,14 @@ function lerBibtex(texto: string): { registros: RegistroImportado[]; avisos: str
       const d = dataIso(urldate);
       if (d) c.acesso = d;
     }
-    if (destino.tipo === 'trabalhoAcademico' && !c.natureza) c.natureza = 'Trabalho acadêmico';
+    // Sem natureza no arquivo, o campo fica vazio e a referência avisa (RN-206): nada é inventado.
+    if (destino.tipo === 'trabalhoAcademico' && !tipoTese && destino.natureza) {
+      avisosRegistroPrevios.push(`A natureza veio do tipo "@${e.tipo}": acrescente a área de concentração (RN-206).`);
+    }
     if (destino.tipo === 'norma') atribuir('identificacao', 'number');
-    const avisosRegistro: string[] = [];
+    const avisosRegistro: string[] = [...avisosRegistroPrevios];
     const obra = obraDosCampos(c, avisosRegistro);
-    return { origem: e.chave || `@${e.tipo}`, tipoOriginal: e.tipo, obra, ignorados, avisos: avisosRegistro };
+    return { origem: (e.chave || `@${e.tipo}`).slice(0, LIMITE_ROTULO), tipoOriginal: e.tipo.slice(0, LIMITE_ROTULO), obra, ignorados, avisos: avisosRegistro };
   });
   return { registros, avisos };
 }
@@ -514,7 +557,7 @@ const TIPOS_RIS: Readonly<Record<string, { tipo: TipoObra; ebook?: boolean }>> =
   BLOG: { tipo: 'documentoOnline' },
 };
 
-const MARCAS_RIS = new Set(['TY', 'ER', 'AU', 'A1', 'A2', 'A3', 'ED', 'TI', 'T1', 'CT', 'T2', 'BT', 'T3', 'JO', 'JF', 'JA', 'J2', 'VL', 'IS', 'SP', 'EP', 'PY', 'Y1', 'DA', 'CY', 'PB', 'ET', 'DO', 'UR', 'L2', 'Y2', 'M3']);
+const MARCAS_RIS = new Set(['TY', 'ER', 'AU', 'A1', 'A2', 'ED', 'TI', 'T1', 'CT', 'T2', 'BT', 'T3', 'JO', 'JF', 'JA', 'J2', 'VL', 'IS', 'SP', 'EP', 'PY', 'Y1', 'DA', 'CY', 'PB', 'ET', 'DO', 'UR', 'L2', 'Y2', 'M3']);
 
 function lerRis(texto: string): { registros: RegistroImportado[]; avisos: string[] } {
   const avisos: string[] = [];
@@ -552,10 +595,10 @@ function lerRis(texto: string): { registros: RegistroImportado[]; avisos: string
 }
 
 function registroRis(campos: readonly [string, string][], numero: number): RegistroImportado {
-  const ty = (campos.find(([k]) => k === 'TY')?.[1] ?? '').toUpperCase();
+  const ty = (campos.find(([k]) => k === 'TY')?.[1] ?? '').toUpperCase().slice(0, LIMITE_ROTULO);
   const origem = `registro ${numero}`;
-  const destino = TIPOS_RIS[ty];
-  if (!destino) return { origem, tipoOriginal: ty, obra: null, ignorados: [], avisos: [`Tipo "${ty}" sem formatador na primeira leva (D-M4-06): não importado.`] };
+  const destino = Object.hasOwn(TIPOS_RIS, ty) ? TIPOS_RIS[ty] : undefined;
+  if (!destino) return { origem, tipoOriginal: ty.slice(0, LIMITE_ROTULO), obra: null, ignorados: [], avisos: [`Tipo "${ty}" sem formatador na primeira leva (D-M4-06): não importado.`] };
   const todos = (...ks: string[]) => campos.filter(([k, v]) => ks.includes(k) && v !== '').map(([, v]) => v);
   const um = (...ks: string[]) => {
     for (const k of ks) {
@@ -573,7 +616,8 @@ function registroRis(campos: readonly [string, string][], numero: number): Regis
     ...(destino.ebook ? { ebook: true } : {}),
     autores: todos('AU', 'A1'),
     autoresEntidade: new Set(),
-    editores: todos('A2', 'ED', 'A3').filter(() => destino.tipo === 'capitulo' || destino.tipo === 'livro'),
+    // A3 (autor terciário, muitas vezes o editor da série) não é o responsável pela obra (revisão N-M4-08).
+    editores: todos('A2', 'ED').filter(() => destino.tipo === 'capitulo' || destino.tipo === 'livro'),
   };
   const def = (campo: keyof Campos, v: string | undefined) => {
     if (v !== undefined) (c as unknown as Record<string, string>)[campo] = v;
@@ -588,7 +632,7 @@ function registroRis(campos: readonly [string, string][], numero: number): Regis
   def('local', um('CY'));
   if (destino.tipo === 'trabalhoAcademico') {
     def('instituicao', um('PB'));
-    def('natureza', um('M3') ?? 'Trabalho acadêmico');
+    def('natureza', um('M3'));
   } else def('editora', um('PB'));
   def('edicao', um('ET'));
   def('doi', um('DO'));
@@ -598,5 +642,5 @@ function registroRis(campos: readonly [string, string][], numero: number): Regis
   const ignorados = [...new Set(campos.map(([k]) => k).filter((k) => !MARCAS_RIS.has(k)))];
   const avisos: string[] = [];
   const obra = obraDosCampos(c, avisos);
-  return { origem, tipoOriginal: ty, obra, ignorados, avisos };
+  return { origem, tipoOriginal: ty.slice(0, LIMITE_ROTULO), obra, ignorados, avisos };
 }

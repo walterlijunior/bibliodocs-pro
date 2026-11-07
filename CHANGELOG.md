@@ -5,6 +5,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M4-T10 (revisão do M4):
+  - Importação: arquivo BibTeX com abreviações (`@string`) que crescem não trava mais a tela. Arquivos com muitas quebras de linha ou espaços são lidos rápido. A natureza do trabalho acadêmico vem do arquivo, sem texto inventado. O DOI fica como veio no arquivo. A função dos editores vem com aviso para conferir. "Silva Neto" sem prenome fica todo como sobrenome.
+  - Colar não examina mais a seção inteira: só o que foi colado, e "Ligar às obras" age só ali.
+  - Chamada narrativa de obra sem ano e sem página sai "Lima", não "Lima ()".
+  - A prévia da obra e a da citação mostram as formas provisórias, sem fonte no Manual.
+
 ### Adicionado
 - Etapa 5, M4-T09: "Importar BibTeX ou RIS…" na Bibliografia.
   - A janela mostra cada registro com a referência formatada, o que impede gravar e o que ficou de fora do arquivo. As obras que já estão no trabalho vêm desmarcadas.

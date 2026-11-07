@@ -20,7 +20,7 @@ describe('BibTeX', () => {
       ['cagliari2003', 'CAGLIARI, Luiz Carlos. Alfabetização & Linguística. 10. ed. São Paulo: Scipione, 2003. 191 p.'],
       ['lima2010', 'LIMA, Bia; COSTA NETO, Rui. Um capítulo: com subtítulo. In: SOUZA, Ana (ed.). Coletânea de exemplo. Palmas: Editora da UFT, 2010. p. 15-30.'],
       ['pereira2014', 'PEREIRA JÚNIOR, Carlos. Tese de exemplo. 2014. 222 f. Tese (Doutorado) – Universidade Federal do Tocantins, Palmas, 2014.'],
-      ['dorea2020', 'DOREA, Ana et al. Artigo de exemplo. Revista Fictícia, Palmas, v. 3, n. 2, p. 10-20, 2020. DOI: 10.1000/xyz.'],
+      ['dorea2020', 'DOREA, Ana et al. Artigo de exemplo. Revista Fictícia, Palmas, v. 3, n. 2, p. 10-20, 2020. DOI: https://doi.org/10.1000/xyz.'],
       ['evento2019', 'GRUPO DE PESQUISA FICTÍCIO. Trabalho em evento. In: ANAIS DO CONGRESSO DE EXEMPLO. Anais [...]. Palmas: [s. n.], 2019. p. 1-5.'],
       ['pagina2026', 'PÁGINA de exemplo. 2025. Disponível em: https://exemplo.org/pagina. Acesso em: 31 jan. 2026.'],
     ]);
@@ -54,7 +54,27 @@ describe('BibTeX', () => {
   it('livro só com editores entra pelos editores com (ed.); ano fora do padrão vem com aviso', () => {
     const [i] = resumo('@book{x, editor = {Costa, Rui}, title = {Coletânea}, year = {c2001}, publisher = {P}, address = {L}}');
     expect(i!.referencia).toBe('COSTA, Rui (ed.). Coletânea. L: P, 2001.');
-    expect(i!.avisos).toEqual(['Ano lido de "c2001": 2001.']);
+    expect(i!.avisos).toEqual(['Ano lido de "c2001": 2001.', 'Os responsáveis do arquivo entraram como editores, "(ed.)": confira se a função é org., coord. ou ed. (RN-186).']);
+  });
+});
+
+describe('correções da revisão do M4 (N-M4-05, 07, 08, 09)', () => {
+  it('natureza: o "type" do arquivo primeiro; sem ele, a categoria com aviso; @thesis sem "type", nada inventado', () => {
+    const [comArea] = resumo('@phdthesis{a, author={Lima, Ana}, title={T}, school={UFT}, address={Palmas}, year=2020, type={Tese (Doutorado em Educação)}}');
+    expect(comArea!.referencia).toContain('Tese (Doutorado em Educação) – UFT');
+    const [semArea] = resumo('@phdthesis{a, author={Lima, Ana}, title={T}, school={UFT}, address={Palmas}, year=2020}');
+    expect(semArea!.avisos).toContain('A natureza veio do tipo "@phdthesis": acrescente a área de concentração (RN-206).');
+    const [tese] = prepararImportacao('@thesis{a, author={Lima, Ana}, title={T}, school={UFT}, address={Palmas}, year=2020}', []).itens;
+    expect(tese!.obra!.natureza).toBeUndefined();
+    expect(tese!.referencia).not.toContain('Trabalho acadêmico');
+  });
+
+  it('DOI fica como veio; A3 do RIS não vira editor; "Silva Neto" sem prenome é todo sobrenome', () => {
+    expect(lerBibliografiaImportada('@article{a, title={T}, doi={10.1/x}}').registros[0]!.obra!.doi).toBe('10.1/x');
+    const ris = lerBibliografiaImportada('TY  - BOOK\nAU  - Lima, Ana\nA3  - Costa, Rui\nTI  - T\nER  - ').registros[0]!;
+    expect(ris.obra!.autores).toEqual([{ tipo: 'pessoa', sobrenome: 'Lima', prenomes: 'Ana' }]);
+    expect(ris.ignorados).toEqual(['A3']);
+    expect(autorDeNome('Silva Neto')).toEqual({ tipo: 'pessoa', sobrenome: 'Silva Neto' });
   });
 });
 
@@ -141,5 +161,40 @@ describe('importar na sessão', () => {
     expect(sessao.importarObras([{ id: 'x', tipo: 'livro', titulo: [] }])).toEqual({ ok: false, mensagem: 'Nenhuma das obras escolhidas pode ser gravada.' });
     const r = sessao.importarObras([{ id: 'x', tipo: 'livro', titulo: [] }, { id: 'y', tipo: 'livro', titulo: [{ tipo: 'texto', texto: 'Válida' }] }]);
     expect(r.ok && r.recusadas).toBe(1);
+  });
+});
+
+describe('revisão de segurança do M4 (R-M4-01, 02, 05, 06, 09)', () => {
+  const tempo = (f: () => unknown): number => {
+    const t0 = performance.now();
+    f();
+    return performance.now() - t0;
+  };
+
+  it('R-M4-01: macros @string que dobram de tamanho param no teto, sem travar', () => {
+    const linhas = ['@string{m0 = "abcdefghij"}'];
+    for (let k = 1; k <= 30; k++) linhas.push(`@string{m${k} = m${k - 1} # m${k - 1}}`);
+    for (let k = 0; k < 8; k++) linhas.push(`@book{b${k}, title = m30, year = 2001}`);
+    const texto = linhas.join('\n');
+    let r: ReturnType<typeof prepararImportacao> | undefined;
+    expect(tempo(() => (r = prepararImportacao(texto, [])))).toBeLessThan(3000);
+    expect(r!.avisos.some((a) => a.includes('grande demais') || a.includes('expande demais'))).toBe(true);
+  });
+
+  it('R-M4-02: muitas quebras de linha ou espaços não custam tempo quadrático', () => {
+    const quebras = '\n'.repeat(200_000);
+    expect(tempo(() => detectarFormato(`${quebras}x`))).toBeLessThan(1000);
+    expect(tempo(() => lerBibliografiaImportada(`@article{x, ?${quebras}`))).toBeLessThan(1500);
+    expect(tempo(() => lerBibliografiaImportada(`@book{x, author = {Lima${' '.repeat(80_000)}Costa}, title={T}}`))).toBeLessThan(1500);
+  });
+
+  it('R-M4-06: tipo com nome de propriedade do Object não vira obra sem tipo', () => {
+    expect(lerBibliografiaImportada('@constructor{k, title = {T}, year = 2001}').registros[0]).toMatchObject({ obra: null, tipoOriginal: 'constructor' });
+    expect(lerBibliografiaImportada('TY  - CONSTRUCTOR\nTI  - T\nER  - ').registros[0]).toMatchObject({ obra: null, tipoOriginal: 'CONSTRUCTOR' });
+  });
+
+  it('R-M4-09: chave enorme é cortada no rótulo', () => {
+    const r = lerBibliografiaImportada(`@book{${'k'.repeat(5000)}, title = {T}}`);
+    expect(r.registros[0]!.origem.length).toBe(200);
   });
 });

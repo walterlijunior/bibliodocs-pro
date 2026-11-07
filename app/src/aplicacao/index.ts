@@ -107,6 +107,7 @@ export {
 } from './servicos/sessao-trabalho';
 export {
   formatadorDeChamadas,
+  reconhecedorDeChamadas,
   reconhecerChamadasEscritas,
   validarCitacao,
   verificarBibliografiaDoDocumento,

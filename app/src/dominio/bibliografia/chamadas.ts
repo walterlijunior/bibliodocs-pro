@@ -89,9 +89,17 @@ export function formatarChamada(citacao: InlineCitacao, ctx: ContextoChamadas, o
         return;
       }
       escreverEntrada(m, obra, 'narrativa', edicao);
+      const ultima = i === citacao.obras.length - 1;
+      // Sem ano, volume, página, apud nem grifo, não há o que pôr entre parênteses: "Lima", não "Lima ()" (revisão N-M4-04).
+      const vazia =
+        anoDaReferencia(obra, ctx.sufixos.get(obra.id)) === null && !c.volume?.trim() && !c.pagina?.trim() && !c.semPaginacao && !(ultima && (citacao.apud || citacao.grifo));
+      if (vazia) {
+        escreverAnoEPagina(m, obra, c, ctx, avisos, false); // só o aviso de obra sem ano
+        return;
+      }
       m.texto(' (', ['RN-083']);
       escreverAnoEPagina(m, obra, c, ctx, avisos, false);
-      if (i === citacao.obras.length - 1) escreverApudEGrifo(m, citacao, ctx, avisos, edicao, obraDe);
+      if (ultima) escreverApudEGrifo(m, citacao, ctx, avisos, edicao, obraDe);
       m.texto(')', ['RN-083']);
     });
   } else {

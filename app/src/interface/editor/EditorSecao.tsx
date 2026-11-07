@@ -29,6 +29,7 @@ import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view'
 import {
   alterarCitacao,
   chamadaSelecionada,
+  blocosMudados,
   chamadasEscritasNoDoc,
   inserirCitacao,
   ligarChamadasEscritas,
@@ -202,6 +203,8 @@ export function EditorSecao(p: PropsEditorSecao) {
   const [barra, setBarra] = useState<Barra>(BARRA_VAZIA);
   // Chamadas escritas à mão no texto colado (M4-T07): a sugestão espera o aceite.
   const [sugestao, setSugestao] = useState<readonly ChamadaEscritaNoDoc[]>([]);
+  // Blocos tocados pela colagem: a sugestão e o "Ligar às obras" ficam neles (revisão R-M4-03).
+  const refBlocosColados = useRef<ReadonlySet<string>>(new Set());
   // As funções de fora mudam a cada renderização da casca; o editor lê sempre a mais recente.
   const refProps = useRef(p);
   useEffect(() => {
@@ -293,9 +296,13 @@ export function EditorSecao(p: PropsEditorSecao) {
         if (novo.doc !== anterior.doc) refProps.current.aoAlterar(secaoId, docParaSecao(novo.doc));
         // Colagem com chamadas escritas de obras cadastradas: sugere ligar (nunca liga sozinho).
         if (tr.getMeta('uiEvent') === 'paste' && novo.doc !== anterior.doc) {
-          const reconhecer = refProps.current.reconhecerChamadas;
-          const depois = chamadasEscritasNoDoc(novo.doc, reconhecer);
-          if (depois.length > chamadasEscritasNoDoc(anterior.doc, reconhecer).length) setSugestao(depois);
+          // Só os blocos que a colagem criou ou mudou: o resto da seção não é examinado (revisão R-M4-03).
+          const blocos = blocosMudados(anterior.doc, novo.doc);
+          const achadas = blocos.size === 0 ? [] : chamadasEscritasNoDoc(novo.doc, refProps.current.reconhecerChamadas, blocos);
+          if (achadas.length > 0) {
+            refBlocosColados.current = blocos;
+            setSugestao(achadas);
+          }
         }
         // Passo novo no histórico de texto (também quando o limite de 100 eventos corta os mais antigos e a profundidade
         // diminui); desfazer e refazer não contam: a ordem única já os moveu.
@@ -378,7 +385,7 @@ export function EditorSecao(p: PropsEditorSecao) {
     setSugestao([]);
     if (!view || somenteLeitura) return;
     // Procura de novo: o texto pode ter mudado depois da colagem.
-    if (ligarChamadasEscritas(chamadasEscritasNoDoc(view.state.doc, refProps.current.reconhecerChamadas))(view.state, view.dispatch)) {
+    if (ligarChamadasEscritas(chamadasEscritasNoDoc(view.state.doc, refProps.current.reconhecerChamadas, refBlocosColados.current))(view.state, view.dispatch)) {
       view.dispatch(closeHistory(view.state.tr));
     }
     view.focus();

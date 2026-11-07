@@ -101,6 +101,14 @@ describe('decisões provisórias D-M4 (NBR 10520 ausente)', () => {
     expect(r.avisos.map((a) => a.codigo)).toEqual(['ANO_AUSENTE']);
   });
 
+  it('narrativa sem ano nem página: sem parênteses vazios (revisão N-M4-04)', () => {
+    const o = obra({ autores: [p('Lima')] });
+    const r = chamar([o], cit('narrativa', [em(o)]));
+    expect(marcado(r)).toBe('Lima');
+    expect(r.avisos.map((a) => a.codigo)).toEqual(['ANO_AUSENTE']);
+    expect(marcado(chamar([o], cit('narrativa', [em(o, '5')])))).toBe('Lima (p. 5)');
+  });
+
   it('narrativa com várias obras: cada uma com o seu ano, e aviso', () => {
     const a = obra({ autores: [p('Lima')], ano: 2000 });
     const b = obra({ autores: [p('Costa')], ano: 2001 });

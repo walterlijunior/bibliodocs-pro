@@ -316,6 +316,7 @@ export function FormularioObra(p: PropsFormularioObra) {
             })
           )}
         </p>
+        {previa.provisorias.length > 0 && <p className="dica">Forma provisória, sem fonte no Manual: {previa.provisorias.join('; ')}.</p>}
       </section>
 
       {previa.erros.length > 0 && (

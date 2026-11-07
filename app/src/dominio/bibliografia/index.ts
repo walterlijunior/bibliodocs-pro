@@ -22,6 +22,8 @@ export { anoDaReferencia, dataAbreviada, MESES_ABREVIADOS } from './datas';
 export { compararReferencias, ordenarReferencias, sufixosDeAno } from './ordenacao';
 export { formatarReferencia, tiposComFormatador, type OpcoesReferencia } from './referencia';
 export {
+  ORIGENS_PROVISORIAS,
+  origensProvisorias,
   textoDaReferencia,
   type AvisoReferencia,
   type CodigoAvisoReferencia,

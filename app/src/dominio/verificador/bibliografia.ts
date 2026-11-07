@@ -90,8 +90,9 @@ const ANO = String.raw`\[?\d{4}[a-z]?\??\]?`;
 const PARENTETICA = new RegExp(String.raw`\((\p{Lu}[^()]{0,200}?),\s*${ANO}(?:[,;][^()]{0,200})?\)`, 'gu');
 // Narrativa: "Silva (2001)", "Silva Neto (2001)" (RN-181), "Aranha e Martins (1993)", "Lima, Costa e Souza (2010)",
 // "Lima et al. (2010)". Só o sobrenome com parentesco junta duas palavras: "Conforme Costa (2001)" acha "Costa (2001)".
+// A lista de sobrenomes vai até 11: sem teto, uma lista longa sem "(" custaria tempo quadrático (R-M4-07).
 const SOBRENOME = String.raw`\p{Lu}[\p{L}'’-]+(?: (?:Neto|Filho|Júnior|Junior|Sobrinho))?`;
-const NARRATIVA = new RegExp(String.raw`(?<![\p{L}\p{N}])${SOBRENOME}(?:, ${SOBRENOME})*(?: e ${SOBRENOME})?(?: et al\.)? \(${ANO}(?:,[^()]{0,200})?\)`, 'gu');
+const NARRATIVA = new RegExp(String.raw`(?<![\p{L}\p{N}])${SOBRENOME}(?:, ${SOBRENOME}){0,10}(?: e ${SOBRENOME})?(?: et al\.)? \(${ANO}(?:,[^()]{0,200})?\)`, 'gu');
 
 /** Chamadas escritas no texto (só os trechos de texto entre os nós; o texto não atravessa nota nem chamada). */
 export function chamadasEscritas(conteudo: readonly Inline[]): string[] {
@@ -203,8 +204,8 @@ export function verificarBibliografia(doc: Documento, opcoes: OpcoesVerificacao 
       problemas.push({
         codigo: 'CHAMADA_AMBIGUA',
         gravidade: 'aviso',
-        origem: ['RN-096', 'D-M4-03'],
-        mensagem: 'Outra obra de autor diferente tem o mesmo sobrenome e o mesmo ano: as chamadas saem iguais. Acrescente o prenome no texto para distinguir.',
+        origem: ['RN-096'],
+        mensagem: 'Outra obra de autor diferente tem o mesmo sobrenome e o mesmo ano: as chamadas saem iguais. O Manual não trata o caso (RN-096, pendente de fonte).',
         local: { tipo: 'obra', obra: o.id },
       });
     }
@@ -229,7 +230,7 @@ function pessoas(obras: readonly Obra[]): { autor: Extract<Autor, { tipo: 'pesso
   );
 }
 
-/** D-M4-10 (provisório): mesma pessoa, grafias diferentes. Iniciais iguais, ou uma forma só com o sobrenome. */
+/** D-M4-10 (provisório): mesma pessoa, grafias diferentes: mesmo sobrenome (sem acentos e maiúsculas) e mesmas iniciais. */
 function grafiasDivergentes(obras: readonly Obra[]): ProblemaBibliografia[] {
   const grupos = new Map<string, { autor: Extract<Autor, { tipo: 'pessoa' }>; obra: Id }[]>();
   for (const p of pessoas(obras)) {

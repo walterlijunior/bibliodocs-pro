@@ -3,8 +3,8 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-07 — M4-T09: importação BibTeX/RIS.
-**Etapa atual:** Etapa 5 — Implementação. Marcos **M1 e M2 concluídos**; M3 em andamento (T00–T11 ✔; T12 aguardando o usuário).
+**Última atualização:** 2026-11-07 — M4-T10: revisão independente e fechamento do M4.
+**Etapa atual:** Etapa 5 — Implementação. Marcos **M1, M2 e M4 concluídos**; M3 em andamento (T00–T11 ✔; T12 aguardando o usuário). M4: 4 decisões do usuário pendentes (`docs/relatorios/REVISAO_M4.md`).
 
 ## Etapas
 
@@ -15,7 +15,7 @@
 | 2. Auditoria | CONCLUÍDA | `docs/relatorios/ETAPA2_AUDITORIA.md` |
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO; +3 PENDENTE-FONTE (RN-313 a 315) na revisão do M3) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
-| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔, T12 AGUARDANDO USUÁRIO) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
+| 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔, T12 AGUARDANDO USUÁRIO; M4: T00–T10 ✔ — **M4 CONCLUÍDO**) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | PENDENTE | — |
 | 7. Estabilização | PENDENTE | — |
 
@@ -25,7 +25,7 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
 1. **Pendente do usuário para fechar o M3 (M3-T12):**
    - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos (o espaço entre títulos seguidos, N-M3-07, já foi medido no Word por automação e não dobra).
 2. Pendente do usuário: arquivo do brasão da UFT (RN-118).
-3. **M4:** plano em `docs/PLANO_DE_IMPLEMENTACAO.md`. M4-T00 ✔ (decisões D-M4-01 a 07 na matriz, 2026-11-05, "siga as recomendações"; NBR 10520 e 6023 não disponíveis, tudo provisório). M4-T01 ✔ (obras e citações no `documento.json`, adendo do M4-T01 no ADR-0004). M4-T02 ✔ (formatadores de referência: base comum, livro, ordenação e sufixos; 2026-11-07). M4-T02 em `693fcba`. M4-T03 ✔ (chamadas parentética e narrativa, apud, grifo, título, sufixos, opção 2023; 2026-11-07). D-M4-08 aceita (2026-11-07). M4-T04 ✔ (nove tipos com formatador; 2026-11-07). M4-T05 ✔ (lista e chamadas no DOCX; apud: original e consultada na lista, decisão do usuário 2026-11-07). M4-T06 ✔ (cadastro de obras na aba Escrever; D-M4-09: quatro campos novos). M4-T07 ✔ (citação no editor com Ctrl+Shift+C, volume na chamada, sugestão de ligar "(AUTOR, ano)" colado). Complemento do M4-T07 ✔: citação dentro de nota de rodapé. M4-T08 ✔ (conferência da bibliografia; D-M4-10 provisória, aguarda revisão do usuário). M4-T09 ✔ (importação BibTeX/RIS com conferência antes de gravar; leitor próprio, sem dependência nova). Próximo: **M4-T10** (revisão independente e fechamento do M4). Relatório: `docs/relatorios/M4_RELATORIO_MARCO.md`.
+3. **M4:** plano em `docs/PLANO_DE_IMPLEMENTACAO.md`. M4-T00 ✔ (decisões D-M4-01 a 07 na matriz, 2026-11-05, "siga as recomendações"; NBR 10520 e 6023 não disponíveis, tudo provisório). M4-T01 ✔ (obras e citações no `documento.json`, adendo do M4-T01 no ADR-0004). M4-T02 ✔ (formatadores de referência: base comum, livro, ordenação e sufixos; 2026-11-07). M4-T02 em `693fcba`. M4-T03 ✔ (chamadas parentética e narrativa, apud, grifo, título, sufixos, opção 2023; 2026-11-07). D-M4-08 aceita (2026-11-07). M4-T04 ✔ (nove tipos com formatador; 2026-11-07). M4-T05 ✔ (lista e chamadas no DOCX; apud: original e consultada na lista, decisão do usuário 2026-11-07). M4-T06 ✔ (cadastro de obras na aba Escrever; D-M4-09: quatro campos novos). M4-T07 ✔ (citação no editor com Ctrl+Shift+C, volume na chamada, sugestão de ligar "(AUTOR, ano)" colado). Complemento do M4-T07 ✔: citação dentro de nota de rodapé. M4-T08 ✔ (conferência da bibliografia; D-M4-10 provisória, aguarda revisão do usuário). M4-T09 ✔ (importação BibTeX/RIS com conferência antes de gravar; leitor próprio, sem dependência nova). M4-T10 ✔ (revisão `docs/relatorios/REVISAO_M4.md`: Alta de segurança e Médias corrigidas). **M4 CONCLUÍDO**, com 4 decisões do usuário pendentes (N-M4-01, N-M4-02, N-M4-12, estreitar D-M4-10). Próximo: decisões pendentes e depois **M5** (tabelas e elementos visuais: estudo visual e plano de tarefas). Relatório: `docs/relatorios/M4_RELATORIO_MARCO.md`.
 4. Todo incremento termina com `cd app; npm run verificar:tudo` passando.
 
 ## Revisão do M3 (M3-T12, 2026-11-05)

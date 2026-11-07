@@ -5,7 +5,7 @@
  * - Forma única: `prepararObra` tira o que não é do tipo, apara o texto, limpa o que o XML 1.0 não aceita e deixa ausente
  *   o que ficou vazio. Só a obra que o documento aceitaria é gravada (`validarObra`).
  */
-import { formatarReferencia, tiposComFormatador, type AvisoReferencia, type TrechoReferencia } from '../../dominio/bibliografia';
+import { formatarReferencia, origensProvisorias, tiposComFormatador, type AvisoReferencia, type TrechoReferencia } from '../../dominio/bibliografia';
 import { LIMITES_V1, validarObraV1, type ErroValidacao } from '../../dominio/esquemas';
 import type { Autor, EventoObra, InlineDeTitulo, Obra, ObraNoTodo, TipoObra } from '../../dominio/modelo';
 import { limparTexto } from './pre-textuais';
@@ -162,6 +162,8 @@ export interface PreviaObra {
   avisos: readonly AvisoReferencia[];
   /** O que impede gravar, com o caminho a partir de `obra`. */
   erros: readonly ErroValidacao[];
+  /** Formas provisórias, sem fonte no Manual, que entraram na referência (revisão N-M4-06). */
+  provisorias: string[];
 }
 
 /** Prévia do cadastro: a referência formatada da obra preparada e o que falta para gravá-la. */
@@ -169,5 +171,5 @@ export function previaDaObra(o: Obra): PreviaObra {
   const preparada = prepararObra(o);
   const v = validarObraV1(preparada);
   const ref = tiposComFormatador().includes(preparada.tipo) ? formatarReferencia(preparada) : { trechos: [], avisos: [] };
-  return { trechos: ref.trechos, avisos: ref.avisos, erros: v.ok ? [] : v.erros };
+  return { trechos: ref.trechos, avisos: ref.avisos, erros: v.ok ? [] : v.erros, provisorias: origensProvisorias(ref.trechos) };
 }

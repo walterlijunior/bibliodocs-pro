@@ -478,3 +478,28 @@ O texto só entra no modelo pela validação do esquema v1 (`validarObra`), e a 
 - Os arquivos de exemplo são fictícios. Falta conferir exportações reais do Zotero e do Mendeley, de preferência em arquivos do usuário.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1685 testes unitários, 27 externos e 25 de 25 E2E. O pico de memória foi de 778 MB. O `npm audit` continua com os mesmos 7 avisos moderados da cadeia do electron-builder (R35), nenhum alto.
+
+## M4-T10 — Revisão independente e fechamento
+
+- **Revisão:** `docs/relatorios/REVISAO_M4.md`. Dois revisores independentes, só leitura: segurança (R-M4) e normas (N-M4).
+- **Corrigidos:**
+  - o achado Alto de segurança (R-M4-01, macros BibTeX sem teto);
+  - os Médios de segurança (R-M4-02 regex quadráticas, R-M4-03 colagem sobre a seção inteira);
+  - os Médios de normas N-M4-04, 05 e 06 (formas provisórias agora à vista na prévia e na janela da citação);
+  - os Baixos N-M4-07 a 10, R-M4-05, 06, 07 e 09.
+- **N-M4-03:** a decisão do apud foi registrada na matriz como D-M4-11.
+- **Aguardam o usuário:**
+  - N-M4-01 (itálico em "[S. l.]" e "[s. n.]", Alta);
+  - N-M4-02 (título com artigo na lista);
+  - N-M4-12 (ordem de obras com *et al.*);
+  - estreitamento da D-M4-10.
+- **Abertos:** R-M4-04 (Baixa, sem caminho pela interface) e os informativos.
+
+**Aceite do M4 (plano: RF-07, RF-08, verificador de órfãs e não citadas):**
+- RF-08, cadastro de obras: FUN-12.
+- RF-08, importação: FUN-15 e IMP-BIB.
+- RF-07, citação ligada à obra que acompanha as mudanças da obra e se desfaz com o texto: FUN-13 e BIB-CHA.
+- Lista REFERÊNCIAS e chamadas no DOCX: DOC-REF e o instantâneo `documento-dificil`.
+- Verificador com 1 órfã e 1 não citada: VER-BIB e FUN-14.
+
+As decisões pendentes mudam detalhes do documento, mas não o aceite.

@@ -8,7 +8,7 @@
  *   vira sugestão de ligação. Nada é ligado sem o usuário aceitar.
  * - `verificarBibliografiaDoDocumento` (M4-T08): o verificador da bibliografia com as opções do perfil.
  */
-import { contextoDeChamadas, formatarChamada, type AvisoReferencia, type EdicaoNbr10520, type TrechoReferencia } from '../../dominio/bibliografia';
+import { contextoDeChamadas, formatarChamada, origensProvisorias, type AvisoReferencia, type EdicaoNbr10520, type TrechoReferencia } from '../../dominio/bibliografia';
 import { formatarCaminho, validarCitacaoV1, type ErroValidacao } from '../../dominio/esquemas';
 import type { Documento, InlineCitacao, Obra } from '../../dominio/modelo';
 import { verificarBibliografia, type ProblemaBibliografia } from '../../dominio/verificador';
@@ -21,6 +21,8 @@ export interface ChamadaNaTela {
   texto: string;
   trechos: readonly TrechoReferencia[];
   avisos: readonly AvisoReferencia[];
+  /** Formas provisórias, sem fonte no Manual (revisão N-M4-06). */
+  provisorias: string[];
 }
 
 export type FormatadorDeChamadas = (dados: DadosCitacao) => ChamadaNaTela;
@@ -37,7 +39,7 @@ export function formatadorDeChamadas(obras: readonly Obra[], edicao: EdicaoNbr10
   const ctx = contextoDeChamadas(obras);
   return (dados) => {
     const c = formatarChamada({ ...dados, tipo: 'citacao', id: ID_PROVISORIO }, ctx, { edicaoNbr10520: edicao });
-    return { texto: c.trechos.map((t) => t.texto).join(''), trechos: c.trechos, avisos: c.avisos };
+    return { texto: c.trechos.map((t) => t.texto).join(''), trechos: c.trechos, avisos: c.avisos, provisorias: origensProvisorias(c.trechos) };
   };
 }
 
@@ -94,40 +96,48 @@ const PAGINA = String.raw`(?:, p\. ([0-9A-Za-z][0-9A-Za-z–-]*))?`;
  * seria um palpite. Chamadas sobrepostas ficam com a primeira.
  */
 export function reconhecerChamadasEscritas(texto: string, obras: readonly Obra[], edicao: EdicaoNbr10520 = edicaoDoPerfil()): ChamadaEscrita[] {
-  if (texto.indexOf('(') < 0) return [];
+  return reconhecedorDeChamadas(obras, edicao)(texto);
+}
+
+/**
+ * O reconhecedor montado uma vez por lista de obras (revisão R-M4-03): os padrões de todas as obras numa regex só, do
+ * mais longo ao mais curto (o mais longo ganha no mesmo ponto). A tela o guarda enquanto as obras não mudam.
+ */
+export function reconhecedorDeChamadas(obras: readonly Obra[], edicao: EdicaoNbr10520 = edicaoDoPerfil()): (texto: string) => ChamadaEscrita[] {
   const formatar = formatadorDeChamadas(obras, edicao);
-  // Prefixo da chamada sem o ")" final, por forma, e as obras que o produzem.
+  // Prefixo da chamada sem o ")" final (em minúsculas) e as obras que o produzem.
   const padroes = new Map<string, { forma: DadosCitacao['forma']; obras: Obra[] }>();
   for (const obra of obras) {
     if (obra.ano === undefined) continue;
     for (const forma of ['parentetica', 'narrativa'] as const) {
       const r = formatar({ forma, obras: [{ obra: obra.id }] });
       if (r.avisos.some((a) => a.codigo === 'OBRA_INEXISTENTE') || !r.texto.endsWith(')')) continue;
-      const chave = `${forma}|${r.texto.slice(0, -1).toLocaleLowerCase('pt-BR')}`;
+      const chave = r.texto.slice(0, -1).toLocaleLowerCase('pt-BR');
       const atual = padroes.get(chave);
       if (atual) atual.obras.push(obra);
       else padroes.set(chave, { forma, obras: [obra] });
     }
   }
-  const achadas: ChamadaEscrita[] = [];
-  for (const [chave, { forma, obras: doPadrao }] of padroes) {
-    if (doPadrao.length !== 1) continue;
-    const prefixo = chave.slice(chave.indexOf('|') + 1);
-    const re = new RegExp(String.raw`(?<![\p{L}\p{N}])${escapar(prefixo)}${VOLUME}${PAGINA}\)`, 'giu');
+  const unicos = [...padroes.entries()].filter(([, v]) => v.obras.length === 1).map(([k]) => k);
+  if (unicos.length === 0) return () => [];
+  unicos.sort((a, b) => b.length - a.length);
+  const re = new RegExp(String.raw`(?<![\p{L}\p{N}])(${unicos.map(escapar).join('|')})${VOLUME}${PAGINA}\)`, 'giu');
+  return (texto) => {
+    if (texto.indexOf('(') < 0) return [];
+    const saida: ChamadaEscrita[] = [];
     for (const m of texto.matchAll(re)) {
-      const [inteiro, volume, pagina] = m;
-      achadas.push({
+      const [inteiro, prefixo, volume, pagina] = m;
+      const p = padroes.get(prefixo!.toLocaleLowerCase('pt-BR'));
+      if (!p) continue;
+      saida.push({
         inicio: m.index,
         fim: m.index + inteiro.length,
         texto: inteiro,
-        dados: { forma, obras: [{ obra: doPadrao[0]!.id, ...(volume ? { volume } : {}), ...(pagina ? { pagina } : {}) }] },
+        dados: { forma: p.forma, obras: [{ obra: p.obras[0]!.id, ...(volume ? { volume } : {}), ...(pagina ? { pagina } : {}) }] },
       });
     }
-  }
-  achadas.sort((a, b) => a.inicio - b.inicio || b.fim - a.fim);
-  const saida: ChamadaEscrita[] = [];
-  for (const c of achadas) if (saida.length === 0 || c.inicio >= saida[saida.length - 1]!.fim) saida.push(c);
-  return saida;
+    return saida;
+  };
 }
 
 /** Citações × referências e consistência das obras (M4-T08), com a edição da NBR 10520 e a autoria do perfil. */

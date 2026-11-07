@@ -7,7 +7,7 @@
 // janela da citação, pedida pelo editor. M4-T08: a conferência da bibliografia, no lugar do editor, com "Ir ao texto" e
 // "Abrir obra". M4-T09: importar BibTeX ou RIS, com a janela que mostra o que entra. Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecerChamadasEscritas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
+import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
@@ -108,7 +108,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const listaObras = t?.obras;
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
-  const reconhecerChamadas = useCallback((texto: string) => reconhecerChamadasEscritas(texto, obrasDoTrabalho), [obrasDoTrabalho]);
+  // Montado uma vez por lista de obras (revisão R-M4-03).
+  const reconhecerChamadas = useMemo(() => reconhecedorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
   // Conferência da bibliografia (M4-T08) no lugar do editor, e o ponto do texto a mostrar depois de "Ir ao texto".
   const [conferencia, setConferencia] = useState<readonly ProblemaBibliografia[] | null>(null);
   const [irAoTexto, setIrAoTexto] = useState<Extract<LocalProblema, { tipo: 'texto' }> | null>(null);
@@ -131,7 +132,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         aviso = 'O arquivo não está em UTF-8: foi lido como Windows-1252. Confira os acentos.';
       }
       setAnuncioObra(null);
-      setImportacao({ nomeArquivo: arquivo.name, previa: prepararImportacao(texto, (obrasAtuais ?? []).map((o) => o.obra)), aviso });
+      try {
+        setImportacao({ nomeArquivo: arquivo.name, previa: prepararImportacao(texto, (obrasAtuais ?? []).map((o) => o.obra)), aviso });
+      } catch {
+        // Defesa: o leitor tem tetos, mas um arquivo de fora nunca derruba a tela em silêncio (R-M4-05).
+        setAnuncioObra(`“${arquivo.name}” não pôde ser lido.`);
+      }
     },
     [obrasAtuais],
   );

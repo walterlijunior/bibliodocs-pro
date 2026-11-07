@@ -113,9 +113,11 @@ const FORA_DO_TEXTO = '￼';
 export function chamadasEscritasNoDoc(
   doc: NoPm,
   reconhecer: (texto: string) => readonly { inicio: number; fim: number; texto: string; dados: DadosCitacao }[],
+  /** Só nestes blocos (ids dos blocos da seção); sem ele, na seção inteira. */
+  blocos?: ReadonlySet<string>,
 ): ChamadaEscritaNoDoc[] {
   const saida: ChamadaEscritaNoDoc[] = [];
-  doc.descendants((bloco, posBloco) => {
+  const procurar = (bloco: NoPm, posBloco: number): boolean => {
     if (!bloco.isTextblock) return true;
     if (bloco.type.contentMatch.matchType(tipoChamada) === null) return false;
     const { texto, posicao } = textoComPosicoes(bloco, posBloco);
@@ -124,8 +126,23 @@ export function chamadasEscritasNoDoc(
       saida.push({ de: posicao(c.inicio), ate: posicao(c.fim - 1) + 1, texto: c.texto, dados: c.dados });
     }
     return false;
+  };
+  doc.forEach((filho, deslocamento) => {
+    if (blocos !== undefined && !blocos.has(String(filho.attrs['id']))) return;
+    if (procurar(filho, deslocamento)) filho.descendants((no, pos) => procurar(no, deslocamento + 1 + pos));
   });
   return saida;
+}
+
+/** Ids dos blocos da seção que a transação criou ou mudou (os outros são o mesmo objeto no documento novo). */
+export function blocosMudados(antes: NoPm, depois: NoPm): Set<string> {
+  const antigos = new Set<NoPm>();
+  antes.forEach((b) => antigos.add(b));
+  const ids = new Set<string>();
+  depois.forEach((b) => {
+    if (!antigos.has(b) && typeof b.attrs['id'] === 'string') ids.add(b.attrs['id']);
+  });
+  return ids;
 }
 
 /** Texto de um bloco de texto e a posição no documento de cada caractere (nós que não são texto valem um caractere). */
