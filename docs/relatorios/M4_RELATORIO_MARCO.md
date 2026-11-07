@@ -92,7 +92,7 @@ O usuário aceitou as recomendações ("siga as recomendações", 2026-11-05). C
 
 **Testes:** `tests/bibliografia-chamadas.test.ts`, com 32 casos. Os 12 exemplos das p. 22–26 do Manual saem iguais. Também cobre as decisões D-M4-02 a 04, C-01 (2002 e 2023), entrada pelo título, RF-07 e obra ausente.
 
-**Escolhas sem exemplo no Manual (provisórias, para a revisão do M4-T10)**
+**Escolhas sem exemplo no Manual** (as quatro primeiras foram aceitas pelo usuário como D-M4-08 em 2026-11-07; todas são provisórias)
 - Três autores na narrativa: "Lima, Costa e Souza (2010)". O Manual só mostra dois ("Aranha e Martins").
 - Narrativa com várias obras: cada obra com o seu ano, separadas por "; ", e aviso `NARRATIVA_COM_VARIAS_OBRAS`.
 - Obra sem ano: a chamada sai sem data, "(LIMA, p. 5)", com aviso. D-M4-04 só trata a data provável.
