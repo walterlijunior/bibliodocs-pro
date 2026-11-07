@@ -229,7 +229,7 @@ describe('aba Escrever (M1-T11)', () => {
     podeSalvar: true,
     salvamento: { tipo: 'naoSalvo' },
     geracao: 1,
-    secoes: [], preTextuais: null,
+    secoes: [], preTextuais: null, obras: [],
   } as const;
 
   it('sem trabalho: convite para criar ou abrir', () => {

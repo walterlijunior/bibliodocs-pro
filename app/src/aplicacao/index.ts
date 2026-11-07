@@ -101,7 +101,22 @@ export {
   type TrabalhoDaSessao,
   type PreTextuaisDaSessao,
   type ResumoElemento,
+  type ObraNaLista,
+  type ResultadoObra,
+  MENSAGEM_OBRA_INVALIDA,
 } from './servicos/sessao-trabalho';
+export {
+  CAMPOS_DO_TIPO,
+  obraVazia,
+  prepararObra,
+  previaDaObra,
+  validarObra,
+  type CampoNumeroObra,
+  type CampoObra,
+  type CampoTextoObra,
+  type PreviaObra,
+  type ResultadoValidacaoObra,
+} from './servicos/obras';
 export {
   aplicarCampos,
   aplicarDados,

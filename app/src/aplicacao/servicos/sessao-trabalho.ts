@@ -41,6 +41,7 @@ import {
   promoverSecao,
   recuarSecao,
   removerSecao,
+  citacoesDoDocumento,
   ehTipoTrabalhoUft,
   ORDEM_PRE_TEXTUAIS,
   type Documento,
@@ -50,6 +51,7 @@ import {
   type InlineDeTitulo,
   type InversoSecao,
   type Metadados,
+  type Obra,
   type ResultadoOperacaoSecao,
   type Secao,
   type TipoTrabalhoId,
@@ -59,7 +61,9 @@ import { LIMITES_V1 } from '../../dominio/esquemas';
 import { numerarSecoes } from '../../dominio/numeracao';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
-import { HistoricoEdicao, type EntradaHistorico, type InversoElemento } from './historico-edicao';
+import { formatarReferencia, ordenarReferencias, textoDaReferencia } from '../../dominio/bibliografia';
+import { HistoricoEdicao, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
+import { validarObra } from './obras';
 import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
 import {
   CODIGO_MIDIA_AUSENTE,
@@ -140,6 +144,17 @@ export interface PreTextuaisDaSessao {
   pendencias: readonly PendenciaPreTextual[];
 }
 
+/** Obra na lista do cadastro (M4-T06): na ordem das referências, com o texto da referência para mostrar. */
+export interface ObraNaLista {
+  obra: Obra;
+  referencia: string;
+}
+
+/** Resultado de incluir, alterar ou excluir obra. */
+export type ResultadoObra = { ok: true; id: Id } | { ok: false; mensagem: string };
+
+export const MENSAGEM_OBRA_INVALIDA = 'A obra não foi gravada: confira os campos assinalados.';
+
 export interface TrabalhoDaSessao {
   /**
    * Muda a cada trabalho aberto (também ao reabrir o mesmo arquivo ou recuperar): o editor descarta o que guardou do
@@ -158,6 +173,8 @@ export interface TrabalhoDaSessao {
   secoes: readonly ResumoSecao[];
   /** `null` nos tipos sem elementos (genérico, tipo de versão futura). */
   preTextuais: PreTextuaisDaSessao | null;
+  /** Obras da bibliografia na ordem das referências (M4-T06). O objeto só muda quando as obras mudam. */
+  obras: readonly ObraNaLista[];
 }
 
 export interface EstadoSessao {
@@ -183,6 +200,8 @@ export interface DependenciasSessao {
   gerarIdSecao?: () => string;
   /** Id de elemento novo no formato do esquema (M2-T08). */
   gerarIdElemento?: () => string;
+  /** Id de obra nova no formato do esquema (M4-T06). Sem ele, a sessão não cria obras. */
+  gerarIdObra?: () => string;
 }
 
 /**
@@ -374,6 +393,7 @@ export class SessaoTrabalho {
               salvamento: this.#salvamento,
               secoes: this.#secoes,
               preTextuais: this.#preTextuais(a.pacote.documento),
+              obras: this.#obrasNaLista(a.pacote.documento),
             },
       avisos: this.#avisos,
     };
@@ -407,6 +427,16 @@ export class SessaoTrabalho {
       };
     }
     this.#cachePreTextuais = { metadados: doc.metadados, lista: doc.preTextuais, resultado };
+    return resultado;
+  }
+
+  #cacheObras: { obras: Documento['obras']; resultado: readonly ObraNaLista[] } | null = null;
+
+  #obrasNaLista(doc: Documento): readonly ObraNaLista[] {
+    const c = this.#cacheObras;
+    if (c !== null && c.obras === doc.obras) return c.resultado;
+    const resultado = ordenarReferencias(doc.obras ?? []).map((obra) => ({ obra, referencia: textoDaReferencia(formatarReferencia(obra)) }));
+    this.#cacheObras = { obras: doc.obras, resultado };
     return resultado;
   }
 
@@ -673,7 +703,92 @@ export class SessaoTrabalho {
   /** Ids são únicos no documento inteiro: um repetido torna o `.bdp` ilegível (R38; B2 do M2-T03). */
   #idEmUso(a: Extract<Aberto, { modo: 'edicao' }>, id: Id): boolean {
     const d = a.pacote.documento;
-    return this.#caminhos.has(id) || (d.preTextuais ?? []).some((e) => e.id === id) || (d.posTextuais ?? []).some((e) => e.id === id);
+    return (
+      this.#caminhos.has(id) ||
+      (d.preTextuais ?? []).some((e) => e.id === id) ||
+      (d.posTextuais ?? []).some((e) => e.id === id) ||
+      (d.obras ?? []).some((o) => o.id === id) ||
+      citacoesDoDocumento(d).some((c) => c.id === id)
+    );
+  }
+
+  // ---------- bibliografia (M4-T06) ----------
+
+  /** Quantas chamadas do texto apontam para a obra, como citada ou como fonte do apud. */
+  citacoesDaObra(id: Id): number {
+    const a = this.#aberto;
+    if (a === null) return 0;
+    return citacoesDoDocumento(a.pacote.documento).filter((c) => c.obras.some((o) => o.obra === id) || c.apud?.obra === id).length;
+  }
+
+  /** Inclui a obra com um id novo (o do rascunho é ignorado). Só entra se o formato v1 a aceitar. Entra no desfazer. */
+  incluirObra(rascunho: Obra): ResultadoObra {
+    const a = this.#aberto;
+    const gerar = this.#dep.gerarIdObra;
+    if (a?.modo !== 'edicao' || gerar === undefined) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = a.pacote.documento.obras ?? [];
+    if (lista.length >= LIMITES_V1.obras) return { ok: false, mensagem: `O trabalho já tem o máximo de ${LIMITES_V1.obras} obras.` };
+    let id = gerar();
+    while (this.#idEmUso(a, id)) id = gerar();
+    const r = validarObra({ ...rascunho, id });
+    if (!r.ok) return { ok: false, mensagem: MENSAGEM_OBRA_INVALIDA };
+    this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'retirar', id } });
+    this.#trocarObras(a, [...lista, r.obra]);
+    return { ok: true, id };
+  }
+
+  /** Troca os campos de uma obra presente. Usa o desfazer do próprio campo; obra inválida não é gravada. */
+  alterarObra(obra: Obra): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = a.pacote.documento.obras ?? [];
+    const i = lista.findIndex((o) => o.id === obra.id);
+    if (i < 0) return { ok: false, mensagem: 'A obra não está mais no trabalho.' };
+    const r = validarObra(obra);
+    if (!r.ok) return { ok: false, mensagem: MENSAGEM_OBRA_INVALIDA };
+    if (JSON.stringify(r.obra) !== JSON.stringify(lista[i])) this.#trocarObras(a, lista.map((o, j) => (j === i ? r.obra : o)));
+    return { ok: true, id: obra.id };
+  }
+
+  /** Exclui a obra que nenhuma chamada usa: a citada fica, porque a chamada ficaria sem obra (RN-078). Entra no desfazer. */
+  excluirObra(id: Id): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = a.pacote.documento.obras ?? [];
+    const posicao = lista.findIndex((o) => o.id === id);
+    if (posicao < 0) return { ok: false, mensagem: 'A obra não está mais no trabalho.' };
+    const n = this.citacoesDaObra(id);
+    if (n > 0) {
+      return { ok: false, mensagem: `Esta obra é citada ${n === 1 ? 'uma vez' : `${n} vezes`} no texto. Retire as citações antes de excluí-la.` };
+    }
+    this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'incluir', obra: lista[posicao]!, posicao } });
+    this.#trocarObras(a, lista.filter((_, j) => j !== posicao));
+    return { ok: true, id };
+  }
+
+  /** Lista vazia fica ausente (forma única; o esquema recusa `[]`). `obras` é a última chave, como na leitura. */
+  #trocarObras(a: Extract<Aberto, { modo: 'edicao' }>, lista: Obra[]): void {
+    const { obras: _antigas, ...resto } = a.pacote.documento;
+    a.pacote = { ...a.pacote, documento: { ...resto, ...(lista.length > 0 && { obras: lista }) } };
+    this.#marcarAlteracao();
+    this.#emitir();
+  }
+
+  #aplicarInversoObra(a: Extract<Aberto, { modo: 'edicao' }>, inverso: InversoObra): EntradaHistorico | null {
+    const lista = a.pacote.documento.obras ?? [];
+    if (inverso.acao === 'incluir') {
+      if (this.#idEmUso(a, inverso.obra.id)) return null;
+      const nova = [...lista];
+      nova.splice(Math.min(inverso.posicao, nova.length), 0, inverso.obra);
+      this.#trocarObras(a, nova);
+      return { tipo: 'obra', inverso: { acao: 'retirar', id: inverso.obra.id } };
+    }
+    const posicao = lista.findIndex((o) => o.id === inverso.id);
+    // Obra citada depois de incluída não sai pelo desfazer: a chamada ficaria sem obra.
+    if (posicao < 0 || this.citacoesDaObra(inverso.id) > 0) return null;
+    const obra = lista[posicao]!;
+    this.#trocarObras(a, lista.filter((_, j) => j !== posicao));
+    return { tipo: 'obra', inverso: { acao: 'incluir', obra, posicao } };
   }
 
   /** Desfaz ou refaz uma inclusão ou retirada; devolve a entrada que a anula, ou `null` se já não se aplica. */
@@ -848,6 +963,7 @@ export class SessaoTrabalho {
   ): EntradaHistorico | null {
     if (e.tipo === 'texto') return this.#caminhos.has(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
     if (e.tipo === 'elemento') return this.#aplicarInversoElemento(a, e.inverso);
+    if (e.tipo === 'obra') return this.#aplicarInversoObra(a, e.inverso);
     // O inverso vai como foi recebido (só ele restaura além dos limites).
     const r = aplicarOperacaoSecao(a.pacote.documento.corpo, e.inverso);
     if (!r.ok) return null;

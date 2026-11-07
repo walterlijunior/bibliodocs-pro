@@ -10,7 +10,7 @@
  *
  * Puro (sem DOM, sem Node e sem pacote do editor).
  */
-import type { ElementoPreTextual, Id, InversoSecao } from '../../dominio/modelo';
+import type { ElementoPreTextual, Id, InversoSecao, Obra } from '../../dominio/modelo';
 
 /**
  * Incluir e retirar elemento pré-textual (M2-T08): o que desfaz é só aquele elemento. Os campos digitados depois em outros
@@ -18,10 +18,17 @@ import type { ElementoPreTextual, Id, InversoSecao } from '../../dominio/modelo'
  */
 export type InversoElemento = { acao: 'retirar'; id: Id } | { acao: 'incluir'; elemento: ElementoPreTextual };
 
+/**
+ * Incluir e excluir obra da bibliografia (M4-T06). Como nos elementos, a edição dos campos usa o desfazer do próprio
+ * campo; só a obra entra ou sai. `posicao` devolve a obra ao mesmo lugar da lista gravada.
+ */
+export type InversoObra = { acao: 'retirar'; id: Id } | { acao: 'incluir'; obra: Obra; posicao: number };
+
 export type EntradaHistorico =
   | { tipo: 'texto'; secaoId: Id }
   | { tipo: 'estrutura'; inverso: InversoSecao }
-  | { tipo: 'elemento'; inverso: InversoElemento };
+  | { tipo: 'elemento'; inverso: InversoElemento }
+  | { tipo: 'obra'; inverso: InversoObra };
 
 /** Entradas guardadas em cada sentido (o `prosemirror-history` guarda 100 eventos por seção). */
 export const LIMITE_HISTORICO_EDICAO = 1_000;

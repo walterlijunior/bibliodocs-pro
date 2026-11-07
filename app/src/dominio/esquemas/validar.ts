@@ -4,9 +4,9 @@
  * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos.
  */
 import { z } from 'zod';
-import { problemaNosElementos, type Bloco, type Documento, type Inline, type Secao } from '../modelo';
+import { problemaNosElementos, type Bloco, type Documento, type Inline, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
-import { esquemaDocumentoV1, esquemaManifestoV1, type Manifesto } from './projeto-v1';
+import { esquemaDocumentoV1, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
 export interface ErroValidacao {
   /** Caminho legível, ex.: `documento.corpo[0].titulo[1].texto`. */
@@ -172,6 +172,11 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
     return { ok: false, erros: [{ caminho: formatarCaminho('documento', semObra), mensagem: 'a citação aponta para uma obra que não está na bibliografia' }] };
   }
   return r;
+}
+
+/** Uma obra sozinha (M4-T06): o cadastro só grava a obra que o documento aceitaria. Caminhos a partir de `obra`. */
+export function validarObraV1(json: unknown): ResultadoValidacao<Obra> {
+  return validarComEsquema('obra', esquemaObra as z.ZodType<Obra>, json);
 }
 
 export function validarManifestoV1(json: unknown): ResultadoValidacao<Manifesto> {
