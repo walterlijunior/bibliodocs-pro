@@ -186,16 +186,16 @@ describe('operações de seção conferem os ids das notas', () => {
 describe('obras e citações no modelo (M4-T01)', () => {
   const doc = lerJson<Documento>('documento-bordas-m4.json');
 
-  it('as citações saem em ordem de leitura, inclusive em citação longa, alínea e subalínea', () => {
-    expect(citacoesDoDocumento(doc).map((c) => c.id)).toEqual(['cta_bordm4001', 'cta_bordm4002', 'cta_bordm4003', 'cta_bordm4004', 'cta_bordm4005']);
+  it('as citações saem em ordem de leitura, inclusive em nota (M4-T07), citação longa, alínea e subalínea', () => {
+    expect(citacoesDoDocumento(doc).map((c) => c.id)).toEqual(['cta_bordm4001', 'cta_bordm4002', 'cta_bordm4009', 'cta_bordm4003', 'cta_bordm4004', 'cta_bordm4005']);
   });
 
   it('a fixture tem uma obra de cada tipo da primeira leva (D-M4-06)', () => {
     expect((doc.obras ?? []).map((o) => o.tipo)).toEqual([...TIPOS_OBRA]);
   });
 
-  it('o id da citação conta como id do bloco nas operações de seção', () => {
-    expect(idsDoBloco(doc.corpo[0]!.blocos[0]!)).toEqual(['par_bordm4001', 'cta_bordm4001', 'cta_bordm4002']);
+  it('o id da citação conta como id do bloco nas operações de seção, também a da nota', () => {
+    expect(idsDoBloco(doc.corpo[0]!.blocos[0]!)).toEqual(['par_bordm4001', 'cta_bordm4001', 'cta_bordm4002', 'nta_bordm4001', 'cta_bordm4009']);
   });
 
   it('o texto simples deixa a chamada de fora, como a nota', () => {
@@ -209,5 +209,12 @@ describe('obras e citações no modelo (M4-T01)', () => {
       'Segundo Silva Neto e Souza ([2016?], p. 27-29), há (LIMA, 2010; PEREIRA JÚNIOR, 2014, não paginado, grifo nosso).',
     );
     expect(f.avisos.map((a) => a.codigo).sort()).toEqual(['CHAMADA_COM_AVISO', 'REFERENCIAS_AUSENTES']);
+  });
+
+  it('a chamada dentro da nota sai no texto da nota (M4-T07)', () => {
+    const f = formatar(doc, PERFIL_UFT_2022);
+    const corpo = f.secoes.find((x) => x.papel === 'textual')!.blocos[1]!;
+    const nota = corpo.tipo === 'paragrafo' ? corpo.trechos.find((t) => t.tipo === 'nota') : undefined;
+    expect(nota?.tipo === 'nota' && nota.trechos.map((t) => (t.tipo === 'texto' ? t.texto : '')).join('')).toBe('Ver também (SILVA NETO; SOUZA, [2016?], v. 2, p. 12).');
   });
 });

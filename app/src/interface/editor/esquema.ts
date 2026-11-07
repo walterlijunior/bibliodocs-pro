@@ -113,14 +113,14 @@ const nos: Record<string, NodeSpec> = {
   },
 
   /**
-   * Nota de rodapé no ponto da chamada (RN-100), com o conteúdo dentro (`InlineDeNota`: texto, sem outra nota). Nó
-   * atômico: o conteúdo é editado num editor aninhado (NodeView do M2-T06).
+   * Nota de rodapé no ponto da chamada (RN-100), com o conteúdo dentro (`InlineDeNota`: texto e chamadas de citação,
+   * M4-T07; sem outra nota). Nó atômico: o conteúdo é editado num editor aninhado (NodeView do M2-T06).
    */
   nota: {
     group: 'inline',
     inline: true,
     atom: true,
-    content: 'textual*',
+    content: '(textual | chamadaCitacao)*',
     attrs: atributoId,
     parseDOM: [{ tag: 'span.bd-nota', getAttrs: idDoElemento }],
     toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-nota', no), 0],

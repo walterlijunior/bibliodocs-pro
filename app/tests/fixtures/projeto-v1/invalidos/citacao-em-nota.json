@@ -1,9 +1,9 @@
 {
-  "descricao": "Citação dentro de nota de rodapé",
+  "descricao": "Citação dentro de nota de rodapé que aponta para obra fora da bibliografia (a citação em nota é aceita desde o M4-T07)",
   "erros": [
     {
-      "caminho": "documento.corpo[0].blocos[0].conteudo[5].conteudo[0].tipo",
-      "mensagem": "citação não é permitida aqui: só no texto corrido"
+      "caminho": "documento.corpo[0].blocos[0].conteudo[5].conteudo[0].obras[0].obra",
+      "mensagem": "a citação aponta para uma obra que não está na bibliografia"
     }
   ],
   "documento": {
@@ -79,7 +79,7 @@
                     "forma": "parentetica",
                     "obras": [
                       {
-                        "obra": "obr_livro0001"
+                        "obra": "obr_inexist01"
                       }
                     ]
                   }

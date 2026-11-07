@@ -770,6 +770,9 @@
             "oneOf": [
               {
                 "$ref": "#/$defs/InlineTexto"
+              },
+              {
+                "$ref": "#/$defs/InlineCitacao"
               }
             ]
           }

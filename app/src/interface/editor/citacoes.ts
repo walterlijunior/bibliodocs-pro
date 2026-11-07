@@ -12,13 +12,23 @@
  */
 import { closeHistory } from 'prosemirror-history';
 import type { Node as NoPm } from 'prosemirror-model';
-import { NodeSelection, TextSelection, type Command, type EditorState } from 'prosemirror-state';
+import { NodeSelection, TextSelection, type Command, type EditorState, type Transaction } from 'prosemirror-state';
 import type { DadosCitacao } from '../../aplicacao';
 import { esquemaEditor } from './esquema';
 
 const tipoChamada = esquemaEditor.nodes['chamadaCitacao']!;
 
 export const dadosDaChamada = (no: NoPm): DadosCitacao => JSON.parse(String(no.attrs['dados'])) as DadosCitacao;
+
+/**
+ * Onde a janela da citação vai inserir ou alterar: o texto da seção ou o de uma nota aberta. `estado()` devolve `null`
+ * quando o destino deixou de existir (a nota fechou).
+ */
+export interface AlvoCitacao {
+  estado(): EditorState | null;
+  despachar(tr: Transaction): void;
+  focar(): void;
+}
 
 export interface ChamadaNoEditor {
   id: string;
@@ -98,7 +108,7 @@ const FORA_DO_TEXTO = '￼';
 
 /**
  * Procura, em cada bloco de texto que aceita citação (o título não), as chamadas que `reconhecer` acha no texto. O
- * texto dentro das notas não entra: citação em nota ainda não existe no formato.
+ * texto dentro das notas não entra: a nota cola só texto, e a sugestão fica para o texto da seção.
  */
 export function chamadasEscritasNoDoc(
   doc: NoPm,

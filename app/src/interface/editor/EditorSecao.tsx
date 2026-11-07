@@ -15,7 +15,8 @@
 //
 // M4-T07: citação. Ctrl+Shift+C, o botão "Citação" ou o menu Inserir › Citação… pedem a janela da citação
 // (`aoPedirCitacao`), que volta pelo `ControleEditor`. A chamada mostra o texto do formatador atual (`RegistroChamadas`, na
-// memória). Colar texto com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar as chamadas.
+// memória). Colar texto com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar as chamadas. Com o foco no
+// texto de uma nota, a citação vai para a nota (`AlvoCitacao`).
 import 'prosemirror-view/style/prosemirror.css';
 import { closeHistory, isHistoryTransaction, redoDepth, undoDepth } from 'prosemirror-history';
 import { keydownHandler } from 'prosemirror-keymap';
@@ -33,6 +34,7 @@ import {
   ligarChamadasEscritas,
   podeInserirCitacao,
   retirarCitacao,
+  type AlvoCitacao,
   type ChamadaEscritaNoDoc,
   type ChamadaNoEditor,
 } from './citacoes';
@@ -64,8 +66,10 @@ export interface ControleEditor {
   fecharGrupo(): void;
   /** O foco está no editor da seção ou no de uma nota dela. */
   temFoco(): boolean;
-  /** Pede a janela da citação: a chamada selecionada, ou uma nova no cursor (M4-T07). */
+  /** Pede a janela da citação: a chamada selecionada, ou uma nova no cursor (M4-T07); na nota, se o foco está nela. */
   pedirCitacao(): boolean;
+  /** Foco de volta onde a citação foi pedida (texto da seção ou da nota), com a seleção do editor. */
+  focarCitacao(): void;
   inserirCitacao(dados: DadosCitacao): boolean;
   alterarCitacao(id: string, dados: DadosCitacao): boolean;
   retirarCitacao(id: string): boolean;
@@ -223,12 +227,20 @@ export function EditorSecao(p: PropsEditorSecao) {
       historico(sentido);
       return true;
     };
+    // Destino da janela da citação: o texto da seção ou o de uma nota aberta (M4-T07).
+    let alvo: AlvoCitacao | null = null;
+    const pedirNoAlvo = (existente: ChamadaNoEditor | null, destino: AlvoCitacao) => {
+      alvo = destino;
+      refProps.current.aoPedirCitacao(existente);
+    };
+    const notas = new Set<NotaView>();
     // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
     const pedirCitacao = (): boolean => {
       if (somenteLeitura) return false;
+      for (const n of notas) if (n.temFoco()) return n.pedirCitacao();
       const existente = chamadaSelecionada(view.state);
       if (existente === null && !podeInserirCitacao(view.state)) return false;
-      refProps.current.aoPedirCitacao(existente);
+      pedirNoAlvo(existente, { estado: () => view.state, despachar: (tr) => view.dispatch(tr), focar: () => view.focus() });
       return true;
     };
     const teclas = keydownHandler({
@@ -248,7 +260,13 @@ export function EditorSecao(p: PropsEditorSecao) {
       handleKeyDown: teclas,
       ...copiaComChamadas(memoria.chamadas),
       nodeViews: {
-        nota: (no, v, posicao) => new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico),
+        nota: (no, v, posicao) => {
+          const n: NotaView = new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico, { registro: memoria.chamadas, pedir: pedirNoAlvo }, () =>
+            notas.delete(n),
+          );
+          notas.add(n);
+          return n;
+        },
         chamadaCitacao: (no, v, posicao) =>
           new ChamadaView(no, memoria.chamadas, () => {
             const pos = posicao();
@@ -291,9 +309,11 @@ export function EditorSecao(p: PropsEditorSecao) {
     refView.current = view;
 
     const executar = (c: typeof desfazer): boolean => !somenteLeitura && c(view.state, view.dispatch);
-    // Citação: passo próprio no desfazer, sem juntar com o que for digitado logo depois.
+    // Citação no destino pedido: passo próprio no desfazer, sem juntar com o que for digitado logo depois.
     const passoProprio = (c: typeof desfazer): boolean => {
-      const ok = executar(c);
+      const estadoAlvo = alvo?.estado() ?? null;
+      if (somenteLeitura || alvo === null || estadoAlvo === null) return false;
+      const ok = c(estadoAlvo, alvo.despachar);
       if (ok) view.dispatch(closeHistory(view.state.tr));
       return ok;
     };
@@ -312,6 +332,7 @@ export function EditorSecao(p: PropsEditorSecao) {
       temFoco: () => view.hasFocus() || view.dom.contains(document.activeElement),
       fecharGrupo: () => view.dispatch(closeHistory(view.state.tr)),
       pedirCitacao,
+      focarCitacao: () => (alvo ?? { focar: () => view.focus() }).focar(),
       inserirCitacao: (dados) => passoProprio(inserirCitacao(dados)),
       alterarCitacao: (id, dados) => passoProprio(alterarCitacao(id, dados)),
       retirarCitacao: (id) => passoProprio(retirarCitacao(id)),

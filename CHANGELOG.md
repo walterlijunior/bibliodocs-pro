@@ -12,6 +12,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   - Texto colado com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar.
   - Copiar leva o texto da chamada.
   - Campo novo na obra citada: volume, "(CANDIDO, 1993, v. 2, p. 12)" (Manual, p. 23).
+  - Citação dentro de nota de rodapé: Ctrl+Shift+C no texto da nota. A chamada sai no rodapé do DOCX.
 - Etapa 5, M4-T06: Bibliografia na aba Escrever.
   - Lista das obras na ordem das referências e "Nova obra".
   - Formulário com os campos de cada tipo e a prévia da referência como sai no documento.

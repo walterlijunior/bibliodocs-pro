@@ -60,6 +60,32 @@
             {
               "tipo": "texto",
               "texto": "."
+            },
+            {
+              "tipo": "nota",
+              "id": "nta_bordm4001",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "Ver também "
+                },
+                {
+                  "tipo": "citacao",
+                  "id": "cta_bordm4009",
+                  "forma": "parentetica",
+                  "obras": [
+                    {
+                      "obra": "obr_livro0001",
+                      "volume": "2",
+                      "pagina": "12"
+                    }
+                  ]
+                },
+                {
+                  "tipo": "texto",
+                  "texto": "."
+                }
+              ]
             }
           ]
         },

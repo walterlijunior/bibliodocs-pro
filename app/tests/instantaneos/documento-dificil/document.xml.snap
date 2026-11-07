@@ -1208,6 +1208,12 @@
 <w:r>
 <w:t xml:space="preserve">.</w:t>
 </w:r>
+<w:r>
+<w:rPr>
+<w:rStyle w:val="FootnoteReference"/>
+</w:rPr>
+<w:footnoteReference w:id="4"/>
+</w:r>
 </w:p>
 <w:p>
 <w:pPr>

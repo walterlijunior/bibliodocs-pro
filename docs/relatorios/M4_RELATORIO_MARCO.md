@@ -298,9 +298,41 @@ O cadastro (M4-T06) é o lugar de decidir quais desses campos entram.
 - axe na janela da citação (`e2e/acessibilidade.spec.ts`).
 
 **Limitações**
-- Citação dentro de nota de rodapé ainda não existe: o formato recusa, e o editor da nota só guarda texto. A sugestão ao colar também não olha dentro das notas.
+- Citação dentro de nota de rodapé: resolvida no complemento abaixo. A sugestão ao colar não olha dentro das notas.
 - A sugestão ao colar procura na seção inteira. Uma chamada escrita antes, que o usuário deixou como texto, volta a ser oferecida na próxima colagem que trouxer outra.
 - Recortar e colar uma chamada dentro do editor devolve texto, e não a chamada. O aceite da sugestão religa.
 - A chamada narrativa com várias obras sai com aviso (D-M4-08). A janela permite, porque o Manual não proíbe.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1640 testes unitários, 27 externos e 23 de 23 E2E. O pico de memória foi de 753 MB. Na primeira rodada, o FUN-13 falhou por corrida no próprio teste (o Enter caiu no começo do título); o teste agora espera o foco e usa Ctrl+End, e passou em 3 rodadas seguidas antes da rodada completa.
+
+### M4-T07, complemento — Citação dentro de nota de rodapé
+
+Recomendação aceita pelo usuário em 2026-11-07 ("siga as recomendações").
+
+**Formato** (aditivo, continua v1)
+- O conteúdo da nota passa a aceitar a chamada de citação além do texto (`InlineDeNota = InlineTexto | InlineCitacao`).
+- Nota dentro de nota continua recusada.
+- Os percursos da validação, das citações do documento e dos ids do bloco agora entram nas notas. Por isso:
+  - id repetido e citação sem obra dentro da nota são recusados na leitura;
+  - a obra citada só na nota entra na lista REFERÊNCIAS;
+  - a obra citada só na nota não pode ser excluída.
+- A fixture inválida `citacao-em-nota.json` passou a testar a citação em nota com obra fora da bibliografia.
+- A `documento-bordas-m4.json` ganhou uma nota com citação e volume.
+
+**Editor**
+- No texto da nota, Ctrl+Shift+C, o botão "Citação" e o menu Inserir › Citação… abrem a mesma janela, com a nota como destino. A citação nunca cai no texto da seção.
+- Ao fechar a janela, o foco volta para a nota.
+- A chamada aparece na nota como no texto, e o duplo clique ou o Enter a abrem para alterar.
+
+**DOCX:** a chamada sai dentro do rodapé. Instantâneo `documento-dificil` atualizado com uma nota nova, "Ver (EXEMPLAR NETO, 2020b, v. 2, p. 9).":
+- `document.xml`: a referência da nota 4;
+- `footnotes.xml`: o texto da nota 4.
+
+**Testes**
+- `tests/modelo-m2.test.ts`: ordem de leitura com a citação da nota, ids do bloco e chamada no texto da nota pelo motor.
+- `tests/editor-citacao.test.ts`: inserir no editor da nota e voltar ao modelo dentro da nota.
+- E2E FUN-13: citação inserida pelo texto da nota, foco de volta na nota e gravação dentro da nota.
+
+**Limitação:** colar na nota continua só texto. A sugestão de ligar "(AUTOR, ano)" não vale dentro da nota.
+
+**Verificação do complemento (2026-11-07):** `npm run verificar:tudo` passou: 1642 testes unitários, 27 externos e 23 de 23 E2E. O pico de memória foi de 778 MB. Na primeira rodada, o teste do Word falhou porque esperava 3 notas no documento difícil. O Word contou 4, e a quarta é a nota nova com citação, então o esperado passou a 4.

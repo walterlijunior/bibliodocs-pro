@@ -94,7 +94,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   useEffect(() => {
     if (pedidoCitacao === null && focarAoFecharCitacao.current) {
       focarAoFecharCitacao.current = false;
-      controleEditor.current?.focar();
+      controleEditor.current?.focarCitacao();
     }
     if (pedidoCitacao !== null) focarAoFecharCitacao.current = true;
   }, [pedidoCitacao, controleEditor]);

@@ -1,7 +1,7 @@
 // M4-T07 (RF-07) — citação no editor de seção, em Node (sem view): a chamada inserida é um nó ligado à obra por id, com
 // id novo; alterar e retirar acham a chamada pelo id; tudo entra no histórico de texto (Ctrl+Z desfaz junto com o
 // texto); o título não aceita citação; o texto colado com "(AUTOR, ano)" vira chamada ligada só com o aceite.
-import { NodeSelection, TextSelection, type Command, type EditorState } from 'prosemirror-state';
+import { EditorState as Estado, NodeSelection, TextSelection, type Command, type EditorState } from 'prosemirror-state';
 import { describe, expect, it } from 'vitest';
 import { reconhecerChamadasEscritas, type DadosCitacao } from '../src/aplicacao';
 import type { InlineCitacao, Obra } from '../src/dominio/modelo';
@@ -93,6 +93,30 @@ describe('inserir, alterar e retirar a chamada', () => {
   });
 });
 
+describe('citação dentro da nota (M4-T07)', () => {
+  it('o editor da nota (o nó da nota como documento) aceita a chamada, e ela volta ao modelo dentro da nota', () => {
+    const s: ConteudoSecao = {
+      titulo: [{ tipo: 'texto', texto: 'T' }],
+      blocos: [{ tipo: 'paragrafo', id: 'par_paragrafo001', conteudo: [{ tipo: 'texto', texto: 'A' }, { tipo: 'nota', id: 'nta_nota00000001', conteudo: [{ tipo: 'texto', texto: 'Ver ' }] }] }],
+    };
+    let e = criarEstadoSecao(s, { gerarId });
+    const posNota = 5; // título 0–3, parágrafo em 3, "A" em 4, a nota em 5
+    const nota = e.doc.nodeAt(posNota)!;
+    expect(nota.type.name).toBe('nota');
+    // O editor aninhado da nota: o próprio nó como documento, cursor no fim do texto.
+    let interno = Estado.create({ doc: nota });
+    interno = interno.apply(interno.tr.setSelection(TextSelection.create(interno.doc, interno.doc.content.size)));
+    expect(podeInserirCitacao(interno)).toBe(true);
+    const depois = executar(interno, inserirCitacao(DADOS));
+    // O conteúdo novo da nota vai para a seção (o plugin de ids dá o id da chamada).
+    e = e.apply(e.tr.replaceWith(posNota + 1, posNota + nota.nodeSize - 1, depois.doc.content));
+    const c = conteudo(e);
+    const n = c[1]!;
+    expect(n.tipo === 'nota' && n.conteudo.map((i) => i.tipo)).toEqual(['texto', 'citacao']);
+    expect(n.tipo === 'nota' && n.conteudo[1]).toEqual({ tipo: 'citacao', id: expect.stringMatching(/^cta_/), ...DADOS });
+  });
+});
+
 describe('chamadas escritas no texto colado', () => {
   const reconhecer = (texto: string) => reconhecerChamadasEscritas(texto, [cagliari, candido]);
 
@@ -115,7 +139,7 @@ describe('chamadas escritas no texto colado', () => {
     };
     const e = criarEstadoSecao(s, { gerarId });
     const achadas = chamadasEscritasNoDoc(e.doc, reconhecer);
-    // A da nota não entra: citação em nota ainda não existe no formato.
+    // A da nota não entra: a sugestão é só para o texto da seção.
     expect(achadas.map((c) => [c.texto, e.doc.textBetween(c.de, c.ate)])).toEqual([
       ['Cagliari (2003, p. 12)', 'Cagliari (2003, p. 12)'],
       ['(CANDIDO, 1993)', '(CANDIDO, 1993)'],

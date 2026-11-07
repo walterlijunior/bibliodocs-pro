@@ -76,10 +76,10 @@ export interface InlineCitacao {
 export type Inline = InlineTexto | InlineNota | InlineCitacao;
 
 /**
- * Trecho do conteúdo de uma nota: tudo menos outra nota. Hoje só texto: citação dentro de nota espera o editor de nota
- * guardar mais que texto (M4-T07); o M6 (remissiva, sigla) também alarga aqui e em `esquemaInlineNota`.
+ * Trecho do conteúdo de uma nota: tudo menos outra nota. Texto e, desde o M4-T07, chamada de citação (a nota que cita a
+ * fonte). O M6 (remissiva, sigla) também alarga aqui e em `esquemaInlineNota`.
  */
-export type InlineDeNota = InlineTexto;
+export type InlineDeNota = InlineTexto | InlineCitacao;
 
 /** Trecho de título de seção e de metadado: sem nota de rodapé no M2 (alargar junto com o esquema `conteudoTitulo`). */
 export type InlineDeTitulo = InlineTexto;

@@ -56,6 +56,8 @@ export function documentoDificil(): Documento {
   const d = preencher(novo('tese'));
   const p = (id: string, ...conteudo: Inline[]): Bloco => ({ tipo: 'paragrafo', id, conteudo });
   const nota = (id: string, texto: string): Inline => ({ tipo: 'nota', id, conteudo: [{ tipo: 'texto', texto }] });
+  // M4-T07: nota de rodapé que cita a fonte, com volume.
+  const notaComCitacao: Inline = { tipo: 'nota', id: 'n_cita', conteudo: [{ tipo: 'texto', texto: 'Ver ' }, { tipo: 'citacao', id: 'k5', forma: 'parentetica', obras: [{ obra: 'o2', volume: '2', pagina: '9' }] }, { tipo: 'texto', texto: '.' }] };
   const sec = (id: string, titulo: string, blocos: Bloco[] = [], subsecoes: Secao[] = []): Secao => ({ id, titulo: [{ tipo: 'texto', texto: titulo }], blocos, subsecoes });
   const q5 = sec('s5', 'Seção quinária', [p('p5', t(FRASE))]);
   const q4 = sec('s4', 'Seção quaternária', [p('p4', t(FRASE))], [q5]);
@@ -73,7 +75,7 @@ export function documentoDificil(): Documento {
     ], [q2]),
     sec('s6', 'Considerações finais', [
       p('p6', t(FRASE)),
-      p('p7', citacao('k2', 'narrativa', [{ obra: 'o4' }]), t(' e '), citacao('k3', 'narrativa', [{ obra: 'o3', pagina: '15' }], { apud: { obra: 'o2', pagina: '8' } }), t(' afirmam o exemplo '), citacao('k4', 'parentetica', [{ obra: 'o5' }, { obra: 'o1', semPaginacao: true }], { grifo: 'nosso' }), t('.')),
+      p('p7', citacao('k2', 'narrativa', [{ obra: 'o4' }]), t(' e '), citacao('k3', 'narrativa', [{ obra: 'o3', pagina: '15' }], { apud: { obra: 'o2', pagina: '8' } }), t(' afirmam o exemplo '), citacao('k4', 'parentetica', [{ obra: 'o5' }, { obra: 'o1', semPaginacao: true }], { grifo: 'nosso' }), t('.'), notaComCitacao),
     ]),
   ];
   return {

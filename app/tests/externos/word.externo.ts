@@ -49,7 +49,7 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
 
   it('documento difícil: notas e seções como previsto', async () => {
     const r = await abrir('documento-dificil');
-    expect(r.notas).toBe(3);
+    expect(r.notas).toBe(4); // a 4.ª é a nota com citação (M4-T07)
     expect(r.secoes).toBe(6);
     expect(r.sumarioGravado).toContain('1.1.1.1.1 Seção quinária');
     expect(r.sumarioGravado).toContain('REFERÊNCIAS');

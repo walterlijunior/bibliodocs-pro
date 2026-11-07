@@ -8,13 +8,17 @@
  *   a marca "nota", e o leitor de tela ouve "Nota de rodapé" com o começo do texto.
  * - A nota tem um parágrafo só: Enter e Esc voltam ao texto da seção; Shift+Enter é quebra de linha.
  * - Colar na nota cola só o texto, sem o `readHTML` da biblioteca (que usa `innerHTML`, R40); soltar é recusado.
+ * - Citação na nota (M4-T07): Ctrl+Shift+C no texto da nota pede a janela da citação com a nota como destino; a chamada
+ *   aparece como no texto da seção (`ChamadaView`); duplo clique, ou Enter com ela selecionada, abre para alterar.
  */
 import { toggleMark } from 'prosemirror-commands';
 import { keymap } from 'prosemirror-keymap';
 import type { Node as NoPm } from 'prosemirror-model';
-import { EditorState, TextSelection, type Command, type Transaction } from 'prosemirror-state';
+import { EditorState, NodeSelection, TextSelection, type Command, type Transaction } from 'prosemirror-state';
 import { StepMap } from 'prosemirror-transform';
 import { EditorView, type NodeView } from 'prosemirror-view';
+import { ChamadaView, type RegistroChamadas } from './chamada-view';
+import { chamadaSelecionada, podeInserirCitacao, type AlvoCitacao, type ChamadaNoEditor } from './citacoes';
 import { desfazer, quebrarLinha, refazer } from './comandos';
 import { CARACTERES_FORA_DO_XML } from './conversao';
 import { esquemaEditor } from './esquema';
@@ -28,6 +32,12 @@ export const rotuloNota = (no: NoPm): string => {
   return `Nota de rodapé: ${texto.length > LIMITE_ROTULO ? `${texto.slice(0, LIMITE_ROTULO)}…` : texto}`;
 };
 
+/** Citação dentro da nota (M4-T07): o formatador das chamadas e quem abre a janela. */
+export interface CitacaoNaNota {
+  registro: RegistroChamadas;
+  pedir: (existente: ChamadaNoEditor | null, alvo: AlvoCitacao) => void;
+}
+
 export class NotaView implements NodeView {
   dom: HTMLElement;
   #no: NoPm;
@@ -38,6 +48,8 @@ export class NotaView implements NodeView {
 
   readonly #aoRecusar: () => void;
   readonly #historico: ((sentido: 'desfazer' | 'refazer') => boolean) | undefined;
+  readonly #citacao: CitacaoNaNota | undefined;
+  readonly #aoDestruir: (() => void) | undefined;
 
   /**
    * `aoRecusar`: a seção recusou a alteração feita na nota (o editor mostra o aviso de limite). `historico`: Ctrl+Z e
@@ -49,12 +61,16 @@ export class NotaView implements NodeView {
     posicao: () => number | undefined,
     aoRecusar: () => void = () => {},
     historico?: (sentido: 'desfazer' | 'refazer') => boolean,
+    citacao?: CitacaoNaNota,
+    aoDestruir?: () => void,
   ) {
     this.#no = no;
     this.#externo = externo;
     this.#posicao = posicao;
     this.#aoRecusar = aoRecusar;
     this.#historico = historico;
+    this.#citacao = citacao;
+    this.#aoDestruir = aoDestruir;
     this.dom = document.createElement('span');
     this.dom.className = 'bd-nota';
     // Papel de chamada de nota (DPUB-ARIA): sem papel, o `aria-label` de um `span` é ignorado (revisão do M2-T06, M3).
@@ -103,6 +119,8 @@ export class NotaView implements NodeView {
     const desfazerNota = historico ? () => (historico('desfazer'), true) : externo(desfazer);
     const refazerNota = historico ? () => (historico('refazer'), true) : externo(refazer);
     const voltar = this.#voltar;
+    const pedirCitacao = (): boolean => this.pedirCitacao();
+    const registro = this.#citacao?.registro;
     this.#interno = new EditorView(painel, {
       state: EditorState.create({
         doc: this.#no,
@@ -117,12 +135,27 @@ export class NotaView implements NodeView {
             'Mod-+': toggleMark(esquemaEditor.marks['sobrescrito']!),
             'Mod-=': toggleMark(esquemaEditor.marks['subscrito']!),
             'Shift-Enter': quebrarLinha,
-            Enter: voltar,
+            // Consumida: no texto da nota, o atalho nunca vai para a seção (a citação entraria fora da nota).
+            'Shift-Mod-c': () => (pedirCitacao(), true),
+            Enter: (estado) => (chamadaSelecionada(estado) !== null ? pedirCitacao() : voltar()),
             Escape: voltar,
           }),
         ],
       }),
       dispatchTransaction: (tr) => this.#despacharInterno(tr),
+      ...(registro
+        ? {
+            nodeViews: {
+              chamadaCitacao: (no: NoPm, v: EditorView, pos: () => number | undefined) =>
+                new ChamadaView(no, registro, () => {
+                  const p = pos();
+                  if (p === undefined) return;
+                  v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, p)));
+                  pedirCitacao();
+                }),
+            },
+          }
+        : {}),
       attributes: { class: 'bd-nota__editor', 'aria-multiline': 'true', role: 'textbox', 'aria-label': 'Texto da nota de rodapé' },
       handleDOMEvents: {
         mousedown: () => {
@@ -200,6 +233,29 @@ export class NotaView implements NodeView {
     return true;
   }
 
+  /** O foco está no texto desta nota (o botão e o menu de citação vão para ela). */
+  temFoco(): boolean {
+    return this.#interno !== null && this.#interno.hasFocus();
+  }
+
+  /** Pede a janela da citação com o texto da nota como destino. `false` = nota fechada ou sem citação. */
+  pedirCitacao(): boolean {
+    const interno = this.#interno;
+    const citacao = this.#citacao;
+    if (!interno || !citacao || !this.#externo.editable) return false;
+    const existente = chamadaSelecionada(interno.state);
+    if (existente === null && !podeInserirCitacao(interno.state)) return false;
+    citacao.pedir(existente, {
+      estado: () => (this.#interno === interno ? interno.state : null),
+      despachar: (tr) => interno.dispatch(tr),
+      focar: () => {
+        if (this.#interno === interno) interno.focus();
+        else this.#externo.focus();
+      },
+    });
+    return true;
+  }
+
   /** Foca o editor da nota, se aberto (depois de inserir uma nota). */
   focar(): boolean {
     if (!this.#interno) return false;
@@ -209,6 +265,7 @@ export class NotaView implements NodeView {
 
   destroy(): void {
     this.#fechar();
+    this.#aoDestruir?.();
   }
 
   stopEvent(evento: Event): boolean {

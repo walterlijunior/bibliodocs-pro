@@ -1,7 +1,7 @@
 /**
  * FUN-13 (RF-07, M4-T07): citação no editor. Ctrl+Shift+C abre a janela; a chamada entra ligada à obra e mostra o texto
  * do documento; mudar o ano da obra muda a chamada; Ctrl+Z e Ctrl+Y desfazem e refazem com o texto; duplo clique altera;
- * obra citada não se exclui; copiar leva o texto da chamada; texto colado com "(AUTOR, ano)" sugere a ligação; salvar grava a ligação.
+ * obra citada não se exclui; copiar leva o texto da chamada; texto colado com "(AUTOR, ano)" sugere a ligação; citação dentro da nota; salvar grava a ligação.
  */
 import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -106,6 +106,23 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
   await p.keyboard.press('Control+C');
   await expect.poll(() => x.app.evaluate(({ clipboard }) => clipboard.readText())).toContain('Como diz o autor Cagliari (2004, p. 12)');
 
+  // Citação dentro da nota de rodapé: Ctrl+Shift+C no texto da nota insere na nota, e o foco volta para ela.
+  await editor.locator('p').nth(1).click();
+  await p.keyboard.press('End');
+  await p.keyboard.press('Control+Alt+F');
+  const textoNota = p.getByRole('textbox', { name: 'Texto da nota de rodapé' });
+  await expect(textoNota).toBeFocused();
+  await p.keyboard.type('Ver ');
+  await p.keyboard.press('Control+Shift+C');
+  const naNota = p.getByRole('dialog', { name: 'Inserir citação' });
+  await naNota.getByLabel('Página', { exact: true }).fill('3');
+  await naNota.getByRole('button', { name: 'Inserir citação' }).click();
+  await expect(textoNota).toBeFocused();
+  await p.keyboard.type('.');
+  await expect(textoNota).toHaveText('Ver (CAGLIARI, 2004, p. 3).');
+  await expect(textoNota.locator('.bd-citacao')).toHaveAttribute('aria-label', 'Citação: (CAGLIARI, 2004, p. 3)');
+  await p.keyboard.press('Escape');
+
   await p.keyboard.press('Control+S');
   await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
   const doc = JSON.parse(lerDocumento(join(amb.trabalhos, arquivosBdp(amb)[0]!)).json) as Documento;
@@ -114,6 +131,12 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
   expect(inlines.filter((i) => i.tipo === 'citacao').map((i) => ({ ...i, id: '' }))).toEqual([
     { tipo: 'citacao', id: '', forma: 'narrativa', obras: [{ obra, pagina: '12' }] },
     { tipo: 'citacao', id: '', forma: 'parentetica', obras: [{ obra }] },
+  ]);
+  const nota = inlines.find((i) => i.tipo === 'nota');
+  expect(nota?.tipo === 'nota' && nota.conteudo.map((i) => (i.tipo === 'citacao' ? { ...i, id: '' } : i))).toEqual([
+    { tipo: 'texto', texto: 'Ver ' },
+    { tipo: 'citacao', id: '', forma: 'parentetica', obras: [{ obra, pagina: '3' }] },
+    { tipo: 'texto', texto: '.' },
   ]);
 
   await x.fechar();

@@ -677,3 +677,7 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
 `ObraCitada` ganha `volume?: string` (1 a 16 caracteres, números e letras), antes de `pagina`. É mudança aditiva: o
 formato continua v1, sem migração. O JSON Schema foi regenerado (`npm run esquemas:gerar`). Fonte da forma "v. 2":
 Manual, p. 23, exemplo CANDIDO.
+
+Complemento do M4-T07: o conteúdo da nota (`InlineDeNota`, esquema `InlineNota`) aceita `InlineCitacao` além de
+`InlineTexto`. É mudança aditiva. Os ids das citações das notas entram na conferência de ids únicos, e as obras que elas
+citam entram na de obras existentes.

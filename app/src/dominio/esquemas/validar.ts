@@ -99,7 +99,12 @@ function* percorrerCorpo(corpo: readonly Secao[]): Generator<
     for (const [i, b] of s.blocos.entries()) {
       yield { tipo: 'bloco', id: b.id, caminho: [...caminho, 'blocos', i] };
       for (const c of conteudosComCaminho(b)) {
-        for (const [k, inline] of c.conteudo.entries()) yield { tipo: 'inline', inline, caminho: [...caminho, 'blocos', i, ...c.caminho, k] };
+        for (const [k, inline] of c.conteudo.entries()) {
+          const aqui = [...caminho, 'blocos', i, ...c.caminho, k];
+          yield { tipo: 'inline', inline, caminho: aqui };
+          // Dentro da nota: as chamadas de citação (M4-T07).
+          if (inline.tipo === 'nota') for (const [j, n] of inline.conteudo.entries()) yield { tipo: 'inline', inline: n, caminho: [...aqui, 'conteudo', j] };
+        }
       }
     }
     for (let i = s.subsecoes.length - 1; i >= 0; i--) pilha.push({ s: s.subsecoes[i]!, caminho: [...caminho, 'subsecoes', i] });

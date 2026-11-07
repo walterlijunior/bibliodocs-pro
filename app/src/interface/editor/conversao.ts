@@ -68,13 +68,14 @@ function dividirTexto(valor: string): string[] {
 }
 
 export function normalizarConteudo(conteudo: readonly InlineTexto[]): InlineTexto[];
+export function normalizarConteudo(conteudo: readonly InlineDeNota[]): InlineDeNota[];
 export function normalizarConteudo(conteudo: readonly Inline[]): Inline[];
 export function normalizarConteudo(conteudo: readonly Inline[]): Inline[] {
   // Trechos de texto em montagem (`valor`), ainda sem a divisão no limite.
   const saida: (Inline | { valor: string; marcas: MarcaTexto[] })[] = [];
   for (const i of conteudo) {
     if (i.tipo === 'nota') {
-      saida.push({ tipo: 'nota', id: i.id, conteudo: normalizarConteudo(i.conteudo) });
+      saida.push({ tipo: 'nota', id: i.id, conteudo: normalizarConteudo(i.conteudo as readonly InlineDeNota[]) });
       continue;
     }
     if (i.tipo === 'citacao') {
@@ -218,13 +219,16 @@ function nosParaInlines(pai: NoPm): Inline[] {
   pai.forEach((no) => {
     if (no.isText) bruto.push(texto(no.text ?? '', marcasDe(no)));
     else if (no.type === tipos['quebraLinha']) bruto.push(texto('\n', marcasDe(no)));
-    else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: soTexto(nosParaInlines(no)) });
+    else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: semNota(nosParaInlines(no)) });
     else if (no.type === tipos['chamadaCitacao']) bruto.push({ ...(JSON.parse(String(no.attrs['dados'])) as Omit<InlineCitacao, 'tipo' | 'id'>), tipo: 'citacao', id: idDe(no) });
   });
   return normalizarConteudo(bruto);
 }
 
-const soTexto = (conteudo: Inline[]): InlineDeNota[] & InlineDeTitulo[] =>
+/** Conteúdo da nota: texto e chamadas de citação (o esquema do editor não põe nota dentro de nota). */
+const semNota = (conteudo: Inline[]): InlineDeNota[] => conteudo.filter((i): i is InlineDeNota => i.tipo !== 'nota');
+
+const soTexto = (conteudo: Inline[]): InlineDeTitulo[] =>
   conteudo.filter((i): i is InlineTexto => i.tipo === 'texto');
 
 const memoBlocos = new WeakMap<NoPm, Bloco>();

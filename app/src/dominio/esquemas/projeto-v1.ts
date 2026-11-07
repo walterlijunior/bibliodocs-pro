@@ -73,10 +73,6 @@ function conteudoSoTexto(mensagemNota: string) {
 /** Títulos e metadados. */
 const conteudoTitulo = conteudoSoTexto('nota de rodapé não é permitida em título');
 
-/** Nota de rodapé no ponto da chamada (RN-100); sem nota dentro de nota. */
-export const esquemaInlineNota = z
-  .strictObject({ tipo: z.literal('nota'), id, conteudo: conteudoSoTexto('nota de rodapé não pode conter outra nota') })
-  .meta({ id: 'InlineNota' });
 
 const paginaCitada = z
   .string()
@@ -95,7 +91,7 @@ export const esquemaObraCitada = z
   .refine((o) => !(o.pagina !== undefined && o.semPaginacao), { error: 'página e "sem paginação" não podem ser usados juntos' })
   .meta({ id: 'ObraCitada' });
 
-/** Chamada de citação ligada às obras (M4-T01; RN-077 a RN-099); só no texto corrido, por enquanto não em nota. */
+/** Chamada de citação ligada às obras (M4-T01; RN-077 a RN-099); no texto corrido e, desde o M4-T07, nas notas. */
 export const esquemaInlineCitacao = z
   .strictObject({
     tipo: z.literal('citacao'),
@@ -106,6 +102,26 @@ export const esquemaInlineCitacao = z
     grifo: z.enum(['nosso', 'doAutor']).optional(),
   })
   .meta({ id: 'InlineCitacao' });
+
+/**
+ * Nota de rodapé no ponto da chamada (RN-100): texto e chamadas de citação (M4-T07), sem nota dentro de nota.
+ */
+export const esquemaInlineNota = z
+  .strictObject({
+    tipo: z.literal('nota'),
+    id,
+    conteudo: z
+      .array(
+        z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineCitacao], {
+          error: (issue) =>
+            typeof issue.input === 'object' && issue.input !== null && (issue.input as { tipo?: unknown }).tipo === 'nota'
+              ? 'nota de rodapé não pode conter outra nota'
+              : undefined,
+        }),
+      )
+      .max(LIMITES_V1.inlinesPorConteudo),
+  })
+  .meta({ id: 'InlineNota' });
 
 export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao]).meta({ id: 'Inline' });
 
