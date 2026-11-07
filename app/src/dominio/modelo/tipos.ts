@@ -44,9 +44,13 @@ export interface InlineNota {
   conteudo: InlineDeNota[];
 }
 
-/** Obra citada e o ponto citado: página ou intervalo ("27", "27-29"), ou documento sem paginação (D-M4-04). */
+/**
+ * Obra citada e o ponto citado: página ou intervalo ("27", "27-29"), ou documento sem paginação (D-M4-04). Volume da obra
+ * em vários volumes antes da página: "(CANDIDO, 1993, v. 2, p. 12)" (Manual, p. 23; M4-T07).
+ */
 export interface ObraCitada {
   obra: Id;
+  volume?: string;
   pagina?: string;
   semPaginacao?: true;
 }

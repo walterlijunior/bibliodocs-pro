@@ -84,8 +84,14 @@ const paginaCitada = z
   .max(64)
   .regex(/^[0-9A-Za-z][0-9A-Za-z .,–-]*$/, { error: 'página inválida: use números, letras e "-" (ex.: 27 ou 27-29)' });
 
+const volumeCitado = z
+  .string()
+  .min(1)
+  .max(16)
+  .regex(/^[0-9A-Za-z][0-9A-Za-z .-]*$/, { error: 'volume inválido: use números ou letras (ex.: 2)' });
+
 export const esquemaObraCitada = z
-  .strictObject({ obra: id, pagina: paginaCitada.optional(), semPaginacao: z.literal(true).optional() })
+  .strictObject({ obra: id, volume: volumeCitado.optional(), pagina: paginaCitada.optional(), semPaginacao: z.literal(true).optional() })
   .refine((o) => !(o.pagina !== undefined && o.semPaginacao), { error: 'página e "sem paginação" não podem ser usados juntos' })
   .meta({ id: 'ObraCitada' });
 

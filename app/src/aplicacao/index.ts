@@ -106,6 +106,16 @@ export {
   MENSAGEM_OBRA_INVALIDA,
 } from './servicos/sessao-trabalho';
 export {
+  formatadorDeChamadas,
+  reconhecerChamadasEscritas,
+  validarCitacao,
+  type ChamadaEscrita,
+  type ChamadaNaTela,
+  type DadosCitacao,
+  type FormatadorDeChamadas,
+  type ResultadoValidacaoCitacao,
+} from './servicos/citacoes';
+export {
   CAMPOS_DO_TIPO,
   obraVazia,
   prepararObra,

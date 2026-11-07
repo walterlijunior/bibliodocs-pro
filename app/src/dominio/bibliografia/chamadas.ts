@@ -12,6 +12,7 @@
  * - Entrada pelo título: primeira palavra e reticências; artigo ou monossílabo inicial leva a palavra seguinte junto
  *   (RN-091).
  * - Várias obras separadas por "; " (RN-096, D-M4-03); sufixo a, b de mesmo autor e ano (D-M4-03).
+ * - Volume antes da página: "1993, v. 2, p. 12" (Manual, p. 23, ex. CANDIDO).
  * - Sem página: "não paginado" (D-M4-04). Apud sem itálico, com a página das duas obras (RN-098, RN-099).
  * - Grifo dentro dos parênteses, depois da página (RN-090, como nos exemplos da p. 23).
  */
@@ -201,6 +202,7 @@ function escreverAnoEPagina(m: Montador, obra: Obra, c: ObraCitada, ctx: Context
   } else {
     partes.push([ano, obra.anoIncerto ? ['RN-097', 'D-M4-04'] : ctx.sufixos.has(obra.id) ? ['RN-096', 'D-M4-03'] : ['RN-083']]);
   }
+  if (c.volume?.trim()) partes.push([`v. ${c.volume.trim()}`, ['RN-083']]);
   if (c.semPaginacao) partes.push(['não paginado', ['RN-097', 'D-M4-04']]);
   else if (c.pagina?.trim()) partes.push([`p. ${c.pagina.trim()}`, ['RN-080', 'RN-083']]);
   partes.forEach(([texto, origem], i) => {

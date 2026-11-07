@@ -241,3 +241,66 @@ O cadastro (M4-T06) é o lugar de decidir quais desses campos entram.
 - A escolha do tipo não pede confirmação: ao trocar, os campos que o tipo novo não usa saem da obra gravada.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1623 testes unitários, 27 externos e 22 de 22 E2E. O pico de memória foi de 741 MB.
+
+## M4-T07 — Inserir citação no editor
+
+**Implementação:** sessão principal, sem delegar. **Sem revisão independente:** fica para o M4-T10.
+
+**Decisões técnicas (da sessão principal, podem ser revistas)**
+- Atalho **Ctrl+Shift+C**, o que o menu Inserir › Citação… já mostrava desde o M1. O plano sugeria Ctrl+Alt+C, mas no teclado ABNT2 Ctrl+Alt é o AltGr, e AltGr+C escreve "₢".
+- A chamada entra no fim da seleção, sem apagar o selecionado, como a nota de rodapé.
+- Inserir, alterar, retirar e ligar chamadas coladas são passos próprios do Ctrl+Z: não se juntam com o que se digita antes ou depois.
+- Colar nunca cria citação sozinho. O texto colado com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão "Ligar às obras" ou "Manter como texto".
+- A sugestão não liga chamada que serviria a duas obras (mesmo sobrenome e ano). Também não liga obra sem ano.
+
+**Formato:** campo `volume` na obra citada, aditivo: "(CANDIDO, 1993, v. 2, p. 12)". Fonte: Manual, p. 23 [VERIFICADO `analise/normas_txt/manual_uft.txt:726`]. O exemplo CANDIDO das chamadas agora sai completo.
+
+**Serviço** (`aplicacao/servicos/citacoes.ts`)
+- `formatadorDeChamadas`: o texto da chamada na tela sai do mesmo formatador do DOCX, com as obras atuais e a edição da NBR 10520 do perfil (C-01).
+- `validarCitacao`: apara volume e página, tira a página quando há "sem paginação" e confere com o esquema v1 (`validarCitacaoV1`, novo no domínio) e com as obras do trabalho.
+- `reconhecerChamadasEscritas`: acha no texto as duas formas, com volume e página opcionais, sem distinguir maiúsculas.
+
+**Editor** (`interface/editor/citacoes.ts`, `chamada-view.ts`, `EditorSecao.tsx`)
+- A chamada mostra o texto do documento, com "et al." em itálico. Ela tem o papel `doc-biblioref` e o nome "Citação: (CAGLIARI, 2003, p. 12)".
+- Com aviso (obra sem ano, sobrenome repetido), a chamada fica sublinhada e o aviso aparece no nome e no `title`.
+- Mudar a obra redesenha as chamadas sem mexer no documento nem no histórico.
+- Duplo clique, ou Enter com a chamada selecionada, abre a janela para alterar.
+- O botão "Citação" fica na barra de formatação, e o menu Inserir › Citação… está ligado.
+- Copiar leva o texto da chamada, e não a palavra "citação". Colar de volta traz o texto e a sugestão de ligar.
+
+**Janela** (`interface/escrever/DialogoCitacao.tsx`)
+- Forma entre parênteses ou no texto.
+- Uma ou mais obras na mesma chamada (RN-096), cada uma com volume, página e "sem paginação".
+- Apud com a obra consultada (RN-098).
+- Destaque: grifo nosso ou do autor (RN-090).
+- A prévia "Como sai no texto" fica acompanhada do que impede inserir e dos avisos da chamada.
+- Com a chamada já no texto: "Alterar citação" e "Retirar citação".
+- Sem obras: "Cadastrar obra" abre o formulário da Bibliografia.
+
+**Testes**
+- `tests/citacoes-servico.test.ts`, com 10 casos: formatador, obra alterada, opção 2023, obra ausente, validação e reconhecimento.
+- `tests/editor-citacao.test.ts`, com 7 casos:
+  - inserir no fim da seleção com id novo;
+  - o título recusa citação;
+  - alterar e retirar pelo id;
+  - Ctrl+Z e Ctrl+Y;
+  - ligar chamadas coladas, também entre trechos com marcas, sem entrar na nota, num passo só.
+- O exemplo CANDIDO com volume entrou em `tests/bibliografia-chamadas.test.ts`.
+- E2E FUN-13 (`e2e/citacao.spec.ts`):
+  - Ctrl+Shift+C, página inválida assinalada e prévia;
+  - chamada no texto com o foco de volta;
+  - Ctrl+Z e Ctrl+Y;
+  - o ano da obra muda a chamada, e a obra citada não se exclui;
+  - duplo clique para alterar;
+  - cópia com o texto da chamada;
+  - sugestão ao colar;
+  - salvar com a ligação.
+- axe na janela da citação (`e2e/acessibilidade.spec.ts`).
+
+**Limitações**
+- Citação dentro de nota de rodapé ainda não existe: o formato recusa, e o editor da nota só guarda texto. A sugestão ao colar também não olha dentro das notas.
+- A sugestão ao colar procura na seção inteira. Uma chamada escrita antes, que o usuário deixou como texto, volta a ser oferecida na próxima colagem que trouxer outra.
+- Recortar e colar uma chamada dentro do editor devolve texto, e não a chamada. O aceite da sugestão religa.
+- A chamada narrativa com várias obras sai com aviso (D-M4-08). A janela permite, porque o Manual não proíbe.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1640 testes unitários, 27 externos e 23 de 23 E2E. O pico de memória foi de 753 MB. Na primeira rodada, o FUN-13 falhou por corrida no próprio teste (o Enter caiu no começo do título); o teste agora espera o foco e usa Ctrl+End, e passou em 3 rodadas seguidas antes da rodada completa.

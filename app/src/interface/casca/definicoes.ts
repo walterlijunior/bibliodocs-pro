@@ -26,6 +26,8 @@ export type ComandoMenu =
   | 'colar'
   | 'colarSemFormatacao'
   | 'inserirNota'
+  // M4-T07: Inserir › Citação… (Ctrl+Shift+C no editor).
+  | 'inserirCitacao'
   // M2-T07: Trabalho › Estrutura de seções… (foco na árvore) e os botões de seção da barra superior.
   | 'estruturaSecoes'
   | 'secaoAnterior'
@@ -91,7 +93,7 @@ export const MENUS: readonly Menu[] = [
   {
     rotulo: 'Inserir',
     itens: [
-      { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C' }, // M6
+      { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C', comando: 'inserirCitacao' },
       { rotulo: 'Tabela de planilha…' }, // M5
       { rotulo: 'Figura…' }, // M5
       { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
@@ -126,7 +128,10 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
   if (trabalho === null || trabalho.somenteLeitura) d.add('exportarDocx');
   if (trabalho === null) d.add('fecharTrabalho');
-  if (trabalho === null || trabalho.somenteLeitura) d.add('inserirNota');
+  if (trabalho === null || trabalho.somenteLeitura) {
+    d.add('inserirNota');
+    d.add('inserirCitacao');
+  }
   if (trabalho === null) {
     d.add('estruturaSecoes');
     d.add('secaoAnterior');

@@ -33,7 +33,7 @@ test.beforeEach(() => {
 });
 test.afterEach(async () => amb.apagar());
 
-test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra e Exportar sem violação séria', async ({}, info) => {
+test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra, citação e Exportar sem violação séria', async ({}, info) => {
   const { pagina: p } = await abrirApp(amb);
   await conferirAxe(p, 'biblioteca-vazia', info);
 
@@ -58,6 +58,20 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obr
   await p.getByRole('button', { name: 'Acrescentar autoria' }).click();
   await expect(p.getByRole('list', { name: 'O que impede gravar a obra' })).toBeVisible();
   await conferirAxe(p, 'cadastro-obra', info);
+  await p.getByLabel('Sobrenome').fill('Lima');
+  await p.getByLabel('Título', { exact: true }).fill('Alfa');
+  await p.getByLabel('Ano', { exact: true }).fill('2020');
+  await p.getByRole('button', { name: 'Incluir obra' }).click();
+
+  // M4-T07: janela da citação, com a prévia da chamada.
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  await p.getByRole('textbox', { name: 'Texto da seção 1' }).locator('h2').click();
+  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' })).toBeFocused();
+  await p.keyboard.press('Control+End');
+  await p.keyboard.press('Enter');
+  await p.keyboard.press('Control+Shift+C');
+  await expect(p.getByRole('dialog', { name: 'Inserir citação' })).toContainText('(LIMA, 2020)');
+  await conferirAxe(p, 'janela-citacao', info);
   await p.getByRole('button', { name: 'Cancelar' }).click();
 
   await p.keyboard.press('Control+E');

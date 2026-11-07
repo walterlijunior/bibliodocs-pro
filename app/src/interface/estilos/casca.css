@@ -346,6 +346,12 @@ button:disabled { opacity: 0.45; cursor: default; }
   box-shadow: 0 4px 12px var(--cor-sombra); cursor: text;
 }
 .bd-nota__editor { min-height: 2.5em; outline: none; white-space: pre-wrap; }
+/* Chamada de citação (M4-T07): o texto da chamada, com um fundo leve que a distingue do texto digitado. */
+.bd-citacao { background: var(--cor-superficie); border-radius: var(--raio); padding: 0 2px; cursor: pointer; }
+.bd-citacao--aviso { text-decoration: underline wavy var(--cor-alerta); }
+.bd-citacao.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
+.editor-secao__sugestao { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; padding: var(--esp-2); margin-bottom: var(--esp-2); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }
+.editor-secao__sugestao p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
 .bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
 
 /* Diálogo "Novo trabalho" (M2-T02). */
@@ -363,6 +369,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .lista-rolavel { overflow: auto; min-height: 0; }
 .dialogo__corpo h2 { margin: 0; }
 .dialogo__acoes { display: flex; gap: var(--esp-2); justify-content: flex-end; }
+/* Janela da citação (M4-T07): o corpo todo rola, com os botões no fim. */
+.dialogo--citacao { width: min(640px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--citacao .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.dialogo--citacao select.campo { max-width: 100%; }
 /* Texto de licenças: mantém as quebras, sem rolagem horizontal. */
 .terceiros { margin: 0; max-height: 40vh; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.85em; }
 .versoes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }

@@ -1,5 +1,5 @@
 // M4-T03 (RF-07): chamadas de citação. Cada caso traz a fonte do esperado (página do Manual UFT, cap. 3, ou decisão
-// da matriz). Fora por falta de campo: o volume na chamada (CANDIDO, 1993, v. 2, p. 12), p. 23.
+// da matriz). O volume na chamada (CANDIDO, 1993, v. 2, p. 12), p. 23, entrou no M4-T07.
 import { describe, expect, it } from 'vitest';
 import { contextoDeChamadas, entradaPeloTitulo, formatarChamada, type ChamadaFormatada, type OpcoesChamada } from '../src/dominio/bibliografia';
 import type { Autor, InlineCitacao, InlineDeTitulo, Obra, ObraCitada } from '../src/dominio/modelo';
@@ -37,7 +37,7 @@ describe('exemplos do Manual, cap. 3 (perfil 2002, C-01)', () => {
     ['p. 22, parentética em caixa alta (RN-082)', cit('parentetica', [em(sudbrack, '27')]), '(SUDBRACK, 2001, p. 27)'],
     ['p. 22, citação longa', cit('parentetica', [em(nichols, '181')]), '(NICHOLS, 1993, p. 181)'],
     ['p. 23, grifo nosso dentro dos parênteses (RN-090)', cit('parentetica', [em(souto, '46')], { grifo: 'nosso' }), '(SOUTO, 1916, p. 46, grifo nosso)'],
-    ['p. 23, grifo do autor (RN-090; sem o volume)', cit('parentetica', [em(candido, '12')], { grifo: 'doAutor' }), '(CANDIDO, 1993, p. 12, grifo do autor)'],
+    ['p. 23, volume e grifo do autor (RN-090)', cit('parentetica', [{ ...em(candido, '12'), volume: '2' }], { grifo: 'doAutor' }), '(CANDIDO, 1993, v. 2, p. 12, grifo do autor)'],
     ['p. 24, entrada pelo título (RN-091)', cit('parentetica', [em(anteprojeto, '55')]), '(ANTEPROJETO..., 1987, p. 55)'],
     ['p. 25, dois autores na narrativa com "e" (RN-093)', cit('narrativa', [em(aranha)]), 'Aranha e Martins (1993)'],
     ['p. 25, indireta sem página; sobrenome digitado em maiúsculas desce na narrativa (RN-092)', cit('narrativa', [em(authier)]), 'Authier-Reiriz (1982)'],

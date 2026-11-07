@@ -4,9 +4,9 @@
  * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos.
  */
 import { z } from 'zod';
-import { problemaNosElementos, type Bloco, type Documento, type Inline, type Obra, type Secao } from '../modelo';
+import { problemaNosElementos, type Bloco, type Documento, type Inline, type InlineCitacao, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
-import { esquemaDocumentoV1, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
+import { esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
 export interface ErroValidacao {
   /** Caminho legível, ex.: `documento.corpo[0].titulo[1].texto`. */
@@ -177,6 +177,11 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
 /** Uma obra sozinha (M4-T06): o cadastro só grava a obra que o documento aceitaria. Caminhos a partir de `obra`. */
 export function validarObraV1(json: unknown): ResultadoValidacao<Obra> {
   return validarComEsquema('obra', esquemaObra as z.ZodType<Obra>, json);
+}
+
+/** Uma chamada sozinha (M4-T07): o editor só insere a citação que o documento aceitaria. Caminhos a partir de `citacao`. */
+export function validarCitacaoV1(json: unknown): ResultadoValidacao<InlineCitacao> {
+  return validarComEsquema('citacao', esquemaInlineCitacao as z.ZodType<InlineCitacao>, json);
 }
 
 export function validarManifestoV1(json: unknown): ResultadoValidacao<Manifesto> {

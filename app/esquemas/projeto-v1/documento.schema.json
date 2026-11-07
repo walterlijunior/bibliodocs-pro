@@ -834,6 +834,12 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{8,64}$"
         },
+        "volume": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "pattern": "^[0-9A-Za-z][0-9A-Za-z .-]*$"
+        },
         "pagina": {
           "type": "string",
           "minLength": 1,

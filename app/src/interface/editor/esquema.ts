@@ -128,8 +128,9 @@ const nos: Record<string, NodeSpec> = {
 
   /**
    * Chamada de citação (M4-T01): folha atômica que guarda a ligação com as obras em `dados` (JSON do `InlineCitacao` sem
-   * o id). Ainda sem `parseDOM`: colar nunca cria citação, porque a obra pode não existir neste trabalho; inserir e
-   * mostrar a chamada formatada chegam no M4-T07.
+   * o id). Sem `parseDOM`: colar nunca cria citação, porque a obra pode não existir neste trabalho (o texto colado com
+   * "(AUTOR, ano)" só sugere a ligação, M4-T07). Na tela, o texto da chamada vem do `ChamadaView`; o `toDOM` só serve à
+   * cópia, que leva a palavra "citação".
    */
   chamadaCitacao: {
     group: 'inline',

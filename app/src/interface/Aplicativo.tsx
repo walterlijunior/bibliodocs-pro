@@ -445,6 +445,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirNota':
           refEditor.current?.inserirNota();
           return;
+        case 'inserirCitacao':
+          refEditor.current?.pedirCitacao();
+          return;
         case 'estruturaSecoes':
           irParaEscrever();
           pedirFoco('arvore');
@@ -502,7 +505,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
   const desativados = useMemo(() => {
     const d = new Set(comandosDesativados(trabalho));
-    if (local.aba !== 'escrever' || comFormulario) d.add('inserirNota');
+    if (local.aba !== 'escrever' || comFormulario) {
+      d.add('inserirNota');
+      d.add('inserirCitacao');
+    }
     return d;
   }, [trabalho, local.aba, comFormulario]);
 

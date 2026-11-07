@@ -12,13 +12,30 @@
 // estrutura): sem isso, o que se digita logo depois juntaria com o passo de antes e sairia fora de ordem. O texto de uma seção que não está na tela é desfeito no estado guardado
 // (`MemoriaEditores.aplicarHistorico`). Seção excluída: o estado continua guardado, e desfazer a exclusão a devolve com
 // o texto e o histórico.
+//
+// M4-T07: citação. Ctrl+Shift+C, o botão "Citação" ou o menu Inserir › Citação… pedem a janela da citação
+// (`aoPedirCitacao`), que volta pelo `ControleEditor`. A chamada mostra o texto do formatador atual (`RegistroChamadas`, na
+// memória). Colar texto com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar as chamadas.
 import 'prosemirror-view/style/prosemirror.css';
 import { closeHistory, isHistoryTransaction, redoDepth, undoDepth } from 'prosemirror-history';
 import { keydownHandler } from 'prosemirror-keymap';
-import { TextSelection, type EditorState } from 'prosemirror-state';
+import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import type { ChamadaEscrita, DadosCitacao, FormatadorDeChamadas } from '../../aplicacao';
 import type { MarcaTexto } from '../../dominio/modelo';
+import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
+import {
+  alterarCitacao,
+  chamadaSelecionada,
+  chamadasEscritasNoDoc,
+  inserirCitacao,
+  ligarChamadasEscritas,
+  podeInserirCitacao,
+  retirarCitacao,
+  type ChamadaEscritaNoDoc,
+  type ChamadaNoEditor,
+} from './citacoes';
 import { colarSemFormatacaoNaProxima } from './colagem';
 import { alternarAlineas, alternarCitacaoLonga, estaEmAlineas, estaEmCitacao } from './comandos-blocos';
 import { alternarMarca, desfazer, inserirNota, marcaAtiva, META_ABRIR_NOTA, podeInserirNota, refazer } from './comandos';
@@ -47,6 +64,11 @@ export interface ControleEditor {
   fecharGrupo(): void;
   /** O foco está no editor da seção ou no de uma nota dela. */
   temFoco(): boolean;
+  /** Pede a janela da citação: a chamada selecionada, ou uma nova no cursor (M4-T07). */
+  pedirCitacao(): boolean;
+  inserirCitacao(dados: DadosCitacao): boolean;
+  alterarCitacao(id: string, dados: DadosCitacao): boolean;
+  retirarCitacao(id: string): boolean;
 }
 
 /** Estados dos editores das seções visitadas no trabalho aberto. */
@@ -59,6 +81,8 @@ export class MemoriaEditores {
    */
   aoAvisar: (avisos: readonly AvisoColagem[]) => void = () => {};
   readonly avisar = (avisos: readonly AvisoColagem[]): void => this.aoAvisar(avisos);
+  /** Formatador das chamadas na tela (M4-T07): troca quando as obras mudam e redesenha as chamadas. */
+  readonly chamadas = new RegistroChamadas();
 
   obter(geracao: number, secaoId: string): EditorState | undefined {
     if (geracao !== this.#geracao) {
@@ -114,6 +138,12 @@ export interface PropsEditorSecao {
   /** Textos do que a colagem descartou (imagem, tabela…). */
   aoAvisar: (textos: string[]) => void;
   controle: RefObject<ControleEditor | null>;
+  /** Texto das chamadas com as obras atuais (M4-T07). */
+  formatarChamada: FormatadorDeChamadas;
+  /** Chamadas escritas à mão que correspondem a obras cadastradas (sugestão ao colar). */
+  reconhecerChamadas: (texto: string) => readonly ChamadaEscrita[];
+  /** Abre a janela da citação: `existente` é a chamada a alterar; `null`, uma nova no cursor. */
+  aoPedirCitacao: (existente: ChamadaNoEditor | null) => void;
 }
 
 interface Barra {
@@ -126,11 +156,12 @@ interface Barra {
   citacao: boolean;
   podeAlineas: boolean;
   podeCitacao: boolean;
+  podeCitar: boolean;
   desfazer: boolean;
   refazer: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, podeCitar: false, desfazer: false, refazer: false };
 
 function barraDe(estado: EditorState): Barra {
   return {
@@ -143,6 +174,7 @@ function barraDe(estado: EditorState): Barra {
     citacao: estaEmCitacao(estado),
     podeAlineas: alternarAlineas(estado),
     podeCitacao: alternarCitacaoLonga(estado),
+    podeCitar: chamadaSelecionada(estado) !== null || podeInserirCitacao(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
   };
@@ -161,13 +193,17 @@ export function EditorSecao(p: PropsEditorSecao) {
   const refHospedeiro = useRef<HTMLDivElement>(null);
   const refView = useRef<EditorView | null>(null);
   const [barra, setBarra] = useState<Barra>(BARRA_VAZIA);
+  // Chamadas escritas à mão no texto colado (M4-T07): a sugestão espera o aceite.
+  const [sugestao, setSugestao] = useState<readonly ChamadaEscritaNoDoc[]>([]);
   // As funções de fora mudam a cada renderização da casca; o editor lê sempre a mais recente.
   const refProps = useRef(p);
   useEffect(() => {
     refProps.current = p;
   });
 
-  const { secaoId, geracao, memoria, somenteLeitura, controle } = p;
+  const { secaoId, geracao, memoria, somenteLeitura, controle, formatarChamada } = p;
+  // Antes de montar o editor: as chamadas nascem já com o texto.
+  useEffect(() => memoria.chamadas.definir(formatarChamada), [memoria, formatarChamada]);
   useEffect(() => {
     const hospedeiro = refHospedeiro.current;
     if (!hospedeiro) return;
@@ -187,17 +223,40 @@ export function EditorSecao(p: PropsEditorSecao) {
       historico(sentido);
       return true;
     };
-    const teclasHistorico = keydownHandler({
+    // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
+    const pedirCitacao = (): boolean => {
+      if (somenteLeitura) return false;
+      const existente = chamadaSelecionada(view.state);
+      if (existente === null && !podeInserirCitacao(view.state)) return false;
+      refProps.current.aoPedirCitacao(existente);
+      return true;
+    };
+    const teclas = keydownHandler({
       'Mod-z': consumir('desfazer'),
       'Mod-y': consumir('refazer'),
       'Shift-Mod-z': consumir('refazer'),
+      'Shift-Mod-c': () => {
+        pedirCitacao();
+        return true;
+      },
+      Enter: () => chamadaSelecionada(view.state) !== null && pedirCitacao(),
     });
 
     const view: EditorView = new EditorView(hospedeiro, {
       state: estado,
       editable: () => !somenteLeitura,
-      handleKeyDown: teclasHistorico,
-      nodeViews: { nota: (no, v, posicao) => new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico) },
+      handleKeyDown: teclas,
+      ...copiaComChamadas(memoria.chamadas),
+      nodeViews: {
+        nota: (no, v, posicao) => new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico),
+        chamadaCitacao: (no, v, posicao) =>
+          new ChamadaView(no, memoria.chamadas, () => {
+            const pos = posicao();
+            if (pos === undefined || somenteLeitura) return;
+            v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+            pedirCitacao();
+          }),
+      },
       attributes: {
         class: 'bd-editor',
         role: 'textbox',
@@ -211,6 +270,12 @@ export function EditorSecao(p: PropsEditorSecao) {
         const novo = anterior.apply(tr);
         view.updateState(novo);
         if (novo.doc !== anterior.doc) refProps.current.aoAlterar(secaoId, docParaSecao(novo.doc));
+        // Colagem com chamadas escritas de obras cadastradas: sugere ligar (nunca liga sozinho).
+        if (tr.getMeta('uiEvent') === 'paste' && novo.doc !== anterior.doc) {
+          const reconhecer = refProps.current.reconhecerChamadas;
+          const depois = chamadasEscritasNoDoc(novo.doc, reconhecer);
+          if (depois.length > chamadasEscritasNoDoc(anterior.doc, reconhecer).length) setSugestao(depois);
+        }
         // Passo novo no histórico de texto (também quando o limite de 100 eventos corta os mais antigos e a profundidade
         // diminui); desfazer e refazer não contam: a ordem única já os moveu.
         if (!isHistoryTransaction(tr) && undoDepth(novo) !== undoDepth(anterior)) refProps.current.aoRegistrarTexto(secaoId);
@@ -226,6 +291,12 @@ export function EditorSecao(p: PropsEditorSecao) {
     refView.current = view;
 
     const executar = (c: typeof desfazer): boolean => !somenteLeitura && c(view.state, view.dispatch);
+    // Citação: passo próprio no desfazer, sem juntar com o que for digitado logo depois.
+    const passoProprio = (c: typeof desfazer): boolean => {
+      const ok = executar(c);
+      if (ok) view.dispatch(closeHistory(view.state.tr));
+      return ok;
+    };
     controle.current = {
       secaoId,
       desfazer: () => executar(desfazer),
@@ -240,8 +311,13 @@ export function EditorSecao(p: PropsEditorSecao) {
       },
       temFoco: () => view.hasFocus() || view.dom.contains(document.activeElement),
       fecharGrupo: () => view.dispatch(closeHistory(view.state.tr)),
+      pedirCitacao,
+      inserirCitacao: (dados) => passoProprio(inserirCitacao(dados)),
+      alterarCitacao: (id, dados) => passoProprio(alterarCitacao(id, dados)),
+      retirarCitacao: (id) => passoProprio(retirarCitacao(id)),
     };
 
+    setSugestao([]);
     return () => {
       // Guardado com o grupo fechado: o que for digitado em outra seção entra depois na ordem única.
       memoria.guardar(geracao, secaoId, view.state.apply(closeHistory(view.state.tr)));
@@ -263,6 +339,17 @@ export function EditorSecao(p: PropsEditorSecao) {
     const view = refView.current;
     if (!view || somenteLeitura) return;
     alternarMarca(marca)(view.state, view.dispatch);
+    view.focus();
+  };
+
+  const ligarSugestao = () => {
+    const view = refView.current;
+    setSugestao([]);
+    if (!view || somenteLeitura) return;
+    // Procura de novo: o texto pode ter mudado depois da colagem.
+    if (ligarChamadasEscritas(chamadasEscritasNoDoc(view.state.doc, refProps.current.reconhecerChamadas))(view.state, view.dispatch)) {
+      view.dispatch(closeHistory(view.state.tr));
+    }
     view.focus();
   };
 
@@ -328,6 +415,38 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => aplicarBloco(alternarCitacaoLonga)}
           >
             Citação longa
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            disabled={!barra.podeCitar}
+            aria-keyshortcuts="Control+Shift+C"
+            title="Citação: escolher a obra citada (Ctrl+Shift+C)"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => controle.current?.pedirCitacao()}
+          >
+            Citação
+          </button>
+        </div>
+      )}
+      {sugestao.length > 0 && !somenteLeitura && (
+        <div className="editor-secao__sugestao" role="group" aria-label="Chamadas no texto colado">
+          <p role="status">
+            {sugestao.length === 1 ? 'O texto colado tem uma chamada escrita de obra da bibliografia: ' : `O texto colado tem ${sugestao.length} chamadas escritas de obras da bibliografia: `}
+            {sugestao.map((c) => c.texto).join('; ')}. Ligada à obra, a chamada acompanha as mudanças da obra.
+          </p>
+          <button type="button" className="btn-principal" onClick={ligarSugestao}>
+            Ligar às obras
+          </button>
+          <button
+            type="button"
+            className="btn-secundario"
+            onClick={() => {
+              setSugestao([]);
+              refView.current?.focus();
+            }}
+          >
+            Manter como texto
           </button>
         </div>
       )}

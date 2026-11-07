@@ -6,6 +6,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T07: citação no editor.
+  - Ctrl+Shift+C, o botão "Citação" ou Inserir › Citação… abrem a janela: obra, forma, volume, página, apud e grifo, com a prévia da chamada.
+  - A chamada mostra o texto do documento e acompanha a obra. Duplo clique altera. Ctrl+Z desfaz junto com o texto.
+  - Texto colado com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar.
+  - Copiar leva o texto da chamada.
+  - Campo novo na obra citada: volume, "(CANDIDO, 1993, v. 2, p. 12)" (Manual, p. 23).
 - Etapa 5, M4-T06: Bibliografia na aba Escrever.
   - Lista das obras na ordem das referências e "Nova obra".
   - Formulário com os campos de cada tipo e a prévia da referência como sai no documento.

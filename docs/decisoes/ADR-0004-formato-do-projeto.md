@@ -671,3 +671,9 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
 - A lista nunca é gravada: o motor a gera a cada exportação, ordenada (RN-176), com os mesmos sufixos a, b das chamadas.
 - Na citação de citação, entram na lista a obra original e a consultada, porque as duas aparecem no texto (RN-078: toda
   citação tem a referência). O Manual não trata o caso; a escolha está aberta ao usuário no relatório do M4.
+
+## Adendo do M4-T07 (2026-11-07)
+
+`ObraCitada` ganha `volume?: string` (1 a 16 caracteres, números e letras), antes de `pagina`. É mudança aditiva: o
+formato continua v1, sem migração. O JSON Schema foi regenerado (`npm run esquemas:gerar`). Fonte da forma "v. 2":
+Manual, p. 23, exemplo CANDIDO.

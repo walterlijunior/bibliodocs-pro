@@ -3,15 +3,17 @@
 // e o editor da seção escolhida (uma seção por vez, decisão da preparação do M2). M2-T07: a árvore de seções, com nova,
 // subir, descer, recuar, promover, excluir e arrastar (`ArvoreSecoes`); a seção ativa e a ordem única de desfazer vêm
 // de `useEstrutura`, acima da aba. M2-T08: a lista dos elementos pré-textuais e o formulário do escolhido, no lugar do
-// editor da seção. M4-T06: a bibliografia (lista das obras e o formulário da obra, também no lugar do editor). Texto
-// sempre como texto (nunca HTML).
-import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { AcaoAviso, AlteracaoDados, AvisoSessao, CamposElemento, ConteudoDaSecao, EstadoSessao, ResultadoObra } from '../../aplicacao';
+// editor da seção. M4-T06: a bibliografia (lista das obras e o formulário da obra, também no lugar do editor). M4-T07: a
+// janela da citação, pedida pelo editor. Texto sempre como texto (nunca HTML).
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { formatadorDeChamadas, reconhecerChamadasEscritas, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
+import type { ChamadaNoEditor } from '../editor/citacoes';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
 import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
+import { DialogoCitacao } from './DialogoCitacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
@@ -83,10 +85,28 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [obraAberta, setObraAberta] = useState<{ id: string } | { nova: Obra } | null>(null);
   const [anuncioObra, setAnuncioObra] = useState<string | null>(null);
   const [contadorNova, setContadorNova] = useState(0);
+  // Janela da citação (M4-T07): `existente` é a chamada selecionada no editor; `null`, uma nova no cursor.
+  const [pedidoCitacao, setPedidoCitacao] = useState<{ existente: ChamadaNoEditor | null } | null>(null);
+  const pedirCitacao = useCallback((existente: ChamadaNoEditor | null) => setPedidoCitacao({ existente }), []);
+  // Janela fechada (inserir, alterar, retirar ou cancelar): o foco volta pelo editor, que repõe a seleção dele (o
+  // `focus()` do elemento deixaria o cursor fora do lugar). Roda depois da limpeza da janela.
+  const focarAoFecharCitacao = useRef(false);
+  useEffect(() => {
+    if (pedidoCitacao === null && focarAoFecharCitacao.current) {
+      focarAoFecharCitacao.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoCitacao !== null) focarAoFecharCitacao.current = true;
+  }, [pedidoCitacao, controleEditor]);
+  const listaObras = t?.obras;
+  const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
+  const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
+  const reconhecerChamadas = useCallback((texto: string) => reconhecerChamadasEscritas(texto, obrasDoTrabalho), [obrasDoTrabalho]);
   const ativaId = e.ativa?.id ?? null;
   useEffect(() => {
     setElementoId(null);
     setObraAberta(null);
+    setPedidoCitacao(null);
   }, [ativaId, t?.geracao]);
   const obraDaLista = obraAberta !== null && 'id' in obraAberta ? (t?.obras.find((o) => o.obra.id === obraAberta.id)?.obra ?? null) : null;
   const comObra = obraAberta !== null && ('nova' in obraAberta || obraDaLista !== null);
@@ -332,7 +352,37 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 aoHistorico={e.historico}
                 aoAvisar={setAvisosEditor}
                 controle={controleEditor}
+                formatarChamada={formatarChamada}
+                reconhecerChamadas={reconhecerChamadas}
+                aoPedirCitacao={pedirCitacao}
               />
+              {pedidoCitacao !== null && (
+                <DialogoCitacao
+                  obras={t.obras}
+                  inicial={pedidoCitacao.existente?.dados ?? null}
+                  formatar={formatarChamada}
+                  aoConfirmar={(dados) => {
+                    const c = pedidoCitacao.existente;
+                    setPedidoCitacao(null);
+                    if (c === null) controleEditor.current?.inserirCitacao(dados);
+                    else controleEditor.current?.alterarCitacao(c.id, dados);
+                  }}
+                  aoRetirar={() => {
+                    const c = pedidoCitacao.existente;
+                    setPedidoCitacao(null);
+                    if (c !== null) controleEditor.current?.retirarCitacao(c.id);
+                  }}
+                  aoFechar={() => setPedidoCitacao(null)}
+                  aoCadastrarObra={() => {
+                    focarAoFecharCitacao.current = false;
+                    setPedidoCitacao(null);
+                    setAnuncioObra(null);
+                    setElementoId(null);
+                    setContadorNova((n) => n + 1);
+                    setObraAberta({ nova: { id: 'obr_rascunho0001', tipo: 'livro', titulo: [] } });
+                  }}
+                />
+              )}
             </>
           )}
           <ul className="avisos" aria-label="Avisos do editor" hidden={avisosEditor.length === 0}>
