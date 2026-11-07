@@ -9,13 +9,14 @@
  * - Mesmo autor e mesmo ano: sufixo a, b, c… na ordem da lista (RN-096; D-M4-03, provisório).
  */
 import type { Autor, Id, InlineDeTitulo, Obra } from '../modelo';
-import { LOCALE } from './autores';
+import { autoresDeEntrada, LOCALE } from './autores';
 
 const colador = new Intl.Collator(LOCALE, { sensitivity: 'base', numeric: true });
 
 /** Elemento de entrada como lista de partes comparáveis, em ordem de importância. */
 function chaveDeEntrada(obra: Obra): string[] {
-  if (obra.autores && obra.autores.length > 0) return obra.autores.flatMap(partesDoAutor);
+  const autores = autoresDeEntrada(obra);
+  if (autores.length > 0) return autores.flatMap(partesDoAutor);
   return [textoDe(obra.titulo)];
 }
 
@@ -67,7 +68,7 @@ export function ordenarReferencias<T extends Obra>(obras: readonly T[]): T[] {
  */
 export function sufixosDeAno(obras: readonly Obra[]): Map<Id, string> {
   const saida = new Map<Id, string>();
-  const ordem = ordenarReferencias(obras.filter((o) => o.autores && o.autores.length > 0 && o.ano !== undefined));
+  const ordem = ordenarReferencias(obras.filter((o) => autoresDeEntrada(o).length > 0 && o.ano !== undefined));
   let i = 0;
   while (i < ordem.length) {
     let j = i + 1;

@@ -64,7 +64,7 @@ As decisões são a D-M3-10 a 12 na matriz.
 | N-M3-14 | Baixa | RN-008, D-M3-02 | [VERIFICADO no Word 16] O primeiro título da parte textual começa 18 pt abaixo da margem (topo a 103,2 pt), e os capítulos seguintes começam na margem (85,2 pt). O Word mantém o espaço antes depois de uma quebra de seção e o descarta depois de uma quebra de página | Aberto. Uniformizar no M6: sem espaço antes no título que abre página, ou o mesmo nos dois casos |
 | N-M3-08 | Baixa | RN-171 | O "justificado" da anotação da Fig. 16 não está no sumário | Já previsto em PF-08 e no M6 |
 | N-M3-09 | Baixa | RN-140/143 | Redação fixa ("Data de aprovação:", "Banca examinadora") difere em detalhe da Fig. 7 (exemplo) | Uniformizar com a figura |
-| N-M3-10 | Baixa | RN-034 | O estilo das referências não separa uma referência da outra por linha simples (2.6 f) | No M4 (referências) |
+| N-M3-10 | Baixa | RN-034 | O estilo das referências não separa uma referência da outra por linha simples (2.6 f) | Corrigido no M4-T05 (RN-177, `w:after=240`) |
 | N-M3-11 | Info | RN-151 | O título do resumo vale, por extensão, para os pós-textuais sem indicativo | Anotar a extensão na matriz |
 | N-M3-12 | Info | RN-237 | Entrelinha da identificação do apêndice e página nova a cada apêndice sem RN | Registrar como PENDENTE-FONTE ou decisão |
 | N-M3-13 | Info | RN-156 | "Palavras-chave:" sai sem negrito; as Fig. 10 e 11 (exemplo) mostram negrito | Decisão editorial |

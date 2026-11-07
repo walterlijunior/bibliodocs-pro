@@ -185,7 +185,7 @@ export const esquemaElementoPreTextual = z
 /** Lugar de um pós-textual (M2-T09); apêndice e anexo têm título, e a letra vem da posição. */
 export const esquemaElementoPosTextual = z
   .discriminatedUnion('tipo', [
-    soLugar('referencias'),
+    z.strictObject({ tipo: z.literal('referencias'), id, incluirNaoCitadas: z.literal(true).optional() }),
     soLugar('glossario'),
     z.strictObject({ tipo: z.literal('apendice'), id, titulo: campoCurto.optional() }),
     z.strictObject({ tipo: z.literal('anexo'), id, titulo: campoCurto.optional() }),

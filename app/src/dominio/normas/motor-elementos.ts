@@ -168,7 +168,8 @@ function resumo(titulo: string, rotulo: string, texto: string | undefined, palav
   ];
 }
 
-export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: AvisoFormatacao[]): BlocoFormatado[] {
+/** `referencias` gera a lista ordenada (M4-T05); chamado só se o trabalho tem o elemento. */
+export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: AvisoFormatacao[], referencias: () => BlocoFormatado[] = () => []): BlocoFormatado[] {
   const blocos: BlocoFormatado[] = [];
   const titulo = (texto: string, origem: readonly string[]) => blocos.push(paragrafo('tituloPosTextual', [trecho(texto)], origem, { novaPagina: true }));
   const contar = (tipo: 'apendice' | 'anexo') => lista.filter((e) => e.tipo === tipo).length;
@@ -177,6 +178,7 @@ export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: 
     switch (e.tipo) {
       case 'referencias':
         titulo('REFERÊNCIAS', ['RN-007', 'RN-045']);
+        blocos.push(...referencias());
         break;
       case 'glossario':
         titulo('GLOSSÁRIO', ['RN-007', 'RN-045', 'RN-230']);

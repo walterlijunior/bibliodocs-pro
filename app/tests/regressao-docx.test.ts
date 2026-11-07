@@ -180,4 +180,21 @@ describe('o documento difícil exercita o que deve', () => {
     expect(doc).toContain('ANEXO A – Documento de exemplo');
     expect(formatado.avisos.map((a) => a.codigo)).toEqual(['BRASAO_AUSENTE']);
   });
+
+  it('tem a lista REFERÊNCIAS ordenada e as chamadas no texto (M4-T05)', () => {
+    const { formatado } = gerados.get('documento-dificil')!;
+    const texto = (estilo: string) =>
+      formatado.secoes.flatMap((s) => s.blocos).flatMap((b) => (b.tipo === 'paragrafo' && b.estilo === estilo ? [b.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join('')] : []));
+    expect(texto('referencia')).toEqual([
+      'BRASIL. Lei fictícia nº 1, de 1 de janeiro de 2000. Ementa fictícia. Diário Oficial Fictício, Brasília, DF, p. 1, 2 jan. 2000.',
+      'CAPÍTULO, Autoria. Um capítulo de teste. In: ORGANIZAÇÃO, Fictícia (org.). Coletânea de teste. Palmas: Editora Fictícia, 2019. p. 10-30.',
+      'COAUTORIA A, A et al. Artigo de teste. Revista Fictícia, Palmas, v. 1, n. 2, p. 3-4, 2021. Disponível em: https://exemplo.invalid/artigo. Acesso em: 1 jan. 2026.',
+      'EXEMPLAR NETO, Autoria. Estudo de Caryocar brasiliense: um caso fictício. 2. ed. Palmas: Editora Fictícia, 2020a. 120 p.',
+      'EXEMPLAR NETO, Autoria. Outro estudo. Palmas: Editora Fictícia, 2020b.',
+    ]);
+    expect(texto('corpo').at(-1)).toBe(
+      'Coautoria A et al. (2021) e Capítulo (2019, p. 15 apud EXEMPLAR NETO, 2020b, p. 8) afirmam o exemplo (BRASIL, 2000; EXEMPLAR NETO, 2020a, não paginado, grifo nosso).',
+    );
+    expect(texto('citacaoLonga')[0]).toMatch(/\(EXEMPLAR NETO, 2020a, p\. 12\)$/u);
+  });
 });

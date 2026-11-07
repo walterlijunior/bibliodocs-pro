@@ -81,6 +81,7 @@ const regra = z
       'posTextual.apendice',
       'posTextual.anexo',
       'referencia',
+      'citacao.chamada',
       'paginacao',
       'paginacao.numero',
     ]),

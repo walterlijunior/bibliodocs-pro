@@ -209,6 +209,38 @@
     "RN-315"
    ],
    "origem": "decisao-usuario-2026-11-05"
+  },
+  "espacoEntreReferenciasPt": {
+   "valor": 12,
+   "ajustavel": false,
+   "rn": [
+    "RN-177"
+   ],
+   "origem": "norma"
+  },
+  "edicaoNbr10520": {
+   "valor": "2002",
+   "ajustavel": false,
+   "rn": [
+    "RN-082"
+   ],
+   "origem": "decisao-usuario-2026-10-15",
+   "opcoes": [
+    "2002",
+    "2023"
+   ]
+  },
+  "autoresReferencia": {
+   "valor": "etAl",
+   "ajustavel": false,
+   "rn": [
+    "RN-184"
+   ],
+   "origem": "decisao-usuario-2026-10-15",
+   "opcoes": [
+    "etAl",
+    "todos"
+   ]
   }
  },
  "regras": [
@@ -1096,6 +1128,38 @@
    "fonte": "M, p. 67, cap. 9 (citando NBR 6034:2004)",
    "tipo": "estrutura",
    "alvo": "documento"
+  },
+  {
+   "id": "RN-177",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, 2.6 f; Quadro 1, p. 17",
+   "tipo": "estilo",
+   "alvo": "referencia",
+   "parametros": [
+    "espacoEntreReferenciasPt"
+   ]
+  },
+  {
+   "id": "RN-082",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 22, seção 3.1 a (texto: \"autor em caixa alta\") + exemplos p. 22–26",
+   "tipo": "procedimento",
+   "alvo": "citacao.chamada",
+   "procedimento": "chamadaAutorData",
+   "parametros": [
+    "edicaoNbr10520"
+   ]
+  },
+  {
+   "id": "RN-184",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 50, 5.19.1 c; exemplos p. 51 (LUCKESI), p. 56 (DANTAS), p. 61 (BERTAZZOLI)",
+   "tipo": "procedimento",
+   "alvo": "referencia",
+   "procedimento": "autoriaDaReferencia",
+   "parametros": [
+    "autoresReferencia"
+   ]
   }
  ],
  "tiposTrabalho": {

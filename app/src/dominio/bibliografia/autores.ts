@@ -7,7 +7,7 @@
  *   ou todos, pela opção do C-B12.
  * - Entidade por extenso em maiúsculas (RN-187). Função de obra coletiva entre parênteses em minúsculas (RN-186).
  */
-import type { Autor, FuncaoResponsavel } from '../modelo';
+import type { Autor, FuncaoResponsavel, Obra } from '../modelo';
 import type { Montador } from './trechos';
 
 export const LOCALE = 'pt-BR';
@@ -60,4 +60,14 @@ export function escreverAutoria(
     m.texto('et al.', ['RN-184', 'RN-185'], ['italico']);
   }
   if (funcao) m.texto(` (${abreviaturaFuncao(funcao, autores.length)})`, ['RN-186']);
+}
+
+/**
+ * Elemento de entrada da obra para ordenar e citar: os autores ou, na legislação sem autoria, a jurisdição como
+ * entidade (RN-223: "BRASIL. Lei nº …"). Lista vazia: entrada pelo título.
+ */
+export function autoresDeEntrada(obra: Pick<Obra, 'tipo' | 'autores' | 'jurisdicao'>): readonly Autor[] {
+  if (obra.autores && obra.autores.length > 0) return obra.autores;
+  const jurisdicao = obra.jurisdicao?.trim();
+  return obra.tipo === 'legislacao' && jurisdicao ? [{ tipo: 'entidade', nome: jurisdicao }] : [];
 }

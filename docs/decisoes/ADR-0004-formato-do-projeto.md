@@ -659,4 +659,15 @@ Medido no Electron 44.8.0 real com o documento grande (`app/tests/apoio/document
   - O editor guarda a citação num nó atômico `chamadaCitacao`, com os dados em JSON, e a ida e volta é exata (fixture
     `documento-bordas-m4.json`).
   - O nó não tem `parseDOM`: colar não cria citação, porque a obra pode não existir no trabalho de destino.
-  - O motor avisa `CITACAO_ADIADA` até o M4-T03. O texto simples deixa a chamada de fora, como a nota.
+  - O motor avisava `CITACAO_ADIADA` até o M4-T03; desde o M4-T05 escreve a chamada. O texto simples deixa a chamada de
+    fora, como a nota.
+
+## Adendo do M4-T05 (2026-11-07) — lista de referências no formato v1
+
+- `referencias` em `posTextuais` ganha `incluirNaoCitadas?: true` (aditivo; arquivo antigo abre igual). Ausente, a
+  lista REFERÊNCIAS sai só das obras citadas no texto; presente, de todas as obras da bibliografia.
+- `false` é recusado: o campo ausente já diz "não". Mantém uma forma só para o mesmo estado, como os outros campos
+  opcionais do v1.
+- A lista nunca é gravada: o motor a gera a cada exportação, ordenada (RN-176), com os mesmos sufixos a, b das chamadas.
+- Na citação de citação, entram na lista a obra original e a consultada, porque as duas aparecem no texto (RN-078: toda
+  citação tem a referência). O Manual não trata o caso; a escolha está aberta ao usuário no relatório do M4.

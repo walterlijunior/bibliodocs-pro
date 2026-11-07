@@ -4,8 +4,9 @@
  *
  * Regra `AMBIGUA` sem parâmetro decidido e `PENDENTE-FONTE` não provisória não são aplicadas; saem em `regrasAguardando`.
  */
+import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferencias, type TrechoReferencia } from '../bibliografia';
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
-import type { Bloco, Documento, ElementoPreTextual, Inline, InlineDeTitulo, Metadados } from '../modelo';
+import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
 import type {
   AvisoFormatacao,
@@ -132,7 +133,16 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
   { id: 'aprovacaoBanca', nome: 'Aprovação – Banca', alvos: ['documento', 'folhaAprovacao.banca'] },
   { id: 'entradaSumario', nome: 'Entrada do sumário', alvos: ['documento', 'sumario.entrada'] },
   { id: 'identificacaoPosTextual', nome: 'Identificação de apêndice e anexo', alvos: ['documento', 'posTextual.identificacao'] },
-  { id: 'referencia', nome: 'Referência', alvos: ['documento', 'referencia'] },
+  {
+    id: 'referencia',
+    nome: 'Referência',
+    alvos: ['documento', 'referencia'],
+    // RN-177: uma linha em branco em espaço simples entre as referências (N-M3-10).
+    parametros: (v) => {
+      const pt = v('espacoEntreReferenciasPt');
+      return typeof pt === 'number' ? { depoisTw: ptParaTw(pt) } : {};
+    },
+  },
   { id: 'numeroPagina', nome: 'Número da página', alvos: ['documento', 'paginacao.numero'] },
 ];
 
@@ -199,7 +209,18 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
-export type DocumentoParaFormatar = Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais'>>;
+export type DocumentoParaFormatar = Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>>;
+
+/** Trechos da bibliografia como runs: vizinhos com o mesmo destaque viram um só (a RN de cada um não vai para o DOCX). */
+function deReferencia(t: readonly TrechoReferencia[]): TrechoFormatado[] {
+  const saida: { tipo: 'texto'; texto: string; marcas: readonly TrechoReferencia['marcas'][number][] }[] = [];
+  for (const x of t) {
+    const ultimo = saida.at(-1);
+    if (ultimo && ultimo.marcas.length === x.marcas.length && ultimo.marcas.every((m, i) => m === x.marcas[i])) ultimo.texto += x.texto;
+    else saida.push({ tipo: 'texto', texto: x.texto, marcas: x.marcas });
+  }
+  return saida;
+}
 
 /** Papel em mm: 1 mm = 1440/25,4 twips, sem a aproximação de 567/cm (RN-018: 11906 × 16838). */
 const mmParaTw = (mm: number): number => Math.round((mm * 1440) / 25.4);
@@ -251,13 +272,44 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   let proximaNota = 0;
   let proximaLista = 0;
 
+  // Citações e referências (M4-T05). A lista sai das obras citadas, inclusive as do apud (RN-078), ou de todas as obras
+  // se o autor pediu; sufixos a, b e chamadas vêm da mesma lista, para nunca divergirem.
+  const rnChamada = temProcedimento(regras, 'chamadaAutorData');
+  const rnAutoria = temProcedimento(regras, 'autoriaDaReferencia');
+  const edicaoNbr10520 = rnChamada !== null && perfil.parametros['edicaoNbr10520']?.valor === '2023' ? '2023' : '2002';
+  const listarTodosAutores = rnAutoria !== null && perfil.parametros['autoresReferencia']?.valor === 'todos';
+  const citadas = new Set<Id>();
+  for (const c of citacoesDoDocumento(doc)) {
+    for (const o of c.obras) citadas.add(o.obra);
+    if (c.apud) citadas.add(c.apud.obra);
+  }
+  const elementoReferencias = (doc.posTextuais ?? []).find((e) => e.tipo === 'referencias');
+  const todasObras = doc.obras ?? [];
+  const listadas = ordenarReferencias(elementoReferencias?.tipo === 'referencias' && elementoReferencias.incluirNaoCitadas ? todasObras : todasObras.filter((o) => citadas.has(o.id)));
+  const contextoCitacoes = contextoDeChamadas(listadas);
+  if (citadas.size > 0 && !elementoReferencias) {
+    avisos.push({ codigo: 'REFERENCIAS_AUSENTES', id: doc.corpo[0]?.id ?? '', mensagem: 'Há citações no texto, mas o trabalho não tem o elemento REFERÊNCIAS (RN-078).' });
+  }
+  const blocosReferencias = (): BlocoFormatado[] => {
+    if (listadas.length === 0) {
+      avisos.push({ codigo: 'REFERENCIAS_VAZIAS', id: elementoReferencias?.id ?? '', mensagem: 'A lista de referências está vazia: nenhuma obra foi citada no texto.' });
+      return [];
+    }
+    return listadas.map((o): BlocoFormatado => {
+      const r = formatarReferencia(o, { listarTodosAutores, ...(contextoCitacoes.sufixos.has(o.id) ? { sufixoAno: contextoCitacoes.sufixos.get(o.id)! } : {}) });
+      for (const a of r.avisos) avisos.push({ codigo: 'REFERENCIA_COM_AVISO', id: o.id, mensagem: `${a.mensagem} (${a.rn})` });
+      return { tipo: 'paragrafo', estilo: 'referencia', trechos: deReferencia(r.trechos), origem: ['RN-176', 'RN-178', ...(rnAutoria !== null ? [rnAutoria] : [])] };
+    });
+  };
+
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
     conteudo.flatMap((i): TrechoFormatado[] => {
       if (i.tipo === 'texto') return [{ tipo: 'texto', texto: i.texto, marcas: i.marcas ?? [] }];
-      // A chamada formatada chega no M4-T03; até lá a citação não some em silêncio.
+      // A chamada é gerada da obra a cada exportação (RF-07).
       if (i.tipo === 'citacao') {
-        avisos.push({ codigo: 'CITACAO_ADIADA', id: i.id, mensagem: 'As chamadas de citação chegam numa versão seguinte: esta ainda não foi exportada.' });
-        return [];
+        const c = formatarChamada(i, contextoCitacoes, { edicaoNbr10520 });
+        for (const a of c.avisos) avisos.push({ codigo: 'CHAMADA_COM_AVISO', id: i.id, mensagem: `${a.mensagem} (${a.rn})` });
+        return deReferencia(c.trechos);
       }
       // Nota vazia não vira `w:footnote` vazia nem conta na numeração (ADR-0007, B6): sai só com aviso.
       if (textoVazio(i.conteudo)) {
@@ -333,7 +385,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   });
 
   const pagina = paginaDe(regras, perfil);
-  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos).map((b, i): BlocoFormatado =>
+  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos, blocosReferencias).map((b, i): BlocoFormatado =>
     b.tipo === 'paragrafo' && b.estilo === 'tituloPosTextual' ? { ...b, ancora: ancoraDe(`pos:${i}`) } : b,
   );
   const titulosPos = blocosPos.flatMap((b) =>

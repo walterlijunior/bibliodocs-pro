@@ -188,7 +188,9 @@ export type ElementoPreTextual =
  * gravada; o conteúdo chega no M4 (referências) e no M6 (os demais).
  */
 export type ElementoPosTextual =
-  | SoLugar<'referencias' | 'glossario' | 'indice'>
+  | SoLugar<'glossario' | 'indice'>
+  /** A lista sai das obras citadas; `incluirNaoCitadas` põe também as demais obras da bibliografia (M4-T05). */
+  | { tipo: 'referencias'; id: Id; incluirNaoCitadas?: true }
   | { tipo: 'apendice'; id: Id; titulo?: string }
   | { tipo: 'anexo'; id: Id; titulo?: string };
 

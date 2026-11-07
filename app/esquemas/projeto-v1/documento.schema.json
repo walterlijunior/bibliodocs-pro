@@ -890,6 +890,10 @@
             "id": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "incluirNaoCitadas": {
+              "type": "boolean",
+              "const": true
             }
           },
           "required": [

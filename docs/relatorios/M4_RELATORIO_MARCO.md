@@ -9,6 +9,7 @@ Relatório vivo do marco: cada tarefa M4-Txx acrescenta a sua seção. Plano: `d
 | M4-T02 Formatadores de referência (base e livro) | CONCLUÍDA | 2026-11-07 |
 | M4-T03 Chamadas de citação | CONCLUÍDA | 2026-11-07 |
 | M4-T04 Tipos da primeira leva | CONCLUÍDA | 2026-11-07 |
+| M4-T05 Lista REFERÊNCIAS e chamadas no DOCX | CONCLUÍDA | 2026-11-07 |
 
 ## M4-T00 — Decisões
 
@@ -150,3 +151,41 @@ O cadastro (M4-T06) é o lugar de decidir quais desses campos entram.
 **Outros tipos do 5.19** (RN-208, 210, 211, 219 a 221, 224 a 229: evento digital, palestra, coleção de periódico, entrevistas, correspondência, jurisprudência, patente, iconográfico, cartográfico, audiovisual, tridimensional) seguem fora até a segunda leva, como decidido no D-M4-06.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1589 testes unitários, 27 externos e 21 de 21 E2E. O pico de memória foi de 774 MB.
+
+## M4-T05 — Lista REFERÊNCIAS e chamadas no motor e no DOCX
+
+**Implementação:** sessão principal, sem delegar ao `especialista-documento`. **Sem revisão independente:** fica para o M4-T10. É a primeira mudança visível do marco: o DOCX exportado passa a ter as chamadas no texto e a lista REFERÊNCIAS.
+
+**Motor** (`dominio/normas/motor.ts`, `motor-elementos.ts`)
+- A chamada é gerada da obra a cada exportação. Os trechos com o mesmo destaque viram um run só.
+- A lista REFERÊNCIAS:
+  - sai logo depois do título, das obras citadas, inclusive a original e a consultada do apud (RN-078);
+  - pode incluir também as obras não citadas, se o trabalho pedir;
+  - vem ordenada (RN-176), e os sufixos a, b são os mesmos das chamadas.
+- Estilo Referência com uma linha simples depois de cada referência: 12 pt, `w:after="240"` (RN-177). Fecha o N-M3-10.
+- Avisos novos:
+  - `CHAMADA_COM_AVISO` e `REFERENCIA_COM_AVISO`, com a RN;
+  - `REFERENCIAS_AUSENTES`: há citação e o trabalho não tem o elemento;
+  - `REFERENCIAS_VAZIAS`: há o elemento e nenhuma obra citada.
+- `CITACAO_ADIADA` sai.
+- Corrigido no caminho: legislação sem `autores` entra pela jurisdição também na ordem e na chamada ("(BRASIL, 2000)"). Antes ia pelo título.
+
+**Perfil** (`perfis/uft-2022/perfil.json`)
+- `espacoEntreReferenciasPt` = 12 (RN-177, norma).
+- `edicaoNbr10520` = "2002", com a opção "2023" (RN-082, C-01).
+- `autoresReferencia` = "etAl", com a opção "todos" (RN-184, C-B12).
+- Alvo novo `citacao.chamada`.
+
+**Formato:** `incluirNaoCitadas?: true` no elemento `referencias` (aditivo; adendo do M4-T05 no ADR-0004). JSON Schema regenerado.
+
+**Decisão do usuário (2026-11-07, "siga as recomendações"):** na citação de citação, entram na lista a obra original e a consultada.
+
+**Testes**
+- `tests/motor-referencias.test.ts`, com 15 casos: só as citadas, ordem, sufixos iguais no texto e na lista, *et al.* em itálico nos dois lugares, título em negrito, incluir não citadas, estilo RN-034/177, avisos, perfil 2023 e "todos", formato.
+- O documento difícil do corpus ganhou cinco obras fictícias e quatro chamadas: parentética, narrativa com *et al.*, apud e duas obras com grifo.
+
+**Instantâneos (explicados)**
+- `styles.xml` dos 7 documentos: só a linha do estilo Referência, que ganha `w:after="240"` (RN-177).
+- `document.xml` do documento difícil: as chamadas no texto e as cinco referências depois do título REFERÊNCIAS.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1609 testes unitários, 27 externos e 21 de 21 E2E. Os externos incluem o validador OOXML, o LibreOffice e o Word, sobre o corpus com o documento difícil, que agora tem lista e chamadas. O pico de memória foi de 768 MB.

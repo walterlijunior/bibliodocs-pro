@@ -202,8 +202,12 @@ describe('obras e citações no modelo (M4-T01)', () => {
     expect(textoPlano((doc.corpo[0]!.blocos[0] as { conteudo: Inline[] }).conteudo)).toBe('Segundo , há .');
   });
 
-  it('o motor não deixa a citação sumir em silêncio enquanto a chamada não é formatada (até o M4-T03)', () => {
+  it('o motor escreve a chamada no texto (M4-T05) e avisa que falta o elemento REFERÊNCIAS', () => {
     const f = formatar(doc, PERFIL_UFT_2022);
-    expect(f.avisos.filter((a) => a.codigo === 'CITACAO_ADIADA').map((a) => a.id)).toEqual(['cta_bordm4001', 'cta_bordm4002', 'cta_bordm4003', 'cta_bordm4004', 'cta_bordm4005']);
+    const corpo = f.secoes.find((x) => x.papel === 'textual')!.blocos[1]!;
+    expect(corpo.tipo === 'paragrafo' && corpo.trechos.map((t) => (t.tipo === 'texto' ? t.texto : '')).join('')).toBe(
+      'Segundo Silva Neto e Souza ([2016?], p. 27-29), há (LIMA, 2010; PEREIRA JÚNIOR, 2014, não paginado, grifo nosso).',
+    );
+    expect(f.avisos.map((a) => a.codigo).sort()).toEqual(['CHAMADA_COM_AVISO', 'REFERENCIAS_AUSENTES']);
   });
 });

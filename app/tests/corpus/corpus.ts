@@ -1,7 +1,7 @@
 // Corpus da regressão documental (M3-T06; skill `regressao-documental`). Conteúdo fictício e neutro, gerado aqui: nada de
 // dados reais. Um trabalho por tipo e um "documento difícil". Tabelas, figuras e equações entram no M5.
 import { criarTrabalhoDoTipo } from '../../src/aplicacao/servicos/criar-trabalho';
-import type { Bloco, Documento, Inline, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
+import type { Bloco, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
 
 export const TIPOS: readonly TipoTrabalhoUft[] = ['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa'];
 
@@ -41,7 +41,17 @@ export function trabalhoDoTipo(tipo: TipoTrabalhoUft): Documento {
   return preencher(novo(tipo));
 }
 
-/** Cinco níveis, citação longa, notas, alíneas com subalíneas, listas que recomeçam, marcas, apêndices e anexos. */
+/** Obras fictícias para a lista REFERÊNCIAS e as chamadas (M4-T05): destaque, et al., In:, sufixo a/b, on-line, veículo. */
+const OBRAS_FICTICIAS: Obra[] = [
+  { id: 'o1', tipo: 'livro', autores: [{ tipo: 'pessoa', sobrenome: 'Exemplar Neto', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Estudo de ' }, { tipo: 'texto', texto: 'Caryocar brasiliense', marcas: ['italico'] }], subtitulo: [{ tipo: 'texto', texto: 'um caso fictício' }], edicao: 2, local: 'Palmas', editora: 'Editora Fictícia', ano: 2020, paginas: '120' },
+  { id: 'o2', tipo: 'livro', autores: [{ tipo: 'pessoa', sobrenome: 'Exemplar Neto', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Outro estudo' }], local: 'Palmas', editora: 'Editora Fictícia', ano: 2020 },
+  { id: 'o3', tipo: 'capitulo', autores: [{ tipo: 'pessoa', sobrenome: 'Capítulo', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Um capítulo de teste' }], noTodo: { autores: [{ tipo: 'pessoa', sobrenome: 'Organização', prenomes: 'Fictícia' }], funcao: 'org', titulo: [{ tipo: 'texto', texto: 'Coletânea de teste' }] }, local: 'Palmas', editora: 'Editora Fictícia', ano: 2019, paginas: '10-30' },
+  { id: 'o4', tipo: 'artigoPeriodico', autores: ['A', 'B', 'C', 'D'].map((x) => ({ tipo: 'pessoa' as const, sobrenome: `Coautoria ${x}`, prenomes: x })), titulo: [{ tipo: 'texto', texto: 'Artigo de teste' }], periodico: 'Revista Fictícia', local: 'Palmas', volume: '1', numero: '2', paginas: '3-4', ano: 2021, url: 'https://exemplo.invalid/artigo', acesso: '2026-01-01' },
+  { id: 'o5', tipo: 'legislacao', jurisdicao: 'Brasil', titulo: [{ tipo: 'texto', texto: 'Lei fictícia nº 1, de 1 de janeiro de 2000' }], ementa: 'Ementa fictícia.', publicacao: 'Diário Oficial Fictício', local: 'Brasília, DF', paginas: '1', ano: 2000, dataPublicacao: '2 jan. 2000' },
+];
+const citacao = (id: string, forma: InlineCitacao['forma'], obras: InlineCitacao['obras'], extra: Partial<InlineCitacao> = {}): Inline => ({ tipo: 'citacao', id, forma, obras, ...extra });
+
+/** Cinco níveis, citação longa, notas, alíneas com subalíneas, listas que recomeçam, marcas, citações, apêndices e anexos. */
 export function documentoDificil(): Documento {
   const d = preencher(novo('tese'));
   const p = (id: string, ...conteudo: Inline[]): Bloco => ({ tipo: 'paragrafo', id, conteudo });
@@ -54,14 +64,17 @@ export function documentoDificil(): Documento {
   const corpo: Secao[] = [
     sec('s1', 'Introdução à ação', [
       p('p1', t(`${FRASE} Com nota`), nota('n1', 'Primeira nota.'), t(' e '), { tipo: 'texto', texto: 'itálico', marcas: ['italico'] }, t(' e H'), { tipo: 'texto', texto: '2', marcas: ['subscrito'] }, t('O.')),
-      { tipo: 'citacaoLonga', id: 'c1', conteudo: [t(`${FRASE} ${FRASE} ${FRASE}`), nota('n2', 'Nota na citação.')] },
+      { tipo: 'citacaoLonga', id: 'c1', conteudo: [t(`${FRASE} ${FRASE} ${FRASE}`), nota('n2', 'Nota na citação.'), t(' '), citacao('k1', 'parentetica', [{ obra: 'o1', pagina: '12' }])] },
       { tipo: 'alineas', id: 'a1', itens: [{ conteudo: [t('primeira;')], subalineas: [[t('subalínea;')], [t('outra subalínea;')]] }, { conteudo: [t('segunda;'), nota('n3', 'Nota na alínea.')] }, { conteudo: [t('terceira.')] }] },
       p('p1b', t('Texto entre listas.')),
       { tipo: 'alineas', id: 'a2', itens: Array.from({ length: 28 }, (_, i) => ({ conteudo: [t(`item ${i + 1};`)] })) },
       { tipo: 'quebraPagina', id: 'q1' },
       p('p1c', t('Depois da quebra pedida pelo autor.\nCom quebra de linha\te tabulação.')),
     ], [q2]),
-    sec('s6', 'Considerações finais', [p('p6', t(FRASE))]),
+    sec('s6', 'Considerações finais', [
+      p('p6', t(FRASE)),
+      p('p7', citacao('k2', 'narrativa', [{ obra: 'o4' }]), t(' e '), citacao('k3', 'narrativa', [{ obra: 'o3', pagina: '15' }], { apud: { obra: 'o2', pagina: '8' } }), t(' afirmam o exemplo '), citacao('k4', 'parentetica', [{ obra: 'o5' }, { obra: 'o1', semPaginacao: true }], { grifo: 'nosso' }), t('.')),
+    ]),
   ];
   return {
     ...d,
@@ -81,6 +94,7 @@ export function documentoDificil(): Documento {
       }
     }),
     corpo,
+    obras: OBRAS_FICTICIAS,
     posTextuais: [
       { tipo: 'referencias', id: 'r1' },
       { tipo: 'glossario', id: 'g1' },

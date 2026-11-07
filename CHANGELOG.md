@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T05: o DOCX exportado passa a ter as chamadas de citação no texto e a lista REFERÊNCIAS, gerada das obras citadas e em ordem alfabética, com uma linha simples entre as referências (RN-177). Opção de incluir as obras não citadas no formato (aditiva).
 - Etapa 5, M4-T04: referências dos nove tipos da primeira leva (livro, capítulo e verbete, trabalho acadêmico, artigo de periódico, trabalho em evento, artigo de jornal, norma, legislação, documento on-line). O que falta vira aviso. Ainda sem mudança visível.
 - Etapa 5, M4-T03: chamadas de citação no domínio, geradas da obra a cada vez:
   - parentética e narrativa, apud, grifo, entrada pelo título, várias obras e sufixos a/b;

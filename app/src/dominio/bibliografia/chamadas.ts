@@ -16,7 +16,7 @@
  * - Grifo dentro dos parênteses, depois da página (RN-090, como nos exemplos da p. 23).
  */
 import type { Autor, Id, InlineCitacao, InlineDeTitulo, Obra, ObraCitada } from '../modelo';
-import { LOCALE, maiusculas } from './autores';
+import { autoresDeEntrada, LOCALE, maiusculas } from './autores';
 import { anoDaReferencia } from './datas';
 import { sufixosDeAno } from './ordenacao';
 import { Montador, type AvisoReferencia, type TrechoReferencia } from './trechos';
@@ -117,7 +117,7 @@ type Lugar = 'parentetica' | 'narrativa';
 
 /** Autoria (RN-077, RN-082, RN-093 a RN-095) ou título (RN-091). */
 function escreverEntrada(m: Montador, obra: Obra, lugar: Lugar, edicao: EdicaoNbr10520): void {
-  const autores = obra.autores ?? [];
+  const autores = autoresDeEntrada(obra);
   if (autores.length === 0) {
     m.texto(entradaPeloTitulo(obra.titulo), ['RN-091']);
     return;
@@ -237,7 +237,7 @@ function escreverApudEGrifo(
 function sobrenomesAmbiguos(obras: readonly Obra[]): Set<Id> {
   const grupos = new Map<string, Obra[]>();
   for (const o of obras) {
-    const autores = o.autores ?? [];
+    const autores = autoresDeEntrada(o);
     if (autores.length === 0 || o.ano === undefined) continue;
     const naChamada = (autores.length > 3 ? autores.slice(0, 1) : autores).map((a) => maiusculas(nomeCurto(a)));
     const chave = `${naChamada.join(';')}${autores.length > 3 ? ' et al.' : ''}|${o.ano}`;
@@ -245,7 +245,7 @@ function sobrenomesAmbiguos(obras: readonly Obra[]): Set<Id> {
   }
   const saida = new Set<Id>();
   for (const grupo of grupos.values()) {
-    const autorias = new Set(grupo.map((o) => (o.autores ?? []).map(autoriaCompleta).join(';')));
+    const autorias = new Set(grupo.map((o) => autoresDeEntrada(o).map(autoriaCompleta).join(';')));
     if (autorias.size > 1) for (const o of grupo) saida.add(o.id);
   }
   return saida;

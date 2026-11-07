@@ -100,7 +100,10 @@ export interface AvisoFormatacao {
     | 'ELEMENTO_ADIADO'
     | 'LETRA_SEM_FONTE'
     | 'ROTULO_PROVISORIO'
-    | 'CITACAO_ADIADA';
+    | 'CHAMADA_COM_AVISO'
+    | 'REFERENCIA_COM_AVISO'
+    | 'REFERENCIAS_AUSENTES'
+    | 'REFERENCIAS_VAZIAS';
   /** Id do elemento no modelo. */
   id: string;
   mensagem: string;

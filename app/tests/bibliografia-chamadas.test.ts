@@ -164,3 +164,14 @@ describe('a chamada é derivada da obra (aceite do RF-07)', () => {
     expect(r.avisos.map((a) => a.codigo)).toEqual(['OBRA_INEXISTENTE']);
   });
 });
+
+describe('legislação entra pela jurisdição (RN-223)', () => {
+  it('chamada e ordem usam a jurisdição, não o título', async () => {
+    const { ordenarReferencias } = await import('../src/dominio/bibliografia');
+    const lei = obra({ tipo: 'legislacao', jurisdicao: 'Brasil', titulo: t('Lei nº 9.979'), ano: 2000 });
+    const capitulo = obra({ autores: [p('Capítulo')], ano: 2019 });
+    expect(marcado(chamar([lei, capitulo], cit('parentetica', [em(lei)])))).toBe('(BRASIL, 2000)');
+    expect(marcado(chamar([lei, capitulo], cit('narrativa', [em(lei)])))).toBe('Brasil (2000)');
+    expect(ordenarReferencias([capitulo, lei]).map((o) => o.id)).toEqual([lei.id, capitulo.id]);
+  });
+});

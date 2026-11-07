@@ -641,6 +641,13 @@
 </w:rPr>
 <w:footnoteReference w:id="2"/>
 </w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">(EXEMPLAR NETO, 2020a, p. 12)</w:t>
+</w:r>
 </w:p>
 <w:p>
 <w:pPr>
@@ -1156,6 +1163,14 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
 <w:sectPr>
 <w:headerReference r:id="rId6" w:type="default"/>
 <w:type w:val="nextPage"/>
@@ -1166,7 +1181,32 @@
 </w:sectPr>
 </w:pPr>
 <w:r>
-<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+<w:t xml:space="preserve">Coautoria A </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+</w:rPr>
+<w:t xml:space="preserve">et al.</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> (2021)</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> e </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Capítulo (2019, p. 15 apud EXEMPLAR NETO, 2020b, p. 8)</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> afirmam o exemplo </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">(BRASIL, 2000; EXEMPLAR NETO, 2020a, não paginado, grifo nosso)</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">.</w:t>
 </w:r>
 </w:p>
 <w:p>
@@ -1178,6 +1218,125 @@
 <w:t xml:space="preserve">REFERÊNCIAS</w:t>
 </w:r>
 <w:bookmarkEnd w:id="7"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="referencia"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">BRASIL. Lei fictícia nº 1, de 1 de janeiro de 2000. Ementa fictícia. </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+<w:t xml:space="preserve">Diário Oficial Fictício</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">, Brasília, DF, p. 1, 2 jan. 2000.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="referencia"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">CAPÍTULO, Autoria. Um capítulo de teste. </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+</w:rPr>
+<w:t xml:space="preserve">In</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">: ORGANIZAÇÃO, Fictícia (org.). </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+<w:t xml:space="preserve">Coletânea de teste</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">. Palmas: Editora Fictícia, 2019. p. 10-30.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="referencia"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">COAUTORIA A, A </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:i/>
+<w:iCs/>
+</w:rPr>
+<w:t xml:space="preserve">et al.</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> Artigo de teste. </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+<w:t xml:space="preserve">Revista Fictícia</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">, Palmas, v. 1, n. 2, p. 3-4, 2021. Disponível em: https://exemplo.invalid/artigo. Acesso em: 1 jan. 2026.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="referencia"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">EXEMPLAR NETO, Autoria. </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+<w:t xml:space="preserve">Estudo de </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+<w:i/>
+<w:iCs/>
+</w:rPr>
+<w:t xml:space="preserve">Caryocar brasiliense</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">: um caso fictício. 2. ed. Palmas: Editora Fictícia, 2020a. 120 p.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="referencia"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">EXEMPLAR NETO, Autoria. </w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:b/>
+<w:bCs/>
+</w:rPr>
+<w:t xml:space="preserve">Outro estudo</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">. Palmas: Editora Fictícia, 2020b.</w:t>
+</w:r>
 </w:p>
 <w:p>
 <w:pPr>
