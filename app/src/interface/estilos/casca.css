@@ -281,6 +281,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .obra__previa { display: grid; gap: var(--esp-1); padding: var(--esp-2) var(--esp-3); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); }
 .obra__previa h3 { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
 .obra__referencia { margin: 0; overflow-wrap: anywhere; }
+/* Conferência da bibliografia (M4-T08). */
+.conferencia { display: grid; gap: var(--esp-3); }
+.conferencia__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
+.conferencia__item { display: grid; gap: var(--esp-1); justify-items: start; overflow-wrap: anywhere; }
+.conferencia__onde { color: var(--cor-texto-sec); font-size: var(--tam-peq); }
 .escrever__secoes h2, .escrever__numero { font-size: var(--tam-base); font-weight: 600; margin: 0; color: var(--cor-texto-sec); }
 /* Árvore de seções (M2-T07): recuo por nível, item ativo destacado, linha onde a seção arrastada vai entrar. */
 .arvore-secoes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }

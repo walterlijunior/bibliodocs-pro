@@ -13,6 +13,7 @@ import {
   ligarChamadasEscritas,
   podeInserirCitacao,
   retirarCitacao,
+  selecaoParaIr,
 } from '../src/interface/editor/citacoes';
 import { desfazer, refazer } from '../src/interface/editor/comandos';
 import { docParaSecao, type ConteudoSecao } from '../src/interface/editor/conversao';
@@ -161,3 +162,27 @@ describe('chamadas escritas no texto colado', () => {
     expect(ligarChamadasEscritas([])(e)).toBe(false);
   });
 });
+
+describe('ir ao texto (M4-T08, conferência da bibliografia)', () => {
+  const s: ConteudoSecao = {
+    titulo: [{ tipo: 'texto', texto: 'T' }],
+    blocos: [
+      { tipo: 'paragrafo', id: 'par_paragrafo001', conteudo: [{ tipo: 'texto', texto: 'Diz ' }, { tipo: 'texto', texto: 'o autor', marcas: ['italico'] }, { tipo: 'texto', texto: ' (COSTA, 2001).' }] },
+      { tipo: 'paragrafo', id: 'par_paragrafo002', conteudo: [{ tipo: 'texto', texto: 'X' }, { tipo: 'nota', id: 'nta_nota00000001', conteudo: [{ tipo: 'texto', texto: 'Silva (2001)' }] }] },
+    ],
+  };
+  const e = criarEstadoSecao(s, { gerarId });
+
+  it('seleciona o trecho no bloco', () => {
+    const sel = selecaoParaIr(e.doc, 'par_paragrafo001', '(COSTA, 2001)')!;
+    expect(e.doc.textBetween(sel.from, sel.to)).toBe('(COSTA, 2001)');
+  });
+
+  it('trecho que não está mais lá: o começo do bloco; id de nota: a nota selecionada; id de outra seção: null', () => {
+    expect(selecaoParaIr(e.doc, 'par_paragrafo001', '(SOUZA, 1999)')!.from).toBe(4);
+    const nota = selecaoParaIr(e.doc, 'nta_nota00000001', 'Silva (2001)')!;
+    expect(nota instanceof NodeSelection && nota.node.type.name).toBe('nota');
+    expect(selecaoParaIr(e.doc, 'par_outrasecao01')).toBeNull();
+  });
+});
+

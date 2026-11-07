@@ -4,6 +4,14 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Pode importar os demais submódulos do domínio; ninguém importa verificador (regra 2).
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * M4-T08: verificador da bibliografia (citações × referências, consistência das obras). O verificador completo de
+ * conformidade é do M7.
  */
-export {};
+export {
+  chamadasEscritas,
+  verificarBibliografia,
+  type CodigoProblemaBibliografia,
+  type LocalProblema,
+  type OpcoesVerificacao,
+  type ProblemaBibliografia,
+} from './bibliografia';

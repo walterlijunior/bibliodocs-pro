@@ -336,3 +336,62 @@ Recomendação aceita pelo usuário em 2026-11-07 ("siga as recomendações").
 **Limitação:** colar na nota continua só texto. A sugestão de ligar "(AUTOR, ano)" não vale dentro da nota.
 
 **Verificação do complemento (2026-11-07):** `npm run verificar:tudo` passou: 1642 testes unitários, 27 externos e 23 de 23 E2E. O pico de memória foi de 778 MB. Na primeira rodada, o teste do Word falhou porque esperava 3 notas no documento difícil. O Word contou 4, e a quarta é a nota nova com citação, então o esperado passou a 4.
+
+## M4-T08 — Verificador da bibliografia
+
+**Implementação:** sessão principal, sem delegar. **Sem revisão independente:** fica para o M4-T10.
+
+**O que confere** (`dominio/verificador/bibliografia.ts`; só diagnostica, nunca muda o documento)
+
+| Código | Gravidade | Origem | O que é |
+|---|---|---|---|
+| REFERENCIAS_AUSENTES | erro | RN-078 | Há citação e o trabalho não tem o elemento REFERÊNCIAS |
+| CHAMADA_SEM_LIGACAO | aviso | RN-078 | Texto que parece chamada, "(COSTA, 2001)" ou "Costa (2001)", sem ligação com obra. É a citação órfã possível no formato v1, porque a ligada sempre tem obra |
+| OBRA_NAO_CITADA | aviso | RN-078 | Obra sem chamada no texto nem nas notas; com "incluir as não citadas", o aviso diz que ela sai na lista |
+| CHAMADA_AMBIGUA | aviso | RN-096, D-M4-03 | Autores diferentes com o mesmo sobrenome e o mesmo ano: chamadas iguais, e o sufixo a/b não se aplica |
+| GRAFIA_DIVERGENTE | aviso | D-M4-10 (provisório) | A mesma pessoa escrita de formas diferentes |
+| PRENOMES_NAO_UNIFORMES | aviso | RN-182, C-B10 | Lista mistura prenomes por extenso e abreviados |
+| CHAMADA_COM_AVISO, REFERENCIA_INCOMPLETA | aviso | RN do formatador | Os avisos das chamadas e das referências (obra sem ano, elemento que falta…) |
+
+**Mudanças em relação ao plano**
+- "a/b ausente" não acontece no app: o sufixo é calculado sozinho para a mesma autoria (D-M4-03). O caso real é o de autores diferentes com a mesma chamada (CHAMADA_AMBIGUA).
+- "Órfã" no sentido de citação sem obra é recusada já na leitura do arquivo (M4-T01). A órfã possível é a chamada escrita como texto.
+
+**Chamada escrita (heurística):** a busca respeita estes limites:
+- forma entre parênteses com ano de 4 dígitos, sufixo e colchetes;
+- forma narrativa com sobrenome iniciado em maiúscula, "e", "et al." e os sufixos de parentesco da RN-181;
+- só olha o texto entre os nós (não atravessa chamada nem nota);
+- não confunde "(ver capítulo 2)", "(em 2001)", "(p. 2001)" nem "(x, 2001)".
+
+"Conforme Costa (2001)" acha "Costa (2001)". Gravidade: aviso.
+
+**Tela**
+- "Conferir citações e referências" fica na Bibliografia. O painel abre no lugar do editor e mostra:
+  - o resumo ("2 avisos na bibliografia.");
+  - cada item com o tipo, onde está (seção ou referência), a mensagem e a origem.
+- "Ir ao texto" abre a seção e seleciona o trecho. Se o trecho estiver numa nota, abre a nota.
+- "Abrir obra" abre o formulário da obra.
+
+**Testes**
+- `tests/verificador-bibliografia.test.ts`, com 28 casos:
+  - o aceite, com 1 órfã e 1 não citada diagnosticadas;
+  - REFERÊNCIAS ausente;
+  - citação em nota e no apud;
+  - órfã dentro de nota;
+  - "incluir as não citadas";
+  - chamada ambígua, e a, b sem aviso;
+  - avisos dos formatadores;
+  - grafia divergente e o que não é divergente;
+  - prenomes não uniformes, e a obra fora da lista que não conta;
+  - 9 formas reconhecidas e 5 que não confundem.
+- `tests/sessao-obras.test.ts`: a sessão confere o trabalho aberto.
+- `tests/editor-citacao.test.ts`: "ir ao texto" seleciona o trecho; trecho sumido vai ao começo do bloco; id de nota seleciona a nota; id de outra seção não age.
+- E2E FUN-14 (`e2e/conferencia.spec.ts`): órfã e não citada no painel, "Ir ao texto" com o trecho selecionado e "Abrir obra".
+- axe no painel (`e2e/acessibilidade.spec.ts`).
+
+**Limitações**
+- A conferência é feita quando o painel abre. Com o painel aberto, o editor não está na tela, então nada muda por baixo dele.
+- A busca de chamada escrita é heurística: pode deixar passar formas raras ou apontar um parêntese com nome e ano que não é chamada. Por isso é só aviso.
+- D-M4-10 é provisória: aguarda a revisão do usuário.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1673 testes unitários, 27 externos e 24 de 24 E2E. O pico de memória foi de 760 MB.

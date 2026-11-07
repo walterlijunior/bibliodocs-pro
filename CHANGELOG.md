@@ -6,6 +6,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T08: "Conferir citações e referências" na Bibliografia.
+  - Aponta chamada escrita como texto (sem ligação com a obra), obra não citada, falta do elemento REFERÊNCIAS, chamadas iguais para obras diferentes, mesmo autor com grafias diferentes, prenomes não uniformes e os avisos das chamadas e referências.
+  - "Ir ao texto" seleciona o trecho; "Abrir obra" abre o formulário.
 - Etapa 5, M4-T07: citação no editor.
   - Ctrl+Shift+C, o botão "Citação" ou Inserir › Citação… abrem a janela: obra, forma, volume, página, apud e grifo, com a prévia da chamada.
   - A chamada mostra o texto do documento e acompanha a obra. Duplo clique altera. Ctrl+Z desfaz junto com o texto.

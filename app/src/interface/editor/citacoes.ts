@@ -12,7 +12,7 @@
  */
 import { closeHistory } from 'prosemirror-history';
 import type { Node as NoPm } from 'prosemirror-model';
-import { NodeSelection, TextSelection, type Command, type EditorState, type Transaction } from 'prosemirror-state';
+import { NodeSelection, Selection, TextSelection, type Command, type EditorState, type Transaction } from 'prosemirror-state';
 import type { DadosCitacao } from '../../aplicacao';
 import { esquemaEditor } from './esquema';
 
@@ -118,18 +118,7 @@ export function chamadasEscritasNoDoc(
   doc.descendants((bloco, posBloco) => {
     if (!bloco.isTextblock) return true;
     if (bloco.type.contentMatch.matchType(tipoChamada) === null) return false;
-    // Texto do bloco e, para cada trecho, onde começa no texto e no documento.
-    let texto = '';
-    const trechos: { noTexto: number; noDoc: number }[] = [];
-    bloco.forEach((filho, deslocamento) => {
-      trechos.push({ noTexto: texto.length, noDoc: posBloco + 1 + deslocamento });
-      texto += filho.isText ? filho.text! : FORA_DO_TEXTO;
-    });
-    const posicao = (i: number): number => {
-      let t = trechos[0]!;
-      for (const x of trechos) if (x.noTexto <= i) t = x;
-      return t.noDoc + (i - t.noTexto);
-    };
+    const { texto, posicao } = textoComPosicoes(bloco, posBloco);
     for (const c of reconhecer(texto)) {
       if (c.texto.includes(FORA_DO_TEXTO)) continue;
       saida.push({ de: posicao(c.inicio), ate: posicao(c.fim - 1) + 1, texto: c.texto, dados: c.dados });
@@ -137,6 +126,58 @@ export function chamadasEscritasNoDoc(
     return false;
   });
   return saida;
+}
+
+/** Texto de um bloco de texto e a posição no documento de cada caractere (nós que não são texto valem um caractere). */
+function textoComPosicoes(bloco: NoPm, posBloco: number): { texto: string; posicao: (i: number) => number } {
+  let texto = '';
+  const trechos: { noTexto: number; noDoc: number }[] = [];
+  bloco.forEach((filho, deslocamento) => {
+    trechos.push({ noTexto: texto.length, noDoc: posBloco + 1 + deslocamento });
+    texto += filho.isText ? filho.text! : FORA_DO_TEXTO;
+  });
+  const posicao = (i: number): number => {
+    let t = trechos[0] ?? { noTexto: 0, noDoc: posBloco + 1 };
+    for (const x of trechos) if (x.noTexto <= i) t = x;
+    return t.noDoc + (i - t.noTexto);
+  };
+  return { texto, posicao };
+}
+
+/**
+ * Seleção para levar o usuário a um ponto do texto (M4-T08, conferência da bibliografia): o nó com o `id` (bloco,
+ * nota ou chamada) e, dentro do bloco, o `trecho` se for achado. Chamada dentro de nota seleciona a nota (que abre).
+ * `null` = o nó não está nesta seção.
+ */
+export function selecaoParaIr(doc: NoPm, id: string, trecho?: string): Selection | null {
+  let achado: { no: NoPm; pos: number } | null = null;
+  doc.descendants((no, pos) => {
+    if (achado !== null) return false;
+    if (no.attrs['id'] === id) achado = { no, pos };
+    return achado === null;
+  });
+  if (achado === null) return null;
+  const { no, pos } = achado as { no: NoPm; pos: number };
+  const $pos = doc.resolve(pos);
+  if ($pos.parent.type.name === 'nota') return NodeSelection.create(doc, $pos.before());
+  if (no.isInline) return NodeSelection.create(doc, pos);
+  let selecao: Selection | null = null;
+  const procurar = (bloco: NoPm, inicio: number): void => {
+    const { texto, posicao } = textoComPosicoes(bloco, inicio);
+    const i = trecho ? texto.indexOf(trecho) : -1;
+    if (i >= 0) selecao = TextSelection.create(doc, posicao(i), posicao(i + trecho!.length - 1) + 1);
+  };
+  if (trecho && no.isTextblock) procurar(no, pos);
+  else if (trecho) {
+    // Lista de alíneas: as linhas e subalíneas dentro dela.
+    no.descendants((filho, rel) => {
+      if (selecao !== null) return false;
+      if (!filho.isTextblock) return true;
+      procurar(filho, pos + 1 + rel);
+      return false;
+    });
+  }
+  return selecao ?? Selection.near(doc.resolve(pos + 1));
 }
 
 /** Troca cada chamada escrita pela chamada ligada à obra, num passo só (Ctrl+Z devolve o texto). */

@@ -63,6 +63,8 @@ import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import { formatarReferencia, ordenarReferencias, textoDaReferencia } from '../../dominio/bibliografia';
 import { HistoricoEdicao, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
+import { verificarBibliografiaDoDocumento } from './citacoes';
+import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { validarObra } from './obras';
 import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
 import {
@@ -713,6 +715,12 @@ export class SessaoTrabalho {
   }
 
   // ---------- bibliografia (M4-T06) ----------
+
+  /** Conferência da bibliografia do trabalho aberto (M4-T08): citações × referências e consistência das obras. */
+  verificarBibliografia(): readonly ProblemaBibliografia[] {
+    const a = this.#aberto;
+    return a === null ? [] : verificarBibliografiaDoDocumento(a.pacote.documento);
+  }
 
   /** Quantas chamadas do texto apontam para a obra, como citada ou como fonte do apud. */
   citacoesDaObra(id: Id): number {

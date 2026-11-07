@@ -109,6 +109,7 @@ export {
   formatadorDeChamadas,
   reconhecerChamadasEscritas,
   validarCitacao,
+  verificarBibliografiaDoDocumento,
   type ChamadaEscrita,
   type ChamadaNaTela,
   type DadosCitacao,
@@ -137,4 +138,5 @@ export {
   type CamposElemento,
 } from './servicos/pre-textuais';
 export type { PendenciaPreTextual } from '../dominio/normas';
+export type { CodigoProblemaBibliografia, LocalProblema, ProblemaBibliografia } from '../dominio/verificador';
 export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';

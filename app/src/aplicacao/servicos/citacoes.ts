@@ -6,10 +6,12 @@
  * - `validarCitacao`: o editor só insere a citação que o formato v1 aceita (página e volume no padrão, obra existente).
  * - `reconhecerChamadasEscritas`: no texto colado, "(CAGLIARI, 2003, p. 12)" ou "Cagliari (2003)" de uma obra cadastrada
  *   vira sugestão de ligação. Nada é ligado sem o usuário aceitar.
+ * - `verificarBibliografiaDoDocumento` (M4-T08): o verificador da bibliografia com as opções do perfil.
  */
 import { contextoDeChamadas, formatarChamada, type AvisoReferencia, type EdicaoNbr10520, type TrechoReferencia } from '../../dominio/bibliografia';
 import { formatarCaminho, validarCitacaoV1, type ErroValidacao } from '../../dominio/esquemas';
-import type { InlineCitacao, Obra } from '../../dominio/modelo';
+import type { Documento, InlineCitacao, Obra } from '../../dominio/modelo';
+import { verificarBibliografia, type ProblemaBibliografia } from '../../dominio/verificador';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 
 /** O que o editor guarda da citação: tudo menos o id do nó. */
@@ -126,4 +128,12 @@ export function reconhecerChamadasEscritas(texto: string, obras: readonly Obra[]
   const saida: ChamadaEscrita[] = [];
   for (const c of achadas) if (saida.length === 0 || c.inicio >= saida[saida.length - 1]!.fim) saida.push(c);
   return saida;
+}
+
+/** Citações × referências e consistência das obras (M4-T08), com a edição da NBR 10520 e a autoria do perfil. */
+export function verificarBibliografiaDoDocumento(doc: Documento): ProblemaBibliografia[] {
+  return verificarBibliografia(doc, {
+    edicaoNbr10520: edicaoDoPerfil(),
+    listarTodosAutores: PERFIL_UFT_2022.parametros['autoresReferencia']?.valor === 'todos',
+  });
 }

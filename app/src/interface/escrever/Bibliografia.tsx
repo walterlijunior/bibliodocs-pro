@@ -89,6 +89,8 @@ export interface PropsListaObras {
   anuncio: string | null;
   aoEscolher: (id: string) => void;
   aoNova: () => void;
+  /** Abre a conferência da bibliografia (M4-T08). */
+  aoConferir: () => void;
   aoHistorico: (sentido: 'desfazer' | 'refazer') => boolean;
 }
 
@@ -123,6 +125,9 @@ export function ListaObras(p: PropsListaObras) {
           Nova obra
         </button>
       )}
+      <button type="button" className="btn-secundario" onClick={p.aoConferir}>
+        Conferir citações e referências
+      </button>
       <p className="dica" role="status">
         {p.anuncio}
       </p>

@@ -138,6 +138,17 @@ describe('incluir, alterar e excluir obra', () => {
   });
 });
 
+describe('conferência da bibliografia (M4-T08)', () => {
+  it('a sessão confere o trabalho aberto: obra não citada, depois citada', () => {
+    const s = montar();
+    const r = s.sessao.incluirObra(livro('A'));
+    const id = r.ok ? r.id : '';
+    expect(s.sessao.verificarBibliografia().map((x) => [x.codigo, x.local])).toEqual([['OBRA_NAO_CITADA', { tipo: 'obra', obra: id }]]);
+    citar(s, id);
+    expect(s.sessao.verificarBibliografia().map((x) => x.codigo)).not.toContain('OBRA_NAO_CITADA');
+  });
+});
+
 describe('preparar e validar (forma única)', () => {
   it('cada tipo tem campos e todos começam por autoria ou entrada', () => {
     expect(Object.keys(CAMPOS_DO_TIPO).sort()).toEqual([...TIPOS_OBRA].sort());

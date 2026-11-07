@@ -33,7 +33,7 @@ test.beforeEach(() => {
 });
 test.afterEach(async () => amb.apagar());
 
-test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra, citação e Exportar sem violação séria', async ({}, info) => {
+test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra, citação, conferência e Exportar sem violação séria', async ({}, info) => {
   const { pagina: p } = await abrirApp(amb);
   await conferirAxe(p, 'biblioteca-vazia', info);
 
@@ -73,6 +73,12 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obr
   await expect(p.getByRole('dialog', { name: 'Inserir citação' })).toContainText('(LIMA, 2020)');
   await conferirAxe(p, 'janela-citacao', info);
   await p.getByRole('button', { name: 'Cancelar' }).click();
+
+  // M4-T08: conferência da bibliografia (a obra não foi citada: um aviso).
+  await p.getByRole('button', { name: 'Conferir citações e referências' }).click();
+  await expect(p.getByRole('region', { name: 'Conferência da bibliografia' })).toContainText('Obra não citada');
+  await conferirAxe(p, 'conferencia-bibliografia', info);
+  await p.getByRole('region', { name: 'Conferência da bibliografia' }).getByRole('button', { name: 'Fechar' }).click();
 
   await p.keyboard.press('Control+E');
   await expect(p.getByRole('dialog', { name: 'Exportar DOCX' })).toBeVisible();

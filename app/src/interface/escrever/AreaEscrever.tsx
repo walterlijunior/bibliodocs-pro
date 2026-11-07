@@ -4,15 +4,17 @@
 // subir, descer, recuar, promover, excluir e arrastar (`ArvoreSecoes`); a seção ativa e a ordem única de desfazer vêm
 // de `useEstrutura`, acima da aba. M2-T08: a lista dos elementos pré-textuais e o formulário do escolhido, no lugar do
 // editor da seção. M4-T06: a bibliografia (lista das obras e o formulário da obra, também no lugar do editor). M4-T07: a
-// janela da citação, pedida pelo editor. Texto sempre como texto (nunca HTML).
+// janela da citação, pedida pelo editor. M4-T08: a conferência da bibliografia, no lugar do editor, com "Ir ao texto" e
+// "Abrir obra". Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { formatadorDeChamadas, reconhecerChamadasEscritas, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
+import { formatadorDeChamadas, reconhecerChamadasEscritas, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
 import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
+import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
@@ -64,6 +66,8 @@ export interface PropsAreaEscrever {
     incluir: (obra: Obra) => ResultadoObra;
     alterar: (obra: Obra) => ResultadoObra;
     excluir: (id: string) => ResultadoObra;
+    /** Conferência da bibliografia do trabalho aberto (M4-T08). */
+    verificar: () => readonly ProblemaBibliografia[];
   };
   /** O formulário de um elemento está no lugar do editor: o menu Inserir › Nota de rodapé fica desativado. */
   aoMudarFormulario?: (aberto: boolean) => void;
@@ -102,15 +106,26 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
   const reconhecerChamadas = useCallback((texto: string) => reconhecerChamadasEscritas(texto, obrasDoTrabalho), [obrasDoTrabalho]);
+  // Conferência da bibliografia (M4-T08) no lugar do editor, e o ponto do texto a mostrar depois de "Ir ao texto".
+  const [conferencia, setConferencia] = useState<readonly ProblemaBibliografia[] | null>(null);
+  const [irAoTexto, setIrAoTexto] = useState<Extract<LocalProblema, { tipo: 'texto' }> | null>(null);
   const ativaId = e.ativa?.id ?? null;
   useEffect(() => {
     setElementoId(null);
     setObraAberta(null);
     setPedidoCitacao(null);
+    setConferencia(null);
   }, [ativaId, t?.geracao]);
+  // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
+  useEffect(() => {
+    if (irAoTexto === null || controleEditor.current?.secaoId !== irAoTexto.secao) return;
+    controleEditor.current.irPara(irAoTexto.no, irAoTexto.trecho);
+    setIrAoTexto(null);
+  }, [irAoTexto, ativaId, controleEditor]);
   const obraDaLista = obraAberta !== null && 'id' in obraAberta ? (t?.obras.find((o) => o.obra.id === obraAberta.id)?.obra ?? null) : null;
   const comObra = obraAberta !== null && ('nova' in obraAberta || obraDaLista !== null);
-  const comFormulario = comObra || (elementoId !== null && (t?.preTextuais?.lista.some((x) => x.id === elementoId) ?? false));
+  const comConferencia = conferencia !== null;
+  const comFormulario = comConferencia || comObra || (elementoId !== null && (t?.preTextuais?.lista.some((x) => x.id === elementoId) ?? false));
   const { aoMudarFormulario } = p;
   useEffect(() => {
     aoMudarFormulario?.(comFormulario);
@@ -157,7 +172,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const secoes = t.secoes;
   const ativa = e.ativa;
   const pre = t.preTextuais;
-  const elementoAtivo = comObra ? null : (pre?.lista.find((x) => x.id === elementoId) ?? null);
+  const elementoAtivo = comObra || comConferencia ? null : (pre?.lista.find((x) => x.id === elementoId) ?? null);
   const escolher = (id: string, foco: PedidoFoco['alvo'] | null) => {
     setElementoId(null);
     setObraAberta(null);
@@ -231,6 +246,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoEscolher={(id) => {
               setAnuncioElemento(null);
               setObraAberta(null);
+              setConferencia(null);
               setElementoId(id);
             }}
             aoIncluir={(tipo) => {
@@ -268,11 +284,18 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoEscolher={(id) => {
             setAnuncioObra(null);
             setElementoId(null);
+            setConferencia(null);
             setObraAberta({ id });
+          }}
+          aoConferir={() => {
+            setElementoId(null);
+            setObraAberta(null);
+            setConferencia(p.obras.verificar());
           }}
           aoNova={() => {
             setAnuncioObra(null);
             setElementoId(null);
+            setConferencia(null);
             setContadorNova((n) => n + 1);
             setObraAberta({ nova: { id: 'obr_rascunho0001', tipo: 'livro', titulo: [] } });
           }}
@@ -282,10 +305,27 @@ export function AreaEscrever(p: PropsAreaEscrever) {
 
         <section
           className="escrever__texto"
-          aria-labelledby={elementoAtivo || comObra ? undefined : 'titulo-secao-ativa'}
-          aria-label={comObra ? 'Obra da bibliografia' : elementoAtivo ? 'Elemento pré-textual' : undefined}
+          aria-labelledby={elementoAtivo || comObra || comConferencia ? undefined : 'titulo-secao-ativa'}
+          aria-label={comConferencia ? 'Conferência da bibliografia' : comObra ? 'Obra da bibliografia' : elementoAtivo ? 'Elemento pré-textual' : undefined}
         >
-          {comObra && obraAberta !== null ? (
+          {conferencia !== null ? (
+            <ConferenciaBibliografia
+              problemas={conferencia}
+              obras={t.obras}
+              secoes={t.secoes}
+              aoFechar={() => setConferencia(null)}
+              aoAbrirObra={(id) => {
+                setConferencia(null);
+                setAnuncioObra(null);
+                setObraAberta({ id });
+              }}
+              aoIrAoTexto={(local) => {
+                setConferencia(null);
+                setIrAoTexto(local);
+                e.escolher(local.secao, null);
+              }}
+            />
+          ) : comObra && obraAberta !== null ? (
             <FormularioObra
               key={'nova' in obraAberta ? `nova-${contadorNova}` : obraAberta.id}
               obra={'nova' in obraAberta ? obraAberta.nova : obraDaLista!}

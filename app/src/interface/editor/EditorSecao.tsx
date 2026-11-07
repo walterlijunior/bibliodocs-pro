@@ -34,6 +34,7 @@ import {
   ligarChamadasEscritas,
   podeInserirCitacao,
   retirarCitacao,
+  selecaoParaIr,
   type AlvoCitacao,
   type ChamadaEscritaNoDoc,
   type ChamadaNoEditor,
@@ -70,6 +71,8 @@ export interface ControleEditor {
   pedirCitacao(): boolean;
   /** Foco de volta onde a citação foi pedida (texto da seção ou da nota), com a seleção do editor. */
   focarCitacao(): void;
+  /** Leva ao nó com o `id` (bloco, nota ou chamada) e seleciona o `trecho`, se achado (M4-T08). `false` = não está aqui. */
+  irPara(id: string, trecho?: string): boolean;
   inserirCitacao(dados: DadosCitacao): boolean;
   alterarCitacao(id: string, dados: DadosCitacao): boolean;
   retirarCitacao(id: string): boolean;
@@ -333,6 +336,13 @@ export function EditorSecao(p: PropsEditorSecao) {
       fecharGrupo: () => view.dispatch(closeHistory(view.state.tr)),
       pedirCitacao,
       focarCitacao: () => (alvo ?? { focar: () => view.focus() }).focar(),
+      irPara: (id, trecho) => {
+        const s = selecaoParaIr(view.state.doc, id, trecho);
+        if (s === null) return false;
+        view.dispatch(view.state.tr.setSelection(s).scrollIntoView());
+        view.focus();
+        return true;
+      },
       inserirCitacao: (dados) => passoProprio(inserirCitacao(dados)),
       alterarCitacao: (id, dados) => passoProprio(alterarCitacao(id, dados)),
       retirarCitacao: (id) => passoProprio(retirarCitacao(id)),
