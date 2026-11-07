@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M4-T06: Bibliografia na aba Escrever.
+  - Lista das obras na ordem das referências e "Nova obra".
+  - Formulário com os campos de cada tipo e a prévia da referência como sai no documento.
+  - Só a obra válida é gravada. Obra citada não é excluída. Incluir e excluir entram no Ctrl+Z.
+  - Campos novos na obra: coleção ou série, título original, suplemento e ano do veículo oficial (D-M4-09).
 - Etapa 5, M4-T05: o DOCX exportado passa a ter as chamadas de citação no texto e a lista REFERÊNCIAS, gerada das obras citadas e em ordem alfabética, com uma linha simples entre as referências (RN-177). Opção de incluir as obras não citadas no formato (aditiva).
 - Etapa 5, M4-T04: referências dos nove tipos da primeira leva (livro, capítulo e verbete, trabalho acadêmico, artigo de periódico, trabalho em evento, artigo de jornal, norma, legislação, documento on-line). O que falta vira aviso. Ainda sem mudança visível.
 - Etapa 5, M4-T03: chamadas de citação no domínio, geradas da obra a cada vez:

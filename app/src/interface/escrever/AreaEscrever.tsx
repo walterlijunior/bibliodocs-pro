@@ -3,14 +3,16 @@
 // e o editor da seção escolhida (uma seção por vez, decisão da preparação do M2). M2-T07: a árvore de seções, com nova,
 // subir, descer, recuar, promover, excluir e arrastar (`ArvoreSecoes`); a seção ativa e a ordem única de desfazer vêm
 // de `useEstrutura`, acima da aba. M2-T08: a lista dos elementos pré-textuais e o formulário do escolhido, no lugar do
-// editor da seção. Texto sempre como texto (nunca HTML).
+// editor da seção. M4-T06: a bibliografia (lista das obras e o formulário da obra, também no lugar do editor). Texto
+// sempre como texto (nunca HTML).
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { AcaoAviso, AlteracaoDados, AvisoSessao, CamposElemento, ConteudoDaSecao, EstadoSessao } from '../../aplicacao';
-import type { ElementoPreTextualId, Secao } from '../../dominio/modelo';
+import type { AcaoAviso, AlteracaoDados, AvisoSessao, CamposElemento, ConteudoDaSecao, EstadoSessao, ResultadoObra } from '../../aplicacao';
+import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
 import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
+import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
 
@@ -55,6 +57,12 @@ export interface PropsAreaEscrever {
     incluir: (tipo: ElementoPreTextualId) => string | null;
     retirar: (id: string) => boolean;
   };
+  /** Bibliografia (M4-T06). */
+  obras: {
+    incluir: (obra: Obra) => ResultadoObra;
+    alterar: (obra: Obra) => ResultadoObra;
+    excluir: (id: string) => ResultadoObra;
+  };
   /** O formulário de um elemento está no lugar do editor: o menu Inserir › Nota de rodapé fica desativado. */
   aoMudarFormulario?: (aberto: boolean) => void;
   /** O editor da seção aberta, para os menus Editar e Inserir. */
@@ -71,9 +79,18 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   // Elemento na tela no lugar do editor. Outra seção ativa (árvore, barra superior, desfazer) volta ao editor.
   const [elementoId, setElementoId] = useState<string | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
+  // Obra na tela no lugar do editor: a do trabalho (pelo id) ou o rascunho de uma nova.
+  const [obraAberta, setObraAberta] = useState<{ id: string } | { nova: Obra } | null>(null);
+  const [anuncioObra, setAnuncioObra] = useState<string | null>(null);
+  const [contadorNova, setContadorNova] = useState(0);
   const ativaId = e.ativa?.id ?? null;
-  useEffect(() => setElementoId(null), [ativaId, t?.geracao]);
-  const comFormulario = elementoId !== null && (t?.preTextuais?.lista.some((x) => x.id === elementoId) ?? false);
+  useEffect(() => {
+    setElementoId(null);
+    setObraAberta(null);
+  }, [ativaId, t?.geracao]);
+  const obraDaLista = obraAberta !== null && 'id' in obraAberta ? (t?.obras.find((o) => o.obra.id === obraAberta.id)?.obra ?? null) : null;
+  const comObra = obraAberta !== null && ('nova' in obraAberta || obraDaLista !== null);
+  const comFormulario = comObra || (elementoId !== null && (t?.preTextuais?.lista.some((x) => x.id === elementoId) ?? false));
   const { aoMudarFormulario } = p;
   useEffect(() => {
     aoMudarFormulario?.(comFormulario);
@@ -120,9 +137,10 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const secoes = t.secoes;
   const ativa = e.ativa;
   const pre = t.preTextuais;
-  const elementoAtivo = pre?.lista.find((x) => x.id === elementoId) ?? null;
+  const elementoAtivo = comObra ? null : (pre?.lista.find((x) => x.id === elementoId) ?? null);
   const escolher = (id: string, foco: PedidoFoco['alvo'] | null) => {
     setElementoId(null);
+    setObraAberta(null);
     e.escolher(id, foco);
     setAvisosEditor([]);
   };
@@ -192,11 +210,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             anuncio={anuncioElemento}
             aoEscolher={(id) => {
               setAnuncioElemento(null);
+              setObraAberta(null);
               setElementoId(id);
             }}
             aoIncluir={(tipo) => {
               const id = p.elementos.incluir(tipo);
               if (id !== null) {
+                setObraAberta(null);
                 setElementoId(id);
                 setAnuncioElemento(`${ROTULOS_ELEMENTO[tipo]} incluído. Ctrl+Z desfaz.`);
               }
@@ -220,10 +240,57 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoHistorico={e.historico}
           aoIrAoTexto={e.pedirFoco}
         />
+        <ListaObras
+          obras={t.obras}
+          ativaId={obraDaLista?.id ?? null}
+          somenteLeitura={t.somenteLeitura}
+          anuncio={anuncioObra}
+          aoEscolher={(id) => {
+            setAnuncioObra(null);
+            setElementoId(null);
+            setObraAberta({ id });
+          }}
+          aoNova={() => {
+            setAnuncioObra(null);
+            setElementoId(null);
+            setContadorNova((n) => n + 1);
+            setObraAberta({ nova: { id: 'obr_rascunho0001', tipo: 'livro', titulo: [] } });
+          }}
+          aoHistorico={e.historico}
+        />
         </div>
 
-        <section className="escrever__texto" aria-labelledby={elementoAtivo ? undefined : 'titulo-secao-ativa'} aria-label={elementoAtivo ? 'Elemento pré-textual' : undefined}>
-          {elementoAtivo !== null && pre !== null ? (
+        <section
+          className="escrever__texto"
+          aria-labelledby={elementoAtivo || comObra ? undefined : 'titulo-secao-ativa'}
+          aria-label={comObra ? 'Obra da bibliografia' : elementoAtivo ? 'Elemento pré-textual' : undefined}
+        >
+          {comObra && obraAberta !== null ? (
+            <FormularioObra
+              key={'nova' in obraAberta ? `nova-${contadorNova}` : obraAberta.id}
+              obra={'nova' in obraAberta ? obraAberta.nova : obraDaLista!}
+              nova={'nova' in obraAberta}
+              somenteLeitura={t.somenteLeitura}
+              aoIncluir={(obra) => {
+                const r = p.obras.incluir(obra);
+                if (r.ok) {
+                  setObraAberta({ id: r.id });
+                  setAnuncioObra('Obra incluída. Ctrl+Z desfaz.');
+                }
+                return r;
+              }}
+              aoAlterar={p.obras.alterar}
+              aoExcluir={(id) => {
+                const r = p.obras.excluir(id);
+                if (r.ok) {
+                  setObraAberta(null);
+                  setAnuncioObra('Obra excluída. Ctrl+Z desfaz.');
+                }
+                return r;
+              }}
+              aoCancelar={() => setObraAberta(null)}
+            />
+          ) : elementoAtivo !== null && pre !== null ? (
             <FormularioElemento
               key={elementoAtivo.id}
               elemento={elementoAtivo}

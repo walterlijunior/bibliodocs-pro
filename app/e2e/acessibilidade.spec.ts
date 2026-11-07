@@ -33,7 +33,7 @@ test.beforeEach(() => {
 });
 test.afterEach(async () => amb.apagar());
 
-test('Biblioteca, Novo trabalho, Versões descartadas, Escrever e Exportar sem violação séria', async ({}, info) => {
+test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obra e Exportar sem violação séria', async ({}, info) => {
   const { pagina: p } = await abrirApp(amb);
   await conferirAxe(p, 'biblioteca-vazia', info);
 
@@ -52,6 +52,13 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever e Exportar sem v
   await criarTrabalho(p);
   await expect(p.getByLabel('Título do trabalho')).toBeVisible();
   await conferirAxe(p, 'escrever', info);
+
+  // M4-T06: cadastro de obra com autoria, prévia e campos assinalados.
+  await p.getByRole('navigation', { name: 'Bibliografia' }).getByRole('button', { name: 'Nova obra' }).click();
+  await p.getByRole('button', { name: 'Acrescentar autoria' }).click();
+  await expect(p.getByRole('list', { name: 'O que impede gravar a obra' })).toBeVisible();
+  await conferirAxe(p, 'cadastro-obra', info);
+  await p.getByRole('button', { name: 'Cancelar' }).click();
 
   await p.keyboard.press('Control+E');
   await expect(p.getByRole('dialog', { name: 'Exportar DOCX' })).toBeVisible();

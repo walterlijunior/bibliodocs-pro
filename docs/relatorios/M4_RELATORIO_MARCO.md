@@ -10,6 +10,7 @@ Relatório vivo do marco: cada tarefa M4-Txx acrescenta a sua seção. Plano: `d
 | M4-T03 Chamadas de citação | CONCLUÍDA | 2026-11-07 |
 | M4-T04 Tipos da primeira leva | CONCLUÍDA | 2026-11-07 |
 | M4-T05 Lista REFERÊNCIAS e chamadas no DOCX | CONCLUÍDA | 2026-11-07 |
+| M4-T06 Cadastro de obras | CONCLUÍDA | 2026-11-07 |
 
 ## M4-T00 — Decisões
 
@@ -189,3 +190,54 @@ O cadastro (M4-T06) é o lugar de decidir quais desses campos entram.
 - `document.xml` do documento difícil: as chamadas no texto e as cinco referências depois do título REFERÊNCIAS.
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1609 testes unitários, 27 externos e 21 de 21 E2E. Os externos incluem o validador OOXML, o LibreOffice e o Word, sobre o corpus com o documento difícil, que agora tem lista e chamadas. O pico de memória foi de 768 MB.
+
+## M4-T06 — Cadastro de obras
+
+**Implementação:** sessão principal, em três commits: campos, serviço e tela. Sem delegar ao `especialista-interface`. **Sem revisão independente:** fica para o M4-T10.
+
+**Decisão do usuário (D-M4-09, 2026-11-07, "siga as recomendações")**
+- Entram quatro campos novos na obra (aditivos):
+  - coleção ou série: "(Coleção)" depois das páginas, RN-194;
+  - título original: "Título original: …", RN-204;
+  - suplemento: "Supl. 3", RN-212;
+  - ano do veículo oficial: "ano 138", RN-223.
+- Ficam para a segunda leva: dois eventos na mesma referência e legislação em coletânea.
+- Os exemplos BAUMAN, DOREA e Lei 9.979 agora saem completos.
+
+**Serviço** (`aplicacao/servicos/obras.ts`, `sessao-trabalho.ts`)
+- Cada tipo tem os seus campos, na ordem da referência (`CAMPOS_DO_TIPO`).
+- `prepararObra` dá a forma única: tira os campos de outro tipo, apara, limpa o que o XML 1.0 não aceita e deixa ausente o que ficou vazio.
+- `validarObra` confere pelo esquema v1 (`validarObraV1`, novo no domínio).
+- `previaDaObra` devolve a referência formatada, os avisos e o que impede gravar.
+- Na sessão:
+  - `incluirObra` dá um id novo e só grava a obra válida;
+  - `alterarObra` grava na hora o que for válido;
+  - `excluirObra` recusa a obra citada, com a contagem de chamadas, porque a chamada ficaria sem obra (RN-078);
+  - incluir e excluir entram no Ctrl+Z, e o desfazer não tira obra que passou a ser citada;
+  - a lista vai para a tela na ordem das referências, já com o texto da referência.
+
+**Tela** (`interface/escrever/Bibliografia.tsx`)
+- "Bibliografia" na coluna da aba Escrever, depois da árvore de seções: as obras pela referência, mais "Nova obra".
+- O formulário abre no lugar do editor e tem:
+  - tipo de obra;
+  - autoria, com várias pessoas ou entidades e a função (org., coord., ed., comp.);
+  - os campos do tipo, com dica;
+  - o livro de que o capítulo faz parte;
+  - o evento e o título dos anais;
+  - ano impresso, provável ou não impresso;
+  - e-book.
+- A prévia mostra "Como sai na lista de referências", com negrito e itálico. Logo abaixo vêm o que impede gravar (com o nome do campo) e os elementos que faltam (com a RN).
+- Obra nova: entra pelo botão "Incluir obra", que fica desativado enquanto houver campo assinalado.
+
+**Testes**
+- `tests/sessao-obras.test.ts`, com 13 casos: incluir, ordem, obra inválida recusada, excluir com desfazer, obra citada, ids, só leitura, forma única, ordem das chaves e prévia.
+- Exemplos completos nos testes do M4-T02 e do M4-T04.
+- E2E FUN-12 (`e2e/bibliografia.spec.ts`): cadastrar com prévia, alterar, campo inválido assinalado, excluir e Ctrl+Z, salvar e reabrir.
+- axe no cadastro de obra (`e2e/acessibilidade.spec.ts`).
+
+**Limitações**
+- O título é campo de texto simples. As marcas que vieram de arquivo, como um nome científico em itálico, ficam até o texto do título ser alterado.
+- Excluir obra citada é recusado. A remoção das chamadas chega com o editor de citação (M4-T07).
+- A escolha do tipo não pede confirmação: ao trocar, os campos que o tipo novo não usa saem da obra gravada.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1623 testes unitários, 27 externos e 22 de 22 E2E. O pico de memória foi de 741 MB.

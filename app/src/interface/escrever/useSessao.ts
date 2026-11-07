@@ -28,6 +28,7 @@ export function useSessao(api: ApiBiblioDocs, aoSalvar: () => void) {
         // M2-T06: seção nova com id no formato do esquema (`sec_` + 16 caracteres aleatórios).
         gerarIdSecao: () => gerarId('sec'),
         gerarIdElemento: () => gerarId('ele'),
+        gerarIdObra: () => gerarId('obr'),
       }),
   );
   useEffect(() => () => sessao.encerrar(), [sessao]);
