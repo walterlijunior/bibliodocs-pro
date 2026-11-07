@@ -8,6 +8,7 @@ Relatório vivo do marco: cada tarefa M4-Txx acrescenta a sua seção. Plano: `d
 | M4-T01 Obras e citações no formato | CONCLUÍDA | 2026-11-05 |
 | M4-T02 Formatadores de referência (base e livro) | CONCLUÍDA | 2026-11-07 |
 | M4-T03 Chamadas de citação | CONCLUÍDA | 2026-11-07 |
+| M4-T04 Tipos da primeira leva | CONCLUÍDA | 2026-11-07 |
 
 ## M4-T00 — Decisões
 
@@ -102,3 +103,50 @@ O usuário aceitou as recomendações ("siga as recomendações", 2026-11-05). C
 - A pontuação final em volta da chamada (D-M4-01) depende do texto do usuário. Fica para o motor (M4-T05) ou o verificador (M4-T08).
 
 **Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1549 testes unitários, 27 externos e 21 de 21 E2E. O pico de memória foi de 744 MB.
+
+## M4-T04 — Tipos da primeira leva
+
+**Implementação:** sessão principal, sem dependência nova. **Sem revisão independente:** fica para o M4-T10. O formatador foi dividido para não criar ciclo de importação:
+- `elementos.ts`: elementos comuns, como entrada, título, *In*:, edição, imprenta, páginas, data, DOI e on-line;
+- `tipos-obra.ts`: um formatador por tipo;
+- `referencia.ts`: só a distribuição pelo tipo.
+
+**Tipos e regras**
+- **Capítulo e verbete** (RN-200 a 203, *In*: em itálico, RN-188):
+  - o todo leva negrito;
+  - sem autor no todo, entra pelo título ("*In*: DICIONÁRIO da língua portuguesa");
+  - páginas "p. 39-68", ou o que foi digitado ("Cap. 2").
+- **Trabalho acadêmico** (RN-206):
+  - ano, "222 f." (D-M4-05) e natureza – Universidade, Programa, Cidade, ano (C-B15).
+- **Artigo de periódico** (RN-212 a 214):
+  - periódico em negrito, depois v., n., p. e a data do fascículo como digitada;
+  - DOI antes de "Disponível em", como no exemplo DANTAS.
+- **Trabalho em evento** (RN-207, 209):
+  - NOME DO EVENTO, número., ano, local; depois "**Anais** [...]" ou o título dos anais (`noTodo.titulo`);
+  - sem ano de publicação, vale o ano do evento.
+- **Artigo de jornal** (RN-215 a 218):
+  - os três padrões: com seção; com autor e sem seção (página antes da data); sem autor (seção e página depois da data, como o exemplo da p. 57).
+- **Norma** (RN-222): **NBR 6023**: título.
+- **Legislação** (RN-223, C-B16):
+  - com veículo oficial, o negrito vai no veículo, seguido de seção, local, n., p. e data;
+  - sem veículo, vai no título, com identificação antes ("Constituição (1988)") e imprenta.
+- **Documento on-line** (RN-189):
+  - o Manual não tem padrão próprio: AUTOR. **Título**. Imprenta só se houver local ou editora, senão só o ano. Depois o endereço e o acesso. Provisório.
+- O que falta vira aviso `ELEMENTO_AUSENTE` com a RN, nunca texto inventado.
+
+**Testes:** `tests/bibliografia-tipos.test.ts`, com 40 casos.
+- 20 exemplos do Manual (p. 52–60, 70) saem iguais, com o destaque conferido.
+- Também cobre o documento on-line, os avisos, o ano do evento, o sufixo na data do periódico e cada obra da fixture do M4-T01 (sem espaço duplo nem pontuação repetida).
+
+**Fora por falta de campo** (os exemplos foram testados sem o elemento)
+- suplemento do periódico ("Supl. 3", DOREA);
+- "ano 138" do Diário Oficial;
+- dois eventos na mesma referência (ZUBEN, CONGRESSO DO CENTRO-OESTE);
+- legislação dentro de coletânea ("*In*: VADE mecum", Decreto-lei 200);
+- coleção ou série e título original (do M4-T02).
+
+O cadastro (M4-T06) é o lugar de decidir quais desses campos entram.
+
+**Outros tipos do 5.19** (RN-208, 210, 211, 219 a 221, 224 a 229: evento digital, palestra, coleção de periódico, entrevistas, correspondência, jurisprudência, patente, iconográfico, cartográfico, audiovisual, tridimensional) seguem fora até a segunda leva, como decidido no D-M4-06.
+
+**Verificação (2026-11-07):** `npm run verificar:tudo` passou: 1589 testes unitários, 27 externos e 21 de 21 E2E. O pico de memória foi de 774 MB.

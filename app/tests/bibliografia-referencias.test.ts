@@ -175,13 +175,11 @@ describe('elementos comuns', () => {
     expect(semUrl.avisos.map((a) => a.codigo)).toEqual(['URL_AUSENTE']);
   });
 
-  it('tipos ainda sem formatador avisam em vez de inventar (D-M4-06; chegam no M4-T04)', () => {
-    expect(tiposComFormatador()).toEqual(['livro']);
-    for (const tipo of TIPOS_OBRA.filter((x) => x !== 'livro')) {
-      const ref = formatarReferencia({ id: 'obr_x0000001', tipo, titulo: t('X') });
-      expect(ref.trechos).toEqual([]);
-      expect(ref.avisos.map((a) => a.codigo)).toEqual(['TIPO_SEM_FORMATADOR']);
-    }
+  it('os nove tipos da primeira leva têm formatador; tipo desconhecido avisa em vez de inventar (D-M4-06)', () => {
+    expect([...tiposComFormatador()].sort()).toEqual([...TIPOS_OBRA].sort());
+    const ref = formatarReferencia({ id: 'obr_x0000001', tipo: 'mapa' as Obra['tipo'], titulo: t('X') });
+    expect(ref.trechos).toEqual([]);
+    expect(ref.avisos.map((a) => a.codigo)).toEqual(['TIPO_SEM_FORMATADOR']);
   });
 
   it('é pura: a obra não muda e a saída se repete', () => {
