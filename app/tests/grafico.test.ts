@@ -218,6 +218,15 @@ describe('canal de exportação: PNG dos gráficos conferidos no principal', () 
     expect(r2.ok ? r2.avisos.join('\n') : '').toContain('Um gráfico não pôde ser desenhado');
   });
 
+  it('R-M6-04: gráfico dentro de apêndice também recebe o PNG', async () => {
+    const x = montar();
+    const pacote = pacoteCom([]) as unknown as { documento: { posTextuais?: unknown[] } };
+    pacote.documento.posTextuais = [{ tipo: 'apendice', id: 'ape_grafico00001', titulo: 'Dados', blocos: [TABELA, grafico()] }];
+    const r = await x.chamar(pacote, { graficos: { gra_grafico00001: png } });
+    expect(r.ok).toBe(true);
+    expect(x.imagens).toEqual([png.length]);
+  });
+
   it('forma errada é recusada como argumento inválido', async () => {
     await expect(montar().chamar(pacoteCom([]), { graficos: [png] })).rejects.toBeInstanceOf(ErroIpcRecusado);
     await expect(montar().chamar(pacoteCom([]), { graficos: { gra_x00000000001: 'texto' } })).rejects.toBeInstanceOf(ErroIpcRecusado);

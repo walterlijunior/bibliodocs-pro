@@ -6,7 +6,7 @@
  * claro, pontos, quadriculado e cinza médio, em ciclo. Marcadores das linhas: círculo, quadrado, triângulo, losango,
  * círculo vazado e quadrado vazado. Texto na fonte do trabalho, em preto.
  */
-import type { BlocoGrafico, BlocoTabela, Secao } from '../../dominio/modelo';
+import type { BlocoGrafico, BlocoTabela, Documento, Secao } from '../../dominio/modelo';
 import { CORES_GRAFICO, dadosDoGrafico, desenharGrafico, tamanhoGraficoMm, type Primitiva } from '../../aplicacao';
 import type { CamposGrafico } from './tabelas';
 import { LIMITES_GRAFICOS_EXPORTACAO } from '../../aplicacao/portas/exportacao';
@@ -181,7 +181,7 @@ export async function pngDoGrafico(campos: Pick<CamposGrafico, 'forma' | 'series
  * PNG de todos os gráficos gerados do documento, pelo id, para a exportação (M5-T09). Gráfico sem dados fica de fora: a
  * exportação sai sem a imagem dele, com aviso.
  */
-export async function graficosParaExportar(corpo: readonly Secao[], areaUtilMm: number, fonte: string): Promise<Record<string, Uint8Array>> {
+export async function graficosParaExportar(doc: Pick<Documento, 'corpo' | 'posTextuais'>, areaUtilMm: number, fonte: string): Promise<Record<string, Uint8Array>> {
   const tabelas = new Map<string, BlocoTabela>();
   const graficos: BlocoGrafico[] = [];
   const visitar = (secoes: readonly Secao[]): void => {
@@ -193,7 +193,9 @@ export async function graficosParaExportar(corpo: readonly Secao[], areaUtilMm: 
       visitar(s.subsecoes);
     }
   };
-  visitar(corpo);
+  visitar(doc.corpo);
+  // R-M6-04: apêndices e anexos também têm tabelas e gráficos (M6-T05), na ordem de leitura do motor.
+  visitar((doc.posTextuais ?? []).flatMap((e): Secao[] => (e.tipo === 'apendice' || e.tipo === 'anexo' ? [{ id: e.id, titulo: [], blocos: e.blocos ?? [], subsecoes: [] }] : [])));
   const saida: Record<string, Uint8Array> = {};
   // R-M5-04: no máximo o que o principal aceita; os demais saem sem a imagem, com aviso, em vez de recusar a exportação.
   for (const g of graficos.slice(0, LIMITES_GRAFICOS_EXPORTACAO.quantidade)) {

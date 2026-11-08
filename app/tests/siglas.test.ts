@@ -112,3 +112,60 @@ describe('RN-047, 2.ª parte (M6-T07): forma por extenso repetida depois da sigl
     expect(repetidas(doc([t('A Universidade Federal do Tocantins, antes.')], [s('sgu_teste0000001')]))).toEqual([]);
   });
 });
+
+describe('revisão do M6: RN-047 com limite de palavra e custo linear (R-M6-05, R-M6-07)', () => {
+  const t = (texto: string): Inline => ({ tipo: 'texto', texto });
+  const docCom = (siglas: Documento['siglas'], ...paragrafos: Inline[][]): Pick<Documento, 'corpo' | 'siglas'> => ({
+    siglas,
+    corpo: [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: paragrafos.map((conteudo, i) => ({ tipo: 'paragrafo' as const, id: `par_teste${String(i).padStart(7, '0')}`, conteudo })) }],
+  });
+  const repetidas = (d: Pick<Documento, 'corpo' | 'siglas'>) => conferirSiglas(d).filter((p) => p.codigo === 'SIGLA_EXTENSO_REPETIDO');
+
+  it('"Unidade" apresentada não acusa "comunidade"; acusa "a unidade."; extenso com caractere especial não quebra a expressão', () => {
+    const siglas = [
+      { id: 'sgl_teste0000001', sigla: 'UN', extenso: 'Unidade' },
+      { id: 'sgl_teste0000002', sigla: 'C++', extenso: 'Linguagem (C++)' },
+    ];
+    const s1: Inline = { tipo: 'sigla', id: 'sgu_teste0000001', sigla: 'sgl_teste0000001' };
+    const s2: Inline = { tipo: 'sigla', id: 'sgu_teste0000002', sigla: 'sgl_teste0000002' };
+    expect(repetidas(docCom(siglas, [s1, t(' '), s2], [t('A comunidade local.')]))).toEqual([]);
+    expect(repetidas(docCom(siglas, [s1, t(' '), s2], [t('Na unidade. Em Linguagem (C++).')])).map((p) => p.trecho)).toEqual(['Unidade', 'Linguagem (C++)']);
+  });
+
+  it('5.000 siglas apresentadas × 4.000 parágrafos: linear (menos de 1,5 s)', () => {
+    const siglas = Array.from({ length: 5000 }, (_, i) => ({ id: `sgl_carga${String(i).padStart(7, '0')}`, sigla: `S${i}`, extenso: `Forma extensa número ${i}` }));
+    const ligadas: Inline[] = siglas.map((s, i) => ({ tipo: 'sigla', id: `sgu_carga${String(i).padStart(7, '0')}`, sigla: s.id }));
+    const texto = Array.from({ length: 4000 }, () => [t('Texto comum de parágrafo sem forma extensa alguma, só para medir o custo.')]);
+    const inicio = performance.now();
+    conferirSiglas(docCom(siglas, ligadas, ...texto));
+    expect(performance.now() - inicio).toBeLessThan(1500);
+  });
+});
+
+describe('revisão do M6: citação longa e cadastro com tabulação (N-M6-02, R-M6-09)', () => {
+  const t = (texto: string): Inline => ({ tipo: 'texto', texto });
+  const sg = (id: string): Inline => ({ tipo: 'sigla', id, sigla: 'sgl_teste0000001' });
+  const corpo = (blocos: Documento['corpo'][number]['blocos']): Documento['corpo'] => [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos }];
+  const textos = (d: ReturnType<typeof formatar>) => d.secoes.flatMap((s) => s.blocos).flatMap((b) => (b.tipo === 'paragrafo' ? [b.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join('')] : []));
+  const siglas = [{ id: 'sgl_teste0000001', sigla: 'UFT', extenso: 'Universidade\tFederal\ndo Tocantins' }];
+
+  it('na citação longa a sigla sai como está e não gasta a primeira ocorrência; o texto depois traz a forma por extenso', () => {
+    const d = formatar({ corpo: corpo([
+      { tipo: 'citacaoLonga', id: 'cit_teste0000001', conteudo: [t('Segundo a '), sg('sgu_teste0000001'), t(', o cerrado.')] },
+      { tipo: 'paragrafo', id: 'par_teste0000001', conteudo: [t('A '), sg('sgu_teste0000002'), t(' tem campi.')] },
+    ]), siglas }, PERFIL);
+    expect(textos(d)).toEqual(expect.arrayContaining(['Segundo a UFT, o cerrado.', 'A Universidade Federal do Tocantins (UFT) tem campi.']));
+  });
+
+  it('o verificador não sugere mexer na citação longa', () => {
+    const r = conferirSiglas({ siglas, corpo: corpo([{ tipo: 'citacaoLonga', id: 'cit_teste0000001', conteudo: [t('Texto do original com ABNT e UFT.')] }]) });
+    expect(r).toEqual([]);
+  });
+});
+
+describe('revisão do M6: numeral romano (N-M6-13)', () => {
+  it('"século XX" e "capítulo II" não viram sigla sem cadastro; "ABNT" vira', () => {
+    const d: Pick<Documento, 'corpo' | 'siglas'> = { corpo: [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: [{ tipo: 'paragrafo', id: 'par_teste0000001', conteudo: [{ tipo: 'texto', texto: 'No século XX, o capítulo II cita a ABNT.' }] }] }] };
+    expect(conferirSiglas(d).map((p) => p.trecho)).toEqual(['ABNT']);
+  });
+});

@@ -255,6 +255,14 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
+/** Listas geradas dos pré-textuais, para o aviso de lista vazia (N-M6-15). */
+const NOME_LISTA = {
+  listaIlustracoes: 'A LISTA DE ILUSTRAÇÕES',
+  listaTabelas: 'A LISTA DE TABELAS',
+  listaSiglas: 'A LISTA DE ABREVIATURAS E SIGLAS',
+  listaSimbolos: 'A LISTA DE SÍMBOLOS',
+} as const;
+
 export type DocumentoParaFormatar = Pick<Documento, 'corpo'> &
   Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras' | 'siglas' | 'simbolos' | 'glossario'>> & {
     /** Bytes das imagens das ilustrações, pelo sha256 (M5-T06). Sem a imagem, a ilustração sai sem ela, com aviso. */
@@ -364,6 +372,8 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const rotulosRemissiva = rotulosDeRemissiva(doc);
   const cadastroSiglas = new Map((doc.siglas ?? []).map((s) => [s.id, s]));
   const siglasUsadas = new Set<string>();
+  const siglasPorExtenso = new Set<string>();
+  let emCitacaoLonga = false;
   const rnPrimeiraSigla = temProcedimento(regras, 'primeiraSiglaPorExtenso');
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
     conteudo.flatMap((i): TrechoFormatado[] => {
@@ -374,9 +384,18 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
           avisos.push({ codigo: 'SIGLA_QUEBRADA', id: i.id, mensagem: 'A sigla ligada no texto não está no cadastro (RN-046).' });
           return [{ tipo: 'texto', texto: '[sigla sem cadastro]', marcas: [] }];
         }
-        const primeira = !siglasUsadas.has(s.id);
+        // N-M6-02: a citação longa reproduz o original (Manual, p. 22, 3.1): a sigla sai como está e não gasta a primeira
+        // ocorrência; continua contando como usada para a lista de siglas.
+        if (emCitacaoLonga) {
+          siglasUsadas.add(s.id);
+          return [{ tipo: 'texto', texto: s.sigla, marcas: [] }];
+        }
+        const primeira = !siglasPorExtenso.has(s.id);
         siglasUsadas.add(s.id);
-        return [{ tipo: 'texto', texto: primeira && rnPrimeiraSigla !== null ? `${s.extenso} (${s.sigla})` : s.sigla, marcas: [] }];
+        siglasPorExtenso.add(s.id);
+        // R-M6-09: tabulação ou quebra no cadastro não desalinham nem quebram o texto.
+        const limpo = (t: string) => t.replace(/[\t\r\n]+/g, ' ');
+        return [{ tipo: 'texto', texto: primeira && rnPrimeiraSigla !== null ? `${limpo(s.extenso)} (${limpo(s.sigla)})` : limpo(s.sigla), marcas: [] }];
       }
       if (i.tipo === 'remissiva') {
         const rotulo = rotulosRemissiva.get(i.alvo);
@@ -421,7 +440,12 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         return [{ tipo: 'paragrafo', estilo: 'corpo', trechos: trechos(b.conteudo), origem: [] }];
       case 'citacaoLonga':
         if (textoVazio(b.conteudo)) avisos.push({ codigo: 'CITACAO_VAZIA', id: b.id, mensagem: 'Citação longa sem texto.' });
-        return [{ tipo: 'paragrafo', estilo: 'citacaoLonga', trechos: trechos(b.conteudo), origem: [] }];
+        emCitacaoLonga = true;
+        try {
+          return [{ tipo: 'paragrafo', estilo: 'citacaoLonga', trechos: trechos(b.conteudo), origem: [] }];
+        } finally {
+          emCitacaoLonga = false;
+        }
       case 'quebraPagina':
         return [{ tipo: 'quebraPagina', origem: [] }];
       case 'tabela':
@@ -494,6 +518,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
 
   const gerarGlossario = () => {
     if (temProcedimento(regras, 'listaDeGlossario') === null) return [];
+    if ((doc.glossario ?? []).length === 0) avisos.push({ codigo: 'LISTA_VAZIA', id: doc.posTextuais?.find((e) => e.tipo === 'glossario')?.id ?? '', mensagem: 'O GLOSSÁRIO está no trabalho, mas não tem termos: saiu só o título.' });
     if ((doc.glossario ?? []).length > 0) avisos.push({ codigo: 'FORMA_SEM_FONTE', id: doc.posTextuais?.find((e) => e.tipo === 'glossario')?.id ?? '', mensagem: 'A forma “Termo: definição” do glossário é provisória: exemplo do Manual, p. 64 (D-M6-06, PF-10).' });
     return blocosGlossario(doc.glossario ?? []);
   };
@@ -556,12 +581,17 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     es: rnRotulos !== null && typeof rotulos?.es === 'string' ? rotulos.es : null,
     fr: rnRotulos !== null && typeof rotulos?.fr === 'string' ? rotulos.fr : null,
   };
-  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, {
-    meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave,
-    listas: (elemento) => listasDeElementos(elemento, leitura, legendas, regras, perfil, visuais.larguraTw),
-    siglas: () => temProcedimento(regras, 'listaDeSiglas') === null ? [] : blocosListaSiglas(doc.siglas ?? [], siglasUsadas, visuais.larguraTw),
-    simbolos: () => temProcedimento(regras, 'listaDeSimbolos') === null ? [] : blocosListaSimbolos(doc.simbolos ?? [], visuais.larguraTw),
-  }));
+  const blocosPre = pre.flatMap((e) => {
+    const r = blocosPreTextual(e, m, {
+      meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave,
+      listas: (elemento) => listasDeElementos(elemento, leitura, legendas, regras, perfil, visuais.larguraTw),
+      siglas: () => temProcedimento(regras, 'listaDeSiglas') === null ? [] : blocosListaSiglas(doc.siglas ?? [], siglasUsadas, visuais.larguraTw),
+      simbolos: () => temProcedimento(regras, 'listaDeSimbolos') === null ? [] : blocosListaSimbolos(doc.simbolos ?? [], visuais.larguraTw),
+    });
+    // N-M6-15, R-M6-09: lista incluída sem nenhum item não reserva folha, mas o autor fica sabendo.
+    if (r.length === 0 && e.tipo in NOME_LISTA) avisos.push({ codigo: 'LISTA_VAZIA', id: e.id, mensagem: `${NOME_LISTA[e.tipo as keyof typeof NOME_LISTA]} está no trabalho, mas não tem itens e ficou de fora do arquivo.` });
+    return r;
+  });
   if (blocosPre.length > 0) secoes.push({ papel: 'preTextual', exibirNumero: false, blocos: semQuebraNaPrimeira(blocosPre), origem: ['RN-067', 'RN-068'] });
   secoes.push({ papel: 'textual', exibirNumero: true, blocos, origem: ['RN-068', 'RN-069'] });
   if (blocosPos.length > 0) secoes.push({ papel: 'posTextual', exibirNumero: true, blocos: semQuebraNaPrimeira(blocosPos), origem: ['RN-073'] });

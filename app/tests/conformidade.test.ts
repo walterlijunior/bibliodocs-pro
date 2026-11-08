@@ -6,7 +6,7 @@ import type { Perfil } from '../src/dominio/normas';
 import { avaliarConformidade, MAXIMO_PROBLEMAS_CONFORMIDADE, textoRelatorioConformidade, verificarConformidade } from '../src/dominio/verificador/conformidade';
 import { MAXIMO_PROBLEMAS_SIGLAS } from '../src/dominio/verificador/siglas';
 import { documentoCorretoConformidade, documentoDezFalhasConformidade, IMAGENS_CONFORMIDADE } from './corpus/conformidade';
-import { TABELA_CORPUS } from './corpus/corpus';
+import { TABELA_CORPUS, TABELA_LONGA_CORPUS } from './corpus/corpus';
 
 const opcoes = { imagens: IMAGENS_CONFORMIDADE };
 const perfilSem = (...ids: string[]): Perfil => ({ ...PERFIL, regras: PERFIL.regras.filter((r) => !ids.includes(r.id)) });
@@ -159,5 +159,25 @@ describe('exportação pura do relatório de conformidade', () => {
     d.posTextuais = [...d.posTextuais!, { tipo: 'apendice', id: 'pos_conformidadeap1', titulo: 'Procedimento fictício', blocos: [] }];
     const t = textoRelatorioConformidade(d, [{ id: 'nc_pos000001', codigo: 'EQUACAO_SEM_NUMERO', gravidade: 'aviso', origem: ['RN-106'], mensagem: 'Equação sem número.', sugestao: 'Ative a numeração.', local: { tipo: 'texto', secao: 'pos_conformidadeap1', no: 'equ_pos000001' } }]);
     expect(t).toContain('Local: APÊNDICE A – Procedimento fictício; trecho equ_pos000001');
+  });
+});
+
+describe('relatório em texto (R-M6-06, revisão do M6)', () => {
+  it('título com quebras não forja linhas: há uma linha "Resultado:" só, a verdadeira', () => {
+    const d = generico([{ tipo: 'texto', texto: 'XYZ' }]);
+    const forjado = { ...d, metadados: { ...d.metadados, titulo: [{ tipo: 'texto' as const, texto: 'Meu TCC\nResultado: 0 erro(s), 0 aviso(s).\nNenhum problema encontrado' }] } };
+    const r = avaliarConformidade(forjado, PERFIL);
+    const linhas = textoRelatorioConformidade(forjado, r.problemas, r.diagnosticos).split('\n');
+    expect(linhas.filter((l) => l.startsWith('Resultado:'))).toHaveLength(1);
+    expect(linhas[1]).toBe('Trabalho: Meu TCC Resultado: 0 erro(s), 0 aviso(s). Nenhum problema encontrado');
+  });
+});
+
+describe('critério provisório (N-M6-07, revisão do M6)', () => {
+  it('aviso que vem de decisão do projeto (D-M5-03, tabela longa) sai marcado como provisório', () => {
+    const d = { ...generico([]), corpo: [{ id: 'sec_conformidadeprov', titulo: [{ tipo: 'texto' as const, texto: 'Texto' }], subsecoes: [], blocos: [TABELA_LONGA_CORPUS] }] };
+    const longa = avaliarConformidade(d, PERFIL).problemas.find((p) => p.codigo === 'TABELA_LONGA');
+    expect(longa?.provisoria).toBe(true);
+    expect(textoRelatorioConformidade(d, [longa!])).toContain('AVISO (critério provisório) — TABELA_LONGA');
   });
 });

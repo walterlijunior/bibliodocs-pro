@@ -6,7 +6,7 @@ import { basename } from 'node:path';
 import { CANAIS_EXPORTACAO, LIMITES_GRAFICOS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
 import { areaUtilMm, formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
 import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
-import { textoPlano, type Secao } from '../../dominio/modelo';
+import { secoesDeLeitura, textoPlano, type Secao } from '../../dominio/modelo';
 import { lerInfoImagem } from '../../dominio/visuais';
 import { verificarVisuais } from '../../dominio/verificador';
 import { avaliarConformidade, textoRelatorioConformidade } from '../../dominio/verificador/conformidade';
@@ -71,7 +71,7 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       // M5-T06: as imagens das ilustrações vão com o documento, pelo sha256 (o pacote já foi conferido na leitura).
       const imagens = p.valor.midias;
       // Só PNG legível e de um gráfico que existe no documento; o resto fica de fora (o gráfico sai sem a imagem, com aviso).
-      const idsGraficos = idsDeGraficos(documento.corpo);
+      const idsGraficos = idsDeGraficos(secoesDeLeitura(documento));
       const graficos = new Map(graficosRecebidos.filter(([id, bytes]) => idsGraficos.has(id) && lerInfoImagem(bytes)?.tipo === 'image/png'));
       const formatado = formatar({ ...documento, imagens, graficos }, dep.perfil, fonte !== undefined ? { fonte } : {});
       const gerado = await dep.exportar(formatado);
@@ -106,7 +106,11 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       const avaliacao = avaliarConformidade(documento, dep.perfil, { imagens: p.valor.midias });
       const texto = textoRelatorioConformidade(documento, avaliacao.problemas, avaliacao.diagnosticos);
       const g = await dep.gravar(destino, new TextEncoder().encode('\uFEFF' + texto));
-      if (!g.ok) return { ok: false, motivo: 'ERRO', mensagem: g.mensagem };
+      if (!g.ok) {
+        // R-M6-11: como no canal do DOCX, a falha de grava\u00E7\u00E3o fica no log.
+        log(`[exportacao] relat\u00F3rio: grava\u00E7\u00E3o falhou: ${g.codigo}${g.detalhe ? ` (${g.detalhe})` : ''}`);
+        return { ok: false, motivo: 'ERRO', mensagem: g.mensagem };
+      }
       return { ok: true, nomeArquivo: basename(destino), avisos: avaliacao.diagnosticos.map((d) => d.mensagem) };
     } finally { emCurso = false; }
   };

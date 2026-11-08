@@ -171,6 +171,8 @@ export interface AvisoFormatacao {
     | 'IMAGEM_AUSENTE'
     | 'EQUACAO_VAZIA'
     | 'GRAFICO_NAO_DESENHADO'
+    | 'LISTA_VAZIA'
+    | 'POS_TEXTUAL_SEM_TITULO'
     | 'LETRA_SEM_FONTE'
     | 'ROTULO_PROVISORIO'
     | 'CHAMADA_COM_AVISO'

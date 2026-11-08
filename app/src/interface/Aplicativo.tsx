@@ -224,7 +224,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     setExportacao({ etapa: 'exportando' });
     try {
       // Os gráficos gerados de tabela são desenhados aqui, no canvas, e vão prontos (M5-T09).
-      const graficos = await graficosParaExportar(pacote.documento.corpo, areaUtilDoPerfilMm(), fonteExportacao);
+      const graficos = await graficosParaExportar(pacote.documento, areaUtilDoPerfilMm(), fonteExportacao);
       const r = await api.exportacao.docx(pacote, { fonte: fonteExportacao, ...(Object.keys(graficos).length > 0 ? { graficos } : {}) });
       if (r.ok) setExportacao({ etapa: 'concluido', nomeArquivo: r.nomeArquivo, avisos: r.avisos });
       else if (r.motivo === 'CANCELADO') setExportacao({ etapa: 'escolher' });

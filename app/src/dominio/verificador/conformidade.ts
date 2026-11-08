@@ -137,7 +137,8 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
   for (const p of candidatos) {
     const normativas = p.origem.filter((rn) => /^RN-\d{3}$/.test(rn));
     let aplicada = normativas.length === 0;
-    let provisoria = p.origem.includes('D-M4-10');
+    // N-M6-07: decisão do projeto (D-…) não é texto de norma; o critério sai marcado como provisório (Política, 2.2).
+    let provisoria = p.origem.some((o) => /^D-M\d+-\d+$/.test(o));
     const ativas = new Set<string>();
     for (const rn of normativas) {
       const r = regras.get(rn);
@@ -219,5 +220,7 @@ export function textoRelatorioConformidade(
     for (const d of diagnosticos) linhas.push(`- ${d.mensagem}`);
     linhas.push('');
   }
-  return linhas.join('\n');
+  // R-M6-06: cada item é uma linha só. Título, trecho ou mensagem com quebra não forjam linhas ("Resultado: 0 erro(s)")
+  // no relatório que o autor entrega a outra pessoa.
+  return linhas.map((l) => l.replace(/[\r\n\t\u2028\u2029\v\f]+/g, ' ')).join('\n');
 }

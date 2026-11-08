@@ -180,7 +180,8 @@ describe('demais pré-textuais', () => {
   it('lista de tabelas sem tabelas não reserva folha vazia', () => {
     const d = fmt({ preTextuais: pre({ tipo: 'listaTabelas' }) });
     expect(d.secoes.map((s) => s.papel)).toEqual(['textual']);
-    expect(d.avisos).toEqual([]);
+    // Revisão do M6 (N-M6-15): a lista incluída e vazia some do arquivo, mas avisa.
+    expect(d.avisos.map((a) => a.codigo)).toEqual(['LISTA_VAZIA']);
   });
 });
 
@@ -230,8 +231,13 @@ describe('pós-textuais', () => {
     expect(b.map(texto)).toEqual(['APÊNDICES', 'APÊNDICE A – X', 'APÊNDICE B', 'ANEXO', 'ANEXO A – Y']);
   });
   it('depois de ZZ avisa: forma sem fonte (RN-232)', () => {
-    const d = fmt({ posTextuais: pos(...Array.from({ length: 53 }, () => ({ tipo: 'anexo' }))) });
+    const d = fmt({ posTextuais: pos(...Array.from({ length: 53 }, () => ({ tipo: 'anexo', titulo: 'Documento' }))) });
     expect(d.avisos.map((a) => a.codigo)).toEqual(['LETRA_SEM_FONTE']);
+  });
+
+  it('apêndice ou anexo sem título avisa (N-M6-01; RN-231, RN-234)', () => {
+    const d = fmt({ posTextuais: pos({ tipo: 'apendice' }, { tipo: 'anexo', titulo: 'Documento' }) });
+    expect(d.avisos.map((a) => [a.codigo, a.mensagem])).toEqual([['POS_TEXTUAL_SEM_TITULO', 'APÊNDICE A está sem título: o Manual pede "APÊNDICE A – Título" (RN-231).']]);
   });
 });
 

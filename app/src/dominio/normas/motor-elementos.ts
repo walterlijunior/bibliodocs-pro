@@ -200,6 +200,8 @@ export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: 
         const letra = letraPosTextual(i);
         if (letraSemFonte(i)) avisos.push({ codigo: 'LETRA_SEM_FONTE', id: e.id, mensagem: `A letra ${letra} passa de ZZ: o Manual não define essa forma.` });
         const nome = e.titulo?.trim();
+        // N-M6-01: o Manual pede letra, travessão e título (p. 65, cap. 7; p. 66, cap. 8).
+        if (!nome) avisos.push({ codigo: 'POS_TEXTUAL_SEM_TITULO', id: e.id, mensagem: `${palavra} ${letra} está sem título: o Manual pede "${palavra} ${letra} – Título" (${apendice ? 'RN-231' : 'RN-234'}).` });
         // Marcador curto: o Word aceita até 40 caracteres, só letras, algarismos e "_" (o id pode ter "-" e 64).
         blocos.push({ ...paragrafo('identificacaoPosTextual', [trecho(`${palavra} ${letra}${nome ? `${SEPARADOR}${nome}` : ''}`)], rn), ancora: `_Pos_${apendice ? 'A' : 'N'}${i + 1}` } as BlocoFormatado);
         blocos.push(...conteudo(e));
