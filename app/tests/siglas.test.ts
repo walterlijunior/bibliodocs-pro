@@ -46,14 +46,15 @@ describe('M6-T02: formato de siglas e percurso', () => {
 });
 
 describe('M6-T02: motor e DOCX', () => {
-  it('RN-046/047: primeira por extenso e demais curtas, inclusive com a primeira na nota', async () => {
+  // Revisão do M6 (D-M6-11): nota e texto corrido contam à parte; a primeira vez no texto também sai por extenso.
+  it('RN-046/047: primeira por extenso e demais curtas; a nota tem a sua primeira ocorrência e o texto, a dele', async () => {
     const d = criar({ tipo: 'nota', id: 'nta_siglas0001', conteudo: [uso(1)] }, { tipo: 'texto', texto: ' ' }, uso(2)).documento;
     const f = formatar(d, PERFIL);
     const corpo = f.secoes.find((s) => s.papel === 'textual')!.blocos.find((b) => b.tipo === 'paragrafo' && b.estilo === 'corpo');
     expect(corpo?.tipo).toBe('paragrafo');
     if (corpo?.tipo !== 'paragrafo') throw new Error('corpo ausente');
     expect(corpo.trechos[0]).toMatchObject({ tipo: 'nota', trechos: [{ tipo: 'texto', texto: `${entrada.extenso} (UFT)` }] });
-    expect(corpo.trechos[2]).toMatchObject({ tipo: 'texto', texto: 'UFT' });
+    expect(corpo.trechos[2]).toMatchObject({ tipo: 'texto', texto: `${entrada.extenso} (UFT)` });
     const z = unzipSync(await exportarDocx(f));
     expect(strFromU8(z['word/footnotes.xml']!)).toContain(`${entrada.extenso} (UFT)`);
     expect(strFromU8(z['word/document.xml']!)).toContain('LISTA DE ABREVIATURAS E SIGLAS');
@@ -167,5 +168,23 @@ describe('revisão do M6: numeral romano (N-M6-13)', () => {
   it('"século XX" e "capítulo II" não viram sigla sem cadastro; "ABNT" vira', () => {
     const d: Pick<Documento, 'corpo' | 'siglas'> = { corpo: [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: [{ tipo: 'paragrafo', id: 'par_teste0000001', conteudo: [{ tipo: 'texto', texto: 'No século XX, o capítulo II cita a ABNT.' }] }] }] };
     expect(conferirSiglas(d).map((p) => p.trecho)).toEqual(['ABNT']);
+  });
+});
+
+describe('sigla em nota de rodapé (D-M6-11, revisão do M6: N-M6-05)', () => {
+  it('a sigla que aparece antes numa nota sai por extenso também na primeira vez no texto corrido', () => {
+    const t = (texto: string) => ({ tipo: 'texto' as const, texto });
+    const sg = (id: string): InlineSigla => ({ tipo: 'sigla', id, sigla: 'sgl_teste0000001' });
+    const d = formatar({
+      siglas: [{ id: 'sgl_teste0000001', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' }],
+      corpo: [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: [
+        { tipo: 'paragrafo', id: 'par_teste0000001', conteudo: [t('Antes'), { tipo: 'nota', id: 'nta_teste0000001', conteudo: [t('Ver '), sg('sgu_teste0000001'), t('.')] }, t(' e a '), sg('sgu_teste0000002'), t(', depois a '), sg('sgu_teste0000003'), t('.')] },
+      ] }],
+    }, PERFIL);
+    const p = d.secoes.flatMap((s) => s.blocos).find((b) => b.tipo === 'paragrafo' && b.estilo === 'corpo');
+    if (p?.tipo !== 'paragrafo') throw new Error('parágrafo');
+    const nota = p.trechos.find((x) => x.tipo === 'nota');
+    expect(nota?.tipo === 'nota' && nota.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join('')).toBe('Ver Universidade Federal do Tocantins (UFT).');
+    expect(p.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join('')).toBe('Antes e a Universidade Federal do Tocantins (UFT), depois a UFT.');
   });
 });

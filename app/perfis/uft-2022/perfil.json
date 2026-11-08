@@ -291,6 +291,15 @@
    ],
    "origem": "provisorio"
   }
+,
+  "verificarChamadasAmbiguas": {
+   "valor": true,
+   "ajustavel": false,
+   "rn": [
+    "RN-096"
+   ],
+   "origem": "decisao-usuario-2026-11-05"
+  }
  },
  "regras": [
   {
@@ -1619,6 +1628,18 @@
    "provisoria": true,
    "parametros": [
     "verificarRemissivaIlustracoes"
+   ]
+  },
+  {
+   "id": "RN-096",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade",
+   "provisoria": true,
+   "parametros": [
+    "verificarChamadasAmbiguas"
    ]
   },
   {

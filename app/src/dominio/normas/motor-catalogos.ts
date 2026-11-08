@@ -30,6 +30,6 @@ export function blocosListaSimbolos(simbolos: readonly Simbolo[], larguraTw: num
 /** A forma "Termo: definição" é a do exemplo da p. 64, escolhida provisoriamente em D-M6-06 (PF-10). */
 export function blocosGlossario(termos: readonly TermoGlossario[]): BlocoFormatado[] {
   return [...termos].sort((a, b) => compararPtBr(a.termo, b.termo)).map((s): BlocoFormatado => ({
-    tipo: 'paragrafo', estilo: 'corpo', trechos: [{ tipo: 'texto', texto: `${umaLinha(s.termo)}: ${umaLinha(s.definicao)}`, marcas: [] }], origem: ['RN-230'],
+    tipo: 'paragrafo', estilo: 'entradaGlossario', trechos: [{ tipo: 'texto', texto: `${umaLinha(s.termo)}: ${umaLinha(s.definicao)}`, marcas: [] }], origem: ['RN-230'],
   }));
 }

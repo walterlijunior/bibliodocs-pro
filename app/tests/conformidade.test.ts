@@ -6,7 +6,7 @@ import type { Perfil } from '../src/dominio/normas';
 import { avaliarConformidade, MAXIMO_PROBLEMAS_CONFORMIDADE, textoRelatorioConformidade, verificarConformidade } from '../src/dominio/verificador/conformidade';
 import { MAXIMO_PROBLEMAS_SIGLAS } from '../src/dominio/verificador/siglas';
 import { documentoCorretoConformidade, documentoDezFalhasConformidade, IMAGENS_CONFORMIDADE } from './corpus/conformidade';
-import { TABELA_CORPUS, TABELA_LONGA_CORPUS } from './corpus/corpus';
+import { documentoDificil, TABELA_CORPUS, TABELA_LONGA_CORPUS } from './corpus/corpus';
 
 const opcoes = { imagens: IMAGENS_CONFORMIDADE };
 const perfilSem = (...ids: string[]): Perfil => ({ ...PERFIL, regras: PERFIL.regras.filter((r) => !ids.includes(r.id)) });
@@ -179,5 +179,17 @@ describe('critério provisório (N-M6-07, revisão do M6)', () => {
     const longa = avaliarConformidade(d, PERFIL).problemas.find((p) => p.codigo === 'TABELA_LONGA');
     expect(longa?.provisoria).toBe(true);
     expect(textoRelatorioConformidade(d, [longa!])).toContain('AVISO (critério provisório) — TABELA_LONGA');
+  });
+});
+
+describe('RN-096 no relatório (N-M6-03, revisão do M6)', () => {
+  it('narrativa com várias obras (D-M4-08) aparece como aviso de critério provisório, não como regra ausente do perfil', () => {
+    const d = documentoDificil();
+    d.corpo[0]!.blocos.push({ tipo: 'paragrafo', id: 'par_rn096teste01', conteudo: [{ tipo: 'citacao', id: 'cta_rn096teste01', forma: 'narrativa', obras: [{ obra: 'o1' }, { obra: 'o2' }] }] });
+    const r = avaliarConformidade(d, PERFIL);
+    expect(r.diagnosticos.filter((x) => x.origem.includes('RN-096'))).toEqual([]);
+    const p = r.problemas.filter((x) => x.origem.includes('RN-096'));
+    expect(p.length).toBeGreaterThan(0);
+    expect(p.every((x) => x.provisoria)).toBe(true);
   });
 });

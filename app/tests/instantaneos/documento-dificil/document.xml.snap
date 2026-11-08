@@ -4120,7 +4120,7 @@
 </w:p>
 <w:p>
 <w:pPr>
-<w:pStyle w:val="corpo"/>
+<w:pStyle w:val="entradaGlossario"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Exemplo: Entrada fictícia para conferir a formatação.</w:t>

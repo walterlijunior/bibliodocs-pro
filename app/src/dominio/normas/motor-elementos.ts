@@ -203,7 +203,10 @@ export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: 
         // N-M6-01: o Manual pede letra, travessão e título (p. 65, cap. 7; p. 66, cap. 8).
         if (!nome) avisos.push({ codigo: 'POS_TEXTUAL_SEM_TITULO', id: e.id, mensagem: `${palavra} ${letra} está sem título: o Manual pede "${palavra} ${letra} – Título" (${apendice ? 'RN-231' : 'RN-234'}).` });
         // Marcador curto: o Word aceita até 40 caracteres, só letras, algarismos e "_" (o id pode ter "-" e 64).
-        blocos.push({ ...paragrafo('identificacaoPosTextual', [trecho(`${palavra} ${letra}${nome ? `${SEPARADOR}${nome}` : ''}`)], rn), ancora: `_Pos_${apendice ? 'A' : 'N'}${i + 1}` } as BlocoFormatado);
+        // D-M6-12 (revisão do M6, N-M6-08): com conteúdo, cada apêndice ou anexo depois do primeiro começa em folha nova,
+        // para o conteúdo de um não emendar na identificação do seguinte.
+        const novaFolha = i > 0 && (e.blocos ?? []).length > 0 ? { novaPagina: true as const } : {};
+        blocos.push({ ...paragrafo('identificacaoPosTextual', [trecho(`${palavra} ${letra}${nome ? `${SEPARADOR}${nome}` : ''}`)], rn), ancora: `_Pos_${apendice ? 'A' : 'N'}${i + 1}`, ...novaFolha } as BlocoFormatado);
         blocos.push(...conteudo(e));
         break;
       }

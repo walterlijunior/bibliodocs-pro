@@ -136,6 +136,9 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
   { id: 'aprovacaoData', nome: 'Aprovação – Data', alvos: ['documento', 'folhaAprovacao.data'] },
   { id: 'aprovacaoBanca', nome: 'Aprovação – Banca', alvos: ['documento', 'folhaAprovacao.banca'] },
   { id: 'entradaSumario', nome: 'Entrada do sumário', alvos: ['documento', 'sumario.entrada'] },
+  // Revisão do M6 (N-M6-09): o glossário segue o corpo, sem o recuo de primeira linha, como o exemplo da p. 64 de onde
+  // veio a forma "Termo: definição" (D-M6-06, provisória).
+  { id: 'entradaGlossario', nome: 'Entrada de glossário', alvos: ['documento', 'corpo.paragrafo'], semHerdar: ['recuoPrimeiraLinhaTw'] },
   { id: 'entradaLista', nome: 'Entrada de lista de ilustrações ou tabelas', alvos: ['documento', 'lista.entrada'] },
   { id: 'identificacaoPosTextual', nome: 'Identificação de apêndice e anexo', alvos: ['documento', 'posTextual.identificacao'] },
   {
@@ -373,6 +376,8 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const cadastroSiglas = new Map((doc.siglas ?? []).map((s) => [s.id, s]));
   const siglasUsadas = new Set<string>();
   const siglasPorExtenso = new Set<string>();
+  const siglasPorExtensoNota = new Set<string>();
+  let emNota = false;
   let emCitacaoLonga = false;
   const rnPrimeiraSigla = temProcedimento(regras, 'primeiraSiglaPorExtenso');
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
@@ -390,9 +395,12 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
           siglasUsadas.add(s.id);
           return [{ tipo: 'texto', texto: s.sigla, marcas: [] }];
         }
-        const primeira = !siglasPorExtenso.has(s.id);
+        // D-M6-11 (revisão do M6, N-M6-05): texto e notas contam à parte, para a forma por extenso aparecer no texto
+        // corrido (Manual, p. 18: "na primeira vez em que aparecerem no texto") mesmo se a sigla surgiu antes numa nota.
+        const ja = emNota ? siglasPorExtensoNota : siglasPorExtenso;
+        const primeira = !ja.has(s.id);
         siglasUsadas.add(s.id);
-        siglasPorExtenso.add(s.id);
+        ja.add(s.id);
         // R-M6-09: tabulação ou quebra no cadastro não desalinham nem quebram o texto.
         const limpo = (t: string) => t.replace(/[\t\r\n]+/g, ' ');
         return [{ tipo: 'texto', texto: primeira && rnPrimeiraSigla !== null ? `${limpo(s.extenso)} (${limpo(s.sigla)})` : limpo(s.sigla), marcas: [] }];
@@ -414,7 +422,14 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         avisos.push({ codigo: 'NOTA_VAZIA', id: i.id, mensagem: 'Nota de rodapé sem texto: não foi exportada.' });
         return [];
       }
-      return [{ tipo: 'nota', numero: ++proximaNota, trechos: trechos(i.conteudo), estilo: 'textoNota', origem: rnNotas }];
+      const numero = ++proximaNota;
+      const antes = emNota;
+      emNota = true;
+      try {
+        return [{ tipo: 'nota', numero, trechos: trechos(i.conteudo), estilo: 'textoNota', origem: rnNotas }];
+      } finally {
+        emNota = antes;
+      }
     });
   // Em maiúsculas no próprio texto, além do estilo: o sumário do Word copia o texto, não a caixa do estilo (RN-010).
   const emMaiusculas = (estilo: string): boolean => estilos.find((e) => e.id === estilo)?.propriedades.maiusculas === true;
