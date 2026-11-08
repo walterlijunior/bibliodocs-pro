@@ -20,6 +20,7 @@ interface Relatorio {
   notas: number;
   sumarios: number;
   tabelas: number;
+  imagens: number;
   sumarioGravado?: string;
   sumarioAtualizado?: string;
 }
@@ -53,6 +54,7 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
     expect(r.notas).toBe(4); // a 4.ª é a nota com citação (M4-T07)
     expect(r.secoes).toBe(6);
     expect(r.tabelas).toBe(4); // ficha catalográfica, Tabela 1, Quadro 1 e Tabela 2 (M5-T03)
+    expect(r.imagens).toBe(1); // Figura 1 (M5-T06)
     expect(r.sumarioGravado).toContain('1.1.1.1.1 Seção quinária');
     expect(r.sumarioGravado).toContain('REFERÊNCIAS');
   });

@@ -13,8 +13,8 @@
  * - Largura da tabela: a área útil da página.
  */
 import { numerarElementos, type SequenciaElemento } from '../numeracao';
-import { celulasComColuna, rodapeDoElemento, rotuloElemento, tituloComRotulo } from '../visuais';
-import type { AlinhamentoColuna, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
+import { celulasComColuna, larguraImpressaMm, lerInfoImagem, rodapeDoElemento, rotuloElemento, tituloComRotulo } from '../visuais';
+import type { AlinhamentoColuna, BlocoIlustracao, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
 import type { BlocoFormatado, CelulaFormatada, PaginaResolvida, TracosMoldura, TrechoFormatado } from './formatado';
 import type { Perfil, RegraNormativa } from './perfil';
 
@@ -32,6 +32,8 @@ export interface ContextoVisuais {
     quadroFechado: string | null;
     cabecalho: string | null;
     espaco: readonly string[];
+    /** Regras do parágrafo da imagem (RN-059). */
+    imagem: readonly string[];
   };
   separador: string;
   espacoDepoisTw: number | null;
@@ -62,6 +64,7 @@ export function contextoVisuais(corpo: readonly Secao[], regras: readonly RegraN
       quadroFechado: procedimento(regras, 'molduraFechada'),
       cabecalho: procedimento(regras, 'repetirCabecalho'),
       espaco: rnEspaco,
+      imagem: regras.filter((r) => r.alvo === 'ilustracao.imagem').map((r) => r.id),
     },
     // Sem a regra, só um espaço entre o rótulo e o título.
     separador: rnRotulo !== null && typeof separador === 'string' ? separador : ' ',
@@ -89,6 +92,25 @@ function tracos(b: BlocoTabela, c: ContextoVisuais): { tracos: TracosMoldura; or
   };
 }
 
+/**
+ * Rodapé do elemento: Fonte → Nota → notas específicas (RN-277), chamada entre parênteses (RN-267); uma linha depois do
+ * último parágrafo (RN-031, RN-308). Sem rodapé, um parágrafo vazio com esse espaço.
+ */
+function rodapeFormatado(b: BlocoTabela | BlocoIlustracao, c: ContextoVisuais): BlocoFormatado[] {
+  const rodape: BlocoFormatado[] = rodapeDoElemento(b).map((p): BlocoFormatado => {
+    const prefixo = p.parte === 'notaEspecifica' ? `(${p.chamada}) ` : `${p.prefixo} `;
+    const origem = p.parte === 'notaEspecifica' ? so(c.rn.ordemRodape, c.rn.chamada) : so(c.rn.ordemRodape);
+    return { tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [texto(prefixo), ...deInline(p.conteudo)], origem };
+  });
+  if (rodape.length === 0) rodape.push({ tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [], origem: [] });
+  if (c.espacoDepoisTw !== null) {
+    const ultimo = rodape.at(-1)! as Extract<BlocoFormatado, { tipo: 'paragrafo' }>;
+    rodape[rodape.length - 1] = { ...ultimo, depoisTw: c.espacoDepoisTw, origem: [...new Set([...ultimo.origem, ...c.rn.espaco])] };
+  }
+
+  return rodape;
+}
+
 /** Título, tabela e rodapé, nessa ordem (RN-242: topo, centro e rodapé). */
 export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado[] {
   const n = c.numeros.get(b.id);
@@ -106,16 +128,7 @@ export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado
     });
   }
 
-  const rodape = rodapeDoElemento(b).map((p): BlocoFormatado => {
-    const prefixo = p.parte === 'notaEspecifica' ? `(${p.chamada}) ` : `${p.prefixo} `;
-    const origem = p.parte === 'notaEspecifica' ? so(c.rn.ordemRodape, c.rn.chamada) : so(c.rn.ordemRodape);
-    return { tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [texto(prefixo), ...deInline(p.conteudo)], origem };
-  });
-  if (rodape.length === 0) rodape.push({ tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [], origem: [] });
-  if (c.espacoDepoisTw !== null) {
-    const ultimo = rodape.at(-1)! as Extract<BlocoFormatado, { tipo: 'paragrafo' }>;
-    rodape[rodape.length - 1] = { ...ultimo, depoisTw: c.espacoDepoisTw, origem: [...new Set([...ultimo.origem, ...c.rn.espaco])] };
-  }
+  const rodape = rodapeFormatado(b, c);
 
   return [
     { tipo: 'paragrafo', estilo: 'tituloElemento', trechos: deInline(titulo), origem: so(c.rn.numeracao, c.rn.rotulo) },
@@ -132,4 +145,34 @@ export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado
     },
     ...rodape,
   ];
+}
+
+/** 1 px a 96 ppi = 15 twips; a imagem vai em pixels para o DOCX, mas o tamanho é decidido aqui, em twips. */
+const MM_EM_TW = 1440 / 25.4;
+
+/**
+ * Título, imagem e rodapé da ilustração (M5-T06; RN-052, RN-059, D-M5-09). A largura é a do autor ou a natural, limitada
+ * à área útil; a altura segue a proporção da imagem. Sem os bytes (ou com cabeçalho ilegível), sai sem a imagem.
+ */
+export function blocosIlustracao(b: BlocoIlustracao, c: ContextoVisuais, bytes: Uint8Array | undefined): { blocos: BlocoFormatado[]; ausente: boolean } {
+  const n = c.numeros.get(b.id);
+  const titulo = c.rn.numeracao !== null && n !== undefined ? tituloComRotulo(rotuloElemento(n.sequencia, n.numero), b.titulo, c.separador) : b.titulo;
+  const info = bytes ? lerInfoImagem(bytes) : null;
+  const blocos: BlocoFormatado[] = [{ tipo: 'paragrafo', estilo: 'tituloElemento', trechos: deInline(titulo), origem: so(c.rn.numeracao, c.rn.rotulo) }];
+  if (bytes && info) {
+    const larguraMm = larguraImpressaMm(info, b.larguraMm, (c.larguraTw * 25.4) / 1440);
+    const larguraTw = Math.round(larguraMm * MM_EM_TW);
+    blocos.push({
+      tipo: 'imagem',
+      estilo: 'imagemElemento',
+      dados: bytes,
+      formato: info.tipo === 'image/png' ? 'png' : 'jpg',
+      larguraTw,
+      alturaTw: Math.round((larguraTw * info.alturaPx) / info.larguraPx),
+      descricao: titulo.map((i) => i.texto).join(''),
+      origem: c.rn.imagem,
+    });
+  }
+  blocos.push(...rodapeFormatado(b, c));
+  return { blocos, ausente: !(bytes && info) };
 }

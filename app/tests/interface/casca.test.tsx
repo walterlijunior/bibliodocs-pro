@@ -218,6 +218,7 @@ describe('aba Escrever (M1-T11)', () => {
         registrarTexto: nada,
       },
       controleEditor: { current: null },
+      midias: { incluir: () => ({ ok: false, mensagem: '' }), ler: () => null },
       ...p,
     };
     return renderToStaticMarkup(<AreaEscrever {...props} />);

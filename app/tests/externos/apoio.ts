@@ -7,7 +7,7 @@ import { strToU8, unzipSync, zipSync } from 'fflate';
 import { PERFIL_UFT_2022 as PERFIL } from '../../src/aplicacao/perfil-padrao';
 import { formatar } from '../../src/dominio/normas';
 import { exportarDocx } from '../../src/exportacao/docx';
-import { documentoDificil, TIPOS, trabalhoDoTipo } from '../corpus/corpus';
+import { documentoDificil, IMAGENS_CORPUS, TIPOS, trabalhoDoTipo } from '../corpus/corpus';
 
 export const RAIZ_APP = join(__dirname, '..', '..');
 
@@ -23,7 +23,7 @@ export async function gravarCorpus(): Promise<Corpus> {
   const arquivos = [];
   for (const [nome, d] of documentos) {
     const caminho = join(pasta, `${nome}.docx`);
-    writeFileSync(caminho, await exportarDocx(formatar(d, PERFIL)));
+    writeFileSync(caminho, await exportarDocx(formatar({ ...d, imagens: IMAGENS_CORPUS }, PERFIL)));
     arquivos.push({ nome, caminho });
   }
   return { pasta, arquivos, apagar: () => rmSync(pasta, { recursive: true, force: true, maxRetries: 3 }) };

@@ -104,6 +104,8 @@ export {
   type ObraNaLista,
   type ResultadoObra,
   MENSAGEM_OBRA_INVALIDA,
+  soMidiasUsadas,
+  type ResultadoMidia,
 } from './servicos/sessao-trabalho';
 export {
   formatadorDeChamadas,
@@ -117,6 +119,18 @@ export {
   type FormatadorDeChamadas,
   type ResultadoValidacaoCitacao,
 } from './servicos/citacoes';
+export {
+  avaliarImagem,
+  ESPECIES_FIGURA,
+  LARGURA_FIGURA_MM,
+  rascunhoDeFigura,
+  rascunhoFiguraNova,
+  validarFigura,
+  type DadosFigura,
+  type RascunhoFigura,
+  type ResultadoValidacaoFigura,
+} from './servicos/figuras';
+export { lerInfoImagem, RESOLUCAO_MINIMA_PPI, type InfoImagem } from '../dominio/visuais';
 export {
   aplicarPlanilha,
   converterPlanilha,

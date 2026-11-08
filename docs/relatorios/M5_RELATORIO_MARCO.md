@@ -108,3 +108,31 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - Cópia real do Excel e do LibreOffice instalados: as fixtures imitam o formato; conferir à mão no M5-T10.
 - **Instabilidade antiga do E2E da citação (FUN-13):** na suíte completa, o Ctrl+Alt+F às vezes não insere a nota (linha 114). Falhou 3 de 4 vezes com o M5-T05 e 1 de 3 no commit anterior (`5c3a4a7`), sem as mudanças; isolado, passou 6 de 6. Não vem desta tarefa; investigar no M5-T10.
 - E2E de desempenho: pico de memória 816–853 MB contra 800 em algumas rodadas (R-M3-13), também no commit anterior.
+
+## M5-T06 — Figuras
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- `dominio/visuais/imagem.ts` (novo): tipo, pixels e resolução lidos só do cabeçalho (PNG: IHDR, pHYs; JPEG: SOFn, JFIF), sem decodificar; largura impressa e resolução efetiva.
+- `dominio/verificador/visuais.ts`: `RESOLUCAO_BAIXA` (RNF-17) e `avisoDeResolucao`.
+- Motor: `blocosIlustracao` (título com rótulo, imagem, rodapé comum com a tabela), estilo `imagemElemento`, `areaUtilMm`, aviso `IMAGEM_AUSENTE`; perfil com a RN-059 no alvo novo `ilustracao.imagem`.
+- Exportador: imagem em linha (`ImageRun`) com texto alternativo; id do desenho por documento, para o mesmo documento dar o mesmo arquivo.
+- Exportação (IPC): as imagens do pacote vão ao motor e ao verificador.
+- Sessão: `incluirMidia` (uma por sha256), `lerMidia`, `soMidiasUsadas` ao salvar, no instantâneo e na exportação.
+- Interface: `DialogoFigura.tsx`, `figura-view.ts`, comandos de inserir e alterar generalizados em `editor/tabelas.ts`, botão "Figura", menu Inserir › Figura….
+- Corpus: o documento difícil ganhou a Figura 1 (PNG de 600 × 400 px a 300 ppi gerado no teste); fixtures PNG para o E2E.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-34 a 37.
+
+**Testado:**
+- `npm run verificar`: 1877/1877 (`figuras.test.ts` novo; sessão, exportação e regressão ampliados; instantâneos revistos: estilo novo em todos e a figura no documento difícil, 50,8 mm conferidos no XML).
+- `npm run test:externos`: 27/27; o Word abre o documento difícil e conta 1 imagem.
+- `npm run build`: ok. Playwright: 30/30, com FUN-16 e o axe da janela e da figura no texto.
+- Aceite do RF-10 (aviso de resolução): unitário, exportação por IPC e E2E.
+- Conferência visual por captura da janela e da figura no texto.
+
+**Não testado / pendente:**
+- Foto de celular com rotação no EXIF sai sem girar (D-M5-35).
+- A imagem não fica presa à fonte na quebra de página (D-M5-34).
+- Imagem muito grande (dezenas de MB) não foi medida quanto à memória (R-M3-13).

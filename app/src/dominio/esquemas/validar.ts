@@ -4,9 +4,9 @@
  * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos → obras citadas → grade das tabelas (M5-T01).
  */
 import { z } from 'zod';
-import { problemaNaGrade, problemaNosElementos, type Bloco, type BlocoTabela, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
+import { problemaNaGrade, problemaNosElementos, type Bloco, type BlocoIlustracao, type BlocoTabela, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
-import { esquemaBlocoTabela, esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
+import { esquemaBlocoIlustracao, esquemaBlocoTabela, esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
 export interface ErroValidacao {
   /** Caminho legível, ex.: `documento.corpo[0].titulo[1].texto`. */
@@ -247,6 +247,11 @@ export function validarTabelaV1(json: unknown): ResultadoValidacao<BlocoTabela> 
   const problema = problemaNaGrade(b);
   if (problema) return { ok: false, erros: [{ caminho: formatarCaminho('tabela', problema.caminho), mensagem: MENSAGENS_GRADE[problema.motivo] }] };
   return r;
+}
+
+/** Uma ilustração sozinha (M5-T06): a janela da figura só grava a que o documento aceitaria. Caminhos a partir de `ilustracao`. */
+export function validarIlustracaoV1(json: unknown): ResultadoValidacao<BlocoIlustracao> {
+  return validarComEsquema('ilustracao', esquemaBlocoIlustracao as z.ZodType<BlocoIlustracao>, json);
 }
 
 export function validarManifestoV1(json: unknown): ResultadoValidacao<Manifesto> {

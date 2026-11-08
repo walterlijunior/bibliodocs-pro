@@ -394,6 +394,13 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tabela-edicao__celula--ativa { border-color: var(--cor-foco); }
 .tabela-edicao__nota { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--esp-2); }
 .campo--curto { width: 6em; }
+/* Figura no texto e janela da figura (M5-T06). */
+.bd-figura { margin: var(--esp-3) 0; padding: var(--esp-2); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); cursor: pointer; }
+.bd-figura.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+.bd-figura__caixa { text-align: center; }
+.bd-figura__imagem { max-width: 100%; height: auto; background: var(--cor-fundo); }
+.figura-edicao__previa { text-align: center; max-height: 40vh; overflow: auto; }
+.figura-edicao__img { max-width: 100%; max-height: 38vh; object-fit: contain; }
 /* Dados de planilha na janela da tabela (M5-T05). */
 .tabela-planilha { display: grid; gap: var(--esp-2); }
 .tabela-planilha__entrada { display: flex; gap: var(--esp-2); align-items: stretch; flex-wrap: wrap; }

@@ -16,6 +16,7 @@ export {
   type ProblemaBibliografia,
 } from './bibliografia';
 export {
+  avisoDeResolucao,
   LINHAS_TABELA_LONGA,
   PROPORCAO_NUMERICA_MINIMA,
   verificarVisuais,

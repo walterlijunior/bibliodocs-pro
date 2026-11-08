@@ -5,3 +5,5 @@ materiais/** -text -diff
 app/tests/instantaneos/** -text -diff
 # Planilhas de teste (M5-T05): CRLF e Windows-1252 de propósito.
 app/tests/fixtures/planilha/** -text -diff
+# Imagens de teste (M5-T06): binárias.
+app/tests/fixtures/figuras/** -text -diff

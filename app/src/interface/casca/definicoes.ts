@@ -30,6 +30,8 @@ export type ComandoMenu =
   | 'inserirCitacao'
   // M5-T04: Inserir › Tabela ou quadro… (botão "Tabela" no editor).
   | 'inserirTabela'
+  // M5-T06: Inserir › Figura… (botão "Figura" no editor).
+  | 'inserirFigura'
   // M2-T07: Trabalho › Estrutura de seções… (foco na árvore) e os botões de seção da barra superior.
   | 'estruturaSecoes'
   | 'secaoAnterior'
@@ -97,7 +99,7 @@ export const MENUS: readonly Menu[] = [
     itens: [
       { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C', comando: 'inserirCitacao' },
       { rotulo: 'Tabela ou quadro…', comando: 'inserirTabela' },
-      { rotulo: 'Figura…' }, // M5
+      { rotulo: 'Figura…', comando: 'inserirFigura' },
       { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
       { rotulo: 'Sigla…' }, // M2
     ],
@@ -134,6 +136,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('inserirNota');
     d.add('inserirCitacao');
     d.add('inserirTabela');
+    d.add('inserirFigura');
   }
   if (trabalho === null) {
     d.add('estruturaSecoes');

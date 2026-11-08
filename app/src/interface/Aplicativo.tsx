@@ -448,6 +448,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirTabela':
           refEditor.current?.pedirTabela();
           return;
+        case 'inserirFigura':
+          refEditor.current?.pedirFigura();
+          return;
         case 'inserirCitacao':
           refEditor.current?.pedirCitacao();
           return;
@@ -512,6 +515,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       d.add('inserirNota');
       d.add('inserirCitacao');
       d.add('inserirTabela');
+      d.add('inserirFigura');
     }
     return d;
   }, [trabalho, local.aba, comFormulario]);
@@ -676,6 +680,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 estrutura={estrutura}
                 aoMudarFormulario={setComFormulario}
                 controleEditor={refEditor}
+                midias={{
+                  incluir: (bytes, sha256) => sessao.incluirMidia(bytes, sha256),
+                  ler: (sha256) => sessao.lerMidia(sha256),
+                }}
               />
             ) : (
               <div className="estado">

@@ -4,7 +4,7 @@
  */
 import { basename } from 'node:path';
 import { CANAIS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
-import { formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
+import { areaUtilMm, formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
 import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
 import { textoPlano } from '../../dominio/modelo';
 import { verificarVisuais } from '../../dominio/verificador';
@@ -54,7 +54,9 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       const destino = await dep.escolherDestino(r.idConteudo, `${limparNomeArquivo(textoPlano(documento.metadados.titulo)).replace(/\.bdp$/i, '')}${EXTENSAO_DOCX}`);
       if (destino === null) return { ok: false, motivo: 'CANCELADO' };
       if (!destino.toLowerCase().endsWith(EXTENSAO_DOCX)) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXTENSAO_DOCX };
-      const formatado = formatar(documento, dep.perfil, fonte !== undefined ? { fonte } : {});
+      // M5-T06: as imagens das ilustrações vão com o documento, pelo sha256 (o pacote já foi conferido na leitura).
+      const imagens = p.valor.midias;
+      const formatado = formatar({ ...documento, imagens }, dep.perfil, fonte !== undefined ? { fonte } : {});
       const gerado = await dep.exportar(formatado);
       if (!gerado.ok) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_FALHOU };
       const g = await dep.gravar(destino, gerado.bytes);
@@ -63,7 +65,8 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
         return { ok: false, motivo: 'ERRO', mensagem: g.mensagem };
       }
       // M5-T03: pendências de tabelas, quadros e ilustrações (sem fonte, tabela longa, RN-297) junto dos avisos do motor.
-      const avisos = [...formatado.avisos.map((a) => a.mensagem), ...verificarVisuais(documento).map((v) => v.mensagem)];
+      const visuais = verificarVisuais(documento, { imagens, areaUtilMm: areaUtilMm(dep.perfil) });
+      const avisos = [...formatado.avisos.map((a) => a.mensagem), ...visuais.map((v) => v.mensagem)];
       return { ok: true, nomeArquivo: basename(destino), avisos };
     } finally {
       emCurso = false;

@@ -1308,6 +1308,16 @@
    }
   },
   {
+   "id": "RN-059",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 19–20, exemplos",
+   "tipo": "estilo",
+   "alvo": "ilustracao.imagem",
+   "propriedades": {
+    "alinhamento": "centralizado"
+   }
+  },
+  {
    "id": "RN-277",
    "status": "CONFIRMADA",
    "fonte": "I, p. 20–21, seções 4.10, 4.11, 4.12 (decorre de \"a partir da primeira linha\", \"logo após a fonte\", \"logo após a nota geral\")",

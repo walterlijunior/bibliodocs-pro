@@ -1,6 +1,8 @@
 // M1-T11 — sessão de edição: estado de salvamento do visor e salvamento automático (ADR-0004, opção 1 do usuário).
 // API falsa e agendador manual: nenhuma espera real, nenhum Electron.
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { pngDeTeste } from './corpus/corpus';
 import { LIMITES_V1 } from '../src/dominio/esquemas';
 import {
   ATRASO_INSTANTANEO_MS,
@@ -29,6 +31,12 @@ const ID_NOVO = 'BBBBBBBBBBBBBBBBBBBBBB';
 function pacote(titulo = ''): PacoteTransferivel {
   const t = criarTrabalhoVazio({ id: 'prj_abcdefghijklmnop', agora: '2026-10-16T10:00:00.000Z', appVersao: '0.1.0' });
   return { ...t, documento: { ...t.documento, metadados: { titulo: titulo === '' ? [] : [{ tipo: 'texto', texto: titulo }] } }, midias: [] };
+}
+
+/** O pacote com uma seção de figuras que usam as mídias `shas` (M5-T06: só as mídias usadas vão para o arquivo). */
+function comFiguras(p: PacoteTransferivel, ...shas: string[]): PacoteTransferivel {
+  const blocos = shas.map((midia, i) => ({ tipo: 'ilustracao' as const, id: `ilu_figura00000${i}`, especie: 'figura' as const, titulo: [{ tipo: 'texto' as const, texto: 'F' }], midia }));
+  return { ...p, documento: { ...p.documento, corpo: [{ id: 'sec_figuras000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos }] } };
 }
 
 function projeto(parcial: Partial<ProjetoAberto> = {}): ProjetoAberto {
@@ -464,9 +472,28 @@ describe('sessão de edição: Salvar como, arquivo sem .bdp e versão futura', 
 describe('mídias uma vez (M2-T01)', () => {
   const M = { sha256: 'c'.repeat(64), bytes: new Uint8Array([1, 2, 3]) };
   const N = { sha256: 'd'.repeat(64), bytes: new Uint8Array([4]) };
-  const comMidias = (identificador: string | null = ID) => projeto({ identificador, pacote: { ...pacote(), midias: [M] } });
+  const comMidias = (identificador: string | null = ID) => projeto({ identificador, pacote: comFiguras({ ...pacote(), midias: [M] }, M.sha256) });
   const AUSENTE: ResultadoSalvar = { ok: false, motivo: 'ERRO', codigo: CODIGO_MIDIA_AUSENTE, mensagem: 'faltou', erros: [] };
   const OK_SALVAR: ResultadoSalvar = { ok: true, nomeArquivo: 'Trabalho.bdp', avisos: [] };
+
+  it('M5-T06: o arquivo leva só as mídias usadas, com o manifesto refeito; a memória guarda as outras para o Ctrl+Z', async () => {
+    const png = pngDeTeste(20, 10, 300);
+    const sha = createHash('sha256').update(png).digest('hex');
+    const { sessao, chamadas } = montar();
+    sessao.abrir(projeto({ pacote: comFiguras({ ...pacote(), midias: [M] }, sha) }));
+    expect(sessao.incluirMidia(png, sha)).toEqual({ ok: true, info: { tipo: 'image/png', larguraPx: 20, alturaPx: 10, ppi: expect.closeTo(300, 0) } });
+    expect(sessao.incluirMidia(png, sha).ok).toBe(true); // a mesma imagem de novo: uma mídia só
+    expect(sessao.lerMidia(sha)).toBe(png);
+    expect(sessao.incluirMidia(new Uint8Array([1, 2, 3]), 'e'.repeat(64))).toEqual({ ok: false, mensagem: 'O arquivo não é uma imagem PNG ou JPEG que o app consiga ler.' });
+    sessao.alterarTitulo('Um');
+    expect(await sessao.salvar()).toBe(true);
+    const enviado = chamadas.salvar[0]!.pacote;
+    expect(enviado.midias).toEqual([{ sha256: sha, bytes: png }]);
+    expect(enviado.manifesto.midias).toEqual([{ caminho: `midias/${sha}.png`, sha256: sha, bytes: png.length, tipo: 'image/png' }]);
+    // M não é usada por nenhuma figura: fica fora do arquivo, mas a sessão ainda a tem.
+    expect(sessao.lerMidia(M.sha256)).toBe(M.bytes);
+    expect(sessao.pacoteAtual()!.midias.map((m) => m.sha256)).toEqual([sha]);
+  });
 
   it('paraEnvio troca pela chave só as mídias conhecidas', () => {
     const p = { ...pacote(), midias: [M, N] };

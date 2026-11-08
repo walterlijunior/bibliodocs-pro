@@ -7,9 +7,9 @@
 // janela da citação, pedida pelo editor. M4-T08: a conferência da bibliografia, no lugar do editor, com "Ir ao texto" e
 // "Abrir obra". M4-T09: importar BibTeX ou RIS, com a janela que mostra o que entra. Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
+import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoMidia, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
-import type { TabelaNoEditor } from '../editor/tabelas';
+import type { FiguraNoEditor, TabelaNoEditor } from '../editor/tabelas';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
@@ -17,6 +17,7 @@ import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
 import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
+import { DialogoFigura } from './DialogoFigura';
 import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
@@ -78,6 +79,11 @@ export interface PropsAreaEscrever {
   aoMudarFormulario?: (aberto: boolean) => void;
   /** O editor da seção aberta, para os menus Editar e Inserir. */
   controleEditor: RefObject<ControleEditor | null>;
+  /** Imagens do trabalho (M5-T06): guardar a de uma figura nova e ler para mostrar. */
+  midias: {
+    incluir: (bytes: Uint8Array, sha256: string) => ResultadoMidia;
+    ler: (sha256: string) => Uint8Array | null;
+  };
 }
 
 export function AreaEscrever(p: PropsAreaEscrever) {
@@ -118,6 +124,17 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     }
     if (pedidoTabela !== null) focarAoFecharTabela.current = true;
   }, [pedidoTabela, controleEditor]);
+  // Janela da figura (M5-T06), como a da tabela.
+  const [pedidoFigura, setPedidoFigura] = useState<{ existente: FiguraNoEditor | null } | null>(null);
+  const pedirFigura = useCallback((existente: FiguraNoEditor | null) => setPedidoFigura({ existente }), []);
+  const focarAoFecharFigura = useRef(false);
+  useEffect(() => {
+    if (pedidoFigura === null && focarAoFecharFigura.current) {
+      focarAoFecharFigura.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoFigura !== null) focarAoFecharFigura.current = true;
+  }, [pedidoFigura, controleEditor]);
   const listaObras = t?.obras;
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
@@ -160,6 +177,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setObraAberta(null);
     setPedidoCitacao(null);
     setPedidoTabela(null);
+    setPedidoFigura(null);
     setConferencia(null);
   }, [ativaId, t?.geracao]);
   // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
@@ -460,7 +478,29 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 reconhecerChamadas={reconhecerChamadas}
                 aoPedirCitacao={pedirCitacao}
                 aoPedirTabela={pedirTabela}
+                aoPedirFigura={pedirFigura}
+                lerMidia={p.midias.ler}
               />
+              {pedidoFigura !== null && (
+                <DialogoFigura
+                  inicial={pedidoFigura.existente?.dados ?? null}
+                  lerMidia={p.midias.ler}
+                  aoConfirmar={(dados, imagem) => {
+                    const x = pedidoFigura.existente;
+                    if (imagem !== null) {
+                      const r = p.midias.incluir(imagem.bytes, imagem.sha256);
+                      if (!r.ok) {
+                        setAvisosEditor([r.mensagem]);
+                        return;
+                      }
+                    }
+                    setPedidoFigura(null);
+                    if (x === null) controleEditor.current?.inserirFigura(dados);
+                    else controleEditor.current?.alterarFigura(x.id, dados);
+                  }}
+                  aoFechar={() => setPedidoFigura(null)}
+                />
+              )}
               {pedidoTabela !== null && (
                 <DialogoTabela
                   inicial={pedidoTabela.existente?.dados ?? null}

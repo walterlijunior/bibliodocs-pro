@@ -6,6 +6,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T06: figuras.
+  - Botão "Figura" e menu Inserir › Figura…: imagem PNG ou JPEG, espécie (Figura, Fotografia, Gráfico, Mapa…), título, largura, fonte e nota.
+  - A janela mostra o tamanho em pixels, a largura impressa e a resolução; abaixo de 150 ppi, avisa e sugere a largura que resolve. O aviso também sai na exportação.
+  - No texto, a figura aparece com a imagem na proporção da página; duplo clique altera, inclusive trocando a imagem; Ctrl+Z desfaz.
+  - No DOCX, "Figura 1 – Título" acima, a imagem centralizada com texto alternativo, e a fonte abaixo.
+  - A mesma imagem em várias figuras é gravada uma vez, e o arquivo leva só as imagens usadas.
 - Etapa 5, M5-T05: dados de planilha na janela da tabela.
   - Colar as células copiadas no Excel ou no LibreOffice (com mesclagens) ou importar um CSV (";" ou ",", UTF-8 ou Windows-1252).
   - Prévia com separador decimal, sinal para as células vazias e linhas de cabeçalho; números com ponto decimal convertidos para o padrão brasileiro; datas ISO para dia/mês/ano.

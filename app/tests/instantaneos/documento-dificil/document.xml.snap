@@ -3624,6 +3624,74 @@
 </w:p>
 <w:p>
 <w:pPr>
+<w:pStyle w:val="tituloElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Figura 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Degradê fictício de teste</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="imagemElemento"/>
+</w:pPr>
+<w:r>
+<w:drawing>
+<wp:inline distB="0" distL="0" distR="0" distT="0">
+<wp:extent cx="1828800" cy="1219200"/>
+<wp:effectExtent b="0" l="0" r="0" t="0"/>
+<wp:docPr descr="Figura 1 – Degradê fictício de teste" id="1" name="Figura 1 – Degradê fictício de teste" title="Figura 1 – Degradê fictício de teste"/>
+<wp:cNvGraphicFramePr>
+<a:graphicFrameLocks noChangeAspect="1" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"/>
+</wp:cNvGraphicFramePr>
+<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+<pic:nvPicPr>
+<pic:cNvPr descr="" id="0" name=""/>
+<pic:cNvPicPr>
+<a:picLocks noChangeArrowheads="1" noChangeAspect="1"/>
+</pic:cNvPicPr>
+</pic:nvPicPr>
+<pic:blipFill>
+<a:blip cstate="none" r:embed="rId9"/>
+<a:srcRect/>
+<a:stretch>
+<a:fillRect/>
+</a:stretch>
+</pic:blipFill>
+<pic:spPr bwMode="auto">
+<a:xfrm>
+<a:off x="0" y="0"/>
+<a:ext cx="1828800" cy="1219200"/>
+</a:xfrm>
+<a:prstGeom prst="rect">
+<a:avLst/>
+</a:prstGeom>
+</pic:spPr>
+</pic:pic>
+</a:graphicData>
+</a:graphic>
+</wp:inline>
+</w:drawing>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+<w:spacing w:after="240"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Fonte: </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Elaborado pela autoria fictícia (2026).</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
 <w:pStyle w:val="corpo"/>
 <w:sectPr>
 <w:headerReference r:id="rId6" w:type="default"/>

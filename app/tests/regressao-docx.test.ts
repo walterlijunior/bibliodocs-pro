@@ -9,7 +9,7 @@ import { formatar, type DocumentoFormatado } from '../src/dominio/normas';
 import type { Documento } from '../src/dominio/modelo';
 import { exportarDocx } from '../src/exportacao/docx';
 import { abrirDocx, normalizarXml, PARTES_DO_INSTANTANEO, type Partes } from './apoio/docx-normalizado';
-import { documentoDificil, TIPOS, trabalhoDoTipo } from './corpus/corpus';
+import { documentoDificil, IMAGENS_CORPUS, TIPOS, trabalhoDoTipo } from './corpus/corpus';
 
 type No = Record<string, unknown>;
 const leitor = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@', isArray: (n) => ['w:style', 'w:p', 'w:sectPr', 'w:r'].includes(n) });
@@ -19,7 +19,7 @@ const gerados = new Map<string, { partes: Partes; formatado: DocumentoFormatado;
 
 beforeAll(async () => {
   for (const [nome, criar] of CORPUS) {
-    const formatado = formatar(criar(), PERFIL);
+    const formatado = formatar({ ...criar(), imagens: IMAGENS_CORPUS }, PERFIL);
     const bytes = await exportarDocx(formatado);
     gerados.set(nome, { partes: abrirDocx(bytes), formatado, bytes });
   }
@@ -158,7 +158,7 @@ describe('instantâneo do XML normalizado', () => {
     }
   });
   it('duas exportações do mesmo documento dão o mesmo XML normalizado', async () => {
-    const f = formatar(documentoDificil(), PERFIL);
+    const f = formatar({ ...documentoDificil(), imagens: IMAGENS_CORPUS }, PERFIL);
     const [a, b] = [abrirDocx(await exportarDocx(f)), abrirDocx(await exportarDocx(f))];
     for (const parte of [...PARTES_DO_INSTANTANEO, 'docProps/core.xml']) expect(normalizarXml(b[parte] ?? ''), parte).toBe(normalizarXml(a[parte] ?? ''));
   });

@@ -26,7 +26,7 @@ import { keydownHandler } from 'prosemirror-keymap';
 import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { ChamadaEscrita, DadosCitacao, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
+import type { ChamadaEscrita, DadosCitacao, DadosFigura, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
 import type { MarcaTexto } from '../../dominio/modelo';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
 import {
@@ -50,8 +50,9 @@ import { docParaSecao, type ConteudoSecao } from './conversao';
 import { criarEstadoSecao } from './estado';
 import { MENSAGENS_AVISO, type AvisoColagem } from './html-colado';
 import { NotaView } from './nota-view';
+import { FiguraView } from './figura-view';
 import { TabelaView } from './tabela-view';
-import { alterarTabela, inserirTabela, tabelaSelecionada, type TabelaNoEditor } from './tabelas';
+import { alterarFigura, alterarTabela, figuraSelecionada, inserirFigura, inserirTabela, tabelaSelecionada, type FiguraNoEditor, type TabelaNoEditor } from './tabelas';
 
 /** Desfazer ou refazer na ordem única do trabalho (texto e estrutura). */
 export type SentidoHistorico = 'desfazer' | 'refazer';
@@ -86,6 +87,10 @@ export interface ControleEditor {
   pedirTabela(): boolean;
   inserirTabela(dados: DadosTabela): boolean;
   alterarTabela(id: string, dados: DadosTabela): boolean;
+  /** Pede a janela da figura: a selecionada, ou uma nova no cursor (M5-T06). */
+  pedirFigura(): boolean;
+  inserirFigura(dados: DadosFigura): boolean;
+  alterarFigura(id: string, dados: DadosFigura): boolean;
 }
 
 /** Estados dos editores das seções visitadas no trabalho aberto. */
@@ -163,6 +168,10 @@ export interface PropsEditorSecao {
   aoPedirCitacao: (existente: ChamadaNoEditor | null) => void;
   /** Abre a janela da tabela: `existente` é a tabela a alterar; `null`, uma nova no cursor (M5-T04). */
   aoPedirTabela: (existente: TabelaNoEditor | null) => void;
+  /** Abre a janela da figura: `existente` é a figura a alterar; `null`, uma nova no cursor (M5-T06). */
+  aoPedirFigura: (existente: FiguraNoEditor | null) => void;
+  /** Bytes de uma imagem do trabalho, pelo sha256 (a figura no texto). */
+  lerMidia: (sha256: string) => Uint8Array | null;
 }
 
 interface Barra {
@@ -257,6 +266,12 @@ export function EditorSecao(p: PropsEditorSecao) {
       refProps.current.aoPedirTabela(tabelaSelecionada(view.state));
       return true;
     };
+    // Janela da figura (M5-T06).
+    const pedirFigura = (): boolean => {
+      if (somenteLeitura) return false;
+      refProps.current.aoPedirFigura(figuraSelecionada(view.state));
+      return true;
+    };
     // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
     const pedirCitacao = (): boolean => {
       if (somenteLeitura) return false;
@@ -274,7 +289,10 @@ export function EditorSecao(p: PropsEditorSecao) {
         pedirCitacao();
         return true;
       },
-      Enter: () => (chamadaSelecionada(view.state) !== null && pedirCitacao()) || (tabelaSelecionada(view.state) !== null && pedirTabela()),
+      Enter: () =>
+        (chamadaSelecionada(view.state) !== null && pedirCitacao()) ||
+        (tabelaSelecionada(view.state) !== null && pedirTabela()) ||
+        (figuraSelecionada(view.state) !== null && pedirFigura()),
     });
 
     const view: EditorView = new EditorView(hospedeiro, {
@@ -296,6 +314,13 @@ export function EditorSecao(p: PropsEditorSecao) {
             if (pos === undefined || somenteLeitura) return;
             v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
             pedirTabela();
+          }),
+        ilustracao: (no, v, posicao) =>
+          new FiguraView(no, (sha) => refProps.current.lerMidia(sha), () => {
+            const pos = posicao();
+            if (pos === undefined || somenteLeitura) return;
+            v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+            pedirFigura();
           }),
         chamadaCitacao: (no, v, posicao) =>
           new ChamadaView(no, memoria.chamadas, () => {
@@ -381,6 +406,9 @@ export function EditorSecao(p: PropsEditorSecao) {
       // Passo próprio: o que for digitado logo depois não se junta à tabela no desfazer.
       inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      pedirFigura,
+      inserirFigura: (dados) => executar(inserirFigura(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      alterarFigura: (id, dados) => executar(alterarFigura(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
     };
 
     setSugestao([]);
@@ -501,6 +529,15 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => controle.current?.pedirTabela()}
           >
             Tabela
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            title="Figura: inserir imagem no cursor, ou alterar a selecionada"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => controle.current?.pedirFigura()}
+          >
+            Figura
           </button>
         </div>
       )}

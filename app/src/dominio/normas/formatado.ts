@@ -90,7 +90,22 @@ export type BlocoFormatado =
   /** Pedida pelo autor, não por uma regra: por isso `origem` fica vazia. */
   | { tipo: 'quebraPagina'; origem: readonly string[] }
   /** Tabela ou quadro nativo do Word (M5-T03). Título e rodapé são parágrafos à parte, antes e depois. */
-  | BlocoTabelaFormatado;
+  | BlocoTabelaFormatado
+  /** Imagem da ilustração num parágrafo só dela (M5-T06). Título e rodapé são parágrafos à parte, antes e depois. */
+  | BlocoImagemFormatado;
+
+export interface BlocoImagemFormatado {
+  tipo: 'imagem';
+  /** Estilo do parágrafo da imagem (alinhamento da RN-059). */
+  estilo: string;
+  dados: Uint8Array;
+  formato: 'png' | 'jpg';
+  larguraTw: number;
+  alturaTw: number;
+  /** Texto alternativo: o título com o rótulo. */
+  descricao: string;
+  origem: readonly string[];
+}
 
 /** Traços da moldura; cada um só existe com a regra que o pede (tabela: RN-251 a RN-254; quadro: RN-061). */
 export interface TracosMoldura {
@@ -141,6 +156,7 @@ export interface AvisoFormatacao {
     | 'FICHA_VAZIA'
     | 'FORMA_SEM_FONTE'
     | 'ELEMENTO_ADIADO'
+    | 'IMAGEM_AUSENTE'
     | 'LETRA_SEM_FONTE'
     | 'ROTULO_PROVISORIO'
     | 'CHAMADA_COM_AVISO'

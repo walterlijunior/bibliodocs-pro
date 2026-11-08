@@ -91,6 +91,7 @@ const regra = z
       'tabela.moldura',
       'tabela.cabecalho',
       'quadro.moldura',
+      'ilustracao.imagem',
     ]),
     propriedades: propriedades.optional(),
     procedimento: z.string().regex(/^[a-z][A-Za-z]{0,63}$/).optional(),

@@ -8,7 +8,7 @@ import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferen
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
 import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
-import { blocosTabela, contextoVisuais } from './motor-visuais';
+import { blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
@@ -156,6 +156,14 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
     },
   },
   { id: 'rodapeElemento', nome: 'Fonte e nota de tabela e ilustração', alvos: ['documento', 'elemento', 'elemento.rodape'] },
+  // M5-T06: o parágrafo da imagem não herda entrelinha nem recuo do texto: com 1,5 o Word aumenta a linha da imagem
+  // (D-M5-34); o alinhamento vem da RN-059.
+  {
+    id: 'imagemElemento',
+    nome: 'Imagem de ilustração',
+    alvos: ['documento', 'elemento', 'ilustracao.imagem'],
+    semHerdar: ['linha', 'recuoPrimeiraLinhaTw', 'antesTw', 'depoisTw'],
+  },
   {
     id: 'celulaTabela',
     nome: 'Célula de tabela e quadro',
@@ -229,11 +237,21 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
   regras.find((r) => r.procedimento === nome)?.id ?? null;
 
 /** Nome do elemento visual no aviso de elemento ainda não exportado (M5-T01). */
-const nomeAdiado = (b: Extract<Bloco, { tipo: 'ilustracao' | 'equacao' }>): string => (b.tipo === 'ilustracao' ? 'A ilustração' : 'A equação');
+const nomeAdiado = (_b: Extract<Bloco, { tipo: 'equacao' }>): string => 'A equação';
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
-export type DocumentoParaFormatar = Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>>;
+export type DocumentoParaFormatar = Pick<Documento, 'corpo'> &
+  Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>> & {
+    /** Bytes das imagens das ilustrações, pelo sha256 (M5-T06). Sem a imagem, a ilustração sai sem ela, com aviso. */
+    imagens?: ReadonlyMap<string, Uint8Array>;
+  };
+
+/** Largura da área útil da página do perfil, em mm (largura impressa máxima de uma ilustração, D-M5-09). */
+export function areaUtilMm(perfil: Perfil): number {
+  const p = paginaDe(perfil.regras.filter((r) => regraAplicavel(r, perfil)), perfil);
+  return ((p.larguraTw - p.margemEsquerdaTw - p.margemDireitaTw) * 25.4) / 1440;
+}
 
 /** Trechos da bibliografia como runs: vizinhos com o mesmo destaque viram um só (a RN de cada um não vai para o DOCX). */
 function deReferencia(t: readonly TrechoReferencia[]): TrechoFormatado[] {
@@ -370,8 +388,12 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         return [{ tipo: 'quebraPagina', origem: [] }];
       case 'tabela':
         return blocosTabela(b, visuais);
-      // Formato no M5-T01; motor e DOCX no M5-T06 e T07. Até lá, o elemento fica de fora com aviso.
-      case 'ilustracao':
+      case 'ilustracao': {
+        const r = blocosIlustracao(b, visuais, doc.imagens?.get(b.midia));
+        if (r.ausente) avisos.push({ codigo: 'IMAGEM_AUSENTE', id: b.id, mensagem: 'A imagem de uma ilustração não pôde ser lida e ficou de fora do arquivo exportado.' });
+        return r.blocos;
+      }
+      // Formato no M5-T01; motor e DOCX no M5-T07. Até lá, o elemento fica de fora com aviso.
       case 'equacao':
         avisos.push({ codigo: 'ELEMENTO_ADIADO', id: b.id, mensagem: `${nomeAdiado(b)} ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.` });
         return [];

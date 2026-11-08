@@ -11,6 +11,7 @@ import {
   BorderStyle,
   Document,
   FootnoteReferenceRun,
+  ImageRun,
   Header,
   HeightRule,
   LevelFormat,
@@ -47,6 +48,12 @@ import type {
 
 type Filho = Paragraph | Table | TableOfContents;
 type Notas = Record<number, { children: Paragraph[] }>;
+
+/**
+ * Id de cada desenho (`wp:docPr`), único no documento. A biblioteca usa um contador do processo, que muda de uma
+ * exportação para a outra; aqui ele recomeça em cada `montar`, e o mesmo documento dá o mesmo arquivo (M5-T06).
+ */
+let proximoDesenho = 1;
 
 const ALINHAMENTO = {
   esquerda: AlignmentType.LEFT,
@@ -268,6 +275,21 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
       return [new Paragraph({ pageBreakBefore: true })];
     case 'tabela':
       return [converterTabela(b, notas)];
+    case 'imagem':
+      // Tamanho em pixels a 96 ppi (o da biblioteca): 1 px = 15 twips. O tamanho vem pronto do motor.
+      return [
+        new Paragraph({
+          style: b.estilo,
+          children: [
+            new ImageRun({
+              type: b.formato,
+              data: b.dados,
+              transformation: { width: b.larguraTw / 15, height: b.alturaTw / 15 },
+              altText: { id: String(proximoDesenho++), name: b.descricao, description: b.descricao, title: b.descricao },
+            }),
+          ],
+        }),
+      ];
     case 'quadro': {
       const linha = { style: BorderStyle.SINGLE, size: 4, color: 'auto' };
       return [
@@ -346,6 +368,7 @@ function converterSecao(s: SecaoFormatada, f: DocumentoFormatado, notas: Notas, 
 
 function montar(f: DocumentoFormatado, paginas: ReadonlyMap<string, number> | null, medir?: typeof estimatePageNumbers): Document {
   const notas: Notas = {};
+  proximoDesenho = 1;
   const sections = f.secoes.map((s) => converterSecao(s, f, notas, paginas));
   return new Document({
     creator: f.metadados.autor,

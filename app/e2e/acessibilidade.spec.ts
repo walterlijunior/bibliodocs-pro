@@ -116,3 +116,18 @@ test('Janela da tabela (M5-T04) sem violação séria', async ({}, info) => {
   await expect(p.locator('.bd-tabela')).toHaveCount(1);
   await conferirAxe(p, 'tabela-no-texto', info);
 });
+
+test('Janela da figura e figura no texto (M5-T06) sem violação séria', async ({}, info) => {
+  const { pagina: p } = await abrirApp(amb);
+  await criarTrabalho(p);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  await p.getByRole('toolbar', { name: 'Formatação do texto' }).getByRole('button', { name: 'Figura', exact: true }).click();
+  const janela = p.getByRole('dialog', { name: 'Inserir figura' });
+  await janela.getByLabel('Arquivo de imagem').setInputFiles(join(RAIZ_APP, 'tests', 'fixtures', 'figuras', 'pequena-300x200.png'));
+  await expect(janela.getByText(/^Resolução baixa/)).toBeVisible();
+  await conferirAxe(p, 'janela-figura', info);
+  await janela.getByLabel('Título', { exact: true }).fill('Exemplo');
+  await janela.getByRole('button', { name: 'Inserir figura' }).click();
+  await expect(p.locator('.bd-figura')).toHaveCount(1);
+  await conferirAxe(p, 'figura-no-texto', info);
+});

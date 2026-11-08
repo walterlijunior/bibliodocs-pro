@@ -57,7 +57,8 @@ import {
   type TipoTrabalhoId,
 } from '../../dominio/modelo';
 import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
-import { LIMITES_V1 } from '../../dominio/esquemas';
+import { LIMITES_V1, midiasDoDocumento } from '../../dominio/esquemas';
+import { lerInfoImagem, type InfoImagem } from '../../dominio/visuais';
 import { numerarSecoes } from '../../dominio/numeracao';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
@@ -319,6 +320,24 @@ function secaoNoCaminho(corpo: readonly Secao[], caminho: readonly number[]): Se
   return s;
 }
 
+/**
+ * Só as mídias que o documento usa (M5-T06), com o manifesto refeito a partir dos bytes. A sessão guarda na memória as
+ * imagens de figuras excluídas, para o Ctrl+Z devolvê-las; o arquivo leva só as usadas, uma vez cada (sha256).
+ */
+export function soMidiasUsadas(p: PacoteTransferivel): PacoteTransferivel {
+  const usadas = new Set(midiasDoDocumento(p.documento).map((m) => m.sha256));
+  const midias = p.midias.filter((m) => usadas.has(m.sha256));
+  const declaradas = new Map(p.manifesto.midias.map((m) => [m.sha256, m]));
+  const manifestoMidias = midias.map((m) => {
+    const tipo = lerInfoImagem(m.bytes)?.tipo ?? declaradas.get(m.sha256)?.tipo ?? 'image/png';
+    return { caminho: `midias/${m.sha256}.${tipo === 'image/png' ? 'png' : 'jpg'}`, sha256: m.sha256, bytes: m.bytes.length, tipo };
+  });
+  return { ...p, midias, manifesto: { ...p.manifesto, midias: manifestoMidias } };
+}
+
+/** Resultado de incluir uma imagem no trabalho aberto. */
+export type ResultadoMidia = { ok: true; info: InfoImagem } | { ok: false; mensagem: string };
+
 const chavesDasMidias = (p: PacoteTransferivel | null): Set<string> => new Set(p?.midias.map((m) => m.sha256));
 
 /** As mídias em `conhecidas` vão só com a chave. */
@@ -495,7 +514,7 @@ export class SessaoTrabalho {
     const inicio = this.#dep.agora().getTime();
     let ok: boolean;
     try {
-      ok = (await this.#enviarComMidias(a, a.pacote, (p) => enviar(identificador, p), (r) => !r.ok && r.codigo === CODIGO_MIDIA_AUSENTE)).ok;
+      ok = (await this.#enviarComMidias(a, soMidiasUsadas(a.pacote), (p) => enviar(identificador, p), (r) => !r.ok && r.codigo === CODIGO_MIDIA_AUSENTE)).ok;
     } catch {
       ok = false;
     }
@@ -1098,7 +1117,30 @@ export class SessaoTrabalho {
   /** O trabalho como está na memória, salvo ou não, para exportar. `null` sem trabalho editável aberto. */
   pacoteAtual(): PacoteTransferivel | null {
     const a = this.#aberto;
-    return a?.modo === 'edicao' ? a.pacote : null;
+    return a?.modo === 'edicao' ? soMidiasUsadas(a.pacote) : null;
+  }
+
+  /**
+   * Guarda a imagem de uma figura no trabalho aberto (M5-T06), uma vez por sha256 (o mesmo arquivo em duas figuras é uma
+   * mídia só). Não muda o documento: a figura que a usa entra pelo editor. `sha256` vem de quem leu o arquivo; o
+   * principal confere de novo ao gravar.
+   */
+  incluirMidia(bytes: Uint8Array, sha256: string): ResultadoMidia {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: 'Não há trabalho aberto para edição.' };
+    if (!/^[0-9a-f]{64}$/.test(sha256)) return { ok: false, mensagem: 'A imagem não pôde ser lida.' };
+    const info = lerInfoImagem(bytes);
+    if (info === null) return { ok: false, mensagem: 'O arquivo não é uma imagem PNG ou JPEG que o app consiga ler.' };
+    if (bytes.length > LIMITES_V1.bytesMidia) return { ok: false, mensagem: `A imagem passa de ${LIMITES_V1.bytesMidia / 1024 / 1024} MB.` };
+    if (a.pacote.midias.some((m) => m.sha256 === sha256)) return { ok: true, info };
+    if (a.pacote.midias.length >= LIMITES_V1.midias) return { ok: false, mensagem: 'O trabalho já tem o máximo de imagens.' };
+    a.pacote = { ...a.pacote, midias: [...a.pacote.midias, { sha256, bytes }] };
+    return { ok: true, info };
+  }
+
+  /** Bytes da imagem pelo sha256, para mostrar a figura (M5-T06). */
+  lerMidia(sha256: string): Uint8Array | null {
+    return this.#aberto?.pacote.midias.find((m) => m.sha256 === sha256)?.bytes ?? null;
   }
 
   /** "Salvar como…": diálogo do principal; o trabalho passa a ser o arquivo novo. Entra na fila de gravações. */
@@ -1165,8 +1207,9 @@ export class SessaoTrabalho {
     return r;
   }
 
+  /** O que vai para o arquivo: data nova e só as mídias usadas. */
   #comDataAtualizada(p: PacoteTransferivel): PacoteTransferivel {
-    return { ...p, manifesto: { ...p.manifesto, atualizadoEm: this.#dep.agora().toISOString() } };
+    return soMidiasUsadas({ ...p, manifesto: { ...p.manifesto, atualizadoEm: this.#dep.agora().toISOString() } });
   }
 
   #concluir(a: Extract<Aberto, { modo: 'edicao' }>, gravado: PacoteTransferivel, revisao: number, nomeArquivo: string, avisos: string[]): void {

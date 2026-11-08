@@ -11,13 +11,25 @@
  * - TABELA_LONGA (aviso, só espécie `tabela`): recomenda-se que a tabela caiba numa página (RN-297, IBGE p. 30). O app
  *   não pagina (D-M5-03): o critério é o número de linhas, valor técnico ajustável em `OpcoesVerificacaoVisuais`.
  *
+ * - RESOLUCAO_BAIXA (aviso, M5-T06): imagem com menos de 150 ppi no tamanho impresso (RNF-17, D-M5-09); só com os
+ *   bytes das imagens nas opções.
+ *
  * Fora daqui: elemento sem remissiva no texto (RN-060, D-M5-04) é do M5-T08.
  */
 import { textoPlano, type Documento, type Id } from '../modelo';
 import { numerarElementos } from '../numeracao';
-import { proporcaoNumerica, rotuloElemento, temFonte } from '../visuais';
+import {
+  larguraImpressaMm,
+  larguraParaResolucaoMinimaMm,
+  lerInfoImagem,
+  proporcaoNumerica,
+  RESOLUCAO_MINIMA_PPI,
+  resolucaoEfetivaPpi,
+  rotuloElemento,
+  temFonte,
+} from '../visuais';
 
-export type CodigoProblemaVisual = 'SEM_TITULO' | 'SEM_FONTE' | 'TABELA_SEM_DADO_NUMERICO' | 'TABELA_LONGA';
+export type CodigoProblemaVisual = 'SEM_TITULO' | 'SEM_FONTE' | 'TABELA_SEM_DADO_NUMERICO' | 'TABELA_LONGA' | 'RESOLUCAO_BAIXA';
 
 export interface ProblemaVisual {
   codigo: CodigoProblemaVisual;
@@ -37,6 +49,23 @@ export interface OpcoesVerificacaoVisuais {
    * área útil (24,7 cm) em corpo 10 simples, descontados título e rodapé. O motor do M5-T03 pode refinar.
    */
   linhasTabelaLonga?: number;
+  /** Bytes das imagens pelo sha256, para conferir a resolução (M5-T06). */
+  imagens?: ReadonlyMap<string, Uint8Array>;
+  /** Largura da área útil em mm (`areaUtilMm` do perfil); padrão 160 (A4 com margens de 3 e 2 cm). */
+  areaUtilMm?: number;
+}
+
+/** Aviso de resolução de uma imagem, ou `null` se está boa ou não se lê (mensagem sem o rótulo do elemento). */
+export function avisoDeResolucao(bytes: Uint8Array, larguraMm: number | undefined, areaUtilMm: number): string | null {
+  const info = lerInfoImagem(bytes);
+  if (!info) return null;
+  const ppi = resolucaoEfetivaPpi(info, larguraImpressaMm(info, larguraMm, areaUtilMm));
+  if (ppi >= RESOLUCAO_MINIMA_PPI) return null;
+  const ate = larguraParaResolucaoMinimaMm(info);
+  return (
+    `a imagem fica com ${Math.floor(ppi + 1e-6)} ppi no tamanho impresso (o mínimo é ${RESOLUCAO_MINIMA_PPI}) e pode sair borrada. ` +
+    (ate >= 10 ? `Use uma imagem maior ou reduza a largura para até ${ate} mm.` : 'Use uma imagem maior.')
+  );
 }
 
 /** Valor padrão de {@link OpcoesVerificacaoVisuais.linhasTabelaLonga}. */
@@ -64,6 +93,11 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
         tabela ? ['RN-269', 'RN-274'] : ['RN-056'],
         'falta a fonte; ela é obrigatória mesmo quando o conteúdo é do próprio autor.',
       );
+    }
+    if (bloco.tipo === 'ilustracao') {
+      const bytes = opcoes.imagens?.get(bloco.midia);
+      const aviso = bytes ? avisoDeResolucao(bytes, bloco.larguraMm, opcoes.areaUtilMm ?? 160) : null;
+      if (aviso !== null) add('RESOLUCAO_BAIXA', 'aviso', ['RNF-17', 'D-M5-09'], aviso);
     }
     if (bloco.tipo !== 'tabela' || bloco.especie !== 'tabela') continue;
     const proporcao = proporcaoNumerica(bloco);

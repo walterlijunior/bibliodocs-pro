@@ -6,5 +6,14 @@
  *
  * M5-T02: rótulo ("Tabela 1 – Título"), ordem do rodapé e leitura das células para o verificador.
  */
+export {
+  larguraImpressaMm,
+  larguraParaResolucaoMinimaMm,
+  lerInfoImagem,
+  PPI_PADRAO,
+  RESOLUCAO_MINIMA_PPI,
+  resolucaoEfetivaPpi,
+  type InfoImagem,
+} from './imagem';
 export { celulasComColuna, ehDadoNumerico, proporcaoNumerica, textoDaCelula } from './dados-numericos';
 export { PALAVRA_DESIGNATIVA, rodapeDoElemento, rotuloElemento, temFonte, tituloComRotulo, type ParteRodape } from './rotulos';

@@ -1,7 +1,9 @@
 // Corpus da regressão documental (M3-T06; skill `regressao-documental`). Conteúdo fictício e neutro, gerado aqui: nada de
 // dados reais. Um trabalho por tipo e um "documento difícil". Tabela e quadro desde o M5-T03; figuras e equações entram no M5.
+import { createHash } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
 import { criarTrabalhoDoTipo } from '../../src/aplicacao/servicos/criar-trabalho';
-import type { Bloco, BlocoTabela, CelulaTabela, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
+import type { Bloco, BlocoIlustracao, BlocoTabela, CelulaTabela, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
 
 export const TIPOS: readonly TipoTrabalhoUft[] = ['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa'];
 
@@ -106,6 +108,64 @@ export const TABELA_LONGA_CORPUS: BlocoTabela = {
   fonte: tx('Dados fictícios de teste (2026).'),
 };
 
+/** Tabela de CRC-32 do PNG. */
+const CRC = Array.from({ length: 256 }, (_, n) => {
+  let c = n;
+  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+  return c >>> 0;
+});
+const crc32 = (b: Uint8Array): number => {
+  let c = 0xffffffff;
+  for (const x of b) c = CRC[(c ^ x) & 0xff]! ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+};
+
+/**
+ * PNG em tons de cinza gerado aqui (M5-T06), sem arquivo de fora: degradê de `largura` × `altura` px, com a resolução
+ * gravada no bloco pHYs (`ppi`, ou sem o bloco). Determinístico: os instantâneos dependem dos bytes.
+ */
+export function pngDeTeste(largura: number, altura: number, ppi: number | null): Uint8Array {
+  const bloco = (tipo: string, dados: Uint8Array): Buffer => {
+    const corpo = Buffer.concat([Buffer.from(tipo, 'ascii'), dados]);
+    const tam = Buffer.alloc(4);
+    tam.writeUInt32BE(dados.length);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(corpo));
+    return Buffer.concat([tam, corpo, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(largura, 0);
+  ihdr.writeUInt32BE(altura, 4);
+  ihdr[8] = 8; // 8 bits, tons de cinza (tipo 0)
+  const linhas = Buffer.alloc((largura + 1) * altura);
+  for (let y = 0; y < altura; y++) for (let x = 0; x < largura; x++) linhas[y * (largura + 1) + 1 + x] = Math.floor((x * 255) / largura);
+  const partes = [Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), bloco('IHDR', ihdr)];
+  if (ppi !== null) {
+    const phys = Buffer.alloc(9);
+    phys.writeUInt32BE(Math.round(ppi / 0.0254), 0);
+    phys.writeUInt32BE(Math.round(ppi / 0.0254), 4);
+    phys[8] = 1;
+    partes.push(bloco('pHYs', phys));
+  }
+  partes.push(bloco('IDAT', deflateSync(linhas, { level: 9 })), bloco('IEND', new Uint8Array()));
+  return new Uint8Array(Buffer.concat(partes));
+}
+
+const PNG_CORPUS = pngDeTeste(600, 400, 300);
+const SHA_PNG_CORPUS = createHash('sha256').update(PNG_CORPUS).digest('hex');
+/** Imagens do corpus pelo sha256, como o pacote as entrega ao motor. */
+export const IMAGENS_CORPUS: ReadonlyMap<string, Uint8Array> = new Map([[SHA_PNG_CORPUS, PNG_CORPUS]]);
+
+/** Figura (M5-T06): imagem natural de 50,8 mm (600 px a 300 ppi), com fonte. */
+export const FIGURA_CORPUS: BlocoIlustracao = {
+  tipo: 'ilustracao',
+  id: 'ilu_corpus0001',
+  especie: 'figura',
+  titulo: tx('Degradê fictício de teste'),
+  midia: SHA_PNG_CORPUS,
+  fonte: tx('Elaborado pela autoria fictícia (2026).'),
+};
+
 /** Cinco níveis, citação longa, notas, alíneas com subalíneas, listas que recomeçam, marcas, citações, apêndices e anexos. */
 export function documentoDificil(): Documento {
   const d = preencher(novo('tese'));
@@ -134,6 +194,7 @@ export function documentoDificil(): Documento {
       p('p6b', t(FRASE)),
       QUADRO_CORPUS,
       TABELA_LONGA_CORPUS,
+      FIGURA_CORPUS,
       p('p7', citacao('k2', 'narrativa', [{ obra: 'o4' }]), t(' e '), citacao('k3', 'narrativa', [{ obra: 'o3', pagina: '15' }], { apud: { obra: 'o2', pagina: '8' } }), t(' afirmam o exemplo '), citacao('k4', 'parentetica', [{ obra: 'o5' }, { obra: 'o1', semPaginacao: true }], { grifo: 'nosso' }), t('.'), notaComCitacao),
     ]),
   ];

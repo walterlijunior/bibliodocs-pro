@@ -1,6 +1,7 @@
 // M3-T08: canal de exportação, sem Electron: recusas, cancelar, falhas e o que volta ao renderer.
 import { describe, expect, it } from 'vitest';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CANAIS_EXPORTACAO, criarTrabalhoDoTipo, type PacoteTransferivel, type ResultadoExportar } from '../src/aplicacao';
@@ -17,6 +18,7 @@ import {
 } from '../src/principal/ipc/manipuladores-exportacao';
 import type { InfoRemetente } from '../src/principal/ipc/remetente';
 import { ORIGEM_PRODUCAO } from '../src/principal/seguranca/politica-urls';
+import { pngDeTeste } from './corpus/corpus';
 
 const JANELA = 7;
 const LEGITIMO: InfoRemetente = { idConteudo: JANELA, urlQuadro: 'app://interface/index.html', quadroPrincipal: true };
@@ -90,6 +92,33 @@ describe('exportação', () => {
     const avisos = r.ok ? r.avisos.join('\n') : '';
     expect(avisos).toContain('Tabela 1: falta a fonte');
     expect(avisos).toContain('Tabela 1: 46 linhas; recomenda-se que a tabela caiba em uma página');
+  });
+  it('aceite do RF-10: figura com resolução baixa gera aviso, e a imagem chega ao exportador (M5-T06)', async () => {
+    const png = pngDeTeste(300, 200, null); // natural: 79 mm a 96 ppi
+    const sha = createHash('sha256').update(png).digest('hex');
+    const p = pacote() as unknown as { documento: { corpo: unknown[] }; manifesto: { midias: unknown[] }; midias: unknown[] };
+    p.documento.corpo = [
+      {
+        id: 'sec_abcdefghijklmnop',
+        titulo: [{ tipo: 'texto', texto: 'Seção' }],
+        subsecoes: [],
+        blocos: [{ tipo: 'ilustracao', id: 'ilu_abcdefghijklmnop', especie: 'figura', titulo: [{ tipo: 'texto', texto: 'Foto' }], midia: sha, fonte: [{ tipo: 'texto', texto: 'Autor (2026).' }] }],
+      },
+    ];
+    p.manifesto.midias = [{ caminho: `midias/${sha}.png`, sha256: sha, bytes: png.length, tipo: 'image/png' }];
+    p.midias = [{ sha256: sha, bytes: png }];
+    const imagens: number[] = [];
+    const x = montar({
+      exportar: async (f) => {
+        for (const s of f.secoes) for (const b of s.blocos) if (b.tipo === 'imagem') imagens.push(b.dados.length);
+        return { ok: true, bytes: new Uint8Array([1]) };
+      },
+    });
+    const r = await x.chamar(p, {});
+    expect(imagens).toEqual([png.length]);
+    expect(r.ok ? r.avisos : []).toContain(
+      'Figura 1: a imagem fica com 96 ppi no tamanho impresso (o mínimo é 150) e pode sair borrada. Use uma imagem maior ou reduza a largura para até 50 mm.',
+    );
   });
   it('a fonte das opções vale; fora da lista do perfil, fica a padrão', async () => {
     const x = montar();

@@ -24,6 +24,8 @@ try {
   $saida.secoes = $doc.Sections.Count
   $saida.notas = $doc.Footnotes.Count
   $saida.tabelas = $doc.Tables.Count
+  # M5-T06: imagens em linha com o texto (figuras).
+  $saida.imagens = $doc.InlineShapes.Count
   $saida.campos = $doc.Fields.Count
   $saida.sumarios = $doc.TablesOfContents.Count
   $saida.equacoes = $doc.OMaths.Count
