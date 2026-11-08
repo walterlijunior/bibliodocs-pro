@@ -123,7 +123,9 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
     mensagem: p.mensagem,
     sugestao: p.codigo === 'SIGLA_QUEBRADA'
       ? 'Cadastre novamente a sigla ou substitua a ligação quebrada no texto.'
-      : 'Confira se o trecho é uma sigla; se for, cadastre a forma por extenso e ligue a ocorrência ao cadastro.',
+      : p.codigo === 'SIGLA_EXTENSO_REPETIDO'
+        ? 'Troque a forma por extenso pela sigla ligada ao cadastro (a primeira ocorrência já a apresentou).'
+        : 'Confira se o trecho é uma sigla; se for, cadastre a forma por extenso e ligue a ocorrência ao cadastro.',
     local: { tipo: 'texto', secao: p.secao, no: p.no, trecho: p.trecho },
   })) break;
 

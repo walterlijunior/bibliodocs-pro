@@ -96,7 +96,7 @@ pacote validado no principal, destino só pelo diálogo do sistema, `.txt` obrig
 sigla limitadas (200) e verificador limitado (1.000 itens); nada de `innerHTML`.
 
 **Pendências registradas (não corrigidas aqui):**
-- RN-047, segunda parte: aviso quando a forma por extenso reaparece depois da primeira ocorrência; não implementado.
+- RN-047, segunda parte: aviso quando a forma por extenso reaparece depois da primeira ocorrência. **Feito no M6-T07** (`SIGLA_EXTENSO_REPETIDO`, aviso, na ordem de leitura; testes em `tests/siglas.test.ts`).
 - Glossário no estilo do corpo (recuo de primeira linha e justificado): a forma não tem fonte (D-M6-06 provisória).
 - Índice (D-M6-09) fora do M6.
 - O verificador de conformidade é do M7: entra no plano do M7 como ponto de partida, a ser revisto e completado lá.

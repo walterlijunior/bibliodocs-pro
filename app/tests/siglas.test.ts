@@ -92,3 +92,23 @@ describe('M6-T03: sugestões conservadoras de siglas', () => {
     expect(conferirSiglas(criar(uso(1)).documento)).toEqual([]);
   });
 });
+
+describe('RN-047, 2.ª parte (M6-T07): forma por extenso repetida depois da sigla', () => {
+  const t = (texto: string): Inline => ({ tipo: 'texto', texto });
+  const s = (id: string): Inline => ({ tipo: 'sigla', id, sigla: 'sgl_teste0000001' });
+  const doc = (...paragrafos: Inline[][]): Pick<Documento, 'corpo' | 'siglas'> => ({
+    siglas: [{ id: 'sgl_teste0000001', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' }],
+    corpo: [{ id: 'sec_teste0000001', titulo: [t('S')], subsecoes: [], blocos: paragrafos.map((conteudo, i) => ({ tipo: 'paragrafo' as const, id: `par_teste000000${i}`, conteudo })) }],
+  });
+  const repetidas = (d: Pick<Documento, 'corpo' | 'siglas'>) => conferirSiglas(d).filter((p) => p.codigo === 'SIGLA_EXTENSO_REPETIDO');
+
+  it('depois da primeira ocorrência ligada, a forma por extenso de novo gera aviso (sem diferenciar maiúsculas)', () => {
+    const r = repetidas(doc([t('A '), s('sgu_teste0000001'), t(' cresce.')], [t('A universidade federal do tocantins tem campi.')]));
+    expect(r.map((p) => [p.no, p.rn])).toEqual([['par_teste0000001', ['RN-047']]]);
+    expect(r[0]!.mensagem).toBe('“Universidade Federal do Tocantins” já foi apresentado com a sigla UFT; nas ocorrências seguintes, use só a sigla.');
+  });
+
+  it('antes da primeira ocorrência ligada não há aviso', () => {
+    expect(repetidas(doc([t('A Universidade Federal do Tocantins, antes.')], [s('sgu_teste0000001')]))).toEqual([]);
+  });
+});
