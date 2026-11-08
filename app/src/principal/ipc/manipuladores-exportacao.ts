@@ -7,6 +7,7 @@ import { CANAIS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from 
 import { formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
 import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
 import { textoPlano } from '../../dominio/modelo';
+import { verificarVisuais } from '../../dominio/verificador';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerPacoteTransferivel } from './argumentos';
 import { criarConferencia, type Manipulador } from './chamada';
@@ -61,7 +62,9 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
         log(`[exportacao] gravação falhou: ${g.codigo}${g.detalhe ? ` (${g.detalhe})` : ''}`);
         return { ok: false, motivo: 'ERRO', mensagem: g.mensagem };
       }
-      return { ok: true, nomeArquivo: basename(destino), avisos: formatado.avisos.map((a) => a.mensagem) };
+      // M5-T03: pendências de tabelas, quadros e ilustrações (sem fonte, tabela longa, RN-297) junto dos avisos do motor.
+      const avisos = [...formatado.avisos.map((a) => a.mensagem), ...verificarVisuais(documento).map((v) => v.mensagem)];
+      return { ok: true, nomeArquivo: basename(destino), avisos };
     } finally {
       emCurso = false;
     }

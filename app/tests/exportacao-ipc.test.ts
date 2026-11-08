@@ -64,6 +64,33 @@ describe('exportação', () => {
     const r = await montar().chamar(pacote(), {});
     expect(r.ok && r.avisos.join(' ')).toContain('brasão');
   });
+  it('devolve também as pendências de tabelas: sem fonte e tabela longa (M5-T03; RN-274, RN-297)', async () => {
+    const p = pacote() as unknown as { documento: { corpo: unknown[] } };
+    const cel = (texto: string) => ({ conteudo: [{ tipo: 'texto', texto }] });
+    p.documento.corpo = [
+      {
+        id: 'sec_abcdefghijklmnop',
+        titulo: [{ tipo: 'texto', texto: 'Seção' }],
+        subsecoes: [],
+        blocos: [
+          {
+            tipo: 'tabela',
+            id: 'tab_abcdefghijklmnop',
+            especie: 'tabela',
+            titulo: [{ tipo: 'texto', texto: 'Valores' }],
+            colunas: [{ alinhamento: 'esquerda' }, { alinhamento: 'direita' }],
+            linhasCabecalho: 1,
+            linhas: [[cel('Item'), cel('Valor')], ...Array.from({ length: 45 }, (_, i) => [cel(`Item ${i}`), cel(String(i))])],
+          },
+        ],
+      },
+    ];
+    const r = await montar().chamar(p, {});
+    expect(r.ok).toBe(true);
+    const avisos = r.ok ? r.avisos.join('\n') : '';
+    expect(avisos).toContain('Tabela 1: falta a fonte');
+    expect(avisos).toContain('Tabela 1: 46 linhas; recomenda-se que a tabela caiba em uma página');
+  });
   it('a fonte das opções vale; fora da lista do perfil, fica a padrão', async () => {
     const x = montar();
     await x.chamar(pacote(), { fonte: 'Arial' });

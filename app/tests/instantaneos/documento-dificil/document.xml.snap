@@ -486,7 +486,7 @@
 </w:rPr>
 <w:t xml:space="default">REFERÊNCIAS</w:t>
 <w:tab/>
-<w:t xml:space="default">11</w:t>
+<w:t xml:space="default">12</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -505,7 +505,7 @@
 </w:rPr>
 <w:t xml:space="default">GLOSSÁRIO</w:t>
 <w:tab/>
-<w:t xml:space="default">12</w:t>
+<w:t xml:space="default">13</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -524,7 +524,7 @@
 </w:rPr>
 <w:t xml:space="default">APÊNDICES</w:t>
 <w:tab/>
-<w:t xml:space="default">13</w:t>
+<w:t xml:space="default">14</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -543,7 +543,7 @@
 </w:rPr>
 <w:t xml:space="default">ANEXO</w:t>
 <w:tab/>
-<w:t xml:space="default">14</w:t>
+<w:t xml:space="default">15</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -562,7 +562,7 @@
 </w:rPr>
 <w:t xml:space="default">ÍNDICE</w:t>
 <w:tab/>
-<w:t xml:space="default">15</w:t>
+<w:t xml:space="default">16</w:t>
 </w:r>
 </w:hyperlink>
 <w:r>
@@ -1166,6 +1166,2460 @@
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Tabela 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Produção fictícia por região, 2020–2022</w:t>
+</w:r>
+</w:p>
+<w:tbl>
+<w:tblPr>
+<w:tblW w:type="dxa" w:w="9071"/>
+<w:tblBorders>
+<w:top w:color="auto" w:sz="4" w:val="single"/>
+<w:left w:color="auto" w:sz="0" w:val="none"/>
+<w:bottom w:color="auto" w:sz="0" w:val="none"/>
+<w:right w:color="auto" w:sz="0" w:val="none"/>
+<w:insideH w:color="auto" w:sz="0" w:val="none"/>
+<w:insideV w:color="auto" w:sz="0" w:val="none"/>
+</w:tblBorders>
+</w:tblPr>
+<w:tblGrid>
+<w:gridCol w:w="2267"/>
+<w:gridCol w:w="2267"/>
+<w:gridCol w:w="2267"/>
+<w:gridCol w:w="2270"/>
+</w:tblGrid>
+<w:tr>
+<w:trPr>
+<w:tblHeader/>
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:vMerge w:val="restart"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Região</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="6804"/>
+<w:gridSpan w:val="3"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Produção (t)</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:trPr>
+<w:tblHeader/>
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:vMerge w:val="continue"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+</w:pPr>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">2020</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">2021</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2270"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">2022</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Norte (1)</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">1.234,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">1.300,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2270"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">1.410,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Nordeste</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">2.100,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">–</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2270"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">2.250,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:vMerge w:val="restart"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Sul</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">987,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">1.002,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2270"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">...</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:vMerge w:val="continue"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+</w:pPr>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">45,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2267"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">46,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="2270"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">47,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+</w:tbl>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Fonte: </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Dados fictícios de teste (2026).</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Nota: </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Sinal convencional utilizado: – Dado numérico igual a zero não resultante de arredondamento.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">(1) </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Região de exemplo.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+<w:spacing w:after="240"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">(2) </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Outra nota de exemplo.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Quadro 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Etapas fictícias do procedimento</w:t>
+</w:r>
+</w:p>
+<w:tbl>
+<w:tblPr>
+<w:tblW w:type="dxa" w:w="9071"/>
+<w:tblBorders>
+<w:top w:color="auto" w:sz="4" w:val="single"/>
+<w:left w:color="auto" w:sz="4" w:val="single"/>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+<w:right w:color="auto" w:sz="4" w:val="single"/>
+<w:insideH w:color="auto" w:sz="4" w:val="single"/>
+<w:insideV w:color="auto" w:sz="4" w:val="single"/>
+</w:tblBorders>
+</w:tblPr>
+<w:tblGrid>
+<w:gridCol w:w="4535"/>
+<w:gridCol w:w="4536"/>
+</w:tblGrid>
+<w:tr>
+<w:trPr>
+<w:tblHeader/>
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Etapa</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Descrição</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Preparação</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Separar o material de teste e conferir a lista.</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Execução</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Aplicar o roteiro de exemplo, sem dados reais.</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+</w:tbl>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+<w:spacing w:after="240"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Fonte: </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Elaborado pela autoria fictícia (2026).</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloElemento"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Tabela 2 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Medições fictícias por amostra</w:t>
+</w:r>
+</w:p>
+<w:tbl>
+<w:tblPr>
+<w:tblW w:type="dxa" w:w="9071"/>
+<w:tblBorders>
+<w:top w:color="auto" w:sz="4" w:val="single"/>
+<w:left w:color="auto" w:sz="0" w:val="none"/>
+<w:bottom w:color="auto" w:sz="0" w:val="none"/>
+<w:right w:color="auto" w:sz="0" w:val="none"/>
+<w:insideH w:color="auto" w:sz="0" w:val="none"/>
+<w:insideV w:color="auto" w:sz="0" w:val="none"/>
+</w:tblBorders>
+</w:tblPr>
+<w:tblGrid>
+<w:gridCol w:w="4535"/>
+<w:gridCol w:w="4536"/>
+</w:tblGrid>
+<w:tr>
+<w:trPr>
+<w:tblHeader/>
+</w:trPr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Valor (mm)</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">10,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">11,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">12,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">13,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">14,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">15,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">16,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">17,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">18,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 10</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">19,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 11</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">20,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 12</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">21,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 13</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">22,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 14</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">23,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 15</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">24,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 16</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">25,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 17</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">26,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 18</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">27,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 19</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">28,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 20</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">29,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 21</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">30,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 22</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">31,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 23</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">32,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 24</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">33,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 25</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">34,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 26</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">35,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 27</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">36,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 28</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">37,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 29</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">38,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 30</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">39,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 31</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">40,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 32</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">41,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 33</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">42,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 34</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">43,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 35</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">44,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 36</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">45,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 37</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">46,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 38</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">47,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 39</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">48,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 40</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">49,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 41</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">50,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 42</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">51,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 43</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">52,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 44</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">53,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 45</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">54,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 46</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">55,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 47</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">56,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 48</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">57,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 49</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">58,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 50</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">59,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 51</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">60,0</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 52</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">61,1</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 53</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">62,2</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 54</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">63,3</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 55</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">64,4</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 56</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">65,5</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 57</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">66,6</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 58</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">67,7</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 59</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">68,8</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+<w:tr>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4535"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Amostra 60</w:t>
+</w:r>
+</w:p>
+</w:tc>
+<w:tc>
+<w:tcPr>
+<w:tcW w:type="dxa" w:w="4536"/>
+<w:tcBorders>
+<w:bottom w:color="auto" w:sz="4" w:val="single"/>
+</w:tcBorders>
+</w:tcPr>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="celulaTabela"/>
+<w:jc w:val="right"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">69,9</w:t>
+</w:r>
+</w:p>
+</w:tc>
+</w:tr>
+</w:tbl>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="rodapeElemento"/>
+<w:spacing w:after="240"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Fonte: </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Dados fictícios de teste (2026).</w:t>
 </w:r>
 </w:p>
 <w:p>

@@ -29,6 +29,7 @@ import {
   TableRow,
   TextRun,
   VerticalAlignSection,
+  VerticalMergeType,
   WidthType,
   type IParagraphStylePropertiesOptions,
   type IRunOptions,
@@ -36,6 +37,7 @@ import {
 import { estimatePageNumbers } from 'docx/layout';
 import type {
   BlocoFormatado,
+  BlocoTabelaFormatado,
   DocumentoFormatado,
   EstiloResolvido,
   PropriedadesEstilo,
@@ -191,10 +193,81 @@ function converterTrechos(trechos: readonly TrechoFormatado[], notas: Notas): (T
   });
 }
 
+/** Traço fino simples (½ pt), o mesmo da ficha catalográfica; ausência é `none` explícito, para o Word não pôr o seu. */
+const TRACO = { style: BorderStyle.SINGLE, size: 4, color: 'auto' };
+const SEM_TRACO = { style: BorderStyle.NONE, size: 0, color: 'auto' };
+const traco = (sim: boolean) => (sim ? TRACO : SEM_TRACO);
+
+/**
+ * Tabela nativa do Word. A grade chega no modelo do HTML; aqui vira a do OOXML: `gridSpan` para colunas e, para linhas,
+ * a célula de cima com `vMerge` "restart" e uma célula "continue" em cada linha seguinte (montadas aqui, com o estilo da
+ * célula, para a linha não crescer com um parágrafo no corpo padrão).
+ */
+function converterTabela(b: BlocoTabelaFormatado, notas: Notas): Table {
+  const t = b.tracos;
+  const ultimaDoCabecalho = b.linhasCabecalho - 1;
+  const ultima = b.linhas.length - 1;
+  // Sem traço entre linhas, o traço de baixo vai nas células da última linha: o `bottom` da tabela o Word repete no pé de
+  // cada página em que ela quebra [VERIFICADO no Word 16, M5-T03], e o da célula só sai na página da última linha.
+  const baixoNaCelula = t.inferior && !t.entreLinhas;
+  // Linhas [r, r + n) chegam à linha `alvo`?
+  const alcanca = (r: number, n: number, alvo: number) => r <= alvo && r + n - 1 >= alvo;
+  const tracoAbaixo = (r: number, n: number) => (t.abaixoDoCabecalho && alcanca(r, n, ultimaDoCabecalho)) || (baixoNaCelula && alcanca(r, n, ultima));
+  const largura = Math.floor(b.larguraTw / Math.max(1, b.colunas));
+  const vazia = () => new Paragraph({ style: b.estilo });
+  // Por coluna: quantas linhas ainda estão cobertas por uma célula de cima, e com quantas colunas.
+  const cobertas: { resta: number; colunas: number }[] = Array.from({ length: b.colunas }, () => ({ resta: 0, colunas: 1 }));
+  const rows = b.linhas.map((linha, r) => {
+    const bordas = tracoAbaixo(r, 1) ? { borders: { bottom: TRACO } } : {};
+    const celulas: TableCell[] = [];
+    let i = 0;
+    for (let c = 0; c < b.colunas; ) {
+      const coberta = cobertas[c]!;
+      if (coberta.resta > 0) {
+        celulas.push(new TableCell({ verticalMerge: VerticalMergeType.CONTINUE, ...(coberta.colunas > 1 ? { columnSpan: coberta.colunas } : {}), ...bordas, children: [vazia()] }));
+        coberta.resta--;
+        c += coberta.colunas;
+        continue;
+      }
+      const cel = linha[i++];
+      if (!cel) break;
+      // O alinhamento é da coluna, escolhido pelo autor: vai no parágrafo da célula.
+      const p = new Paragraph({ style: b.estilo, alignment: ALINHAMENTO[cel.alinhamento], children: converterTrechos(cel.trechos, notas) });
+      celulas.push(
+        new TableCell({
+          ...(cel.colunas > 1 ? { columnSpan: cel.colunas } : {}),
+          ...(cel.linhas > 1 ? { verticalMerge: VerticalMergeType.RESTART } : {}),
+          ...(tracoAbaixo(r, cel.linhas) ? { borders: { bottom: TRACO } } : {}),
+          children: [p],
+        }),
+      );
+      if (cel.linhas > 1) cobertas[c] = { resta: cel.linhas - 1, colunas: cel.colunas };
+      c += cel.colunas;
+    }
+    return new TableRow({ ...(b.repetirCabecalho && r < b.linhasCabecalho ? { tableHeader: true } : {}), children: celulas });
+  });
+  return new Table({
+    width: { size: b.larguraTw, type: WidthType.DXA },
+    // Colunas iguais; a sobra da divisão vai para a última, para a soma dar a largura exata.
+    columnWidths: Array.from({ length: b.colunas }, (_, i) => (i === b.colunas - 1 ? b.larguraTw - largura * (b.colunas - 1) : largura)),
+    borders: {
+      top: traco(t.superior),
+      bottom: traco(t.inferior && !baixoNaCelula),
+      left: traco(t.esquerda),
+      right: traco(t.direita),
+      insideHorizontal: traco(t.entreLinhas),
+      insideVertical: traco(t.entreColunas),
+    },
+    rows,
+  });
+}
+
 function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, paginas: ReadonlyMap<string, number> | null): Filho[] {
   switch (b.tipo) {
     case 'quebraPagina':
       return [new Paragraph({ pageBreakBefore: true })];
+    case 'tabela':
+      return [converterTabela(b, notas)];
     case 'quadro': {
       const linha = { style: BorderStyle.SINGLE, size: 4, color: 'auto' };
       return [
@@ -240,7 +313,9 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
           ...(literal ? { numbering: false as const } : {}),
           ...(b.lista && b.lista.rotulo !== null ? { numbering: { reference: 'alineas', level: b.lista.nivel, instance: b.lista.lista } } : {}),
           ...(b.novaPagina ? { pageBreakBefore: true } : {}),
-          ...(b.antesTw !== undefined ? { spacing: { before: b.antesTw } } : {}),
+          ...(b.antesTw !== undefined || b.depoisTw !== undefined
+            ? { spacing: { ...(b.antesTw !== undefined ? { before: b.antesTw } : {}), ...(b.depoisTw !== undefined ? { after: b.depoisTw } : {}) } }
+            : {}),
           children: b.ancora !== undefined ? [new Bookmark({ id: b.ancora, children: runs })] : runs,
         }),
       ];

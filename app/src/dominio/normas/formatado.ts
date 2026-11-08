@@ -79,6 +79,8 @@ export type BlocoFormatado =
       novaPagina?: true;
       /** Espaço antes só deste parágrafo (dedicatória abaixo do meio da folha, RN-146). */
       antesTw?: number;
+      /** Espaço depois só deste parágrafo (uma linha depois do rodapé da tabela, RN-031, RN-308). */
+      depoisTw?: number;
       origem: readonly string[];
     }
   /** Caixa de tamanho fixo (ficha catalográfica, RN-136). */
@@ -86,7 +88,48 @@ export type BlocoFormatado =
   /** Sumário: o exportador grava como campo; o motor entrega indicativo e título, e a página é estimada na exportação. */
   | { tipo: 'sumario'; estilo: string; entradas: readonly EntradaSumario[]; origem: readonly string[] }
   /** Pedida pelo autor, não por uma regra: por isso `origem` fica vazia. */
-  | { tipo: 'quebraPagina'; origem: readonly string[] };
+  | { tipo: 'quebraPagina'; origem: readonly string[] }
+  /** Tabela ou quadro nativo do Word (M5-T03). Título e rodapé são parágrafos à parte, antes e depois. */
+  | BlocoTabelaFormatado;
+
+/** Traços da moldura; cada um só existe com a regra que o pede (tabela: RN-251 a RN-254; quadro: RN-061). */
+export interface TracosMoldura {
+  superior: boolean;
+  inferior: boolean;
+  esquerda: boolean;
+  direita: boolean;
+  /** Entre todas as linhas (quadro fechado). */
+  entreLinhas: boolean;
+  /** Entre todas as colunas (quadro fechado). */
+  entreColunas: boolean;
+  /** Abaixo da última linha de cabeçalho (2.º traço da tabela, RN-251). */
+  abaixoDoCabecalho: boolean;
+}
+
+export interface CelulaFormatada {
+  trechos: readonly TrechoFormatado[];
+  /** Alinhamento da coluna, escolhido pelo autor no modelo. */
+  alinhamento: 'esquerda' | 'centralizado' | 'direita';
+  /** Colunas e linhas ocupadas (1 = sem mesclagem). */
+  colunas: number;
+  linhas: number;
+}
+
+export interface BlocoTabelaFormatado {
+  tipo: 'tabela';
+  /** Estilo dos parágrafos das células. */
+  estilo: string;
+  /** Largura da tabela: a área útil da página. */
+  larguraTw: number;
+  colunas: number;
+  linhasCabecalho: number;
+  /** As linhas de cabeçalho se repetem em cada página (RN-292). */
+  repetirCabecalho: boolean;
+  tracos: TracosMoldura;
+  /** Modelo do HTML: cada linha lista só as células que começam nela. */
+  linhas: readonly (readonly CelulaFormatada[])[];
+  origem: readonly string[];
+}
 
 export interface AvisoFormatacao {
   codigo:

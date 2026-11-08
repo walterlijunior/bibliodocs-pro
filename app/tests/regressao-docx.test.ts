@@ -140,7 +140,8 @@ describe.each(CORPUS.map(([nome]) => nome))('propriedades normativas: %s', (nome
     }
   });
   it('RF-05: nos parágrafos, nenhuma formatação direta além da estrutura e da dedicatória (RN-146)', () => {
-    const doc = g().partes['word/document.xml']!;
+    // M5-T03: dentro das células, só o alinhamento da coluna, escolhido pelo autor (conferido no documento difícil).
+    const doc = g().partes['word/document.xml']!.replace(/<w:tc>.*?<\/w:tc>/gs, '');
     const fora = [...doc.matchAll(/<w:pPr>(.*?)<\/w:pPr>/gs)].flatMap((m) =>
       [...m[1]!.matchAll(/<(w:\w+)/g)].map((x) => x[1]!).filter((tag) => /^w:(jc|ind|keepNext|keepLines|shd|pBdr)$/.test(tag)),
     );
@@ -179,6 +180,20 @@ describe('o documento difícil exercita o que deve', () => {
     expect(doc).toContain('APÊNDICE B – Questionário de exemplo');
     expect(doc).toContain('ANEXO A – Documento de exemplo');
     expect(formatado.avisos.map((a) => a.codigo)).toEqual(['BRASAO_AUSENTE']);
+  });
+
+  it('tem tabela, quadro e tabela longa nativos, com os traços da norma (M5-T03; RN-251, RN-254, RN-061, RN-292)', () => {
+    const doc = gerados.get('documento-dificil')!.partes['word/document.xml']!;
+    const tbls = doc.match(/<w:tbl>.*?<\/w:tbl>/gs)!;
+    expect(tbls).toHaveLength(4); // a ficha catalográfica e os três elementos
+    for (const titulo of ['Tabela 1 – ', 'Quadro 1 – ', 'Tabela 2 – ']) expect(doc).toContain(titulo);
+    const lados = (t: string) => ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map((l) => new RegExp(`<w:${l} [^>]*w:val="(\\w+)"`).exec(t)![1]);
+    // O traço de baixo da tabela vai nas células da última linha (RN-295).
+    expect(lados(tbls[1]!), 'RN-251, RN-254').toEqual(['single', 'none', 'none', 'none', 'none', 'none']);
+    expect(lados(tbls[2]!), 'RN-061').toEqual(Array(6).fill('single'));
+    expect(lados(tbls[3]!), 'RN-251, RN-254').toEqual(['single', 'none', 'none', 'none', 'none', 'none']);
+    expect(tbls[3]!.match(/<w:tr>.*?<\/w:tr>/gs)!.at(-1), 'RN-251, RN-295').toMatch(/<w:tcBorders><w:bottom [^>]*w:val="single"/);
+    expect(tbls[3]!.match(/<w:tblHeader\/>/g), 'RN-292').toHaveLength(1);
   });
 
   it('tem a lista REFERÊNCIAS ordenada e as chamadas no texto (M4-T05)', () => {

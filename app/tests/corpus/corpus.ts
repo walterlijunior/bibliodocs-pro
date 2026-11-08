@@ -1,7 +1,7 @@
 // Corpus da regressão documental (M3-T06; skill `regressao-documental`). Conteúdo fictício e neutro, gerado aqui: nada de
-// dados reais. Um trabalho por tipo e um "documento difícil". Tabelas, figuras e equações entram no M5.
+// dados reais. Um trabalho por tipo e um "documento difícil". Tabela e quadro desde o M5-T03; figuras e equações entram no M5.
 import { criarTrabalhoDoTipo } from '../../src/aplicacao/servicos/criar-trabalho';
-import type { Bloco, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
+import type { Bloco, BlocoTabela, CelulaTabela, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
 
 export const TIPOS: readonly TipoTrabalhoUft[] = ['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa'];
 
@@ -51,6 +51,61 @@ const OBRAS_FICTICIAS: Obra[] = [
 ];
 const citacao = (id: string, forma: InlineCitacao['forma'], obras: InlineCitacao['obras'], extra: Partial<InlineCitacao> = {}): Inline => ({ tipo: 'citacao', id, forma, obras, ...extra });
 
+const cel = (texto: string, extra: Partial<CelulaTabela> = {}): CelulaTabela => ({ conteudo: [{ tipo: 'texto', texto }], ...extra });
+const tx = (texto: string) => [{ tipo: 'texto' as const, texto }];
+
+/**
+ * Tabela (M5-T03): cabeçalho em duas linhas com mesclagem nas duas direções, chamada de nota específica entre parênteses
+ * (RN-267), sinal convencional, fonte, nota geral e duas notas específicas. Números fictícios.
+ */
+export const TABELA_CORPUS: BlocoTabela = {
+  tipo: 'tabela',
+  id: 'tab_corpus0001',
+  especie: 'tabela',
+  titulo: tx('Produção fictícia por região, 2020–2022'),
+  colunas: [{ alinhamento: 'esquerda' }, { alinhamento: 'direita' }, { alinhamento: 'direita' }, { alinhamento: 'direita' }],
+  linhasCabecalho: 2,
+  linhas: [
+    [cel('Região', { linhas: 2 }), cel('Produção (t)', { colunas: 3 })],
+    [cel('2020'), cel('2021'), cel('2022')],
+    [cel('Norte (1)'), cel('1.234,5'), cel('1.300,0'), cel('1.410,2')],
+    [cel('Nordeste'), cel('2.100,0'), cel('–'), cel('2.250,7')],
+    [cel('Sul', { linhas: 2 }), cel('987,1'), cel('1.002,3'), cel('...')],
+    [cel('45,0'), cel('46,2'), cel('47,9')],
+  ],
+  fonte: tx('Dados fictícios de teste (2026).'),
+  nota: tx('Sinal convencional utilizado: – Dado numérico igual a zero não resultante de arredondamento.'),
+  notasEspecificas: [tx('Região de exemplo.'), tx('Outra nota de exemplo.')],
+};
+
+/** Quadro (M5-T03): texto, fechado. */
+export const QUADRO_CORPUS: BlocoTabela = {
+  tipo: 'tabela',
+  id: 'tab_corpus0002',
+  especie: 'quadro',
+  titulo: tx('Etapas fictícias do procedimento'),
+  colunas: [{ alinhamento: 'esquerda' }, { alinhamento: 'esquerda' }],
+  linhasCabecalho: 1,
+  linhas: [
+    [cel('Etapa'), cel('Descrição')],
+    [cel('Preparação'), cel('Separar o material de teste e conferir a lista.')],
+    [cel('Execução'), cel('Aplicar o roteiro de exemplo, sem dados reais.')],
+  ],
+  fonte: tx('Elaborado pela autoria fictícia (2026).'),
+};
+
+/** Tabela longa (M5-T03): passa da página, com o cabeçalho repetido (RN-292) e o aviso de tabela longa (RN-297). */
+export const TABELA_LONGA_CORPUS: BlocoTabela = {
+  tipo: 'tabela',
+  id: 'tab_corpus0003',
+  especie: 'tabela',
+  titulo: tx('Medições fictícias por amostra'),
+  colunas: [{ alinhamento: 'esquerda' }, { alinhamento: 'direita' }],
+  linhasCabecalho: 1,
+  linhas: [[cel('Amostra'), cel('Valor (mm)')], ...Array.from({ length: 60 }, (_, i) => [cel(`Amostra ${i + 1}`), cel(`${10 + i},${i % 10}`)])],
+  fonte: tx('Dados fictícios de teste (2026).'),
+};
+
 /** Cinco níveis, citação longa, notas, alíneas com subalíneas, listas que recomeçam, marcas, citações, apêndices e anexos. */
 export function documentoDificil(): Documento {
   const d = preencher(novo('tese'));
@@ -75,6 +130,10 @@ export function documentoDificil(): Documento {
     ], [q2]),
     sec('s6', 'Considerações finais', [
       p('p6', t(FRASE)),
+      TABELA_CORPUS,
+      p('p6b', t(FRASE)),
+      QUADRO_CORPUS,
+      TABELA_LONGA_CORPUS,
       p('p7', citacao('k2', 'narrativa', [{ obra: 'o4' }]), t(' e '), citacao('k3', 'narrativa', [{ obra: 'o3', pagina: '15' }], { apud: { obra: 'o2', pagina: '8' } }), t(' afirmam o exemplo '), citacao('k4', 'parentetica', [{ obra: 'o5' }, { obra: 'o1', semPaginacao: true }], { grifo: 'nosso' }), t('.'), notaComCitacao),
     ]),
   ];

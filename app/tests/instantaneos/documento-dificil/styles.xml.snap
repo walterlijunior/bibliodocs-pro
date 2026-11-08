@@ -786,6 +786,48 @@
 <w:szCs w:val="20"/>
 </w:rPr>
 </w:style>
+<w:style w:styleId="tituloElemento" w:type="paragraph">
+<w:name w:val="Título de tabela e ilustração"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:keepNext/>
+<w:spacing w:before="240" w:line="240" w:lineRule="auto"/>
+<w:jc w:val="center"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="rodapeElemento" w:type="paragraph">
+<w:name w:val="Fonte e nota de tabela e ilustração"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+<w:jc w:val="left"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
+<w:style w:styleId="celulaTabela" w:type="paragraph">
+<w:name w:val="Célula de tabela e quadro"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="240" w:lineRule="auto"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="20"/>
+<w:szCs w:val="20"/>
+</w:rPr>
+</w:style>
 <w:style w:styleId="TOC1" w:type="paragraph">
 <w:name w:val="toc 1"/>
 <w:basedOn w:val="Normal"/>

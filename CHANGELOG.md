@@ -6,6 +6,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T03: tabela e quadro saem no DOCX como tabela nativa do Word.
+  - Título "Tabela n – Título" em 12, centralizado, acima e preso à tabela, com uma linha antes.
+  - Tabela aberta com três traços (acima, abaixo do cabeçalho e no fim), sem laterais nem traços internos; quadro fechado.
+  - Cabeçalho repetido em cada página; corpo das células em 10 simples; alinhamento da coluna (números à direita); mesclagem de linhas e colunas.
+  - Fonte, nota e notas específicas "(1)" em 10, à esquerda, com uma linha depois.
+  - A exportação devolve também as pendências de tabela (sem fonte, tabela longa).
 - Etapa 5, M5-T02: numeração e conferência de tabelas, quadros, ilustrações e equações no domínio.
   - Cada palavra designativa numera à parte, contínua no documento: Tabela 1, Quadro 1, Figura 1, Gráfico 1; equação numerada "(1)".
   - Rótulo "Tabela 3 – Título" com o separador do perfil; rodapé na ordem Fonte, Nota e notas específicas.

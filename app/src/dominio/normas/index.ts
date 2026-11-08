@@ -27,6 +27,8 @@ export { formatar, type AjustesProjeto, type DocumentoParaFormatar } from './mot
 export type {
   AvisoFormatacao,
   BlocoFormatado,
+  BlocoTabelaFormatado,
+  CelulaFormatada,
   DocumentoFormatado,
   EntradaSumario,
   PaginaResolvida,
@@ -34,5 +36,6 @@ export type {
   EstiloResolvido,
   ItemDeLista,
   PropriedadesEstilo,
+  TracosMoldura,
   TrechoFormatado,
 } from './formatado';

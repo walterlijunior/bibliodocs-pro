@@ -50,7 +50,16 @@ export type AlvoRegra =
   | 'referencia'
   | 'citacao.chamada'
   | 'paginacao'
-  | 'paginacao.numero';
+  | 'paginacao.numero'
+  /** Título e rodapé de tabela, quadro e ilustração (M5-T03). */
+  | 'elemento'
+  | 'elemento.titulo'
+  | 'elemento.rodape'
+  /** Conteúdo das células de tabela e quadro. */
+  | 'tabela.celula'
+  | 'tabela.moldura'
+  | 'tabela.cabecalho'
+  | 'quadro.moldura';
 
 export interface PropriedadesFormatacao {
   larguraMm?: number;

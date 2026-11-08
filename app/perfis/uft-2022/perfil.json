@@ -241,6 +241,23 @@
     "etAl",
     "todos"
    ]
+  },
+  "espacoElementoPt": {
+   "valor": 12,
+   "ajustavel": false,
+   "rn": [
+    "RN-031",
+    "RN-308"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
+  },
+  "corpoTabelaPt": {
+   "valor": 10,
+   "ajustavel": false,
+   "rn": [
+    "RN-311"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
   }
  },
  "regras": [
@@ -1160,6 +1177,213 @@
    "parametros": [
     "autoresReferencia"
    ]
+  },
+  {
+   "id": "RN-032",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.6 d; p. 17, Quadro 1; p. 19, anotações \"Espaço simples\"",
+   "tipo": "estilo",
+   "alvo": "elemento",
+   "propriedades": {
+    "entrelinha": "simples"
+   }
+  },
+  {
+   "id": "RN-021",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.1; p. 19, exemplo (anotação \"Título da figura tamanho 12\")",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "propriedades": {
+    "corpoPt": 12
+   }
+  },
+  {
+   "id": "RN-015",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 18, seção 2.8; p. 20, seção 2.9",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "propriedades": {
+    "alinhamento": "centralizado"
+   }
+  },
+  {
+   "id": "RN-066",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 20, exemplos; I, p. 13 (só \"no topo\") e Prefácio, p. 7–8",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "propriedades": {
+    "alinhamento": "centralizado"
+   }
+  },
+  {
+   "id": "RN-050",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.8",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "propriedades": {
+    "manterComProximo": true
+   }
+  },
+  {
+   "id": "RN-063",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 20, seção 2.9",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "propriedades": {
+    "manterComProximo": true
+   }
+  },
+  {
+   "id": "RN-031",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.6 c",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "parametros": [
+    "espacoElementoPt"
+   ]
+  },
+  {
+   "id": "RN-308",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 16, seção 2.6 c",
+   "tipo": "estilo",
+   "alvo": "elemento.titulo",
+   "parametros": [
+    "espacoElementoPt"
+   ]
+  },
+  {
+   "id": "RN-052",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.8; p. 7–8 (listas de figuras 1–20 e quadros 1–5)",
+   "tipo": "procedimento",
+   "alvo": "elemento.titulo",
+   "procedimento": "numeracaoDeElementos"
+  },
+  {
+   "id": "RN-053",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.8; exemplos",
+   "tipo": "procedimento",
+   "alvo": "elemento.titulo",
+   "procedimento": "rotuloDeElemento",
+   "parametros": [
+    "separadorTitulo"
+   ]
+  },
+  {
+   "id": "RN-022",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.1; p. 19, anotação \"Fonte da figura tamanho 10\"",
+   "tipo": "estilo",
+   "alvo": "elemento.rodape",
+   "propriedades": {
+    "corpoPt": 10
+   }
+  },
+  {
+   "id": "RN-057",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1",
+   "tipo": "estilo",
+   "alvo": "elemento.rodape",
+   "propriedades": {
+    "alinhamento": "esquerda"
+   }
+  },
+  {
+   "id": "RN-307",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1 (\"Fontes e legendas — esquerda — simples\"); I, Anexo B (todas as fontes alinhadas à esquerda da moldura)",
+   "tipo": "estilo",
+   "alvo": "elemento.rodape",
+   "propriedades": {
+    "alinhamento": "esquerda"
+   }
+  },
+  {
+   "id": "RN-277",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 20–21, seções 4.10, 4.11, 4.12 (decorre de \"a partir da primeira linha\", \"logo após a fonte\", \"logo após a nota geral\")",
+   "tipo": "procedimento",
+   "alvo": "elemento.rodape",
+   "procedimento": "ordemDoRodape"
+  },
+  {
+   "id": "RN-267",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 19, seção 4.9.1",
+   "tipo": "procedimento",
+   "alvo": "elemento.rodape",
+   "procedimento": "chamadaDeNotaEspecifica"
+  },
+  {
+   "id": "RN-311",
+   "status": "PENDENTE-FONTE",
+   "fonte": "Nem o Manual nem o IBGE fixam (RN-301)",
+   "tipo": "estilo",
+   "alvo": "tabela.celula",
+   "propriedades": {
+    "entrelinha": "simples"
+   },
+   "parametros": [
+    "corpoTabelaPt"
+   ],
+   "provisoria": true
+  },
+  {
+   "id": "RN-251",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 14, seção 4.3; p. 15, seção 4.3.1",
+   "tipo": "procedimento",
+   "alvo": "tabela.moldura",
+   "procedimento": "tresTracosHorizontais"
+  },
+  {
+   "id": "RN-252",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 15, seção 4.3.2 (exemplos: Anexo B, Tabelas 3, 5, 6, 7, 9, 10, 11, 12, 14, 15)",
+   "tipo": "procedimento",
+   "alvo": "tabela.moldura",
+   "procedimento": "semTracosVerticaisInternos"
+  },
+  {
+   "id": "RN-253",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 15, seção 4.3.1 (\"no mínimo três\") e Anexo B",
+   "tipo": "procedimento",
+   "alvo": "tabela.moldura",
+   "procedimento": "semTracosEntreLinhas"
+  },
+  {
+   "id": "RN-254",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 15, seção 4.3.3; M, p. 20, seção 2.9 (\"abertas\")",
+   "tipo": "procedimento",
+   "alvo": "tabela.moldura",
+   "procedimento": "semTracosLaterais"
+  },
+  {
+   "id": "RN-061",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 19, seção 2.8.1",
+   "tipo": "procedimento",
+   "alvo": "quadro.moldura",
+   "procedimento": "molduraFechada"
+  },
+  {
+   "id": "RN-292",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 29, seção 8.3 a",
+   "tipo": "procedimento",
+   "alvo": "tabela.cabecalho",
+   "procedimento": "repetirCabecalho"
   }
  ],
  "tiposTrabalho": {

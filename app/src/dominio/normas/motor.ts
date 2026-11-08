@@ -8,6 +8,7 @@ import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferen
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
 import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
+import { blocosTabela, contextoVisuais } from './motor-visuais';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
@@ -144,6 +145,26 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
     },
   },
   { id: 'numeroPagina', nome: 'Número da página', alvos: ['documento', 'paginacao.numero'] },
+  // M5-T03: tabela e quadro (e, no M5-T06, ilustração). Uma linha antes do título (RN-031, RN-308).
+  {
+    id: 'tituloElemento',
+    nome: 'Título de tabela e ilustração',
+    alvos: ['documento', 'elemento', 'elemento.titulo'],
+    parametros: (v) => {
+      const pt = v('espacoElementoPt');
+      return typeof pt === 'number' ? { antesTw: ptParaTw(pt) } : {};
+    },
+  },
+  { id: 'rodapeElemento', nome: 'Fonte e nota de tabela e ilustração', alvos: ['documento', 'elemento', 'elemento.rodape'] },
+  {
+    id: 'celulaTabela',
+    nome: 'Célula de tabela e quadro',
+    alvos: ['documento', 'tabela.celula'],
+    parametros: (v) => {
+      const pt = v('corpoTabelaPt');
+      return typeof pt === 'number' ? { corpoMeioPt: Math.round(pt * 2) } : {};
+    },
+  },
 ];
 
 const regraAplicavel = (r: RegraNormativa, perfil: Perfil): boolean => {
@@ -208,8 +229,7 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
   regras.find((r) => r.procedimento === nome)?.id ?? null;
 
 /** Nome do elemento visual no aviso de elemento ainda não exportado (M5-T01). */
-const nomeAdiado = (b: Extract<Bloco, { tipo: 'tabela' | 'ilustracao' | 'equacao' }>): string =>
-  b.tipo === 'tabela' ? (b.especie === 'quadro' ? 'O quadro' : 'A tabela') : b.tipo === 'ilustracao' ? 'A ilustração' : 'A equação';
+const nomeAdiado = (b: Extract<Bloco, { tipo: 'ilustracao' | 'equacao' }>): string => (b.tipo === 'ilustracao' ? 'A ilustração' : 'A equação');
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
@@ -336,6 +356,9 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     return nova;
   };
 
+  const pagina = paginaDe(regras, perfil);
+  const visuais = contextoVisuais(doc.corpo, regras, perfil, pagina);
+
   const bloco = (b: Bloco): BlocoFormatado[] => {
     switch (b.tipo) {
       case 'paragrafo':
@@ -345,8 +368,9 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         return [{ tipo: 'paragrafo', estilo: 'citacaoLonga', trechos: trechos(b.conteudo), origem: [] }];
       case 'quebraPagina':
         return [{ tipo: 'quebraPagina', origem: [] }];
-      // Formato no M5-T01; motor e DOCX no M5-T03, T06 e T07. Até lá, o elemento fica de fora com aviso.
       case 'tabela':
+        return blocosTabela(b, visuais);
+      // Formato no M5-T01; motor e DOCX no M5-T06 e T07. Até lá, o elemento fica de fora com aviso.
       case 'ilustracao':
       case 'equacao':
         avisos.push({ codigo: 'ELEMENTO_ADIADO', id: b.id, mensagem: `${nomeAdiado(b)} ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.` });
@@ -394,7 +418,6 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     ];
   });
 
-  const pagina = paginaDe(regras, perfil);
   const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos, blocosReferencias).map((b, i): BlocoFormatado =>
     b.tipo === 'paragrafo' && b.estilo === 'tituloPosTextual' ? { ...b, ancora: ancoraDe(`pos:${i}`) } : b,
   );

@@ -193,15 +193,13 @@ describe('editor: os blocos novos sobrevivem à ida e volta (a edição é do M5
   });
 });
 
-describe('motor e DOCX: elemento visual fica de fora com aviso até o M5-T03', () => {
+describe('motor e DOCX: ilustração e equação ficam de fora com aviso até o M5-T06 e T07', () => {
   const doc = lerJson<Documento>('documento-bordas-m5.json');
 
-  it('cada elemento gera ELEMENTO_ADIADO e o resto sai normalmente', async () => {
+  it('tabela e quadro saem (M5-T03); ilustração e equação geram ELEMENTO_ADIADO', async () => {
     const f = formatar({ corpo: doc.corpo, metadados: doc.metadados }, PERFIL);
+    expect(f.secoes.flatMap((s) => s.blocos).filter((b) => b.tipo === 'tabela')).toHaveLength(3);
     expect(f.avisos.filter((a) => a.codigo === 'ELEMENTO_ADIADO').map((a) => [a.id, a.mensagem])).toEqual([
-      ['tab_bordm5001', 'A tabela ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
-      ['tab_bordm5002', 'O quadro ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
-      ['tab_bordm5003', 'O quadro ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
       ['ilu_bordm5001', 'A ilustração ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
       ['eqc_bordm5001', 'A equação ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
       ['ilu_bordm5002', 'A ilustração ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.'],
