@@ -1,0 +1,264 @@
+{
+  "descricao": "Id da tabela igual ao da seção",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].id",
+      "mensagem": "identificador repetido no documento"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M5"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Elementos"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "tabela",
+            "id": "sec_BordasM501",
+            "especie": "tabela",
+            "titulo": [
+              {
+                "tipo": "texto",
+                "texto": "População residente por região, "
+              },
+              {
+                "tipo": "texto",
+                "texto": "2000-2020"
+              }
+            ],
+            "colunas": [
+              {
+                "alinhamento": "esquerda"
+              },
+              {
+                "alinhamento": "direita"
+              },
+              {
+                "alinhamento": "direita"
+              },
+              {
+                "alinhamento": "direita"
+              }
+            ],
+            "linhasCabecalho": 2,
+            "linhas": [
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "Região"
+                    }
+                  ],
+                  "linhas": 2
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "População (mil habitantes)"
+                    }
+                  ],
+                  "colunas": 3
+                }
+              ],
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "2000"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "2010"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "2020"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "Norte"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "12 900"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "15 864"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "18 672"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "Sul"
+                    },
+                    {
+                      "tipo": "texto",
+                      "texto": "(1)",
+                      "marcas": [
+                        "sobrescrito"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "25 107"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "27 386"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "..."
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "Centro-Oeste"
+                    }
+                  ],
+                  "linhas": 2
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "11 636"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "14 058"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "16 504"
+                    }
+                  ]
+                }
+              ],
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "–"
+                    }
+                  ]
+                },
+                {
+                  "conteudo": []
+                },
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": ".."
+                    }
+                  ]
+                }
+              ]
+            ],
+            "fonte": [
+              {
+                "tipo": "texto",
+                "texto": "IBGE (2020)."
+              }
+            ],
+            "nota": [
+              {
+                "tipo": "texto",
+                "texto": "Dados preliminares."
+              }
+            ],
+            "notasEspecificas": [
+              [
+                {
+                  "tipo": "texto",
+                  "texto": "(1) Inclui estimativa."
+                }
+              ]
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

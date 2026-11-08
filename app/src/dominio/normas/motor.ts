@@ -207,6 +207,10 @@ function resolverEstilo(d: DefinicaoEstilo, regras: readonly RegraNormativa[], p
 const temProcedimento = (regras: readonly RegraNormativa[], nome: string): string | null =>
   regras.find((r) => r.procedimento === nome)?.id ?? null;
 
+/** Nome do elemento visual no aviso de elemento ainda não exportado (M5-T01). */
+const nomeAdiado = (b: Extract<Bloco, { tipo: 'tabela' | 'ilustracao' | 'equacao' }>): string =>
+  b.tipo === 'tabela' ? (b.especie === 'quadro' ? 'O quadro' : 'A tabela') : b.tipo === 'ilustracao' ? 'A ilustração' : 'A equação';
+
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
 export type DocumentoParaFormatar = Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>>;
@@ -341,6 +345,12 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         return [{ tipo: 'paragrafo', estilo: 'citacaoLonga', trechos: trechos(b.conteudo), origem: [] }];
       case 'quebraPagina':
         return [{ tipo: 'quebraPagina', origem: [] }];
+      // Formato no M5-T01; motor e DOCX no M5-T03, T06 e T07. Até lá, o elemento fica de fora com aviso.
+      case 'tabela':
+      case 'ilustracao':
+      case 'equacao':
+        avisos.push({ codigo: 'ELEMENTO_ADIADO', id: b.id, mensagem: `${nomeAdiado(b)} ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.` });
+        return [];
       case 'alineas': {
         const lista = proximaLista++;
         return b.itens.flatMap((item, posicao): BlocoFormatado[] => {

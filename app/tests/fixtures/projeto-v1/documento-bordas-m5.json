@@ -1,0 +1,450 @@
+{
+  "id": "prj_BordasM5",
+  "tipoTrabalho": "generico",
+  "metadados": {
+    "titulo": [
+      {
+        "tipo": "texto",
+        "texto": "Casos de borda do M5"
+      }
+    ]
+  },
+  "corpo": [
+    {
+      "id": "sec_BordasM501",
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Elementos"
+        }
+      ],
+      "blocos": [
+        {
+          "tipo": "paragrafo",
+          "id": "par_bordm5001",
+          "conteudo": [
+            {
+              "tipo": "texto",
+              "texto": "Antes da tabela."
+            }
+          ]
+        },
+        {
+          "tipo": "tabela",
+          "id": "tab_bordm5001",
+          "especie": "tabela",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "População residente por região, "
+            },
+            {
+              "tipo": "texto",
+              "texto": "2000-2020"
+            }
+          ],
+          "colunas": [
+            {
+              "alinhamento": "esquerda"
+            },
+            {
+              "alinhamento": "direita"
+            },
+            {
+              "alinhamento": "direita"
+            },
+            {
+              "alinhamento": "direita"
+            }
+          ],
+          "linhasCabecalho": 2,
+          "linhas": [
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Região"
+                  }
+                ],
+                "linhas": 2
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "População (mil habitantes)"
+                  }
+                ],
+                "colunas": 3
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "2000"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "2010"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "2020"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Norte"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "12 900"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "15 864"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "18 672"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Sul"
+                  },
+                  {
+                    "tipo": "texto",
+                    "texto": "(1)",
+                    "marcas": [
+                      "sobrescrito"
+                    ]
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "25 107"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "27 386"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "..."
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Centro-Oeste"
+                  }
+                ],
+                "linhas": 2
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "11 636"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "14 058"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "16 504"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "–"
+                  }
+                ]
+              },
+              {
+                "conteudo": []
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": ".."
+                  }
+                ]
+              }
+            ]
+          ],
+          "fonte": [
+            {
+              "tipo": "texto",
+              "texto": "IBGE (2020)."
+            }
+          ],
+          "nota": [
+            {
+              "tipo": "texto",
+              "texto": "Dados preliminares."
+            }
+          ],
+          "notasEspecificas": [
+            [
+              {
+                "tipo": "texto",
+                "texto": "(1) Inclui estimativa."
+              }
+            ]
+          ]
+        },
+        {
+          "tipo": "tabela",
+          "id": "tab_bordm5002",
+          "especie": "quadro",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Espécies citadas"
+            }
+          ],
+          "colunas": [
+            {
+              "alinhamento": "esquerda"
+            },
+            {
+              "alinhamento": "centro"
+            }
+          ],
+          "linhasCabecalho": 1,
+          "linhas": [
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Nome científico"
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Bioma"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Caryocar brasiliense",
+                    "marcas": [
+                      "italico"
+                    ]
+                  }
+                ]
+              },
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "Cerrado"
+                  }
+                ]
+              }
+            ]
+          ],
+          "fonte": [
+            {
+              "tipo": "texto",
+              "texto": "Elaborado pelo autor."
+            }
+          ]
+        },
+        {
+          "tipo": "tabela",
+          "id": "tab_bordm5003",
+          "especie": "quadro",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Grade sem cabeçalho"
+            }
+          ],
+          "colunas": [
+            {
+              "alinhamento": "esquerda"
+            }
+          ],
+          "linhasCabecalho": 0,
+          "linhas": [
+            [
+              {
+                "conteudo": [
+                  {
+                    "tipo": "texto",
+                    "texto": "única"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "tipo": "ilustracao",
+          "id": "ilu_bordm5001",
+          "especie": "figura",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Mapa do campus"
+            }
+          ],
+          "midia": "fd22af81a50a9eeaf16b21bcfc561d38a21ecde1fff64acbee3ecd41cedc0649",
+          "larguraMm": 120,
+          "fonte": [
+            {
+              "tipo": "texto",
+              "texto": "Acervo do autor."
+            }
+          ],
+          "nota": [
+            {
+              "tipo": "texto",
+              "texto": "Escala aproximada."
+            }
+          ]
+        }
+      ],
+      "subsecoes": [
+        {
+          "id": "sec_BordasM502",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Equações"
+            }
+          ],
+          "blocos": [
+            {
+              "tipo": "equacao",
+              "id": "eqc_bordm5001",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "E = mc"
+                },
+                {
+                  "tipo": "texto",
+                  "texto": "2",
+                  "marcas": [
+                    "sobrescrito"
+                  ]
+                }
+              ],
+              "numerada": true
+            },
+            {
+              "tipo": "ilustracao",
+              "id": "ilu_bordm5002",
+              "especie": "fotografia",
+              "titulo": [
+                {
+                  "tipo": "texto",
+                  "texto": "Fachada"
+                }
+              ],
+              "midia": "fd22af81a50a9eeaf16b21bcfc561d38a21ecde1fff64acbee3ecd41cedc0649"
+            },
+            {
+              "tipo": "equacao",
+              "id": "eqc_bordm5002",
+              "conteudo": [
+                {
+                  "tipo": "texto",
+                  "texto": "H"
+                },
+                {
+                  "tipo": "texto",
+                  "texto": "2",
+                  "marcas": [
+                    "subscrito"
+                  ]
+                },
+                {
+                  "tipo": "texto",
+                  "texto": "O"
+                }
+              ]
+            }
+          ],
+          "subsecoes": []
+        }
+      ]
+    }
+  ]
+}

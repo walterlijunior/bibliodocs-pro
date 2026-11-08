@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:bibliodocs:esquemas:projeto-v1:documento",
   "title": "BiblioDocs Pro — documento.json (formato v1)",
-  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (elementos pré e pós-textuais, seções, blocos, notas, citações e obras); toda obra citada (e a do apud) existe na lista de obras; obra citada não tem página e \"sem paginação\" juntos; ano incerto só com ano; elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico; sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas).",
+  "description": "Gerado a partir dos esquemas zod (app/src/dominio/esquemas). Restrições só no código: profundidade da árvore de seções ≤ 64 e aninhamento JSON ≤ 144; maxLength conta unidades UTF-16 no código e pontos de código no JSON Schema (o código é mais restritivo); caminho da mídia coerente com sha256 e tipo; sha256 único na lista de mídias do manifesto; ids únicos no documento (elementos pré e pós-textuais, seções, blocos, notas, citações e obras); toda obra citada (e a do apud) existe na lista de obras; obra citada não tem página e \"sem paginação\" juntos; ano incerto só com ano; elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico; sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas); grade da tabela: toda linha cobre exatamente as colunas declaradas, células mescladas não saem da grade, não se sobrepõem nem atravessam o fim do cabeçalho; linhasCabecalho ≤ número de linhas; linhas × colunas ≤ 50000; a mídia de cada ilustração está declarada no manifesto e foi lida sem divergência (conferido pelo contêiner).",
   "type": "object",
   "properties": {
     "id": {
@@ -719,6 +719,15 @@
                   "id"
                 ],
                 "additionalProperties": false
+              },
+              {
+                "$ref": "#/$defs/BlocoTabela"
+              },
+              {
+                "$ref": "#/$defs/BlocoIlustracao"
+              },
+              {
+                "$ref": "#/$defs/BlocoEquacao"
               }
             ]
           }
@@ -883,6 +892,273 @@
         }
       },
       "required": [
+        "conteudo"
+      ],
+      "additionalProperties": false
+    },
+    "BlocoTabela": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "tabela"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "especie": {
+          "type": "string",
+          "enum": [
+            "tabela",
+            "quadro"
+          ]
+        },
+        "titulo": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "colunas": {
+          "minItems": 1,
+          "maxItems": 63,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "alinhamento": {
+                "type": "string",
+                "enum": [
+                  "esquerda",
+                  "centro",
+                  "direita"
+                ]
+              }
+            },
+            "required": [
+              "alinhamento"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "linhasCabecalho": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000
+        },
+        "linhas": {
+          "minItems": 1,
+          "maxItems": 5000,
+          "type": "array",
+          "items": {
+            "maxItems": 63,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/CelulaTabela"
+            }
+          }
+        },
+        "fonte": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "nota": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "notasEspecificas": {
+          "minItems": 1,
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/InlineTexto"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
+        "especie",
+        "titulo",
+        "colunas",
+        "linhasCabecalho",
+        "linhas"
+      ],
+      "additionalProperties": false
+    },
+    "CelulaTabela": {
+      "type": "object",
+      "properties": {
+        "conteudo": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "colunas": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 63
+        },
+        "linhas": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 5000
+        }
+      },
+      "required": [
+        "conteudo"
+      ],
+      "additionalProperties": false
+    },
+    "BlocoIlustracao": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "ilustracao"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "especie": {
+          "type": "string",
+          "enum": [
+            "figura",
+            "desenho",
+            "esquema",
+            "fluxograma",
+            "fotografia",
+            "grafico",
+            "mapa",
+            "organograma",
+            "planta",
+            "retrato"
+          ]
+        },
+        "titulo": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "midia": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "larguraMm": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 500
+        },
+        "fonte": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "nota": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
+        "especie",
+        "titulo",
+        "midia"
+      ],
+      "additionalProperties": false
+    },
+    "BlocoEquacao": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "equacao"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "conteudo": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "numerada": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
         "conteudo"
       ],
       "additionalProperties": false

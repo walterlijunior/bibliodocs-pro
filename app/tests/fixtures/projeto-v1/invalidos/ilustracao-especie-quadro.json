@@ -1,0 +1,60 @@
+{
+  "descricao": "Quadro como espécie de ilustração (o quadro é tabela, RN-061)",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].especie",
+      "mensagem": "Opção inválida: esperava uma das seguintes opções: \"figura\"|\"desenho\"|\"esquema\"|\"fluxograma\"|\"fotografia\"|\"grafico\"|\"mapa\"|\"organograma\"|\"planta\"|\"retrato\""
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M5"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Elementos"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "ilustracao",
+            "id": "ilu_bordm5001",
+            "especie": "quadro",
+            "titulo": [
+              {
+                "tipo": "texto",
+                "texto": "Mapa do campus"
+              }
+            ],
+            "midia": "fd22af81a50a9eeaf16b21bcfc561d38a21ecde1fff64acbee3ecd41cedc0649",
+            "larguraMm": 120,
+            "fonte": [
+              {
+                "tipo": "texto",
+                "texto": "Acervo do autor."
+              }
+            ],
+            "nota": [
+              {
+                "tipo": "texto",
+                "texto": "Escala aproximada."
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

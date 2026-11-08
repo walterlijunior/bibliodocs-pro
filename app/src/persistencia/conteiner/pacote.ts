@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { zipSync, type Zippable } from 'fflate';
 import type { Documento } from '../../dominio/modelo';
 import {
+  midiasDoDocumento,
   MIGRACOES_REGISTRADAS,
   migrarParaAtual,
   MIMETYPE_PROJETO,
@@ -104,6 +105,11 @@ function coerencia(manifesto: Manifesto, documento: Documento): ErroValidacao[] 
   if (manifesto.id !== documento.id) erros.push({ caminho: 'manifesto.id', mensagem: 'id do manifesto diferente do id do documento' });
   if (manifesto.tipoTrabalho !== documento.tipoTrabalho) {
     erros.push({ caminho: 'manifesto.tipoTrabalho', mensagem: 'tipo de trabalho do manifesto diferente do documento' });
+  }
+  // Ilustração sem a imagem no pacote (M5-T01): recusada, porque salvar de novo gravaria um arquivo incoerente.
+  const declaradas = new Set(manifesto.midias.map((m) => m.sha256));
+  for (const m of midiasDoDocumento(documento)) {
+    if (!declaradas.has(m.sha256)) erros.push({ caminho: m.caminho, mensagem: 'a ilustração aponta para uma imagem que não está no pacote' });
   }
   return erros;
 }
@@ -304,6 +310,13 @@ function montarPacote(
     const r = entradaMiniatura.ler();
     if (r.ok && comeca(r.dados, ASSINATURA_PNG)) miniatura = r.dados;
     else avisos.push({ caminho: 'miniatura.png', mensagem: `${r.ok ? 'a miniatura não é PNG' : r.erro.mensagem}; descartada` });
+  }
+
+  // Imagem declarada, mas descartada por divergência, e usada por uma ilustração: o projeto não abre (M5-T01). Abrir sem
+  // ela deixaria um documento que não pode ser salvo; a cópia de segurança (backups) é o caminho de recuperação.
+  const semImagem = midiasDoDocumento(rd.valor).filter((m) => !midias.has(m.sha256));
+  if (semImagem.length > 0) {
+    return { ok: false, erros: semImagem.map((m) => ({ caminho: m.caminho, mensagem: 'a imagem da ilustração está danificada no pacote e foi descartada' })) };
   }
 
   const pacote: PacoteProjeto = { manifesto: { ...rm.valor, midias: midiasValidas }, documento: rd.valor, midias };

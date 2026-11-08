@@ -1,0 +1,64 @@
+{
+  "descricao": "Mais linhas de cabeçalho que linhas",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].linhasCabecalho",
+      "mensagem": "o cabeçalho tem mais linhas que a tabela"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M5"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Elementos"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "tabela",
+            "id": "tab_bordm5003",
+            "especie": "quadro",
+            "titulo": [
+              {
+                "tipo": "texto",
+                "texto": "Grade sem cabeçalho"
+              }
+            ],
+            "colunas": [
+              {
+                "alinhamento": "esquerda"
+              }
+            ],
+            "linhasCabecalho": 2,
+            "linhas": [
+              [
+                {
+                  "conteudo": [
+                    {
+                      "tipo": "texto",
+                      "texto": "única"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

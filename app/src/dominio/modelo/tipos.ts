@@ -128,7 +128,94 @@ export interface BlocoCitacaoLonga {
   conteudo: Inline[];
 }
 
-export type Bloco = BlocoParagrafo | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina;
+/** Alinhamento do conteúdo de uma coluna da tabela ou do quadro (M5-T01). */
+export type AlinhamentoColuna = 'esquerda' | 'centro' | 'direita';
+
+/** Coluna da tabela ou do quadro: por enquanto só o alinhamento (P-C4: números à direita, escolha do autor). */
+export interface ColunaTabela {
+  alinhamento: AlinhamentoColuna;
+}
+
+/**
+ * Célula da grade, no modelo do HTML: cada linha lista só as células que começam nela, e a posição coberta por uma
+ * célula mesclada de cima ou da esquerda não aparece. `colunas` e `linhas` (≥ 2) estendem a célula para a direita e
+ * para baixo; ausentes valem 1 (forma única). A grade é conferida na leitura: toda linha cobre exatamente as colunas
+ * declaradas, nenhuma célula sai da grade nem se sobrepõe a outra, e a mesclagem não atravessa o fim do cabeçalho.
+ */
+export interface CelulaTabela {
+  /** Texto com marcas (sobrescrito para chamada de nota específica, RN-275), sem nota de rodapé nem citação. */
+  conteudo: InlineDeTitulo[];
+  colunas?: number;
+  linhas?: number;
+}
+
+/**
+ * Tabela (dado numérico como informação central, IBGE; RN-241) ou quadro (informação textual, fechado; RN-061, RN-062).
+ * O autor escolhe a espécie (D-M5-10). Número, rótulo ("Tabela 3 – ...") e formato vêm do motor, nunca são gravados
+ * (ADR-0005). Ausência de fonte é pendência do verificador (RN-056), não recusa: o autor salva o trabalho incompleto.
+ */
+export interface BlocoTabela {
+  tipo: 'tabela';
+  id: Id;
+  especie: 'tabela' | 'quadro';
+  /** Título sem o rótulo (RN-055); obrigatório e não vazio. */
+  titulo: InlineDeTitulo[];
+  colunas: ColunaTabela[];
+  /** Quantas das primeiras linhas formam o cabeçalho (repetido em cada página, RN-292); 0 = sem cabeçalho. */
+  linhasCabecalho: number;
+  linhas: CelulaTabela[][];
+  /** Texto depois de "Fonte:" (RN-056, RN-269). */
+  fonte?: InlineDeTitulo[];
+  /** Nota geral (RN-272), depois da fonte (RN-277). */
+  nota?: InlineDeTitulo[];
+  /** Notas específicas, na ordem das chamadas (RN-273, RN-275). Ausente quando não há (lista vazia é recusada). */
+  notasEspecificas?: InlineDeTitulo[][];
+}
+
+/**
+ * Palavra designativa da ilustração (RN-049, Manual p. 18: desenho, esquema, fluxograma, fotografia, gráfico, mapa,
+ * organograma, planta, quadro, retrato e "Figura" dos exemplos). O quadro é `BlocoTabela` com `especie: 'quadro'`
+ * (RN-061), por isso não está aqui.
+ */
+export type EspecieIlustracao =
+  | 'figura'
+  | 'desenho'
+  | 'esquema'
+  | 'fluxograma'
+  | 'fotografia'
+  | 'grafico'
+  | 'mapa'
+  | 'organograma'
+  | 'planta'
+  | 'retrato';
+
+/** Ilustração com imagem (M5-T01): a imagem é a mídia do `.bdp` com esse sha256 (ADR-0004, seção 1). */
+export interface BlocoIlustracao {
+  tipo: 'ilustracao';
+  id: Id;
+  especie: EspecieIlustracao;
+  titulo: InlineDeTitulo[];
+  /** sha256 da mídia (`midias/<sha256>.png|jpg`); a leitura recusa mídia que não está no pacote. */
+  midia: string;
+  /** Largura impressa em milímetros; ausente = largura natural limitada à área útil (D-M5-09, no motor). */
+  larguraMm?: number;
+  fonte?: InlineDeTitulo[];
+  nota?: InlineDeTitulo[];
+}
+
+/**
+ * Equação em texto linear com sobrescrito e subscrito (D-M5-06; RN-105 a RN-107). O número "(n)" vem da posição
+ * entre as equações numeradas (M5-T07), nunca gravado.
+ */
+export interface BlocoEquacao {
+  tipo: 'equacao';
+  id: Id;
+  conteudo: InlineDeTitulo[];
+  /** Ausente = sem número (forma única: `false` é recusado). */
+  numerada?: true;
+}
+
+export type Bloco = BlocoParagrafo | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina | BlocoTabela | BlocoIlustracao | BlocoEquacao;
 
 /** Seção do corpo. O nível é derivado da profundidade na árvore, nunca armazenado. */
 export interface Secao {

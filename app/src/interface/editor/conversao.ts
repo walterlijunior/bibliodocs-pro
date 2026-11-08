@@ -111,6 +111,11 @@ export function normalizarBloco(bloco: Bloco): Bloco {
       return { tipo: 'alineas', id: bloco.id, itens: bloco.itens.map(normalizarItem) };
     case 'quebraPagina':
       return { tipo: 'quebraPagina', id: bloco.id };
+    // Elementos visuais passam inteiros: a edição (e a forma canônica dos campos) chega no M5-T04, T06 e T07.
+    case 'tabela':
+    case 'ilustracao':
+    case 'equacao':
+      return bloco;
   }
 }
 
@@ -164,6 +169,12 @@ export function blocoParaNo(bloco: Bloco): NoPm {
       return tipos[bloco.tipo]!.create({ id: bloco.id }, inlinesParaNos(bloco.conteudo));
     case 'quebraPagina':
       return tipos['quebraPagina']!.create({ id: bloco.id });
+    case 'tabela':
+    case 'ilustracao':
+    case 'equacao': {
+      const { id, ...dados } = bloco;
+      return tipos[bloco.tipo]!.create({ id, dados: JSON.stringify(dados) });
+    }
     case 'alineas':
       return tipos['alineas']!.create(
         { id: bloco.id },
@@ -244,6 +255,12 @@ export function noParaBloco(no: NoPm): Bloco {
       break;
     case 'quebraPagina':
       bloco = { tipo: 'quebraPagina', id: idDe(no) };
+      break;
+    case 'tabela':
+    case 'ilustracao':
+    case 'equacao':
+      // `tipo` vem do nó, não dos dados: o nó de tabela só devolve tabela.
+      bloco = { ...(JSON.parse(String(no.attrs['dados'])) as Omit<Bloco, 'id'>), tipo: no.type.name, id: idDe(no) } as Bloco;
       break;
     case 'alineas': {
       const itens: ItemAlinea[] = [];

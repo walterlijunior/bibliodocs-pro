@@ -1,10 +1,10 @@
 /**
  * Validação dos JSON do pacote `.bdp` com mensagens em pt-BR (M1-T04; ADR-0004, seções 2 e 3).
  * Ordem: aninhamento JSON (iterativo, antes do zod, contra estouro de pilha) → esquema estrito →
- * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos.
+ * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos → obras citadas → grade das tabelas (M5-T01).
  */
 import { z } from 'zod';
-import { problemaNosElementos, type Bloco, type Documento, type Inline, type InlineCitacao, type Obra, type Secao } from '../modelo';
+import { problemaNaGrade, problemaNosElementos, type Bloco, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
 import { esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
@@ -77,8 +77,36 @@ function conteudosComCaminho(b: Bloco): { conteudo: readonly Inline[]; caminho: 
         ...(item.subalineas ?? []).map((sub, j) => ({ conteudo: sub, caminho: ['itens', i, 'subalineas', j] })),
       ]);
     case 'quebraPagina':
+    // Campos dos elementos visuais: só texto (sem nota nem citação), então nada a conferir aqui (M5-T01).
+    case 'tabela':
+    case 'ilustracao':
+    case 'equacao':
       return [];
   }
+}
+
+const MENSAGENS_GRADE: Record<MotivoGrade | 'posicoesDemais', string> = {
+  cabecalhoMaiorQueTabela: 'o cabeçalho tem mais linhas que a tabela',
+  passaDaUltimaColuna: 'a célula passa da última coluna da tabela',
+  passaDaUltimaLinha: 'a célula mesclada passa da última linha da tabela',
+  sobreposta: 'a célula se sobrepõe a uma célula mesclada de uma linha anterior',
+  atravessaCabecalho: 'a célula mesclada atravessa o fim do cabeçalho',
+  linhaIncompleta: 'a linha não preenche todas as colunas da tabela (grade irregular)',
+  posicoesDemais: `tabela grande demais (limite de ${LIMITES_V1.posicoesTabela} posições, linhas × colunas)`,
+};
+
+/** Primeira tabela com grade incoerente ou grande demais (M5-T01), com o caminho a partir do documento. */
+function gradeInvalida(corpo: readonly Secao[]): ErroValidacao | null {
+  for (const p of percorrerCorpo(corpo)) {
+    if (p.tipo !== 'bloco' || p.bloco.tipo !== 'tabela') continue;
+    const b = p.bloco;
+    if (b.linhas.length * b.colunas.length > LIMITES_V1.posicoesTabela) {
+      return { caminho: formatarCaminho('documento', [...p.caminho, 'linhas']), mensagem: MENSAGENS_GRADE.posicoesDemais };
+    }
+    const problema = problemaNaGrade(b);
+    if (problema) return { caminho: formatarCaminho('documento', [...p.caminho, ...problema.caminho]), mensagem: MENSAGENS_GRADE[problema.motivo] };
+  }
+  return null;
 }
 
 const MENSAGENS_ELEMENTOS = {
@@ -90,14 +118,16 @@ const MENSAGENS_ELEMENTOS = {
 
 /** Seções, blocos e trechos do corpo em ordem de leitura, com o caminho de cada um, sem recursão. */
 function* percorrerCorpo(corpo: readonly Secao[]): Generator<
-  { tipo: 'secao'; id: string; caminho: PropertyKey[] } | { tipo: 'bloco'; id: string; caminho: PropertyKey[] } | { tipo: 'inline'; inline: Inline; caminho: PropertyKey[] }
+  | { tipo: 'secao'; id: string; caminho: PropertyKey[] }
+  | { tipo: 'bloco'; id: string; bloco: Bloco; caminho: PropertyKey[] }
+  | { tipo: 'inline'; inline: Inline; caminho: PropertyKey[] }
 > {
   const pilha: { s: Secao; caminho: PropertyKey[] }[] = corpo.map((s, i) => ({ s, caminho: ['corpo', i] })).reverse();
   while (pilha.length > 0) {
     const { s, caminho } = pilha.pop()!;
     yield { tipo: 'secao', id: s.id, caminho };
     for (const [i, b] of s.blocos.entries()) {
-      yield { tipo: 'bloco', id: b.id, caminho: [...caminho, 'blocos', i] };
+      yield { tipo: 'bloco', id: b.id, bloco: b, caminho: [...caminho, 'blocos', i] };
       for (const c of conteudosComCaminho(b)) {
         for (const [k, inline] of c.conteudo.entries()) {
           const aqui = [...caminho, 'blocos', i, ...c.caminho, k];
@@ -176,7 +206,21 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
   if (semObra) {
     return { ok: false, erros: [{ caminho: formatarCaminho('documento', semObra), mensagem: 'a citação aponta para uma obra que não está na bibliografia' }] };
   }
+  const grade = gradeInvalida(r.valor.corpo);
+  if (grade) return { ok: false, erros: [grade] };
   return r;
+}
+
+/**
+ * Mídias de que o documento precisa (M5-T01): o sha256 de cada ilustração, com o caminho, em ordem de leitura. O
+ * contêiner confere contra as mídias do pacote; o documento sozinho não sabe quais existem.
+ */
+export function midiasDoDocumento(doc: Pick<Documento, 'corpo'>): { sha256: string; caminho: string }[] {
+  const saida: { sha256: string; caminho: string }[] = [];
+  for (const p of percorrerCorpo(doc.corpo)) {
+    if (p.tipo === 'bloco' && p.bloco.tipo === 'ilustracao') saida.push({ sha256: p.bloco.midia, caminho: formatarCaminho('documento', [...p.caminho, 'midia']) });
+  }
+  return saida;
 }
 
 /** Uma obra sozinha (M4-T06): o cadastro só grava a obra que o documento aceitaria. Caminhos a partir de `obra`. */

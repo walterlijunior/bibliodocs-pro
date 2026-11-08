@@ -6,7 +6,7 @@
  * As restrições que o JSON Schema não expressa estão em `RESTRICOES_SO_NO_CODIGO`.
  */
 import { z } from 'zod';
-import { FUNCOES_RESPONSAVEL, TIPOS_OBRA, TIPOS_TRABALHO } from '../modelo';
+import { ESPECIES_ILUSTRACAO, FUNCOES_RESPONSAVEL, TIPOS_OBRA, TIPOS_TRABALHO } from '../modelo';
 import { LIMITES_V1 } from './limites';
 
 export const VERSAO_FORMATO_ATUAL = 1;
@@ -139,6 +139,72 @@ export const esquemaItemAlinea = z
   })
   .meta({ id: 'ItemAlinea' });
 
+/** Título de tabela, quadro e ilustração: obrigatório e não vazio (RN-050, RN-246). */
+const tituloElemento = conteudoTitulo.min(1, { error: 'o elemento precisa de título' });
+/** Fonte e nota de elemento visual: ausentes quando vazias (forma única). Sem citação ligada no M5-T01. */
+const textoDeElemento = conteudoSoTexto('nota de rodapé não é permitida em tabela, ilustração ou equação').min(1);
+
+const MESCLAGEM_DE_UM = { error: 'mesclagem de uma só célula: omita o campo quando a célula não é mesclada' };
+
+/** Célula da grade (M5-T01). `colunas` e `linhas` só a partir de 2: ausentes valem 1. */
+export const esquemaCelulaTabela = z
+  .strictObject({
+    conteudo: conteudoSoTexto('nota de rodapé não é permitida em célula: use nota específica (RN-273)'),
+    colunas: z.int().min(2, MESCLAGEM_DE_UM).max(LIMITES_V1.colunasTabela).optional(),
+    linhas: z.int().min(2, MESCLAGEM_DE_UM).max(LIMITES_V1.linhasTabela).optional(),
+  })
+  .meta({ id: 'CelulaTabela' });
+
+/** Tabela ou quadro (M5-T01; `BlocoTabela` em `dominio/modelo`). A coerência da grade é conferida em `validar.ts`. */
+export const esquemaBlocoTabela = z
+  .strictObject({
+    tipo: z.literal('tabela'),
+    id,
+    especie: z.enum(['tabela', 'quadro']),
+    titulo: tituloElemento,
+    colunas: z
+      .array(z.strictObject({ alinhamento: z.enum(['esquerda', 'centro', 'direita']) }))
+      .min(1, { error: 'a tabela precisa de pelo menos uma coluna' })
+      .max(LIMITES_V1.colunasTabela),
+    linhasCabecalho: z.int().min(0).max(LIMITES_V1.linhasTabela),
+    linhas: z
+      .array(z.array(esquemaCelulaTabela).max(LIMITES_V1.colunasTabela))
+      .min(1, { error: 'a tabela precisa de pelo menos uma linha' })
+      .max(LIMITES_V1.linhasTabela),
+    fonte: textoDeElemento.optional(),
+    nota: textoDeElemento.optional(),
+    notasEspecificas: z
+      .array(textoDeElemento)
+      .min(1, { error: 'lista de notas específicas vazia: omita o campo quando não houver notas' })
+      .max(LIMITES_V1.notasEspecificas)
+      .optional(),
+  })
+  .meta({ id: 'BlocoTabela' });
+
+/** Ilustração com imagem do pacote (M5-T01). A existência da mídia é conferida pelo contêiner (manifesto). */
+export const esquemaBlocoIlustracao = z
+  .strictObject({
+    tipo: z.literal('ilustracao'),
+    id,
+    especie: z.enum(ESPECIES_ILUSTRACAO),
+    titulo: tituloElemento,
+    midia: z.string().regex(PADRAO_SHA256, { error: 'sha256 inválido: use 64 dígitos hexadecimais minúsculos' }),
+    larguraMm: z.int().min(LIMITES_V1.larguraIlustracaoMm.minimo).max(LIMITES_V1.larguraIlustracaoMm.maximo).optional(),
+    fonte: textoDeElemento.optional(),
+    nota: textoDeElemento.optional(),
+  })
+  .meta({ id: 'BlocoIlustracao' });
+
+/** Equação em texto linear com sobrescrito e subscrito (M5-T01; D-M5-06). */
+export const esquemaBlocoEquacao = z
+  .strictObject({
+    tipo: z.literal('equacao'),
+    id,
+    conteudo: conteudoSoTexto('nota de rodapé não é permitida em tabela, ilustração ou equação'),
+    numerada: z.literal(true).optional(),
+  })
+  .meta({ id: 'BlocoEquacao' });
+
 export const esquemaBloco = z.discriminatedUnion('tipo', [
   z.strictObject({ tipo: z.literal('paragrafo'), id, conteudo: conteudoInline }),
   z.strictObject({
@@ -151,6 +217,9 @@ export const esquemaBloco = z.discriminatedUnion('tipo', [
   }),
   z.strictObject({ tipo: z.literal('citacaoLonga'), id, conteudo: conteudoInline }),
   z.strictObject({ tipo: z.literal('quebraPagina'), id }),
+  esquemaBlocoTabela,
+  esquemaBlocoIlustracao,
+  esquemaBlocoEquacao,
 ]);
 
 export const esquemaSecao = z
@@ -360,4 +429,6 @@ export const RESTRICOES_SO_NO_CODIGO = [
   'obra citada não tem página e "sem paginação" juntos; ano incerto só com ano',
   'elementos pré e pós-textuais na ordem do Quadro 5, só apêndice e anexo repetidos, nenhum no tipo genérico',
   'sobrescrito e subscrito não podem ser usados juntos (uniqueItems cobre só as marcas repetidas)',
+  `grade da tabela: toda linha cobre exatamente as colunas declaradas, células mescladas não saem da grade, não se sobrepõem nem atravessam o fim do cabeçalho; linhasCabecalho ≤ número de linhas; linhas × colunas ≤ ${LIMITES_V1.posicoesTabela}`,
+  'a mídia de cada ilustração está declarada no manifesto e foi lida sem divergência (conferido pelo contêiner)',
 ] as const;

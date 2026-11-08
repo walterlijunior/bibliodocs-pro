@@ -1,0 +1,53 @@
+{
+  "descricao": "numerada: false (forma única: omita)",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].numerada",
+      "mensagem": "Entrada inválida: esperava true"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M5"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Elementos"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "equacao",
+            "id": "eqc_bordm5001",
+            "conteudo": [
+              {
+                "tipo": "texto",
+                "texto": "E = mc"
+              },
+              {
+                "tipo": "texto",
+                "texto": "2",
+                "marcas": [
+                  "sobrescrito"
+                ]
+              }
+            ],
+            "numerada": false
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

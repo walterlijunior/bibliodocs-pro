@@ -1,0 +1,55 @@
+{
+  "descricao": "Ilustração com título vazio (RN-050)",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].blocos[0].titulo",
+      "mensagem": "o elemento precisa de título"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Casos de borda do M5"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Elementos"
+          }
+        ],
+        "blocos": [
+          {
+            "tipo": "ilustracao",
+            "id": "ilu_bordm5001",
+            "especie": "figura",
+            "titulo": [],
+            "midia": "fd22af81a50a9eeaf16b21bcfc561d38a21ecde1fff64acbee3ecd41cedc0649",
+            "larguraMm": 120,
+            "fonte": [
+              {
+                "tipo": "texto",
+                "texto": "Acervo do autor."
+              }
+            ],
+            "nota": [
+              {
+                "tipo": "texto",
+                "texto": "Escala aproximada."
+              }
+            ]
+          }
+        ],
+        "subsecoes": []
+      }
+    ]
+  }
+}

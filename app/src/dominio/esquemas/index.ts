@@ -9,6 +9,10 @@
 export { LIMITES_V1 } from './limites';
 export {
   esquemaBloco,
+  esquemaBlocoEquacao,
+  esquemaBlocoIlustracao,
+  esquemaBlocoTabela,
+  esquemaCelulaTabela,
   esquemaDocumentoV1,
   esquemaInline,
   esquemaInlineNota,
@@ -28,6 +32,7 @@ export {
 export {
   descreverErros,
   formatarCaminho,
+  midiasDoDocumento,
   profundidadeJsonExcede,
   validarDocumentoV1,
   validarManifestoV1,

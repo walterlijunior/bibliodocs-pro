@@ -9,11 +9,18 @@
  * longa e nota de rodapé no M2-T04; tipos de trabalho UFT e lugares dos elementos pré e pós-textuais no M2-T02.
  */
 export type {
+  AlinhamentoColuna,
   Bloco,
   BlocoAlineas,
   BlocoCitacaoLonga,
+  BlocoEquacao,
+  BlocoIlustracao,
   BlocoParagrafo,
   BlocoQuebraPagina,
+  BlocoTabela,
+  CelulaTabela,
+  ColunaTabela,
+  EspecieIlustracao,
   Autor,
   Documento,
   EventoObra,
@@ -57,6 +64,7 @@ export {
   type ProblemaElementos,
 } from './elementos';
 export { conteudosDoBloco, idsDoBloco } from './percorrer';
+export { ESPECIES_ILUSTRACAO, problemaNaGrade, type MotivoGrade, type ProblemaGrade } from './visuais';
 export { citacoesDoDocumento, FUNCOES_RESPONSAVEL, TIPOS_OBRA } from './obras';
 export { textoPlano } from './texto-plano';
 export {

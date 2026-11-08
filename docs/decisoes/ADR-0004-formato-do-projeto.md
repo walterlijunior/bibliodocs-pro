@@ -681,3 +681,33 @@ Manual, p. 23, exemplo CANDIDO.
 Complemento do M4-T07: o conteúdo da nota (`InlineDeNota`, esquema `InlineNota`) aceita `InlineCitacao` além de
 `InlineTexto`. É mudança aditiva. Os ids das citações das notas entram na conferência de ids únicos, e as obras que elas
 citam entram na de obras existentes.
+
+## Adendo do M5-T01 (2026-11-07) — tabela, ilustração e equação no formato v1
+
+- **Aditivo, sem subir `versaoFormato`** (regra do adendo do M1-T04). Três variantes novas de `Bloco`, com id no padrão
+  dos demais blocos (`tab_`, `ilu_`, `eqc_` no editor), únicas no documento e alvo das remissivas do M5-T08. Arquivo v1
+  sem elas abre igual. JSON Schema regenerado (`npm run esquemas:gerar`).
+- **`tabela`:** `especie` (`tabela` ou `quadro`, D-M5-10); `titulo` (`InlineDeTitulo[]`, não vazio); `colunas` com
+  `alinhamento` (esquerda, centro, direita); `linhasCabecalho` (0 = sem cabeçalho); `linhas` de células `{ conteudo,
+  colunas?, linhas? }`; `fonte?`, `nota?` e `notasEspecificas?`.
+  - Grade no modelo do HTML: cada linha lista só as células que começam nela; a mesclagem é `colunas`/`linhas` ≥ 2
+    (1 é recusado: forma única).
+  - A leitura recusa (só no código, `problemaNaGrade` em `dominio/modelo/visuais.ts`, reaproveitável pelo editor do
+    M5-T04): linha que não cobre todas as colunas, célula além da última coluna ou linha, mesclagem sobreposta,
+    mesclagem que atravessa o fim do cabeçalho e cabeçalho maior que a tabela.
+  - Células, fonte e notas são só texto com marcas (sem nota de rodapé nem citação ligada). O sobrescrito serve à
+    chamada de nota específica.
+- **`ilustracao`:** `especie` da RN-049 (figura, desenho, esquema, fluxograma, fotografia, gráfico, mapa, organograma,
+  planta, retrato); `titulo` não vazio; `midia` (sha256); `larguraMm?` (10 a 500; o motor limita à área útil,
+  D-M5-09); `fonte?`; `nota?`. O quadro fica só em `tabela` (RN-061).
+- **`equacao`:** `conteudo` (texto com sobrescrito e subscrito, D-M5-06) e `numerada?: true` (`false` é recusado).
+- **Mídia da ilustração (contêiner):** sha256 fora do manifesto é recusado na leitura e no empacotamento. Imagem
+  declarada mas descartada por divergência (seção 3, item 4) e usada por uma ilustração também recusa o projeto, em vez
+  de abrir com aviso: abrir sem ela deixaria um documento que não pode ser salvo. Mídia sem ilustração continua aceita.
+- **Limites:** 63 colunas (máximo do Word), 5.000 linhas, 50.000 posições (linhas × colunas, só no código), 200 notas
+  específicas por tabela.
+- **Consumidores até as tarefas seguintes:** o editor guarda cada elemento num nó atômico com o bloco em JSON (como a
+  chamada de citação), e a ida e volta é exata (fixture `documento-bordas-m5.json`); sem `parseDOM`, colar não cria
+  elemento. O motor deixa o elemento de fora com aviso `ELEMENTO_ADIADO`, e o DOCX sai sem ele. Os campos não entram em
+  `conteudosDoBloco`: o verificador da bibliografia não procura chamada solta em fonte de tabela, porque ela ainda não
+  aceita citação ligada.

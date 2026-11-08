@@ -39,6 +39,16 @@ export const LIMITES_V1 = {
   obras: 5_000,
   autoresPorObra: 100,
   obrasPorCitacao: 50,
+  /**
+   * Tabela e quadro (M5-T01): 63 colunas é o máximo do Word; linhas e posições da grade (linhas × colunas, conferido
+   * só no código) limitam o custo da conferência da grade e da exportação. Notas específicas por tabela.
+   */
+  colunasTabela: 63,
+  linhasTabela: 5_000,
+  posicoesTabela: 50_000,
+  notasEspecificas: 200,
+  /** Largura impressa da ilustração, em mm (D-M5-09: o motor limita à área útil e avisa). */
+  larguraIlustracaoMm: { minimo: 10, maximo: 500 },
   /** Campos curtos: versões, ids de perfil. */
   textoCurto: 64,
   /** Erros listados por validação; o restante é resumido. */

@@ -39,6 +39,9 @@ function resumo(blocos: readonly Bloco[]): string[] {
         return ['Q'];
       case 'alineas':
         return b.itens.flatMap((item) => [`A: ${plano(item.conteudo)}`, ...(item.subalineas ?? []).map((s) => `  S: ${plano(s)}`)]);
+      default:
+        // Colar não cria tabela, ilustração nem equação (M5-T01).
+        return [`?: ${b.tipo}`];
     }
   });
 }

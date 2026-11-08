@@ -4,7 +4,7 @@
  */
 import type { Bloco, Id, Inline } from './tipos';
 
-/** Os conteúdos do bloco na ordem de leitura (alínea, depois as suas subalíneas). */
+/** Os conteúdos de texto corrido do bloco na ordem de leitura (alínea, depois as suas subalíneas). */
 export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
   switch (bloco.tipo) {
     case 'paragrafo':
@@ -13,6 +13,12 @@ export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
     case 'alineas':
       return bloco.itens.flatMap((item) => [item.conteudo, ...(item.subalineas ?? [])]);
     case 'quebraPagina':
+      return [];
+    // Elementos visuais (M5-T01): os campos são só texto com marcas, sem nota nem citação, e não fazem parte do texto
+    // corrido (o verificador da bibliografia não procura chamadas soltas neles). O M5-T02 traz o percurso próprio.
+    case 'tabela':
+    case 'ilustracao':
+    case 'equacao':
       return [];
   }
 }

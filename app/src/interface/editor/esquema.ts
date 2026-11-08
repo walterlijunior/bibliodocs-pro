@@ -36,6 +36,17 @@ const atributosComId = (classe: string, no: NoPm): Record<string, string> => {
   return typeof id === 'string' ? { class: classe, 'data-id': id } : { class: classe };
 };
 
+/** Nó atômico de elemento visual com o bloco do modelo em `dados` (M5-T01). */
+function elementoVisual(classe: string, nome: string): NodeSpec {
+  return {
+    group: 'bloco',
+    atom: true,
+    selectable: true,
+    attrs: { ...atributoId, dados: { validate: 'string' } },
+    toDOM: (no): DOMOutputSpec => ['div', atributosComId(classe, no), nome],
+  };
+}
+
 const nos: Record<string, NodeSpec> = {
   /** Documento de uma seção: o título e os blocos (a árvore de seções fica no domínio). */
   secaoDoc: { content: 'titulo bloco*' },
@@ -100,6 +111,14 @@ const nos: Record<string, NodeSpec> = {
     parseDOM: [{ tag: 'hr.bd-quebra-pagina', getAttrs: idDoElemento }],
     toDOM: (no): DOMOutputSpec => ['hr', atributosComId('bd-quebra-pagina', no)],
   },
+
+  /**
+   * Tabela, ilustração e equação (M5-T01): folhas atômicas que guardam o bloco do modelo em `dados` (JSON sem o id), só
+   * para a ida e volta ser exata. A edição chega no M5-T04, T06 e T07. Sem `parseDOM`: colar não cria elemento visual.
+   */
+  tabela: elementoVisual('bd-tabela', 'Tabela'),
+  ilustracao: elementoVisual('bd-ilustracao', 'Ilustração'),
+  equacao: elementoVisual('bd-equacao', 'Equação'),
 
   text: { group: 'inline textual' },
 
@@ -170,6 +189,9 @@ export const PREFIXO_ID: Readonly<Record<string, string>> = {
   alineas: 'aln',
   citacaoLonga: 'cit',
   quebraPagina: 'qbr',
+  tabela: 'tab',
+  ilustracao: 'ilu',
+  equacao: 'eqc',
   nota: 'nta',
   chamadaCitacao: 'cta',
 };

@@ -5,6 +5,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M5-T01: tabela ou quadro, ilustração e equação no formato v1, de modo aditivo (adendo do M5-T01 no ADR-0004).
+  - Tabela: título, colunas com alinhamento, linhas de cabeçalho, células com marcas, mesclagem, fonte e notas. A leitura recusa grade irregular, mesclagem fora da grade, sobreposta ou que atravessa o cabeçalho.
+  - Ilustração: espécie da RN-049, título, imagem por sha256, largura, fonte e nota. Imagem que não está no pacote é recusada ao abrir e ao salvar.
+  - Equação: texto com sobrescrito e subscrito, numerada ou não.
+  - Ainda sem tela e sem DOCX: o editor preserva os blocos e a exportação os deixa de fora com aviso.
+
 ### Alterado
 - Etapa 5, revisão do M4 (decisões do usuário, 2026-11-07):
   - "[S. l.]" e "[s. n.]" com a abreviatura em itálico, como nos exemplos do Manual.
