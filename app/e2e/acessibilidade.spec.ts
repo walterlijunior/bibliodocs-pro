@@ -107,6 +107,10 @@ test('Janela da tabela (M5-T04) sem violação séria', async ({}, info) => {
   const janela = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
   await expect(janela.getByRole('list', { name: 'O que impede gravar a tabela' })).toBeVisible();
   await conferirAxe(p, 'janela-tabela', info);
+  // M5-T05: prévia da planilha com opções e relatório.
+  await janela.getByLabel('Arquivo CSV').setInputFiles(join(RAIZ_APP, 'tests', 'fixtures', 'planilha', 'municipios.csv'));
+  await expect(janela.getByRole('region', { name: 'Prévia dos dados da planilha' })).toBeVisible();
+  await conferirAxe(p, 'previa-planilha', info);
   await janela.getByLabel('Título', { exact: true }).fill('Exemplo');
   await janela.getByRole('button', { name: 'Inserir tabela' }).click();
   await expect(p.locator('.bd-tabela')).toHaveCount(1);

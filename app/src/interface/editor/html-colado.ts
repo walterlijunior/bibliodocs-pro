@@ -37,7 +37,7 @@ export type AvisoColagem = 'imagem' | 'tabela' | 'titulo' | 'listaFunda' | 'nota
 /** Mensagens mostradas depois de colar (texto simples, sem HTML). */
 export const MENSAGENS_AVISO: Readonly<Record<AvisoColagem, string>> = {
   imagem: 'As imagens coladas foram descartadas. Use Inserir › Figura.',
-  tabela: 'As tabelas coladas foram descartadas. Use Inserir › Tabela.',
+  tabela: 'As tabelas coladas no texto foram descartadas. Para trazê-las, use Inserir › Tabela ou quadro… e cole na janela.',
   titulo: 'Os títulos colados viraram parágrafos. Para criar uma seção, use a árvore de seções.',
   listaFunda: 'Listas com mais de dois níveis ficaram no nível da subalínea.',
   notaPerdida: 'Uma chamada de nota veio sem o texto da nota e foi descartada.',

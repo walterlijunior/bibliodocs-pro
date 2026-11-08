@@ -84,3 +84,27 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 **Não testado / pendente:**
 - Marcas (itálico, sobrescrito) dentro da célula: a janela edita texto simples (D-M5-26).
 - Tabela muito grande na janela: todas as células viram campos; com milhares de linhas a janela fica pesada. Colar da planilha chega no M5-T05.
+
+## M5-T05 — Colar do Excel e do LibreOffice e importar CSV
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- `app/src/aplicacao/servicos/planilha.ts` (novo): texto separado com aspas (TSV e CSV), separador detectado, conversão de números (P-C3) e datas, vazios, colunas de números e alinhamento, cabeçalho sem cortar mesclagem, grade irregular, limites, relatório.
+- `app/src/interface/editor/planilha-colada.ts` (novo): a primeira tabela do HTML colado, com `colspan`/`rowspan`, `th`/`thead`, `<br>` e parágrafos, linhas ocultas contadas; sem `innerHTML`.
+- `colagem.ts`: `arvoreDoHtmlColado` (o `DOMParser` continua só ali, regra E3).
+- `interface/escrever/PlanilhaTabela.tsx` (novo) na janela da tabela; aviso da tabela colada no texto.
+- Fixtures `tests/fixtures/planilha/` (HTML do Excel e do LibreOffice escritos à mão no formato conhecido [HIPÓTESE de fidelidade]; CSV em UTF-8 com BOM e em Windows-1252), protegidas no `.gitattributes`.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-29 a 33.
+
+**Testado:**
+- `npm run verificar`: 1859/1859 (18 novos em `planilha.test.ts`); audit sem alta.
+- `npm run test:externos`: 27/27. `npm run build`: ok.
+- Playwright: 28/28 na última rodada, com FUN-15 (colagem real pela área de transferência do Electron e CSV por arquivo) e o axe da prévia.
+- Aceite do RF-09: CSV com acentos, vírgula decimal, células vazias e datas gravado sem perda (unitário e E2E).
+
+**Não testado / pendente:**
+- Cópia real do Excel e do LibreOffice instalados: as fixtures imitam o formato; conferir à mão no M5-T10.
+- **Instabilidade antiga do E2E da citação (FUN-13):** na suíte completa, o Ctrl+Alt+F às vezes não insere a nota (linha 114). Falhou 3 de 4 vezes com o M5-T05 e 1 de 3 no commit anterior (`5c3a4a7`), sem as mudanças; isolado, passou 6 de 6. Não vem desta tarefa; investigar no M5-T10.
+- E2E de desempenho: pico de memória 816–853 MB contra 800 em algumas rodadas (R-M3-13), também no commit anterior.

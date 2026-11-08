@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T05: dados de planilha na janela da tabela.
+  - Colar as células copiadas no Excel ou no LibreOffice (com mesclagens) ou importar um CSV (";" ou ",", UTF-8 ou Windows-1252).
+  - Prévia com separador decimal, sinal para as células vazias e linhas de cabeçalho; números com ponto decimal convertidos para o padrão brasileiro; datas ISO para dia/mês/ano.
+  - Relatório do que mudou e do que não converteu (texto em coluna de números, células vazias, linhas ocultas, limites).
+  - Tabela colada no texto avisa para usar a janela da tabela.
 - Etapa 5, M5-T04: inserir e editar tabela e quadro no editor.
   - Botão "Tabela" na barra e menu Inserir › Tabela ou quadro…; duplo clique, "Editar" ou Enter na tabela selecionada abrem a janela.
   - Janela com espécie, título, grade (inserir e excluir linha e coluna, cabeçalho, mesclar e separar, alinhamento por coluna), fonte, nota e notas específicas.

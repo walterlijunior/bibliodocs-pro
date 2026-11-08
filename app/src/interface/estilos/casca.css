@@ -394,6 +394,14 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tabela-edicao__celula--ativa { border-color: var(--cor-foco); }
 .tabela-edicao__nota { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--esp-2); }
 .campo--curto { width: 6em; }
+/* Dados de planilha na janela da tabela (M5-T05). */
+.tabela-planilha { display: grid; gap: var(--esp-2); }
+.tabela-planilha__entrada { display: flex; gap: var(--esp-2); align-items: stretch; flex-wrap: wrap; }
+.tabela-planilha__colar { flex: 1 1 20em; resize: none; }
+.tabela-planilha__opcoes { display: flex; flex-wrap: wrap; gap: var(--esp-3); }
+.tabela-planilha__previa { display: grid; gap: var(--esp-2); }
+.tabela-planilha__previa h3 { margin: 0; }
+.tabela-planilha__grade th, .tabela-planilha__grade td { white-space: pre-wrap; }
 .editor-secao__sugestao { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; padding: var(--esp-2); margin-bottom: var(--esp-2); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }
 .editor-secao__sugestao p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
 .bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

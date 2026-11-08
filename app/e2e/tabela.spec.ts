@@ -3,10 +3,11 @@
  * ganha linha, mesclagem e sinal convencional; a nota explica os sinais; a tabela aparece no texto; Ctrl+Z e Ctrl+Y
  * desfazem e refazem com o texto; duplo clique altera; o menu Inserir abre a mesma janela; salvar grava a tabela válida.
  */
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import type { BlocoTabela, Documento } from '../src/dominio/modelo';
-import { abrirApp, arquivosBdp, criarAmbiente, criarTrabalho, lerDocumento, type Ambiente } from './apoio/app';
+import { abrirApp, arquivosBdp, criarAmbiente, criarTrabalho, lerDocumento, RAIZ_APP, type Ambiente } from './apoio/app';
 
 let amb: Ambiente;
 test.beforeEach(() => {
@@ -110,4 +111,72 @@ test('FUN-14: inserir, desfazer, alterar e salvar uma tabela', async () => {
     ['Total', '2.221,6'],
   ]);
   expect(t.linhas[3]![1]).toMatchObject({ colunas: 2 });
+});
+
+const PLANILHA = join(RAIZ_APP, 'tests', 'fixtures', 'planilha');
+
+test('FUN-15: colar do Excel e importar CSV, com prévia e relatório (aceite do RF-09)', async () => {
+  const x = await abrirApp(amb);
+  const p = x.pagina;
+  await criarTrabalho(p);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  await p.getByRole('toolbar', { name: 'Formatação do texto' }).getByRole('button', { name: 'Tabela', exact: true }).click();
+  const janela = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
+  await janela.getByLabel('Título', { exact: true }).fill('Produção fictícia');
+
+  // Colagem real da área de transferência, no formato do Excel.
+  const html = readFileSync(join(PLANILHA, 'excel.html'), 'utf8');
+  await x.app.evaluate(({ clipboard, ClipboardItem }, d) => clipboard.write([new ClipboardItem({ 'text/html': d, 'text/plain': 'Região	Produção (t)' })]), html);
+  await janela.getByLabel('Colar da planilha').focus();
+  await p.keyboard.press('Control+V');
+  const previa = janela.getByRole('region', { name: 'Prévia dos dados da planilha' });
+  await expect(previa).toContainText('Células coladas: 4 linhas × 4 colunas.');
+  await expect(janela.getByLabel('Separador decimal na planilha')).toHaveValue('virgula');
+  const relatorio = previa.getByRole('list', { name: 'Relatório da conversão' });
+  await expect(relatorio).toContainText('Uma célula com “-” será gravada com “–”');
+  await expect(relatorio).toContainText('linha 4, coluna 3: “n/d”');
+  await expect(relatorio).toContainText('Uma linha oculta na planilha ficou de fora.');
+  await janela.getByLabel('Células vazias nas colunas de números').selectOption('...');
+  await expect(relatorio).toContainText('Uma célula vazia recebeu “...”: linha 4, coluna 2.');
+  await previa.getByRole('button', { name: 'Usar estes dados' }).click();
+  await expect(previa).toBeHidden();
+  await expect(janela.getByLabel('Cabeçalho, linha 1, coluna 1 (mesclada: 2 × 1)')).toHaveValue('Região');
+  await expect(janela.getByLabel('Linha 4, coluna 2', { exact: true })).toHaveValue('...');
+  await janela.getByLabel('Fonte', { exact: true }).fill('Dados fictícios de teste (2026).');
+  await janela.getByRole('button', { name: 'Inserir tabela' }).click();
+  await expect(janela).toBeHidden();
+
+  // CSV com acentos, vírgula decimal, vazios e datas: nada se perde. Com o cursor no título, ela entra como 1.º bloco.
+  await p.getByRole('textbox', { name: 'Texto da seção 1' }).locator('h2').click();
+  await p.getByRole('toolbar', { name: 'Formatação do texto' }).getByRole('button', { name: 'Tabela', exact: true }).click();
+  const outra = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
+  await outra.getByLabel('Título', { exact: true }).fill('Municípios fictícios');
+  await outra.getByLabel('Arquivo CSV').setInputFiles(join(PLANILHA, 'municipios.csv'));
+  const previaCsv = outra.getByRole('region', { name: 'Prévia dos dados da planilha' });
+  await expect(previaCsv).toContainText('Arquivo “municipios.csv”: 4 linhas × 4 colunas.');
+  await expect(previaCsv.getByRole('list', { name: 'Relatório da conversão' })).toContainText('2 datas convertidas para dia/mês/ano.');
+  await previaCsv.getByRole('button', { name: 'Usar estes dados' }).click();
+  await outra.getByRole('button', { name: 'Inserir tabela' }).click();
+  await expect(outra).toBeHidden();
+
+  await p.keyboard.press('Control+S');
+  await expect(p.locator('.visor [role="status"]')).toHaveText(/^Salvo às/);
+  const doc = JSON.parse(lerDocumento(join(amb.trabalhos, arquivosBdp(amb)[0]!)).json) as Documento;
+  const tabelas = doc.corpo[0]!.blocos.filter((b): b is BlocoTabela => b.tipo === 'tabela');
+  const textos = (t: BlocoTabela) => t.linhas.map((l) => l.map((c) => c.conteudo.map((i) => i.texto).join('')));
+  const [municipios, excel] = tabelas;
+  expect(excel!.linhasCabecalho).toBe(2);
+  expect(textos(excel!)).toEqual([
+    ['Região', 'Produção (t)'],
+    ['2020', '2021', '2022'],
+    ['São Paulo', '1.234,5', '–', '12,3'],
+    ['Goiânia', '...', 'n/d', '2.100,0'],
+  ]);
+  expect(excel!.colunas.map((c) => c.alinhamento)).toEqual(['esquerda', 'direita', 'direita', 'direita']);
+  expect(textos(municipios!)).toEqual([
+    ['Município', 'População', 'Área', 'Atualização'],
+    ['Araguaína', '183.381', '4.000,4', '15/03/2024'],
+    ['Palmas', '313.349', '', '29/02/2024'],
+    ['Porto Nacional; TO', '53.316', '4.449,9', ''],
+  ]);
 });

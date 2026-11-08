@@ -118,6 +118,20 @@ export {
   type ResultadoValidacaoCitacao,
 } from './servicos/citacoes';
 export {
+  aplicarPlanilha,
+  converterPlanilha,
+  detectarSeparador,
+  LIMITE_BYTES_CSV,
+  lerCsv,
+  lerTextoSeparado,
+  opcoesSugeridas,
+  type CelulaPlanilha,
+  type OpcoesPlanilha,
+  type PlanilhaConvertida,
+  type PlanilhaLida,
+  type SinalParaVazio,
+} from './servicos/planilha';
+export {
   alterarCelula,
   campoDe,
   dadosDoRascunho,

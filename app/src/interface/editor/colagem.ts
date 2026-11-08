@@ -52,6 +52,14 @@ function lerTransferencia(dados: Transferencia, soTexto: boolean, gerar: Gerador
     : null;
 }
 
+/**
+ * HTML da área de transferência como árvore inerte, para a janela da tabela ler a planilha colada (M5-T05). O mesmo
+ * `DOMParser` e a mesma neutralização dos estilos da colagem no texto (regra E3: o `DOMParser` só existe aqui).
+ */
+export function arvoreDoHtmlColado(html: string): NoHtml {
+  return new DOMParser().parseFromString(neutralizarEstilos(html), 'text/html').body;
+}
+
 export function pluginColagem(opcoes: OpcoesColagem = {}): Plugin {
   const gerar = opcoes.gerarId ?? gerarIdPadrao;
   let soTexto = false;

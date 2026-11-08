@@ -8,6 +8,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import {
   alterarCelula,
+  aplicarPlanilha,
   excluirColuna,
   excluirLinha,
   explicarSinaisNaNota,
@@ -28,6 +29,7 @@ import {
 } from '../../aplicacao';
 import type { AlinhamentoColuna } from '../../dominio/modelo';
 import { Icone } from '../Icones';
+import { PlanilhaTabela } from './PlanilhaTabela';
 
 export interface PropsDialogoTabela {
   /** Tabela a alterar; `null` = nova. */
@@ -154,6 +156,14 @@ export function DialogoTabela(p: PropsDialogoTabela) {
 
         <fieldset className="elemento__grupo tabela-edicao">
           <legend>Conteúdo</legend>
+          <PlanilhaTabela
+            especie={r.especie}
+            aoUsar={(c) => {
+              setMotivo(null);
+              setR(aplicarPlanilha(r, c));
+              setAtiva({ l: 0, c: 0 });
+            }}
+          />
           <div className="barra-formatacao" role="toolbar" aria-label={`Linhas, colunas e células (célula ativa: linha ${al + 1}, coluna ${ac + 1})`}>
             {botao('Linha acima', () => operar(inserirLinha(r, al), { l: al, c: ac }), 'Inserir linha acima da célula ativa')}
             {botao('Linha abaixo', () => operar(inserirLinha(r, al + (r.grade[al]![ac]?.linhas ?? 1)), { l: al + (r.grade[al]![ac]?.linhas ?? 1), c: ac }), 'Inserir linha abaixo da célula ativa')}
