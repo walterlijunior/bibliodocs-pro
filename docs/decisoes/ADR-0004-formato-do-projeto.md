@@ -711,3 +711,17 @@ citam entram na de obras existentes.
   elemento. O motor deixa o elemento de fora com aviso `ELEMENTO_ADIADO`, e o DOCX sai sem ele. Os campos não entram em
   `conteudosDoBloco`: o verificador da bibliografia não procura chamada solta em fonte de tabela, porque ela ainda não
   aceita citação ligada.
+
+## Adendo do M5-T08 (2026-11-08) — remissiva no formato v1
+
+- **Aditivo, sem subir `versaoFormato`.** `Inline` ganha `{ tipo: 'remissiva', id, alvo }` (`InlineRemissiva`), só no
+  texto corrido (parágrafo, alínea e subalínea, citação longa). Título e campos de elementos visuais recusam com
+  mensagem própria; nota de rodapé também (o conteúdo da nota não a aceita). JSON Schema regenerado.
+- Guarda só a ligação: o texto ("Tabela 3", "(2)") vem da numeração a cada vez (D-M5-42).
+- O `id` da remissiva entra na conferência de ids únicos. O `alvo` **não** é conferido na leitura: alvo que não existe,
+  ou equação sem número, é remissiva quebrada, que o verificador aponta (ADR-0005, invariantes). Assim excluir um
+  elemento nunca torna o arquivo ilegível.
+- No editor, nó atômico `remissiva` com o `alvo`, sem `parseDOM`: colar não cria remissiva (o alvo pode não existir no
+  destino); copiar leva o texto. Recortar e colar dentro do app perde a ligação (pendência M5 do ADR-0007, agora
+  também para a remissiva).
+

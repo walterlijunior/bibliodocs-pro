@@ -42,8 +42,10 @@ import {
   recuarSecao,
   removerSecao,
   citacoesDoDocumento,
+  conteudosDoBloco,
   ehTipoTrabalhoUft,
   ORDEM_PRE_TEXTUAIS,
+  type Bloco,
   type Documento,
   type ElementoPreTextual,
   type ElementoPreTextualId,
@@ -58,7 +60,7 @@ import {
 } from '../../dominio/modelo';
 import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
 import { LIMITES_V1, midiasDoDocumento } from '../../dominio/esquemas';
-import { lerInfoImagem, type InfoImagem } from '../../dominio/visuais';
+import { alvosDeRemissiva, lerInfoImagem, type AlvoRemissiva, type InfoImagem } from '../../dominio/visuais';
 import { numerarSecoes } from '../../dominio/numeracao';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
@@ -153,6 +155,14 @@ export interface ObraNaLista {
   referencia: string;
 }
 
+/**
+ * Tabela, quadro, ilustração ou equação numerada que pode ser citada por remissiva (M5-T08), na ordem do documento, com
+ * o texto da remissiva ("Tabela 3", "(2)") e quantas remissivas do texto apontam para ela.
+ */
+export interface ElementoNaSessao extends AlvoRemissiva {
+  remissivas: number;
+}
+
 /** Resultado de incluir, alterar ou excluir obra. */
 export type ResultadoObra = { ok: true; id: Id } | { ok: false; mensagem: string };
 
@@ -178,6 +188,8 @@ export interface TrabalhoDaSessao {
   preTextuais: PreTextuaisDaSessao | null;
   /** Obras da bibliografia na ordem das referências (M4-T06). O objeto só muda quando as obras mudam. */
   obras: readonly ObraNaLista[];
+  /** Alvos de remissiva (M5-T08). O objeto só muda quando a lista, os números, os títulos ou as contagens mudam. */
+  elementos: readonly ElementoNaSessao[];
 }
 
 export interface EstadoSessao {
@@ -415,6 +427,7 @@ export class SessaoTrabalho {
               secoes: this.#secoes,
               preTextuais: this.#preTextuais(a.pacote.documento),
               obras: this.#obrasNaLista(a.pacote.documento),
+              elementos: this.#publicarElementos(a.pacote.documento.corpo),
             },
       avisos: this.#avisos,
     };
@@ -459,6 +472,65 @@ export class SessaoTrabalho {
     const resultado = ordenarReferencias(doc.obras ?? []).map((obra) => ({ obra, referencia: textoDaReferencia(formatarReferencia(obra)) }));
     this.#cacheObras = { obras: doc.obras, resultado };
     return resultado;
+  }
+
+  // ---------- alvos de remissiva (M5-T08) ----------
+
+  /** Remissivas por alvo de cada lista de blocos: a seção que não mudou guarda o mesmo array e não é relida. */
+  readonly #remissivasDosBlocos = new WeakMap<readonly Bloco[], ReadonlyMap<Id, number>>();
+  #cacheElementos: { corpo: readonly Secao[]; chave: string; resultado: readonly ElementoNaSessao[] } | null = null;
+  /** A última lista entregue à tela; `null` logo depois de abrir um trabalho. */
+  #elementosEmitidos: readonly ElementoNaSessao[] | null = null;
+  /** Texto do aviso de remissiva quebrada por elemento: sai quando o elemento volta (Ctrl+Z). */
+  #avisosDeRemissiva = new Map<Id, string>();
+
+  #contarRemissivas(blocos: readonly Bloco[]): ReadonlyMap<Id, number> {
+    let m = this.#remissivasDosBlocos.get(blocos);
+    if (m) return m;
+    const contagem = new Map<Id, number>();
+    for (const b of blocos) for (const c of conteudosDoBloco(b)) for (const i of c) if (i.tipo === 'remissiva') contagem.set(i.alvo, (contagem.get(i.alvo) ?? 0) + 1);
+    m = contagem;
+    this.#remissivasDosBlocos.set(blocos, m);
+    return m;
+  }
+
+  #elementosDe(corpo: readonly Secao[]): readonly ElementoNaSessao[] {
+    const c = this.#cacheElementos;
+    if (c !== null && c.corpo === corpo) return c.resultado;
+    const total = new Map<Id, number>();
+    for (const { secao } of numerarSecoes(corpo)) for (const [alvo, n] of this.#contarRemissivas(secao.blocos)) total.set(alvo, (total.get(alvo) ?? 0) + n);
+    const lista = alvosDeRemissiva(corpo).map((a) => ({ ...a, remissivas: total.get(a.id) ?? 0 }));
+    const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas]));
+    const resultado = c !== null && c.chave === chave ? c.resultado : lista;
+    this.#cacheElementos = { corpo, chave, resultado };
+    return resultado;
+  }
+
+  /**
+   * Lista para a tela e o aviso do aceite do RF-11: elemento citado que sai do documento (ou equação citada que perde o
+   * número) deixa as remissivas quebradas; o aviso diz quantas e lembra o Ctrl+Z.
+   */
+  #publicarElementos(corpo: readonly Secao[]): readonly ElementoNaSessao[] {
+    const atual = this.#elementosDe(corpo);
+    const antes = this.#elementosEmitidos;
+    this.#elementosEmitidos = atual;
+    if (antes === null || antes === atual) return atual;
+    const ficam = new Set(atual.map((e) => e.id));
+    for (const [id, texto] of this.#avisosDeRemissiva) {
+      if (!ficam.has(id)) continue;
+      this.#avisos = this.#avisos.filter((a) => a.texto !== texto);
+      this.#avisosDeRemissiva.delete(id);
+    }
+    for (const e of antes) {
+      if (e.remissivas === 0 || ficam.has(e.id)) continue;
+      const nome = e.tipo === 'equacao' ? `Equação ${e.rotulo}` : e.rotulo;
+      const como = e.tipo === 'equacao' && blocoExiste(corpo, e.id) ? 'sem número' : 'excluída do texto';
+      const quantas = e.remissivas === 1 ? '1 remissiva ficou quebrada' : `${e.remissivas} remissivas ficaram quebradas`;
+      const texto = `${nome} ${como}: ${quantas}. Ctrl+Z desfaz.`;
+      this.#avisar({ nivel: 'alerta', texto, acoes: [] });
+      this.#avisosDeRemissiva.set(e.id, texto);
+    }
+    return atual;
   }
 
   #avisar(aviso: AvisoSessao): void {
@@ -573,6 +645,8 @@ export class SessaoTrabalho {
 
   #novaGeracao(corpo: readonly Secao[]): void {
     this.#geracao += 1;
+    this.#elementosEmitidos = null;
+    this.#avisosDeRemissiva.clear();
     this.#caminhos = caminhosDasSecoes(corpo);
     this.#secoes = resumirSecoes(corpo);
     this.#historico.limpar();
@@ -915,6 +989,8 @@ export class SessaoTrabalho {
     const nova: Secao = { ...atual, titulo: conteudo.titulo, blocos: conteudo.blocos };
     a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: trocarSecao(corpo, caminho, nova) } };
     let emitir = this.#marcarAlteracao();
+    // Elemento novo, excluído, renumerado ou remissiva incluída: a tela precisa da lista nova (M5-T08).
+    if (this.#elementosDe(a.pacote.documento.corpo) !== this.#elementosEmitidos) emitir = true;
     const texto = textoDoTitulo(nova.titulo);
     if (texto !== textoDoTitulo(atual.titulo)) {
       this.#secoes = this.#secoes.map((s) => (s.id === id ? { ...s, titulo: texto } : s));
@@ -1231,4 +1307,9 @@ export class SessaoTrabalho {
     this.#pararAutomatico();
     this.#pararInstantaneo();
   }
+}
+
+/** Algum bloco do corpo tem este id. */
+function blocoExiste(corpo: readonly Secao[], id: Id): boolean {
+  return numerarSecoes(corpo).some(({ secao }) => secao.blocos.some((b) => b.id === id));
 }

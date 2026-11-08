@@ -266,7 +266,7 @@ describe('EDT — toDOM só com classes e data-* (CSP; ADR-0007, seção 2)', ()
     const amostras: [string, DOMOutputSpec][] = [];
     for (const [nome, tipo] of Object.entries(esquemaEditor.nodes)) {
       if (!tipo.spec.toDOM) continue;
-      const attrs = nome === 'chamadaCitacao' || 'dados' in (tipo.spec.attrs ?? {}) ? { id: 'cta_amostra01', dados: '{}' } : nome in PREFIXO_ID ? { id: 'par_amostra01' } : null;
+      const attrs = nome === 'remissiva' ? { id: 'rem_amostra01', alvo: 'tab_amostra01' } : nome === 'chamadaCitacao' || 'dados' in (tipo.spec.attrs ?? {}) ? { id: 'cta_amostra01', dados: '{}' } : nome in PREFIXO_ID ? { id: 'par_amostra01' } : null;
       const no: NoPm = tipo.createAndFill(attrs)!;
       amostras.push([nome, tipo.spec.toDOM(no)]);
     }

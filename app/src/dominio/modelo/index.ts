@@ -33,6 +33,7 @@ export type {
   IdiomaResumo,
   Inline,
   InlineCitacao,
+  InlineRemissiva,
   InlineDeNota,
   InlineDeTitulo,
   InlineNota,

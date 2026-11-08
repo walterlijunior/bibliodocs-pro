@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T08: remissivas.
+  - Botão "Remissiva" e Inserir › Remissiva…: a janela lista as tabelas, quadros, figuras e equações numeradas do trabalho, na ordem do texto.
+  - No texto aparece só o rótulo, "Tabela 3" ou "(2)" na equação, que muda sozinho quando a numeração muda. Duplo clique troca o elemento citado.
+  - Excluir um elemento citado, ou tirar o número de uma equação citada, mostra o aviso de remissiva quebrada, que some com o Ctrl+Z. A remissiva quebrada aparece como "[remissiva quebrada]", na tela e no DOCX.
+  - A exportação aponta remissiva quebrada e tabela, quadro ou figura que o texto não cita.
 - Etapa 5, M5-T07: equações.
   - Alt+=, o botão "Equação" ou Inserir › Equação fazem do parágrafo uma equação, editada no próprio texto com itálico, negrito, sobrescrito e subscrito; o mesmo comando a desfaz.
   - A equação nova já vem numerada; "Numerar (n)" tira e põe o número. Enter no fim volta ao texto; Backspace no começo a devolve a parágrafo.

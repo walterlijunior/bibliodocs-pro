@@ -73,7 +73,10 @@ describe('aceite do RF-10: figura com resolução abaixo do mínimo gera aviso',
     fonte: [{ tipo: 'texto', texto: 'Autor (2026).' }],
     ...(larguraMm !== undefined ? { larguraMm } : {}),
   });
-  const corpo = (b: BlocoIlustracao): Secao[] => [{ id: 'sec_teste00000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: [b] }];
+  // Com a remissiva à figura: sem ela, o verificador também avisaria SEM_REMISSIVA (M5-T08).
+  const corpo = (b: BlocoIlustracao): Secao[] => [
+    { id: 'sec_teste00000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: [b, { tipo: 'paragrafo', id: 'par_teste00000001', conteudo: [{ tipo: 'remissiva', id: 'rem_teste00000001', alvo: b.id }] }] },
+  ];
   const imagens = new Map([[sha(pequena), pequena]]);
 
   it('o verificador avisa com o rótulo da figura; sem as imagens nas opções, não confere', () => {

@@ -183,7 +183,8 @@ export function documentoDificil(): Documento {
       p('p1', t(`${FRASE} Com nota`), nota('n1', 'Primeira nota.'), t(' e '), { tipo: 'texto', texto: 'itálico', marcas: ['italico'] }, t(' e H'), { tipo: 'texto', texto: '2', marcas: ['subscrito'] }, t('O.')),
       { tipo: 'citacaoLonga', id: 'c1', conteudo: [t(`${FRASE} ${FRASE} ${FRASE}`), nota('n2', 'Nota na citação.'), t(' '), citacao('k1', 'parentetica', [{ obra: 'o1', pagina: '12' }])] },
       { tipo: 'alineas', id: 'a1', itens: [{ conteudo: [t('primeira;')], subalineas: [[t('subalínea;')], [t('outra subalínea;')]] }, { conteudo: [t('segunda;'), nota('n3', 'Nota na alínea.')] }, { conteudo: [t('terceira.')] }] },
-      p('p1b', t('Texto entre listas.')),
+      // M5-T08: remissiva à Tabela 1 (na seção 2): o texto vem da numeração.
+      p('p1b', t('Texto entre listas; ver a '), { tipo: 'remissiva', id: 'rem_corpus01', alvo: TABELA_CORPUS.id }, t('.')),
       { tipo: 'alineas', id: 'a2', itens: Array.from({ length: 28 }, (_, i) => ({ conteudo: [t(`item ${i + 1};`)] })) },
       // M5-T07: duas equações numeradas, (1) e (2), com expoente, e uma sem número, com índice. Antes da quebra de
       // página pedida, onde há folga: no fim do texto, o LibreOffice passava REFERÊNCIAS para a folha seguinte e o Word

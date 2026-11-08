@@ -454,6 +454,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirEquacao':
           refEditor.current?.alternarEquacao();
           return;
+        case 'inserirRemissiva':
+          refEditor.current?.pedirRemissiva();
+          return;
         case 'inserirCitacao':
           refEditor.current?.pedirCitacao();
           return;
@@ -520,6 +523,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       d.add('inserirTabela');
       d.add('inserirFigura');
       d.add('inserirEquacao');
+      d.add('inserirRemissiva');
     }
     return d;
   }, [trabalho, local.aba, comFormulario]);

@@ -226,7 +226,7 @@ describe('visor', () => {
       podeSalvar: true,
       salvamento: { tipo: 'erro', codigo: 'EM_USO', mensagem: 'Não foi possível salvar: o arquivo está em uso por outro programa.' },
       geracao: 1,
-      secoes: [], preTextuais: null, obras: [],
+      secoes: [], preTextuais: null, obras: [], elementos: [],
     } as const;
     const v = visorDoTrabalho(trabalho);
     expect(v.tipo === 'trabalho' && linhasDoVisor(v.trabalho)).toEqual([
@@ -287,11 +287,11 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
 
   it('comandos desativados conforme o trabalho aberto', () => {
     const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
-    expect(lista(null)).toEqual(['estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirNota', 'inserirTabela', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior']);
+    expect(lista(null)).toEqual(['estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior']);
     expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
     // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
     expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);
-    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirNota', 'inserirTabela', 'salvar', 'salvarComo']);
+    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'salvar', 'salvarComo']);
   });
 
   it('Arquivo (M1-T11): Abrir, Salvar, Salvar como e Fechar trabalho ligados aos comandos e aos atalhos', () => {

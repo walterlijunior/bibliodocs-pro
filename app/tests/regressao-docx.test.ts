@@ -212,6 +212,11 @@ describe('o documento difícil exercita o que deve', () => {
     expect(at(pPr(e)['w:spacing'], 'lineRule'), 'RN-107: auto, a linha cresce com o expoente').toBe('auto');
   });
 
+  it('tem a remissiva com o número da tabela citada (M5-T08)', () => {
+    const doc = gerados.get('documento-dificil')!.partes['word/document.xml']!;
+    expect(doc.replace(/<[^>]+>/g, '')).toContain('Texto entre listas; ver a Tabela 1.');
+  });
+
   it('tem a lista REFERÊNCIAS ordenada e as chamadas no texto (M4-T05)', () => {
     const { formatado } = gerados.get('documento-dificil')!;
     const texto = (estilo: string) =>

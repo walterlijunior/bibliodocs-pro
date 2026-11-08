@@ -18,6 +18,8 @@ import { ArvoreSecoes } from './ArvoreSecoes';
 import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
 import { DialogoFigura } from './DialogoFigura';
+import { DialogoRemissiva } from './DialogoRemissiva';
+import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
@@ -135,6 +137,19 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     }
     if (pedidoFigura !== null) focarAoFecharFigura.current = true;
   }, [pedidoFigura, controleEditor]);
+  // Janela da remissiva (M5-T08): `existente` é a remissiva selecionada; `null`, uma nova no cursor.
+  const [pedidoRemissiva, setPedidoRemissiva] = useState<{ existente: RemissivaNoEditor | null } | null>(null);
+  const pedirRemissiva = useCallback((existente: RemissivaNoEditor | null) => setPedidoRemissiva({ existente }), []);
+  const focarAoFecharRemissiva = useRef(false);
+  useEffect(() => {
+    if (pedidoRemissiva === null && focarAoFecharRemissiva.current) {
+      focarAoFecharRemissiva.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoRemissiva !== null) focarAoFecharRemissiva.current = true;
+  }, [pedidoRemissiva, controleEditor]);
+  const elementos = t?.elementos;
+  const rotulosRemissiva = useMemo(() => new Map((elementos ?? []).map((x) => [x.id, x.rotulo])), [elementos]);
   const listaObras = t?.obras;
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
@@ -178,6 +193,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setPedidoCitacao(null);
     setPedidoTabela(null);
     setPedidoFigura(null);
+    setPedidoRemissiva(null);
     setConferencia(null);
   }, [ativaId, t?.geracao]);
   // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
@@ -480,7 +496,22 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 aoPedirTabela={pedirTabela}
                 aoPedirFigura={pedirFigura}
                 lerMidia={p.midias.ler}
+                rotulosRemissiva={rotulosRemissiva}
+                aoPedirRemissiva={pedirRemissiva}
               />
+              {pedidoRemissiva !== null && (
+                <DialogoRemissiva
+                  elementos={t.elementos}
+                  alvoAtual={pedidoRemissiva.existente?.alvo ?? null}
+                  aoConfirmar={(alvo) => {
+                    const x = pedidoRemissiva.existente;
+                    setPedidoRemissiva(null);
+                    if (x === null) controleEditor.current?.inserirRemissiva(alvo);
+                    else controleEditor.current?.alterarRemissiva(x.id, alvo);
+                  }}
+                  aoFechar={() => setPedidoRemissiva(null)}
+                />
+              )}
               {pedidoFigura !== null && (
                 <DialogoFigura
                   inicial={pedidoFigura.existente?.dados ?? null}

@@ -364,6 +364,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-citacao { background: var(--cor-superficie); border-radius: var(--raio); padding: 0 2px; cursor: pointer; }
 .bd-citacao--aviso { text-decoration: underline wavy var(--cor-alerta); }
 .bd-citacao.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
+/* Remissiva (M5-T08): o rótulo do elemento ("Tabela 3"), com o número da numeração atual; quebrada, sublinhada. */
+.bd-remissiva { background: var(--cor-superficie); border-radius: var(--raio); padding: 0 2px; cursor: pointer; }
+.bd-remissiva--quebrada { color: var(--cor-erro); text-decoration: underline wavy var(--cor-erro); }
+.bd-remissiva.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
+.remissiva__lista { max-height: 50vh; }
 /* Tabela e quadro no texto (M5-T04): só conteúdo; traços e corpo 10 são do documento, na Pré-visualização. */
 .bd-tabela { margin: var(--esp-3) 0; padding: var(--esp-2); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); cursor: pointer; }
 .bd-tabela.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

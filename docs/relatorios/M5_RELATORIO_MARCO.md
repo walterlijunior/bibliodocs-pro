@@ -164,3 +164,32 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - Fórmulas com frações, raízes ou matrizes não cabem no texto linear (D-M5-06); OMML fica para depois do M5.
 - Equação colada de outro programa entra como parágrafo; o autor a converte com Alt+=.
 
+## M5-T08 — Remissivas
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- Formato: `InlineRemissiva` `{ tipo: 'remissiva', id, alvo }`, só no texto corrido; alvo não conferido na leitura (adendo do M5-T08 no ADR-0004). JSON Schema regenerado. Fixture `documento-bordas-m5.json` com três remissivas (uma quebrada); fixture inválida `remissiva-no-titulo.json`.
+- Domínio: `dominio/visuais/remissivas.ts` (alvos na ordem do documento, com rótulo e descrição; remissivas do texto; texto da quebrada).
+- Motor: a remissiva sai como o rótulo atual ("Tabela 3", "(2)") ou "[remissiva quebrada]"; DOCX em texto simples (D-M5-44).
+- Verificador: `REMISSIVA_QUEBRADA` (pendência, RF-11) e `SEM_REMISSIVA` (aviso, RN-060/D-M5-04, só tabela, quadro e ilustração). A exportação mostra os dois.
+- Sessão: `elementos` na tela (alvos com a contagem de remissivas), estável enquanto nada muda; cache das contagens por lista de blocos, então só a seção editada é relida. Aviso de remissiva quebrada ao excluir o elemento citado ou tirar o número da equação citada; ele sai quando o elemento volta.
+- Editor: nó atômico `remissiva` (`remissivas.ts`, puro; `remissiva-view.ts`, na tela), comandos de inserir e trocar o alvo, cópia com o texto, botão "Remissiva", menu Inserir › Remissiva…, Enter e duplo clique na remissiva abrem a janela. `DialogoRemissiva.tsx` lista os elementos com o alvo atual marcado e avisa quando a remissiva está quebrada.
+- Corpus: o documento difícil cita a Tabela 1 na seção 1 ("ver a Tabela 1"), longe do fim do texto, por causa do DOC-07.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-42 a 46.
+
+**Achado ao revisar:** a remissiva quebrada gerava dois avisos na exportação, um do motor e um do verificador. Ficou só o do verificador, que é pendência com a RF-11.
+
+**Testado:**
+- `tests/remissivas.test.ts` (novo, 10 testes): alvos e rótulos, renumeração no motor, quebrada no DOCX, comandos do editor, lista da sessão e aceite do RF-11 (aviso ao excluir, aviso que sai ao voltar, equação sem número, outro trabalho aberto).
+- `tests/visuais-numeracao.test.ts`: SEM_REMISSIVA e REMISSIVA_QUEBRADA; os testes anteriores citam os elementos, para continuarem isolados.
+- `tests/regressao-docx.test.ts`: "Texto entre listas; ver a Tabela 1." no XML; instantâneo revisto (diff só da remissiva).
+- `e2e/remissiva.spec.ts` (FUN-18) e o axe da janela e da remissiva quebrada.
+- `npm run verificar:tudo` (2026-11-08): saída 0. `verificar` 1906/1906; externos 27/27 (DOC-07 no LibreOffice, Word, OOXML); build ok; Playwright 34/34.
+
+**Não testado / pendente:**
+- Recortar e colar dentro do app perde a ligação da remissiva (vira texto), como já acontece com a tabela (pendência M5 do ADR-0007).
+- O aviso de elemento sem remissiva aparece para quem escreve "Tabela 1" à mão: não há sugestão de ligar texto escrito, como existe para as citações.
+- A posição do elemento "próximo ao trecho" (RN-060) não é conferida.
+

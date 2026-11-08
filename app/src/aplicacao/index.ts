@@ -102,6 +102,7 @@ export {
   type PreTextuaisDaSessao,
   type ResumoElemento,
   type ObraNaLista,
+  type ElementoNaSessao,
   type ResultadoObra,
   MENSAGEM_OBRA_INVALIDA,
   soMidiasUsadas,

@@ -9,6 +9,7 @@ import { rotuloAlinea, numerarSecoes } from '../numeracao';
 import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
 import { blocosEquacao, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
+import { rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA } from '../visuais';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
@@ -354,9 +355,17 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     });
   };
 
+  // Remissivas (M5-T08): o texto vem da numeração, a cada exportação; como texto simples no DOCX (D-M5-44).
+  const rotulosRemissiva = rotulosDeRemissiva(doc.corpo);
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
     conteudo.flatMap((i): TrechoFormatado[] => {
       if (i.tipo === 'texto') return [{ tipo: 'texto', texto: i.texto, marcas: i.marcas ?? [] }];
+      if (i.tipo === 'remissiva') {
+        const rotulo = rotulosRemissiva.get(i.alvo);
+        // Quebrada: sai marcada, para o autor achar; quem avisa é o verificador (REMISSIVA_QUEBRADA), sem repetir aqui.
+        if (rotulo !== undefined) return [{ tipo: 'texto', texto: rotulo, marcas: [] }];
+        return [{ tipo: 'texto', texto: TEXTO_REMISSIVA_QUEBRADA, marcas: [] }];
+      }
       // A chamada é gerada da obra a cada exportação (RF-07).
       if (i.tipo === 'citacao') {
         const c = formatarChamada(i, contextoCitacoes, { edicaoNbr10520 });

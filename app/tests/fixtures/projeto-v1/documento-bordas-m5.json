@@ -25,7 +25,34 @@
           "conteudo": [
             {
               "tipo": "texto",
-              "texto": "Antes da tabela."
+              "texto": "Antes da tabela; ver a "
+            },
+            {
+              "tipo": "remissiva",
+              "id": "rem_bordm5001",
+              "alvo": "tab_bordm5001"
+            },
+            {
+              "tipo": "texto",
+              "texto": ", a equação "
+            },
+            {
+              "tipo": "remissiva",
+              "id": "rem_bordm5002",
+              "alvo": "eqc_bordm5001"
+            },
+            {
+              "tipo": "texto",
+              "texto": " e uma remissiva quebrada "
+            },
+            {
+              "tipo": "remissiva",
+              "id": "rem_bordm5003",
+              "alvo": "tab_naoexiste01"
+            },
+            {
+              "tipo": "texto",
+              "texto": "."
             }
           ]
         },

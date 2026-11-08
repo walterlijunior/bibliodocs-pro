@@ -64,6 +64,7 @@ function conteudoSoTexto(mensagemNota: string) {
       const tipo = tipoDe(issue.input);
       if (tipo === 'nota') return mensagemNota;
       if (tipo === 'citacao') return 'citação não é permitida aqui: só no texto corrido';
+      if (tipo === 'remissiva') return 'remissiva não é permitida aqui: só no texto corrido';
       return undefined;
     },
   });
@@ -123,7 +124,12 @@ export const esquemaInlineNota = z
   })
   .meta({ id: 'InlineNota' });
 
-export const esquemaInline = z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao]).meta({ id: 'Inline' });
+/** Remissiva a tabela, quadro, ilustração ou equação (M5-T08; RF-11). O alvo não é conferido na leitura (ADR-0005). */
+export const esquemaInlineRemissiva = z.strictObject({ tipo: z.literal('remissiva'), id, alvo: id }).meta({ id: 'InlineRemissiva' });
+
+export const esquemaInline = z
+  .discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao, esquemaInlineRemissiva])
+  .meta({ id: 'Inline' });
 
 const conteudoInline = z.array(esquemaInline).max(LIMITES_V1.inlinesPorConteudo);
 

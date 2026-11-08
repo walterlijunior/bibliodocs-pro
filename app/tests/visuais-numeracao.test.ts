@@ -42,7 +42,13 @@ function ilustracao(especie: EspecieIlustracao, extra: Partial<BlocoIlustracao> 
   return { tipo: 'ilustracao', id: novoId('ilu'), especie, titulo: t('Título'), midia: 'a'.repeat(64), fonte: t('O autor (2026).'), ...extra };
 }
 const equacao = (numerada: boolean): BlocoEquacao => ({ tipo: 'equacao', id: novoId('eqc'), conteudo: t('x = y'), ...(numerada ? { numerada: true as const } : {}) });
-const secao = (blocos: Bloco[], subsecoes: Secao[] = []): Secao => ({ id: novoId('sec'), titulo: t('Seção'), blocos, subsecoes });
+/** Parágrafo que cita (remissiva) cada tabela, quadro e ilustração dos blocos: sem ele, cada um teria o aviso SEM_REMISSIVA. */
+const citando = (blocos: Bloco[]): Bloco[] => {
+  const alvos = blocos.filter((b) => b.tipo === 'tabela' || b.tipo === 'ilustracao');
+  return alvos.length === 0 ? [] : [{ tipo: 'paragrafo', id: novoId('par'), conteudo: alvos.map((b) => ({ tipo: 'remissiva' as const, id: novoId('rem'), alvo: b.id })) }];
+};
+const secao = (blocos: Bloco[], subsecoes: Secao[] = []): Secao => ({ id: novoId('sec'), titulo: t('Seção'), blocos: [...blocos, ...citando(blocos)], subsecoes });
+const secaoSemCitar = (blocos: Bloco[]): Secao => ({ id: novoId('sec'), titulo: t('Seção'), blocos, subsecoes: [] });
 
 describe('numeração contínua por tipo (RN-052, M p. 18 e listas p. 7–8; RN-244, I p. 12–13; D-M5-07)', () => {
   it('cada palavra designativa conta à parte e não reinicia por capítulo', () => {
@@ -228,3 +234,35 @@ describe('pendências e avisos com a RN', () => {
     expect(verificarVisuais({ corpo: [secao([noLimite])] }, { linhasTabelaLonga: 10 }).map((p) => p.codigo)).toEqual(['TABELA_LONGA']);
   });
 });
+
+describe('remissivas no verificador (M5-T08; RF-11; RN-060, D-M5-04)', () => {
+  it('elemento sem remissiva: aviso (RN-060 é PENDENTE-FONTE); equação fica de fora', () => {
+    const tab = tabela('tabela');
+    const fig = ilustracao('grafico');
+    const s = secaoSemCitar([tab, fig, equacao(true)]);
+    const r = verificarVisuais({ corpo: [s] });
+    expect(r.map((p) => [p.codigo, p.nivel, p.origem, p.elemento])).toEqual([
+      ['SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], tab.id],
+      ['SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], fig.id],
+    ]);
+    expect(r[0]!.mensagem).toBe('Tabela 1: não é citado no texto; use Inserir › Remissiva… onde o texto fala dele.');
+  });
+
+  it('remissiva quebrada: alvo que não existe ou equação sem número (pendência, RF-11)', () => {
+    const semNumero = equacao(false);
+    const par: Bloco = {
+      tipo: 'paragrafo',
+      id: novoId('par'),
+      conteudo: [
+        { tipo: 'remissiva', id: 'rem_quebrada0001', alvo: 'tab_naoexiste0001' },
+        { tipo: 'remissiva', id: 'rem_quebrada0002', alvo: semNumero.id },
+      ],
+    };
+    const s = secaoSemCitar([par, semNumero]);
+    expect(verificarVisuais({ corpo: [s] }).map((p) => [p.codigo, p.nivel, p.elemento, p.secao])).toEqual([
+      ['REMISSIVA_QUEBRADA', 'pendencia', 'rem_quebrada0001', s.id],
+      ['REMISSIVA_QUEBRADA', 'pendencia', 'rem_quebrada0002', s.id],
+    ]);
+  });
+});
+

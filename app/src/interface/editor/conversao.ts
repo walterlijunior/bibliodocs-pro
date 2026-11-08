@@ -78,7 +78,7 @@ export function normalizarConteudo(conteudo: readonly Inline[]): Inline[] {
       saida.push({ tipo: 'nota', id: i.id, conteudo: normalizarConteudo(i.conteudo as readonly InlineDeNota[]) });
       continue;
     }
-    if (i.tipo === 'citacao') {
+    if (i.tipo === 'citacao' || i.tipo === 'remissiva') {
       saida.push(i);
       continue;
     }
@@ -151,6 +151,10 @@ function inlinesParaNos(conteudo: readonly Inline[]): NoPm[] {
     if (i.tipo === 'citacao') {
       const { id, tipo: _tipo, ...dados } = i;
       nos.push(tipos['chamadaCitacao']!.create({ id, dados: JSON.stringify(dados) }));
+      continue;
+    }
+    if (i.tipo === 'remissiva') {
+      nos.push(tipos['remissiva']!.create({ id: i.id, alvo: i.alvo }));
       continue;
     }
     const marcas = marcasPm(i.marcas);
@@ -233,13 +237,14 @@ function nosParaInlines(pai: NoPm): Inline[] {
     if (no.isText) bruto.push(texto(no.text ?? '', marcasDe(no)));
     else if (no.type === tipos['quebraLinha']) bruto.push(texto('\n', marcasDe(no)));
     else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: semNota(nosParaInlines(no)) });
+    else if (no.type === tipos['remissiva']) bruto.push({ tipo: 'remissiva', id: idDe(no), alvo: String(no.attrs['alvo']) });
     else if (no.type === tipos['chamadaCitacao']) bruto.push({ ...(JSON.parse(String(no.attrs['dados'])) as Omit<InlineCitacao, 'tipo' | 'id'>), tipo: 'citacao', id: idDe(no) });
   });
   return normalizarConteudo(bruto);
 }
 
-/** Conteúdo da nota: texto e chamadas de citação (o esquema do editor não põe nota dentro de nota). */
-const semNota = (conteudo: Inline[]): InlineDeNota[] => conteudo.filter((i): i is InlineDeNota => i.tipo !== 'nota');
+/** Conteúdo da nota: texto e chamadas de citação (o esquema do editor não põe nota nem remissiva dentro da nota). */
+const semNota = (conteudo: Inline[]): InlineDeNota[] => conteudo.filter((i): i is InlineDeNota => i.tipo !== 'nota' && i.tipo !== 'remissiva');
 
 const soTexto = (conteudo: Inline[]): InlineDeTitulo[] =>
   conteudo.filter((i): i is InlineTexto => i.tipo === 'texto');

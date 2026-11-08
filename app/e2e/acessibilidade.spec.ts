@@ -146,3 +146,27 @@ test('Equação no texto e botão "Numerar (n)" (M5-T07) sem violação séria',
   await expect(p.getByRole('button', { name: 'Numerar (n)' })).toBeVisible();
   await conferirAxe(p, 'equacao-no-texto', info);
 });
+
+test('Janela da remissiva e remissiva quebrada no texto (M5-T08) sem violação séria', async ({}, info) => {
+  const { pagina: p } = await abrirApp(amb);
+  await criarTrabalho(p);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  const editor = p.getByRole('textbox', { name: 'Texto da seção 1' });
+  const barra = p.getByRole('toolbar', { name: 'Formatação do texto' });
+  await editor.locator('h2').click();
+  await p.keyboard.press('Control+End');
+  await p.keyboard.press('Enter');
+  await p.keyboard.type('x = y');
+  await p.keyboard.press('Alt+=');
+  await p.keyboard.press('Enter');
+  await p.keyboard.type('Ver ');
+  await barra.getByRole('button', { name: 'Remissiva' }).click();
+  const janela = p.getByRole('dialog', { name: 'Inserir remissiva' });
+  await expect(janela.getByRole('radio')).toHaveCount(1);
+  await conferirAxe(p, 'janela-remissiva', info);
+  await janela.getByRole('button', { name: 'Inserir remissiva' }).click();
+  await editor.locator('.bd-equacao').click();
+  await barra.getByRole('button', { name: 'Numerar (n)' }).click();
+  await expect(editor.locator('.bd-remissiva')).toHaveText('[remissiva quebrada]');
+  await conferirAxe(p, 'remissiva-quebrada', info);
+});

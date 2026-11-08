@@ -72,8 +72,19 @@ export interface InlineCitacao {
   grifo?: 'nosso' | 'doAutor';
 }
 
+/**
+ * Remissiva (M5-T08; RF-11): referência a uma tabela, quadro, ilustração ou equação numerada, pelo id do bloco. Guarda só
+ * a ligação: o texto ("Tabela 3", "(2)") vem da numeração a cada vez e acompanha as mudanças. Alvo que não existe (ou
+ * equação sem número) não impede abrir o arquivo: é remissiva quebrada, que o verificador aponta (ADR-0005).
+ */
+export interface InlineRemissiva {
+  tipo: 'remissiva';
+  id: Id;
+  alvo: Id;
+}
+
 /** Trecho do texto corrido. */
-export type Inline = InlineTexto | InlineNota | InlineCitacao;
+export type Inline = InlineTexto | InlineNota | InlineCitacao | InlineRemissiva;
 
 /**
  * Trecho do conteúdo de uma nota: tudo menos outra nota. Texto e, desde o M4-T07, chamada de citação (a nota que cita a

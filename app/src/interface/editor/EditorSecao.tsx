@@ -29,6 +29,8 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ChamadaEscrita, DadosCitacao, DadosFigura, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
 import type { MarcaTexto } from '../../dominio/modelo';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
+import { alterarRemissiva, inserirRemissiva, podeInserirRemissiva, remissivaSelecionada, type RemissivaNoEditor } from './remissivas';
+import { RegistroRemissivas, RemissivaView } from './remissiva-view';
 import {
   alterarCitacao,
   chamadaSelecionada,
@@ -91,6 +93,10 @@ export interface ControleEditor {
   pedirFigura(): boolean;
   inserirFigura(dados: DadosFigura): boolean;
   alterarFigura(id: string, dados: DadosFigura): boolean;
+  /** Pede a janela da remissiva: a selecionada, ou uma nova no cursor (M5-T08). */
+  pedirRemissiva(): boolean;
+  inserirRemissiva(alvo: string): boolean;
+  alterarRemissiva(id: string, alvo: string): boolean;
   /** Liga ou desliga a equação nos parágrafos da seleção (M5-T07). */
   alternarEquacao(): boolean;
 }
@@ -107,6 +113,8 @@ export class MemoriaEditores {
   readonly avisar = (avisos: readonly AvisoColagem[]): void => this.aoAvisar(avisos);
   /** Formatador das chamadas na tela (M4-T07): troca quando as obras mudam e redesenha as chamadas. */
   readonly chamadas = new RegistroChamadas();
+  /** Texto das remissivas na tela (M5-T08): troca quando a numeração muda e redesenha as remissivas. */
+  readonly remissivas = new RegistroRemissivas();
 
   obter(geracao: number, secaoId: string): EditorState | undefined {
     if (geracao !== this.#geracao) {
@@ -174,6 +182,10 @@ export interface PropsEditorSecao {
   aoPedirFigura: (existente: FiguraNoEditor | null) => void;
   /** Bytes de uma imagem do trabalho, pelo sha256 (a figura no texto). */
   lerMidia: (sha256: string) => Uint8Array | null;
+  /** Texto de cada alvo de remissiva ("Tabela 3"), pela numeração atual do documento (M5-T08). */
+  rotulosRemissiva: ReadonlyMap<string, string>;
+  /** Abre a janela da remissiva: `existente` é a remissiva a alterar; `null`, uma nova no cursor (M5-T08). */
+  aoPedirRemissiva: (existente: RemissivaNoEditor | null) => void;
 }
 
 interface Barra {
@@ -190,11 +202,12 @@ interface Barra {
   podeEquacao: boolean;
   numerada: boolean;
   podeCitar: boolean;
+  podeRemissiva: boolean;
   desfazer: boolean;
   refazer: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, desfazer: false, refazer: false };
 
 function barraDe(estado: EditorState): Barra {
   return {
@@ -211,6 +224,7 @@ function barraDe(estado: EditorState): Barra {
     podeEquacao: alternarEquacao(estado),
     numerada: equacaoNumerada(estado),
     podeCitar: chamadaSelecionada(estado) !== null || podeInserirCitacao(estado),
+    podeRemissiva: remissivaSelecionada(estado) !== null || podeInserirRemissiva(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
   };
@@ -239,9 +253,10 @@ export function EditorSecao(p: PropsEditorSecao) {
     refProps.current = p;
   });
 
-  const { secaoId, geracao, memoria, somenteLeitura, controle, formatarChamada } = p;
-  // Antes de montar o editor: as chamadas nascem já com o texto.
+  const { secaoId, geracao, memoria, somenteLeitura, controle, formatarChamada, rotulosRemissiva } = p;
+  // Antes de montar o editor: as chamadas e as remissivas nascem já com o texto.
   useEffect(() => memoria.chamadas.definir(formatarChamada), [memoria, formatarChamada]);
+  useEffect(() => memoria.remissivas.definir(rotulosRemissiva), [memoria, rotulosRemissiva]);
   useEffect(() => {
     const hospedeiro = refHospedeiro.current;
     if (!hospedeiro) return;
@@ -280,6 +295,14 @@ export function EditorSecao(p: PropsEditorSecao) {
       refProps.current.aoPedirFigura(figuraSelecionada(view.state));
       return true;
     };
+    // Janela da remissiva (M5-T08): a selecionada, ou uma nova no cursor (só no texto corrido).
+    const pedirRemissiva = (): boolean => {
+      if (somenteLeitura) return false;
+      const existente = remissivaSelecionada(view.state);
+      if (existente === null && !podeInserirRemissiva(view.state)) return false;
+      refProps.current.aoPedirRemissiva(existente);
+      return true;
+    };
     // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
     const pedirCitacao = (): boolean => {
       if (somenteLeitura) return false;
@@ -300,14 +323,15 @@ export function EditorSecao(p: PropsEditorSecao) {
       Enter: () =>
         (chamadaSelecionada(view.state) !== null && pedirCitacao()) ||
         (tabelaSelecionada(view.state) !== null && pedirTabela()) ||
-        (figuraSelecionada(view.state) !== null && pedirFigura()),
+        (figuraSelecionada(view.state) !== null && pedirFigura()) ||
+        (remissivaSelecionada(view.state) !== null && pedirRemissiva()),
     });
 
     const view: EditorView = new EditorView(hospedeiro, {
       state: estado,
       editable: () => !somenteLeitura,
       handleKeyDown: teclas,
-      ...copiaComChamadas(memoria.chamadas),
+      ...copiaComChamadas(memoria.chamadas, memoria.remissivas),
       nodeViews: {
         nota: (no, v, posicao) => {
           const n: NotaView = new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico, { registro: memoria.chamadas, pedir: pedirNoAlvo }, () =>
@@ -329,6 +353,13 @@ export function EditorSecao(p: PropsEditorSecao) {
             if (pos === undefined || somenteLeitura) return;
             v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
             pedirFigura();
+          }),
+        remissiva: (no, v, posicao) =>
+          new RemissivaView(no, memoria.remissivas, () => {
+            const pos = posicao();
+            if (pos === undefined || somenteLeitura) return;
+            v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+            pedirRemissiva();
           }),
         chamadaCitacao: (no, v, posicao) =>
           new ChamadaView(no, memoria.chamadas, () => {
@@ -415,6 +446,9 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirFigura,
+      pedirRemissiva,
+      inserirRemissiva: (alvo) => executar(inserirRemissiva(alvo)),
+      alterarRemissiva: (id, alvo) => executar(alterarRemissiva(id, alvo)),
       alternarEquacao: () => {
         const ok = executar(alternarEquacao);
         if (ok) view.focus();
@@ -557,6 +591,16 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => controle.current?.pedirCitacao()}
           >
             Citação
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            disabled={!barra.podeRemissiva}
+            title="Remissiva: citar no texto uma tabela, quadro, figura ou equação (“Tabela 3”), com o número sempre em dia"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => controle.current?.pedirRemissiva()}
+          >
+            Remissiva
           </button>
           <button
             type="button"

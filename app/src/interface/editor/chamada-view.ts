@@ -13,6 +13,7 @@ import type { EditorProps, NodeView } from 'prosemirror-view';
 import type { ChamadaNaTela, DadosCitacao, FormatadorDeChamadas } from '../../aplicacao';
 import { dadosDaChamada } from './citacoes';
 import { esquemaEditor } from './esquema';
+import type { RegistroRemissivas } from './remissiva-view';
 
 /** O formatador atual e as chamadas na tela, para redesenhar quando as obras mudam. */
 export class RegistroChamadas {
@@ -109,17 +110,24 @@ export class ChamadaView implements NodeView {
 
 /**
  * Cópia com o texto da chamada (em vez da palavra "citação" do `toDOM`): colar no Word leva "(CAGLIARI, 2003)"; colar de
- * volta no editor traz o texto e a sugestão de ligar à obra (a colagem nunca cria citação sozinha).
+ * volta no editor traz o texto e a sugestão de ligar à obra (a colagem nunca cria citação sozinha). A remissiva (M5-T08)
+ * leva o texto dela, "Tabela 3", e volta como texto.
  */
-export function copiaComChamadas(registro: RegistroChamadas): Pick<EditorProps, 'clipboardSerializer' | 'clipboardTextSerializer'> {
+export function copiaComChamadas(registro: RegistroChamadas, remissivas?: RegistroRemissivas): Pick<EditorProps, 'clipboardSerializer' | 'clipboardTextSerializer'> {
   const base = DOMSerializer.fromSchema(esquemaEditor);
   const texto = (no: NoPm): string => registro.formatar(dadosDaChamada(no))?.texto ?? '';
+  const textoRemissiva = (no: NoPm): string => remissivas?.texto(String(no.attrs['alvo'])) ?? '';
   const serializador = new DOMSerializer(
     {
       ...base.nodes,
       chamadaCitacao: (no) => {
         const span = document.createElement('span');
         span.textContent = texto(no);
+        return span;
+      },
+      remissiva: (no) => {
+        const span = document.createElement('span');
+        span.textContent = textoRemissiva(no);
         return span;
       },
     },
@@ -129,7 +137,7 @@ export function copiaComChamadas(registro: RegistroChamadas): Pick<EditorProps, 
     clipboardSerializer: serializador,
     clipboardTextSerializer: (fatia: Slice) =>
       fatia.content.textBetween(0, fatia.content.size, '\n\n', (folha) =>
-        folha.type.name === 'chamadaCitacao' ? texto(folha) : folha.type.name === 'quebraLinha' ? '\n' : '',
+        folha.type.name === 'chamadaCitacao' ? texto(folha) : folha.type.name === 'remissiva' ? textoRemissiva(folha) : folha.type.name === 'quebraLinha' ? '\n' : '',
       ),
   };
 }

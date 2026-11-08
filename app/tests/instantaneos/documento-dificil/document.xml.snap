@@ -720,7 +720,13 @@
 <w:pStyle w:val="corpo"/>
 </w:pPr>
 <w:r>
-<w:t xml:space="preserve">Texto entre listas.</w:t>
+<w:t xml:space="preserve">Texto entre listas; ver a </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Tabela 1</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">.</w:t>
 </w:r>
 </w:p>
 <w:p>

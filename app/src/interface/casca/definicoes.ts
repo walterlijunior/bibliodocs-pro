@@ -34,6 +34,8 @@ export type ComandoMenu =
   | 'inserirFigura'
   // M5-T07: Inserir › Equação (Alt+= no editor).
   | 'inserirEquacao'
+  // M5-T08: Inserir › Remissiva… (botão "Remissiva" no editor).
+  | 'inserirRemissiva'
   // M2-T07: Trabalho › Estrutura de seções… (foco na árvore) e os botões de seção da barra superior.
   | 'estruturaSecoes'
   | 'secaoAnterior'
@@ -103,6 +105,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Tabela ou quadro…', comando: 'inserirTabela' },
       { rotulo: 'Figura…', comando: 'inserirFigura' },
       { rotulo: 'Equação', atalho: 'Alt+=', comando: 'inserirEquacao' },
+      { rotulo: 'Remissiva…', comando: 'inserirRemissiva' },
       { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
       { rotulo: 'Sigla…' }, // M2
     ],
@@ -141,6 +144,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('inserirTabela');
     d.add('inserirFigura');
     d.add('inserirEquacao');
+    d.add('inserirRemissiva');
   }
   if (trabalho === null) {
     d.add('estruturaSecoes');

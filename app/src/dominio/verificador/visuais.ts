@@ -14,7 +14,9 @@
  * - RESOLUCAO_BAIXA (aviso, M5-T06): imagem com menos de 150 ppi no tamanho impresso (RNF-17, D-M5-09); só com os
  *   bytes das imagens nas opções.
  *
- * Fora daqui: elemento sem remissiva no texto (RN-060, D-M5-04) é do M5-T08.
+ * - REMISSIVA_QUEBRADA (pendência, M5-T08): remissiva cujo alvo não existe ou é equação sem número (RF-11).
+ * - SEM_REMISSIVA (aviso, M5-T08): tabela, quadro ou ilustração que nenhuma remissiva cita (RN-060, PENDENTE-FONTE, por
+ *   isso só aviso: D-M5-04). Equação fica de fora: a regra é de ilustração, estendida só à tabela pela D-M5-04.
  */
 import { textoPlano, type Documento, type Id } from '../modelo';
 import { numerarElementos } from '../numeracao';
@@ -25,11 +27,13 @@ import {
   proporcaoNumerica,
   RESOLUCAO_MINIMA_PPI,
   resolucaoEfetivaPpi,
+  remissivasDoCorpo,
   rotuloElemento,
+  rotulosDeRemissiva,
   temFonte,
 } from '../visuais';
 
-export type CodigoProblemaVisual = 'SEM_TITULO' | 'SEM_FONTE' | 'TABELA_SEM_DADO_NUMERICO' | 'TABELA_LONGA' | 'RESOLUCAO_BAIXA';
+export type CodigoProblemaVisual = 'SEM_TITULO' | 'SEM_FONTE' | 'TABELA_SEM_DADO_NUMERICO' | 'TABELA_LONGA' | 'RESOLUCAO_BAIXA' | 'REMISSIVA_QUEBRADA' | 'SEM_REMISSIVA';
 
 export interface ProblemaVisual {
   codigo: CodigoProblemaVisual;
@@ -38,7 +42,7 @@ export interface ProblemaVisual {
   /** RN ou decisão de onde vem a conferência. */
   origem: readonly string[];
   mensagem: string;
-  /** Seção e bloco do elemento. */
+  /** Seção e bloco do elemento (em REMISSIVA_QUEBRADA, o id da remissiva). */
   secao: Id;
   elemento: Id;
 }
@@ -77,6 +81,8 @@ export const PROPORCAO_NUMERICA_MINIMA = 0.5;
 export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVerificacaoVisuais = {}): ProblemaVisual[] {
   const limiteLinhas = opcoes.linhasTabelaLonga ?? LINHAS_TABELA_LONGA;
   const lista: ProblemaVisual[] = [];
+  const remissivas = remissivasDoCorpo(doc.corpo);
+  const citados = new Set(remissivas.map((r) => r.remissiva.alvo));
   for (const { bloco, secao, sequencia, numero } of numerarElementos(doc.corpo).elementos) {
     const rotulo = rotuloElemento(sequencia, numero);
     const tabela = sequencia === 'tabela';
@@ -93,6 +99,9 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
         tabela ? ['RN-269', 'RN-274'] : ['RN-056'],
         'falta a fonte; ela é obrigatória mesmo quando o conteúdo é do próprio autor.',
       );
+    }
+    if (!citados.has(bloco.id)) {
+      add('SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], 'não é citado no texto; use Inserir › Remissiva… onde o texto fala dele.');
     }
     if (bloco.tipo === 'ilustracao') {
       const bytes = opcoes.imagens?.get(bloco.midia);
@@ -117,6 +126,18 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
         `${bloco.linhas.length} linhas; recomenda-se que a tabela caiba em uma página. Divida-a ou confira a quebra no documento exportado.`,
       );
     }
+  }
+  const rotulos = rotulosDeRemissiva(doc.corpo);
+  for (const { remissiva, secao } of remissivas) {
+    if (rotulos.has(remissiva.alvo)) continue;
+    lista.push({
+      codigo: 'REMISSIVA_QUEBRADA',
+      nivel: 'pendencia',
+      origem: ['RF-11'],
+      mensagem: 'Remissiva quebrada: o elemento citado foi excluído ou a equação ficou sem número.',
+      secao,
+      elemento: remissiva.id,
+    });
   }
   return lista;
 }

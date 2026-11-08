@@ -1,0 +1,39 @@
+{
+  "descricao": "Remissiva no título da seção (só no texto corrido, M5-T08)",
+  "erros": [
+    {
+      "caminho": "documento.corpo[0].titulo[1].tipo",
+      "mensagem": "remissiva não é permitida aqui: só no texto corrido"
+    }
+  ],
+  "documento": {
+    "id": "prj_BordasM5",
+    "tipoTrabalho": "generico",
+    "metadados": {
+      "titulo": [
+        {
+          "tipo": "texto",
+          "texto": "Remissiva fora do lugar"
+        }
+      ]
+    },
+    "corpo": [
+      {
+        "id": "sec_BordasM501",
+        "titulo": [
+          {
+            "tipo": "texto",
+            "texto": "Ver "
+          },
+          {
+            "tipo": "remissiva",
+            "id": "rem_titulo0001",
+            "alvo": "tab_bordm5001"
+          }
+        ],
+        "blocos": [],
+        "subsecoes": []
+      }
+    ]
+  }
+}

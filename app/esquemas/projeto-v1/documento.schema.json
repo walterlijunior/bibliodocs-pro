@@ -758,6 +758,9 @@
         },
         {
           "$ref": "#/$defs/InlineCitacao"
+        },
+        {
+          "$ref": "#/$defs/InlineRemissiva"
         }
       ]
     },
@@ -865,6 +868,29 @@
       },
       "required": [
         "obra"
+      ],
+      "additionalProperties": false
+    },
+    "InlineRemissiva": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "remissiva"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "alvo": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
+        "alvo"
       ],
       "additionalProperties": false
     },

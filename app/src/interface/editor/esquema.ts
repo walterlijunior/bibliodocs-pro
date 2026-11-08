@@ -170,6 +170,19 @@ const nos: Record<string, NodeSpec> = {
    * "(AUTOR, ano)" só sugere a ligação, M4-T07). Na tela, o texto da chamada vem do `ChamadaView`; o `toDOM` só serve à
    * cópia, que leva a palavra "citação".
    */
+  /**
+   * Remissiva (M5-T08; RF-11): folha atômica com o id do alvo (tabela, quadro, ilustração ou equação numerada). O texto
+   * ("Tabela 3") vem da numeração do documento, no `RemissivaView`; o `toDOM` só serve à cópia. Sem `parseDOM`: colar não
+   * cria remissiva, porque o alvo pode não existir no destino.
+   */
+  remissiva: {
+    group: 'inline',
+    inline: true,
+    atom: true,
+    attrs: { ...atributoId, alvo: { validate: 'string' } },
+    toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-remissiva', no), 'remissiva'],
+  },
+
   chamadaCitacao: {
     group: 'inline',
     inline: true,
@@ -213,4 +226,5 @@ export const PREFIXO_ID: Readonly<Record<string, string>> = {
   equacao: 'eqc',
   nota: 'nta',
   chamadaCitacao: 'cta',
+  remissiva: 'rem',
 };
