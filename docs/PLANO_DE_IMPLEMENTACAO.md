@@ -162,8 +162,31 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 Paralelização: T02 e T03 tocam arquivos diferentes; T06 pode começar depois do T01 com dados fictícios.
 
 ### M5 — Tabelas e elementos visuais
-- Estudo visual (estudo Capcom, usado só como exemplo de trabalho formatado) concluído antes da implementação.
+- Estudo visual (estudo Capcom, usado só como exemplo de trabalho formatado) concluído antes da implementação:
+  `docs/relatorios/ESTUDO_VISUAL_TABELAS.md` (M5-T00).
 **Aceite:** RF-09, RF-10, RF-11 (legenda/fonte/numeração).
+
+#### Tarefas do M5 (2026-11-07; decisões D-M5 na matriz, tomadas pela sessão principal por delegação do usuário)
+Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro.
+- **Base normativa:** Manual, p. 15–20, 27 e 43 (RN-015 a 066, RN-105 a 108, RN-164) e Norma Tabular do IBGE
+  (RN-241 a 312), quase tudo `CONFIRMADA`, com as decisões do usuário C-A1 a C-A5, C-C1 a C-C5 e P-C2 a P-C4.
+- **Limite do marco:** sem dependência nova. Planilha por CSV e por colagem do Excel e do LibreOffice (D-M5-01);
+  imagens PNG e JPEG (ADR-0004); equação em texto linear (D-M5-06). Listas de ilustrações e de tabelas são do M6
+  (RF-12); a referência cruzada (remissiva) a elementos entra aqui (RF-11).
+
+| ID | Tarefa | Agente | Depende | Critério de aceite | Verificação |
+|---|---|---|---|---|---|
+| M5-T00 ✔ | Estudo visual (Capcom, IFPR), levantamento das RN e decisões D-M5-01 a 10; plano de tarefas | sessão principal | — | `ESTUDO_VISUAL_TABELAS.md`; decisões na matriz | Revisão da matriz |
+| M5-T01 | Formato v1 (aditivo): blocos `tabela` (tabela ou quadro; título; colunas com alinhamento; linhas de cabeçalho; células com texto e marcas; mesclagem; fonte; notas geral e específicas), `ilustracao` (tipo da RN-049; título; mídia por sha256; largura; fonte; nota) e `equacao` (texto; numerada); esquema, limites, fixtures válidas e inválidas | especialista-documento | — | Leitura recusa elemento sem título, mídia inexistente e mesclagem fora da grade; JSON Schema regenerado | `npm run verificar` |
+| M5-T02 | Domínio: numeração contínua por tipo (RN-052, RN-244; D-M5-07), rótulo "Tabela n – Título" (RN-051, RN-053), ordem do rodapé Fonte → Nota → notas específicas (RN-277), pendências (sem fonte RN-056/274, sem título RN-246, tabela sem dado numérico RN-241, D-M5-10) | especialista-elementos-visuais | T01 | Testes de tabela com fonte de cada RN | `npm run verificar` |
+| M5-T03 | Motor e DOCX de tabela e quadro: tabela aberta com três traços (RN-251, RN-254), quadro fechado (RN-061), título 12 centralizado preso ao elemento (RN-021, RN-066), cabeçalho repetido (RN-292), corpo 10 simples (P-C2), números à direita (P-C4), fonte e notas 10 à esquerda (RN-057, RN-307), uma linha antes e depois (RN-031, RN-308), página em paisagem opcional (RF-09); aviso de tabela longa (RN-297, D-M5-03) | especialista-elementos-visuais | T02 | Tabela nativa do Word; Word e LibreOffice abrem sem reparo; instantâneo | `npm run verificar:tudo` |
+| M5-T04 | Editor: inserir e editar tabela e quadro (grade com linhas e colunas, cabeçalho, mesclar, alinhamento por coluna, sinais convencionais RN-263) com título, fonte e notas; Ctrl+Z junto com o texto | especialista-interface | T01, T02 | E2E; axe; só tabela válida gravada | `npm run verificar:tudo` |
+| M5-T05 | Colar do Excel e do LibreOffice (HTML/TSV) e importar CSV com prévia: números pt-BR (P-C3), datas, vazios, sinais convencionais (RN-263, RN-264), relatório do que não converteu (D-M5-01) | especialista-elementos-visuais | T04 | Aceite do RF-09: planilha com acentos, vírgula decimal e células vazias sem perda | `npm run verificar:tudo` |
+| M5-T06 | Figuras: inserir PNG/JPEG com título, fonte e largura; mídia deduplicada no `.bdp`; aviso abaixo de 150 ppi no tamanho impresso (RNF-17, D-M5-09); DOCX com a imagem centralizada (RN-059) | especialista-elementos-visuais + especialista-interface | T01, T02 | Aceite do RF-10 (aviso de resolução) | `npm run verificar:tudo` |
+| M5-T07 | Equações: bloco em texto linear com sobrescrito e subscrito, numeração "(n)" à direita (RN-105, RN-106), entrelinha livre (RN-107), alinhamento D-M5-05 | especialista-elementos-visuais | T01 | DOCX com tabulação à direita e número | `npm run verificar:tudo` |
+| M5-T08 | Remissivas: nó "referência a elemento" ligado ao id ("Tabela 3") que acompanha a numeração; aviso ao excluir elemento referenciado (aceite do RF-11); verificador de elemento sem remissiva (RN-060, D-M5-04) | especialista-interface + especialista-elementos-visuais | T02 | Excluir elemento referenciado gera aviso | `npm run verificar:tudo` |
+| M5-T09 | Gráfico gerado da tabela (colunas, barras, linhas, setores) como ilustração guardada em dados (ADR-0004) e desenhado em PNG ao exportar (D-M5-08); atualiza ao mudar a tabela | especialista-elementos-visuais | T03, T06 | Aceite do RF-10 (gráfico acompanha a tabela) | `npm run verificar:tudo` |
+| M5-T10 | Fechamento: `REVISAO_M5.md` com revisão independente (normas e segurança da colagem e das imagens), relatório do marco, matriz de testes | sessão principal | T01–T09 | Aceite do M5 demonstrado | `npm run verificar:tudo` |
 
 ### M6 — Sumário, listas, siglas, remissivas, pós-textuais
 **Aceite:** RF-11 (remissivas), RF-12, RF-13, RF-14.
