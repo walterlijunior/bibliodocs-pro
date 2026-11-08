@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T02: numeração e conferência de tabelas, quadros, ilustrações e equações no domínio.
+  - Cada palavra designativa numera à parte, contínua no documento: Tabela 1, Quadro 1, Figura 1, Gráfico 1; equação numerada "(1)".
+  - Rótulo "Tabela 3 – Título" com o separador do perfil; rodapé na ordem Fonte, Nota e notas específicas.
+  - Pendências de elemento sem fonte e sem título; avisos de tabela sem dado numérico (sugere quadro) e de tabela com mais de 40 linhas.
+  - Ainda sem mudança visível.
 - Etapa 5, M5-T01: tabela ou quadro, ilustração e equação no formato v1, de modo aditivo (adendo do M5-T01 no ADR-0004).
   - Tabela: título, colunas com alinhamento, linhas de cabeçalho, células com marcas, mesclagem, fonte e notas. A leitura recusa grade irregular, mesclagem fora da grade, sobreposta ou que atravessa o cabeçalho.
   - Ilustração: espécie da RN-049, título, imagem por sha256, largura, fonte e nota. Imagem que não está no pacote é recusada ao abrir e ao salvar.

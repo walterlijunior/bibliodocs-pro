@@ -4,6 +4,7 @@
  * Regras de dependência (ADR-0005, seção 2):
  * - Importa dominio/modelo e dominio/numeracao (regra 2).
  *
- * Marcador criado no M1-T01; a implementação vem nas tarefas seguintes.
+ * M5-T02: rótulo ("Tabela 1 – Título"), ordem do rodapé e leitura das células para o verificador.
  */
-export {};
+export { celulasComColuna, ehDadoNumerico, proporcaoNumerica, textoDaCelula } from './dados-numericos';
+export { PALAVRA_DESIGNATIVA, rodapeDoElemento, rotuloElemento, temFonte, tituloComRotulo, type ParteRodape } from './rotulos';

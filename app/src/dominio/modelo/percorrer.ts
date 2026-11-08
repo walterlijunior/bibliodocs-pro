@@ -15,7 +15,7 @@ export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
     case 'quebraPagina':
       return [];
     // Elementos visuais (M5-T01): os campos são só texto com marcas, sem nota nem citação, e não fazem parte do texto
-    // corrido (o verificador da bibliografia não procura chamadas soltas neles). O M5-T02 traz o percurso próprio.
+    // corrido (o verificador da bibliografia não procura chamadas soltas neles). Os elementos são percorridos por `numerarElementos` (dominio/numeracao).
     case 'tabela':
     case 'ilustracao':
     case 'equacao':
