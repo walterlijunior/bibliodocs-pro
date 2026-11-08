@@ -223,3 +223,39 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - O texto do gráfico usa a fonte do trabalho, se instalada no Windows; sem ela, o canvas usa a serifada padrão.
 - Gráfico com dezenas de categorias inclina os rótulos a 45°, mas não foi conferido visualmente com nomes longos.
 
+## M5-T10 — Revisão independente e fechamento do M5
+
+**Feito pela sessão principal em 2026-11-08**, com dois revisores independentes só de leitura (segurança e normas).
+Relatório: `docs/relatorios/REVISAO_M5.md`.
+
+**Resultado da revisão:**
+- 2 Altas, as duas corrigidas: R-M5-01 (laço sem fim no gráfico com número enorme) e N-M5-01 (fonte da figura fora da borda da imagem).
+- Médias corrigidas: R-M5-02 e N-M5-02, 03 e 05 (parcial).
+- Baixas e Infos de segurança corrigidas: R-M5-03, 04, 06, 07 e 08.
+- Decisões por delegação: D-M5-52 (equação sem número com aviso) e D-M5-53 (cabeçalho da tabela centralizado).
+- Abertos: R-M5-05 e 09; N-M5-06, 07, 09, 10 e 12 a 16. Nenhum Crítico ou Alto.
+
+**Medições:**
+- Exportar 150 páginas com 50 tabelas, 50 figuras, 20 gráficos, 30 equações e remissivas: 7,3 a 9,0 s, dentro da meta de 10 s (RNF-06), com folga pequena (R-M3-13).
+- Uma tecla custa 0,25 ms na mediana.
+- `npm audit --omit=dev`: 0 vulnerabilidades.
+
+**Aceite do M5 (RF-09, RF-10, RF-11):**
+
+| Requisito | Aceite | Onde foi demonstrado |
+|---|---|---|
+| RF-09 | Planilha com acentos, vírgula decimal e células vazias importada sem perda; tabela exportada como tabela nativa do Word | `e2e/tabela.spec.ts` (colagem do Excel e CSV), `tests/planilha.test.ts`, `tests/motor-visuais.test.ts`; Word conta as tabelas (`test:externos`) |
+| RF-10 | Figura com resolução abaixo do mínimo gera aviso; gráfico atualiza ao mudar a tabela | `e2e/figura.spec.ts` (FUN-16), `tests/exportacao-ipc.test.ts`; `e2e/grafico.spec.ts` (FUN-19), `tests/grafico.test.ts` |
+| RF-10 | Equação numerada | `e2e/equacao.spec.ts` (FUN-17), `tests/equacoes.test.ts`, XML do documento difícil |
+| RF-11 | Legenda, fonte e numeração; excluir elemento referenciado gera aviso de remissiva quebrada | `tests/visuais-numeracao.test.ts`, `tests/regressao-docx.test.ts`; `e2e/remissiva.spec.ts` (FUN-18), `tests/remissivas.test.ts` |
+
+**Fora do M5, com registro:**
+- XLSX (D-M5-01): a janela orienta salvar como CSV.
+- Página em paisagem para tabela larga (citada no RF-09, fora do aceite): não feita. Fica para o M6 ou M7, com as seções do documento.
+- Título repetido e "continua" na tabela que passa de página (D-M5-03).
+- Conferência sinal × nota (N-M5-06).
+
+**Testado:** `npx vitest run` 1950/1950 depois das correções. `npm run verificar:tudo` (2026-11-08): saída 0: `verificar` 1950/1950 (auditoria só com avisos moderados de ferramentas de empacotamento), externos 27/27, build ok, Playwright 36/36.
+
+**M5 CONCLUÍDO.**
+

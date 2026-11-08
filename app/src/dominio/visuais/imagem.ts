@@ -43,7 +43,8 @@ function lerPng(b: Uint8Array): InfoImagem | null {
     if (tipo === 'pHYs' && tamanho >= 9 && i + 17 <= b.length && b[i + 16] === 1) ppi = u32(b, i + 8) * 0.0254;
     i += 12 + tamanho;
   }
-  return { tipo: 'image/png', larguraPx, alturaPx, ppi };
+  // R-M5-07: pHYs com 0 (ou absurdamente baixo) não é resolução: vale a padrão, como sem o bloco.
+  return { tipo: 'image/png', larguraPx, alturaPx, ppi: ppi !== null && ppi >= 10 ? ppi : null };
 }
 
 /** Marcadores SOF com o tamanho do quadro (todos os SOFn, menos DHT C4, JPG C8 e DAC CC). */

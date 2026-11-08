@@ -28,6 +28,7 @@ export {
   lerNumero,
   numeroBr,
   tamanhoGraficoMm,
+  VALOR_MAXIMO,
   type DadosGrafico,
   type OpcoesDesenho,
   type Ponto,

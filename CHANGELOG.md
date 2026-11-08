@@ -5,6 +5,18 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M5-T10 (revisão do M5):
+  - Número enorme numa célula (como 1 seguido de 300 zeros) não trava mais o gráfico: fica fora do desenho, com aviso.
+  - A fonte da figura e do gráfico começa na borda esquerda da imagem, como no Manual, e não na margem.
+  - Colar tabela com muitas quebras de linha numa célula não trava mais a tela; CSV ou texto colado muito grandes não ocupam mais memória além do limite da tabela.
+  - Documento com mais de 500 gráficos exporta (os excedentes saem sem a imagem, com aviso).
+
+### Alterado
+- Etapa 5, M5-T10 (revisão do M5):
+  - O cabeçalho da tabela sai centralizado, como nos exemplos do IBGE.
+  - Novos avisos: tabela sem linha de cabeçalho e equação sem número. O aviso de tabela longa não sugere mais dividi-la em tabelas numeradas à parte.
+
 ### Adicionado
 - Etapa 5, M5-T09: gráfico gerado de tabela.
   - Botão "Gráfico" e Inserir › Gráfico…: escolhe a tabela, a forma (colunas, barras, linhas ou setores) e as colunas que viram séries, com a prévia na janela.

@@ -112,7 +112,12 @@ export class GraficoView implements NodeView {
       canvas.setAttribute('role', 'img');
       canvas.setAttribute('aria-label', `Desenho do gráfico com ${dados.categorias.length} categorias e ${dados.series.length === 1 ? '1 série' : `${dados.series.length} séries`}`);
       const ctx = canvas.getContext('2d');
-      if (ctx) desenharEm(ctx, d, tabela, canvas.width, canvas.height, PX_POR_MM * 25.4 * escala, 'Times New Roman');
+      // R-M5-01: falha no desenho nunca derruba a seção; o canvas fica em branco.
+      try {
+        if (ctx) desenharEm(ctx, d, tabela, canvas.width, canvas.height, PX_POR_MM * 25.4 * escala, 'Times New Roman');
+      } catch {
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      }
       const caixa = document.createElement('div');
       caixa.className = 'bd-figura__caixa';
       caixa.append(canvas);

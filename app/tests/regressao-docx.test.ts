@@ -142,8 +142,13 @@ describe.each(CORPUS.map(([nome]) => nome))('propriedades normativas: %s', (nome
   it('RF-05: nos parágrafos, nenhuma formatação direta além da estrutura e da dedicatória (RN-146)', () => {
     // M5-T03: dentro das células, só o alinhamento da coluna, escolhido pelo autor (conferido no documento difícil).
     const doc = g().partes['word/document.xml']!.replace(/<w:tc>.*?<\/w:tc>/gs, '');
+    // M5-T10 (N-M5-01): a fonte da figura e do gráfico tem recuo esquerdo até a borda da imagem (RN-057, C-A4); é posição
+    // calculada da largura do elemento, como a tabulação da equação, e é conferida no documento difícil.
     const fora = [...doc.matchAll(/<w:pPr>(.*?)<\/w:pPr>/gs)].flatMap((m) =>
-      [...m[1]!.matchAll(/<(w:\w+)/g)].map((x) => x[1]!).filter((tag) => /^w:(jc|ind|keepNext|keepLines|shd|pBdr)$/.test(tag)),
+      [...m[1]!.matchAll(/<(w:\w+)/g)]
+        .map((x) => x[1]!)
+        .filter((tag) => /^w:(jc|ind|keepNext|keepLines|shd|pBdr)$/.test(tag))
+        .filter((tag) => !(tag === 'w:ind' && m[1]!.includes('w:val="rodapeElemento"') && /^<w:pStyle w:val="rodapeElemento"\/><w:ind w:left="\d+"\/>/.test(m[1]!.replace(/<w:spacing[^>]*\/>/, '')))),
     );
     expect(fora).toEqual([]);
   });
@@ -210,6 +215,19 @@ describe('o documento difícil exercita o que deve', () => {
     expect(at(pPr(e)['w:jc'], 'val'), 'RN-108, D-M5-05').toBe('left');
     expect(pPr(e)['w:ind'], 'sem recuo de primeira linha').toBeUndefined();
     expect(at(pPr(e)['w:spacing'], 'lineRule'), 'RN-107: auto, a linha cresce com o expoente').toBe('auto');
+  });
+
+  it('a fonte da figura começa na borda esquerda da imagem centralizada (N-M5-01; RN-057, C-A4)', () => {
+    const doc = gerados.get('documento-dificil')!.partes['word/document.xml']!;
+    // Figura de 50,8 mm (2880 twips) numa área útil de 9071: recuo de (9071 − 2880) / 2. Na tabela, de largura inteira, nenhum.
+    const paragrafos = doc.match(/<w:p>.*?<\/w:p>/gs)!;
+    const i = paragrafos.findIndex((x) => x.includes('<w:drawing'));
+    const daFigura = paragrafos[i + 1]!;
+    expect(daFigura).toContain('Fonte: ');
+    expect(daFigura).toContain('<w:ind w:left="3096"/>');
+    const daTabela = paragrafos.filter((x, k) => k !== i + 1 && x.includes('w:val="rodapeElemento"'));
+    expect(daTabela.length).toBeGreaterThan(0);
+    for (const x of daTabela) expect(x).not.toContain('<w:ind');
   });
 
   it('tem a remissiva com o número da tabela citada (M5-T08)', () => {

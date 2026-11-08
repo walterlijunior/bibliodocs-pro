@@ -31,6 +31,10 @@ export interface PlanilhaLida {
   linhasCabecalho?: number;
   /** Avisos da leitura (mais de uma tabela colada, arquivo fora do UTF-8…). */
   avisos: string[];
+  /** Linhas com texto que a leitura nem guardou, por passarem do limite (R-M5-03); entram no relatório como "fora". */
+  linhasNaoLidas?: number;
+  /** Campos com texto além do limite de colunas, também não guardados (R-M5-03). */
+  camposNaoLidos?: number;
 }
 
 export type SinalParaVazio = '' | '–' | '..' | '...' | 'X';
@@ -80,16 +84,38 @@ export function detectarSeparador(texto: string): ';' | ',' | '\t' {
  * separador, quebra de linha e `""`. A linha vazia do fim (o Excel termina com quebra) não conta.
  */
 export function lerTextoSeparado(texto: string, separador: string): CelulaPlanilha[][] {
+  return lerTextoSeparadoComLimite(texto, separador).linhas;
+}
+
+/**
+ * Como `lerTextoSeparado`, mas só guarda até `maxLinhas` linhas e `maxCampos` campos por linha (R-M5-03: 4 MB de quebras
+ * eram 4 milhões de linhas na memória). O que passa só é contado, se tiver texto, para o relatório dizer o que ficou fora.
+ */
+export function lerTextoSeparadoComLimite(
+  texto: string,
+  separador: string,
+  limites: { maxLinhas?: number; maxCampos?: number } = {},
+): { linhas: CelulaPlanilha[][]; linhasNaoLidas: number; camposNaoLidos: number } {
+  const maxLinhas = limites.maxLinhas ?? Infinity;
+  const maxCampos = limites.maxCampos ?? Infinity;
   const t = texto.replace(/^﻿/, '');
   const linhas: CelulaPlanilha[][] = [];
+  let linhasNaoLidas = 0;
+  let camposNaoLidos = 0;
   let linha: CelulaPlanilha[] = [];
   let campo = '';
   let aspas = false;
   let inicioDeCampo = true;
   const fecharCampo = () => {
-    linha.push({ texto: campo });
+    if (linha.length < maxCampos) linha.push({ texto: campo });
+    else if (campo.trim() !== '' && linhas.length < maxLinhas) camposNaoLidos++;
     campo = '';
     inicioDeCampo = true;
+  };
+  const fecharLinha = () => {
+    if (linhas.length < maxLinhas) linhas.push(linha);
+    else if (linha.some((c) => c.texto.trim() !== '')) linhasNaoLidas++;
+    linha = [];
   };
   for (let i = 0; i < t.length; i++) {
     const ch = t[i]!;
@@ -109,8 +135,7 @@ export function lerTextoSeparado(texto: string, separador: string): CelulaPlanil
     else if (ch === '\r' || ch === '\n') {
       if (ch === '\r' && t[i + 1] === '\n') i++;
       fecharCampo();
-      linhas.push(linha);
-      linha = [];
+      fecharLinha();
     } else {
       campo += ch;
       inicioDeCampo = false;
@@ -118,14 +143,24 @@ export function lerTextoSeparado(texto: string, separador: string): CelulaPlanil
   }
   if (campo !== '' || linha.length > 0 || !inicioDeCampo) {
     fecharCampo();
-    linhas.push(linha);
+    fecharLinha();
   }
-  return linhas;
+  return { linhas, linhasNaoLidas, camposNaoLidos };
+}
+
+/** Limites da leitura de texto separado (R-M5-03): uma linha a mais que a tabela aceita, para o corte ser contado. */
+export const LIMITES_LEITURA_PLANILHA = { maxLinhas: LIMITES_V1.linhasTabela + 1, maxCampos: LIMITES_V1.colunasTabela + 1 } as const;
+
+/** Texto colado (TSV do Excel ou separado por ";"/","), com os mesmos limites do CSV (R-M5-03). */
+export function lerTextoColado(texto: string, separador: string): PlanilhaLida {
+  const r = lerTextoSeparadoComLimite(texto, separador, LIMITES_LEITURA_PLANILHA);
+  return { linhas: r.linhas, avisos: [], linhasNaoLidas: r.linhasNaoLidas, camposNaoLidos: r.camposNaoLidos };
 }
 
 /** CSV já decodificado (a interface decodifica: UTF-8, ou Windows-1252 com aviso, como na importação de bibliografia). */
 export function lerCsv(texto: string, avisos: readonly string[] = []): PlanilhaLida {
-  return { linhas: lerTextoSeparado(texto, detectarSeparador(texto)), avisos: [...avisos] };
+  const r = lerTextoSeparadoComLimite(texto, detectarSeparador(texto), LIMITES_LEITURA_PLANILHA);
+  return { linhas: r.linhas, avisos: [...avisos], linhasNaoLidas: r.linhasNaoLidas, camposNaoLidos: r.camposNaoLidos };
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -287,7 +322,7 @@ const plural = (n: number, um: string, varios: string): string => (n === 1 ? um 
 
 /** Converte a planilha lida com as opções da prévia. */
 export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro', opcoes: OpcoesPlanilha): PlanilhaConvertida {
-  const cont: Contagem = { linhasFora: 0, celulasFora: 0, mesclagensAjustadas: 0, completadas: 0 };
+  const cont: Contagem = { linhasFora: p.linhasNaoLidas ?? 0, celulasFora: p.camposNaoLidos ?? 0, mesclagensAjustadas: 0, completadas: 0 };
   const grade = gradeCompleta(p, cont);
   const nColunas = grade[0]?.length ?? 0;
   const linhasCabecalho = cabecalhoSemCorte(grade, opcoes.linhasCabecalho);

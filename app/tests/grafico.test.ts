@@ -8,7 +8,7 @@ import { PERFIL_UFT_2022 as PERFIL } from '../src/aplicacao/perfil-padrao';
 import type { BlocoGrafico, BlocoIlustracao, BlocoTabela, CelulaTabela, Secao } from '../src/dominio/modelo';
 import { formatar } from '../src/dominio/normas';
 import { verificarVisuais } from '../src/dominio/verificador';
-import { dadosDoGrafico, desenharGrafico, escalaRedonda, lerNumero, tamanhoGraficoMm, type Primitiva } from '../src/dominio/visuais';
+import { dadosDoGrafico, desenharGrafico, escalaRedonda, lerInfoImagem, lerNumero, tamanhoGraficoMm, type Primitiva } from '../src/dominio/visuais';
 import { exportarDocx } from '../src/exportacao/docx';
 import { ErroIpcRecusado } from '../src/principal/ipc/chamada';
 import { criarManipuladoresExportacao, type DependenciasExportacao } from '../src/principal/ipc/manipuladores-exportacao';
@@ -156,9 +156,12 @@ describe('numeração, motor e verificador', () => {
     const titulos = blocos.flatMap((b) => (b.tipo === 'paragrafo' && b.estilo === 'tituloElemento' ? [b.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join('')] : []));
     expect(titulos).toEqual(['Tabela 1 – Produção', 'Gráfico 1 – Imagem', 'Gráfico 2 – Produção por ano']);
     const imagem = blocos.find((b) => b.tipo === 'imagem' && b.dados === png);
-    // 150 mm = 8504 twips; altura pela proporção do PNG.
-    expect(imagem).toMatchObject({ formato: 'png', larguraTw: 8504, alturaTw: Math.round((8504 * 1063) / 1772), descricao: 'Gráfico 2 – Produção por ano' });
+    // 150 mm × 90 mm = 8504 × 5102 twips, do domínio, não da proporção do PNG recebido (R-M5-06).
+    expect(imagem).toMatchObject({ formato: 'png', larguraTw: 8504, alturaTw: 5102, descricao: 'Gráfico 2 – Produção por ano' });
     expect(f.avisos.filter((a) => a.codigo === 'GRAFICO_NAO_DESENHADO')).toEqual([]);
+    // Fonte rente à borda esquerda do gráfico centralizado (N-M5-01; RN-057, C-A4): (9071 − 8504) / 2.
+    const depois = blocos[blocos.indexOf(imagem!) + 1];
+    expect(depois).toMatchObject({ tipo: 'paragrafo', estilo: 'rodapeElemento', recuoEsquerdaTw: 284 });
     const xml = abrirDocx(await exportarDocx(f))['word/document.xml']!.replace(/<[^>]+>/g, '');
     expect(xml).toContain('Gráfico 2 – Produção por ano');
   });
@@ -220,3 +223,48 @@ describe('canal de exportação: PNG dos gráficos conferidos no principal', () 
     await expect(montar().chamar(pacoteCom([]), { graficos: { gra_x00000000001: 'texto' } })).rejects.toBeInstanceOf(ErroIpcRecusado);
   });
 });
+
+describe('valores extremos (R-M5-01, revisão do M5)', () => {
+  const tabelaCom = (...valores: string[]): BlocoTabela => ({
+    ...TABELA,
+    colunas: [{ alinhamento: 'esquerda' }, { alinhamento: 'direita' }],
+    linhas: [[cel('Item'), cel('Valor')], ...valores.map((v, i) => [cel(`L${i}`), cel(v)])],
+  });
+
+  it.each([
+    ['17 seguido de 307 zeros', '17' + '0'.repeat(307)],
+    ['menos 17 seguido de 307 zeros', '-17' + '0'.repeat(307)],
+    ['309 algarismos', '9'.repeat(309)],
+  ])('%s: fica sem valor, com aviso, e o desenho termina', (_nome, enorme) => {
+    const inicio = performance.now();
+    const d = dadosDoGrafico(grafico({ series: [1] }), tabelaCom(enorme, '1', '2'));
+    expect(d.ok && d.series[0]!.valores).toEqual([null, 1, 2]);
+    expect(d.ok && d.avisos).toContain('um valor grande demais (acima de 10¹⁵) ficou fora do gráfico.');
+    if (d.ok) for (const forma of ['colunas', 'barras', 'linhas', 'setores'] as const) desenharGrafico(d, forma, 600, 360, { tamanhoTexto: 14 });
+    expect(performance.now() - inicio).toBeLessThan(500);
+  });
+
+  it('escala com entrada que não é finita não trava e não dá NaN', () => {
+    expect(escalaRedonda(0, Infinity)).toEqual({ inicio: 0, fim: 1, passo: 1 });
+    expect(escalaRedonda(-1e308, 1e308)).toEqual({ inicio: 0, fim: 1, passo: 1 });
+    const e = escalaRedonda(-1e15, 1e15);
+    expect([e.inicio, e.fim, e.passo].every(Number.isFinite)).toBe(true);
+  });
+});
+
+describe('revisão do M5: PNG recebido e cabeçalho de imagem (R-M5-06, R-M5-07)', () => {
+  it('PNG com proporção absurda (1 × 100000) não muda o tamanho do gráfico no DOCX', () => {
+    const f = formatar({ corpo: [sec([TABELA, grafico()])], graficos: new Map([['gra_grafico00001', pngDeTeste(1, 2000, 300)]]) }, PERFIL);
+    const imagem = f.secoes.flatMap((s) => s.blocos).find((b) => b.tipo === 'imagem');
+    expect(imagem).toMatchObject({ larguraTw: 8504, alturaTw: 5102 });
+  });
+
+  it('pHYs com 0 pixels por metro vale como sem resolução (96 ppi), não divide por zero', () => {
+    const png = pngDeTeste(300, 200, 300);
+    // Zera os dois campos de pixels por metro do pHYs (logo depois de IHDR: 8 + 25 bytes, mais 8 do cabeçalho do bloco).
+    const zerado = new Uint8Array(png);
+    zerado.fill(0, 41, 49);
+    expect(lerInfoImagem(zerado)).toMatchObject({ larguraPx: 300, ppi: null });
+  });
+});
+

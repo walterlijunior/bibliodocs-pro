@@ -98,10 +98,12 @@ describe('motor: tabela e quadro', () => {
   it('cabeçalho repetido, largura da área útil, alinhamento da coluna e mesclagem', () => {
     const t = tabelas(f)[0]!;
     expect(t).toMatchObject({ repetirCabecalho: true, linhasCabecalho: 2, colunas: 4, larguraTw: 11906 - 1701 - 1134, estilo: 'celulaTabela' });
+    // Cabeçalho centralizado (D-M5-53; IBGE, Anexo B); o corpo segue a coluna.
     expect(t.linhas[0]!.map((c) => [c.colunas, c.linhas, c.alinhamento])).toEqual([
-      [1, 2, 'esquerda'],
-      [3, 1, 'direita'],
+      [1, 2, 'centralizado'],
+      [3, 1, 'centralizado'],
     ]);
+    expect(t.linhas[1]!.every((c) => c.alinhamento === 'centralizado')).toBe(true);
     // Linha com célula coberta de cima: a primeira célula começa na 2.ª coluna e é numérica.
     expect(t.linhas[5]!.map((c) => c.alinhamento)).toEqual(['direita', 'direita', 'direita']);
     expect(t.linhas[2]!.map((c) => c.trechos.map((x) => (x.tipo === 'texto' ? x.texto : '')).join(''))).toEqual(['Norte (1)', '1.234,5', '1.300,0', '1.410,2']);

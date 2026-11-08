@@ -35,6 +35,9 @@ export type DadosGrafico =
 
 const SINAIS = new Set(['-', '–', '—', '..', '...', '…', 'X', 'x']);
 
+/** Maior valor absoluto que entra no gráfico (R-M5-01); acima dele a célula fica sem valor, com aviso. */
+export const VALOR_MAXIMO = 1e15;
+
 /** Número no padrão brasileiro, ou `null` (texto, sinal convencional, vazio). */
 export function lerNumero(texto: string): number | null {
   let t = texto.trim();
@@ -44,7 +47,8 @@ export function lerNumero(texto: string): number | null {
   if (!m) return null;
   const inteiro = m[2]!.replace(/\./gu, '');
   const valor = Number(`${inteiro}${m[3] !== undefined ? `.${m[3]}` : ''}`);
-  if (!Number.isFinite(valor)) return null;
+  // R-M5-01: acima de 10¹⁵ a escala do gráfico perde a conta (1,7e308 virava Infinity e travava o desenho).
+  if (!Number.isFinite(valor) || Math.abs(valor) > VALOR_MAXIMO) return null;
   return m[1] !== '' && m[1] !== '+' ? -valor : valor;
 }
 
@@ -83,6 +87,10 @@ export function dadosDoGrafico(g: Pick<BlocoGrafico, 'forma' | 'series'>, tabela
     return `Coluna ${c + 1}`;
   };
   let series = escolhidas.map((c) => ({ coluna: c, nome: nomeDa(c), valores: linhas.map((l) => lerNumero(l[c] ?? '')) }));
+  // Algarismos demais (acima de VALOR_MAXIMO): ficam sem valor, e o autor fica sabendo.
+  if (escolhidas.some((c) => linhas.some((l) => /\d{16,}/u.test((l[c] ?? '').replace(/[.\s  ]/gu, '')) && lerNumero(l[c] ?? '') === null))) {
+    avisos.push('um valor grande demais (acima de 10¹⁵) ficou fora do gráfico.');
+  }
   series = series.filter((s) => s.valores.some((v) => v !== null));
   if (series.length === 0 || linhas.length === 0) return { ok: false, motivo: 'semDados', mensagem: 'a tabela não tem valores numéricos para o gráfico.' };
   if (g.forma === 'setores') {
@@ -142,6 +150,8 @@ export const numeroBr = (n: number): string => formato.format(n);
 
 /** Escala com passos redondos que cobre [min, max] e inclui o 0. */
 export function escalaRedonda(min: number, max: number, alvoDeMarcas = 5): { inicio: number; fim: number; passo: number } {
+  // R-M5-01: entrada que não é finita nunca chega ao laço das marcas.
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return { inicio: 0, fim: 1, passo: 1 };
   let a = Math.min(0, min);
   let b = Math.max(0, max);
   if (a === b) b = a + 1;
@@ -150,6 +160,7 @@ export function escalaRedonda(min: number, max: number, alvoDeMarcas = 5): { ini
   const passo = [1, 2, 5, 10].map((k) => k * potencia).find((p) => p >= bruto)!;
   a = Math.floor(a / passo) * passo;
   b = Math.ceil(b / passo) * passo;
+  if (![a, b, passo].every(Number.isFinite) || passo <= 0) return { inicio: 0, fim: 1, passo: 1 };
   return { inicio: a, fim: b, passo };
 }
 
@@ -211,7 +222,8 @@ export function desenharGrafico(d: Extract<DadosGrafico, { ok: true }>, forma: F
   const todos = d.series.flatMap((s) => s.valores).filter((v): v is number => v !== null);
   const esc = escalaRedonda(Math.min(...todos), Math.max(...todos));
   const marcas: number[] = [];
-  for (let v = esc.inicio; v <= esc.fim + esc.passo / 2; v += esc.passo) marcas.push(Math.round(v / esc.passo) * esc.passo);
+  // Teto de voltas (R-M5-01): a escala dá 4 a 12 marcas; nada justifica mais de 50.
+  for (let v = esc.inicio, k = 0; v <= esc.fim + esc.passo / 2 && k < 50; v += esc.passo, k++) marcas.push(Math.round(v / esc.passo) * esc.passo);
   const textoMarca = marcas.map(numeroBr);
   const larguraMarcas = Math.max(...textoMarca.map((t) => medir(t, f)));
   const n = d.categorias.length;

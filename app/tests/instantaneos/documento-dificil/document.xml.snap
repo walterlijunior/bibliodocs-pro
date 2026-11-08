@@ -1271,7 +1271,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="left"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Região</w:t>
@@ -1286,7 +1286,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="right"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Produção (t)</w:t>
@@ -1322,7 +1322,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="right"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">2020</w:t>
@@ -1339,7 +1339,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="right"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">2021</w:t>
@@ -1356,7 +1356,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="right"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">2022</w:t>
@@ -1701,7 +1701,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="left"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Etapa</w:t>
@@ -1715,7 +1715,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="left"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Descrição</w:t>
@@ -1837,7 +1837,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="left"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Amostra</w:t>
@@ -1854,7 +1854,7 @@
 <w:p>
 <w:pPr>
 <w:pStyle w:val="celulaTabela"/>
-<w:jc w:val="right"/>
+<w:jc w:val="center"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Valor (mm)</w:t>
@@ -3741,6 +3741,7 @@
 <w:pPr>
 <w:pStyle w:val="rodapeElemento"/>
 <w:spacing w:after="240"/>
+<w:ind w:left="3096"/>
 </w:pPr>
 <w:r>
 <w:t xml:space="preserve">Fonte: </w:t>

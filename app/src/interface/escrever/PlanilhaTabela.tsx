@@ -9,7 +9,7 @@ import {
   detectarSeparador,
   LIMITE_BYTES_CSV,
   lerCsv,
-  lerTextoSeparado,
+  lerTextoColado,
   opcoesSugeridas,
   type OpcoesPlanilha,
   type PlanilhaConvertida,
@@ -43,7 +43,7 @@ function lerColagem(html: string, texto: string): PlanilhaLida | null {
     if (lida) return lida;
   }
   if (texto.trim() === '') return null;
-  return { linhas: lerTextoSeparado(texto, texto.includes('\t') ? '\t' : detectarSeparador(texto)), avisos: [] };
+  return lerTextoColado(texto, texto.includes('\t') ? '\t' : detectarSeparador(texto));
 }
 
 export function PlanilhaTabela(p: PropsPlanilhaTabela) {

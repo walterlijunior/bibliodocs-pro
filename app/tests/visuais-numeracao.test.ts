@@ -245,7 +245,7 @@ describe('remissivas no verificador (M5-T08; RF-11; RN-060, D-M5-04)', () => {
       ['SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], tab.id],
       ['SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], fig.id],
     ]);
-    expect(r[0]!.mensagem).toBe('Tabela 1: não é citado no texto; use Inserir › Remissiva… onde o texto fala dele.');
+    expect(r[0]!.mensagem).toBe('Tabela 1: não é citado no texto; use Inserir › Remissiva… onde o texto fala dele (recomendação provisória, sem fonte no Manual).');
   });
 
   it('remissiva quebrada: alvo que não existe ou equação sem número (pendência, RF-11)', () => {
@@ -260,9 +260,30 @@ describe('remissivas no verificador (M5-T08; RF-11; RN-060, D-M5-04)', () => {
     };
     const s = secaoSemCitar([par, semNumero]);
     expect(verificarVisuais({ corpo: [s] }).map((p) => [p.codigo, p.nivel, p.elemento, p.secao])).toEqual([
+      ['EQUACAO_SEM_NUMERO', 'aviso', semNumero.id, s.id],
       ['REMISSIVA_QUEBRADA', 'pendencia', 'rem_quebrada0001', s.id],
       ['REMISSIVA_QUEBRADA', 'pendencia', 'rem_quebrada0002', s.id],
     ]);
+  });
+});
+
+describe('revisão do M5 (N-M5-02 a 04)', () => {
+  it('tabela sem cabeçalho: aviso (RN-251, RN-255; I p. 14–15); o quadro sem cabeçalho não', () => {
+    const tab = tabela('tabela', { linhasCabecalho: 0 });
+    const r = verificarVisuais({ corpo: [secao([tab, tabela('quadro', { linhasCabecalho: 0 })])] });
+    expect(r.map((p) => [p.codigo, p.nivel, p.origem, p.elemento])).toEqual([['TABELA_SEM_CABECALHO', 'aviso', ['RN-251', 'RN-255'], tab.id]]);
+  });
+
+  it('tabela longa: não sugere dividir em tabelas numeradas à parte (I p. 29, seção 8.3)', () => {
+    const linhas = [[cel('Ano'), cel('Valor')], ...Array.from({ length: LINHAS_TABELA_LONGA + 1 }, (_, i) => [cel(String(2000 + i)), cel(String(i))])];
+    const m = verificarVisuais({ corpo: [secao([tabela('tabela', { linhas })])] })[0]!.mensagem;
+    expect(m).not.toMatch(/divida/i);
+    expect(m).toContain('"continua"');
+  });
+
+  it('equação sem número: aviso com o texto dela (RN-106, M p. 27; D-M5-52); a numerada, não', () => {
+    const r = verificarVisuais({ corpo: [secao([equacao(true), equacao(false)])] });
+    expect(r.map((p) => [p.codigo, p.mensagem])).toEqual([['EQUACAO_SEM_NUMERO', 'Equação sem número (x = y): o Manual pede equações numeradas entre parênteses, à direita.']]);
   });
 });
 

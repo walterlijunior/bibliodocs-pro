@@ -74,8 +74,11 @@ function textoDe(celula: NoHtml): string {
     .split('\n')
     .map((l) => l.trim())
     .join('\n')
-    .replace(/^\n+|\n+$/g, '')
-    .replace(/\n{2,}/g, '\n');
+    // R-M5-02: primeiro junta as quebras repetidas (linear) e só depois tira as das pontas, que agora são no máximo uma
+    // de cada lado: `/\n+$/` numa sequência longa de quebras custava tempo quadrático (80 mil <br> = 2 s).
+    .replace(/\n{2,}/g, '\n')
+    .replace(/^\n/, '')
+    .replace(/\n$/, '');
 }
 
 const inteiro = (v: string | null): number | undefined => {

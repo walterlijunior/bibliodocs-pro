@@ -81,6 +81,11 @@ export type BlocoFormatado =
       antesTw?: number;
       /** Espaço depois só deste parágrafo (uma linha depois do rodapé da tabela, RN-031, RN-308). */
       depoisTw?: number;
+      /**
+       * Recuo esquerdo só deste parágrafo: a fonte e a nota da figura e do gráfico começam rente à borda esquerda da
+       * imagem centralizada, não na margem (RN-057, decisão C-A4; Manual p. 17, Quadro 1, e exemplo da p. 19).
+       */
+      recuoEsquerdaTw?: number;
       /** Parada de tabulação à direita, a partir da margem esquerda (número da equação, RN-106; M5-T07). */
       tabulacaoDireitaTw?: number;
       origem: readonly string[];

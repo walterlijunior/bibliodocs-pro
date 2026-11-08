@@ -9,6 +9,7 @@
 import type { BlocoGrafico, BlocoTabela, Secao } from '../../dominio/modelo';
 import { CORES_GRAFICO, dadosDoGrafico, desenharGrafico, tamanhoGraficoMm, type Primitiva } from '../../aplicacao';
 import type { CamposGrafico } from './tabelas';
+import { LIMITES_GRAFICOS_EXPORTACAO } from '../../aplicacao/portas/exportacao';
 
 type Contexto = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -81,10 +82,18 @@ export function pintar(ctx: Contexto, primitivas: readonly Primitiva[], fonte: s
   ctx.fillRect(0, 0, largura, altura);
   const fino = Math.max(1, tamanhoTexto / 14);
   const passo = tamanhoTexto * 0.45;
+  // R-M5-08: um ladrilho por padrão em cada pintura, não um por retângulo.
+  const cache = new Map<number, string | CanvasPattern>();
+  const preencher = (i: number): string | CanvasPattern => {
+    const k = i % 6;
+    let f = cache.get(k);
+    if (f === undefined) cache.set(k, (f = preenchimento(ctx, k, passo)));
+    return f;
+  };
   for (const p of primitivas) {
     switch (p.tipo) {
       case 'retangulo':
-        ctx.fillStyle = preenchimento(ctx, p.padrao, passo);
+        ctx.fillStyle = preencher(p.padrao);
         ctx.fillRect(p.x, p.y, p.largura, p.altura);
         ctx.lineWidth = fino;
         ctx.strokeStyle = PRETO;
@@ -96,7 +105,7 @@ export function pintar(ctx: Contexto, primitivas: readonly Primitiva[], fonte: s
         ctx.moveTo(p.cx, p.cy);
         ctx.arc(p.cx, p.cy, p.raio, p.inicio, p.fim);
         ctx.closePath();
-        ctx.fillStyle = preenchimento(ctx, p.padrao, passo);
+        ctx.fillStyle = preencher(p.padrao);
         ctx.fill();
         ctx.lineWidth = fino;
         ctx.strokeStyle = PRETO;
@@ -158,7 +167,12 @@ export async function pngDoGrafico(campos: Pick<CamposGrafico, 'forma' | 'series
   const altura = Math.round((alturaMm / 25.4) * PPI_GRAFICO);
   const canvas = new OffscreenCanvas(largura, altura);
   const ctx = canvas.getContext('2d');
-  if (!ctx || !desenharEm(ctx, campos, tabela, largura, altura, PPI_GRAFICO, fonte)) return null;
+  if (!ctx) return null;
+  try {
+    if (!desenharEm(ctx, campos, tabela, largura, altura, PPI_GRAFICO, fonte)) return null;
+  } catch {
+    return null; // R-M5-01: o gráfico sai sem a imagem, com aviso, em vez de travar a exportação.
+  }
   const blob = await canvas.convertToBlob({ type: 'image/png' });
   return new Uint8Array(await blob.arrayBuffer());
 }
@@ -181,7 +195,8 @@ export async function graficosParaExportar(corpo: readonly Secao[], areaUtilMm: 
   };
   visitar(corpo);
   const saida: Record<string, Uint8Array> = {};
-  for (const g of graficos) {
+  // R-M5-04: no máximo o que o principal aceita; os demais saem sem a imagem, com aviso, em vez de recusar a exportação.
+  for (const g of graficos.slice(0, LIMITES_GRAFICOS_EXPORTACAO.quantidade)) {
     const { larguraMm, alturaMm } = tamanhoGraficoMm(g, areaUtilMm);
     const png = await pngDoGrafico(g, tabelas.get(g.tabela), larguraMm, alturaMm, fonte);
     if (png !== null) saida[g.id] = png;

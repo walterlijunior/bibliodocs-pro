@@ -107,11 +107,14 @@ function tracos(b: BlocoTabela, c: ContextoVisuais): { tracos: TracosMoldura; or
  * Rodapé do elemento: Fonte → Nota → notas específicas (RN-277), chamada entre parênteses (RN-267); uma linha depois do
  * último parágrafo (RN-031, RN-308). Sem rodapé, um parágrafo vazio com esse espaço.
  */
-function rodapeFormatado(b: BlocoTabela | BlocoIlustracao | BlocoGrafico, c: ContextoVisuais): BlocoFormatado[] {
+function rodapeFormatado(b: BlocoTabela | BlocoIlustracao | BlocoGrafico, c: ContextoVisuais, recuoTw = 0): BlocoFormatado[] {
+  // Figura e gráfico mais estreitos que a área útil: a fonte começa na borda esquerda da imagem (RN-057, C-A4).
+  const recuo = recuoTw > 0 ? { recuoEsquerdaTw: recuoTw } : {};
+  const rnRecuo = recuoTw > 0 ? ['RN-057'] : [];
   const rodape: BlocoFormatado[] = rodapeDoElemento(b).map((p): BlocoFormatado => {
     const prefixo = p.parte === 'notaEspecifica' ? `(${p.chamada}) ` : `${p.prefixo} `;
     const origem = p.parte === 'notaEspecifica' ? so(c.rn.ordemRodape, c.rn.chamada) : so(c.rn.ordemRodape);
-    return { tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [texto(prefixo), ...deInline(p.conteudo)], origem };
+    return { tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [texto(prefixo), ...deInline(p.conteudo)], ...recuo, origem: [...origem, ...rnRecuo] };
   });
   if (rodape.length === 0) rodape.push({ tipo: 'paragrafo', estilo: 'rodapeElemento', trechos: [], origem: [] });
   if (c.espacoDepoisTw !== null) {
@@ -133,7 +136,8 @@ export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado
   for (const { linha, coluna, celula } of celulasComColuna(b)) {
     linhas[linha]!.push({
       trechos: deInline(celula.conteudo),
-      alinhamento: ALINHAMENTO[b.colunas[coluna]?.alinhamento ?? 'esquerda'],
+      // Cabeçalho centralizado, como nos exemplos do IBGE (Anexo B); corpo no alinhamento da coluna (D-M5-53, N-M5-08).
+      alinhamento: linha < b.linhasCabecalho ? 'centralizado' : ALINHAMENTO[b.colunas[coluna]?.alinhamento ?? 'esquerda'],
       colunas: celula.colunas ?? 1,
       linhas: celula.linhas ?? 1,
     });
@@ -184,7 +188,8 @@ export function blocosIlustracao(b: BlocoIlustracao, c: ContextoVisuais, bytes: 
       origem: c.rn.imagem,
     });
   }
-  blocos.push(...rodapeFormatado(b, c));
+  const imagem = blocos.find((x) => x.tipo === 'imagem');
+  blocos.push(...rodapeFormatado(b, c, imagem?.tipo === 'imagem' ? Math.max(0, Math.round((c.larguraTw - imagem.larguraTw) / 2)) : 0));
   return { blocos, ausente: !(bytes && info) };
 }
 
@@ -199,19 +204,22 @@ export function blocosGrafico(b: BlocoGrafico, c: ContextoVisuais, png: Uint8Arr
   const info = png ? lerInfoImagem(png) : null;
   const blocos: BlocoFormatado[] = [{ tipo: 'paragrafo', estilo: 'tituloElemento', trechos: deInline(titulo), origem: so(c.rn.numeracao, c.rn.rotulo) }];
   if (png && info && info.tipo === 'image/png') {
-    const larguraTw = Math.round(tamanhoGraficoMm(b, (c.larguraTw * 25.4) / 1440).larguraMm * MM_EM_TW);
+    // R-M5-06: largura e altura do domínio, não da proporção declarada no PNG recebido do renderer.
+    const tamanho = tamanhoGraficoMm(b, (c.larguraTw * 25.4) / 1440);
+    const larguraTw = Math.round(tamanho.larguraMm * MM_EM_TW);
     blocos.push({
       tipo: 'imagem',
       estilo: 'imagemElemento',
       dados: png,
       formato: 'png',
       larguraTw,
-      alturaTw: Math.round((larguraTw * info.alturaPx) / info.larguraPx),
+      alturaTw: Math.round(tamanho.alturaMm * MM_EM_TW),
       descricao: titulo.map((i) => i.texto).join(''),
       origem: c.rn.imagem,
     });
   }
-  blocos.push(...rodapeFormatado(b, c));
+  const imagem = blocos.find((x) => x.tipo === 'imagem');
+  blocos.push(...rodapeFormatado(b, c, imagem?.tipo === 'imagem' ? Math.max(0, Math.round((c.larguraTw - imagem.larguraTw) / 2)) : 0));
   return { blocos, ausente: !(png && info && info.tipo === 'image/png') };
 }
 

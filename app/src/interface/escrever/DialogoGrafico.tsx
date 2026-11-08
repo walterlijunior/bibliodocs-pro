@@ -125,7 +125,11 @@ export function DialogoGrafico(p: PropsDialogoGrafico) {
     c.height = Math.round(a * pxPorMm);
     const ctx = c.getContext('2d');
     if (!ctx) return;
-    if (!desenharEm(ctx, { forma, ...(series ? { series } : {}) }, tabela, c.width, c.height, pxPorMm * 25.4, 'Times New Roman')) ctx.clearRect(0, 0, c.width, c.height);
+    try {
+      if (!desenharEm(ctx, { forma, ...(series ? { series } : {}) }, tabela, c.width, c.height, pxPorMm * 25.4, 'Times New Roman')) ctx.clearRect(0, 0, c.width, c.height);
+    } catch {
+      ctx.clearRect(0, 0, c.width, c.height);
+    }
   }, [forma, series, tabela, larguraMm, areaUtilMm]);
 
   const confirmar = () => {

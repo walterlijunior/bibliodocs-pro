@@ -141,6 +141,7 @@ export {
   LIMITE_BYTES_CSV,
   lerCsv,
   lerTextoSeparado,
+  lerTextoColado,
   opcoesSugeridas,
   type CelulaPlanilha,
   type OpcoesPlanilha,

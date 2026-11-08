@@ -15,13 +15,17 @@
  *   bytes das imagens nas opções.
  *
  * - REMISSIVA_QUEBRADA (pendência, M5-T08): remissiva cujo alvo não existe ou é equação sem número (RF-11).
+ * - TABELA_SEM_CABECALHO (aviso, M5-T10, N-M5-02): espécie `tabela` sem linha de cabeçalho; a tabela tem cabeçalho e o
+ *   2.º traço fica sob ele (RN-251, RN-255; IBGE p. 14–15, seções 4.3 e 4.4).
+ * - EQUACAO_SEM_NUMERO (aviso, M5-T10, N-M5-04): o Manual pede equações numeradas (RN-106; p. 27, seção 3.5); tirar o
+ *   número é permitido, com aviso (D-M5-52).
  * - GRAFICO_SEM_TABELA e GRAFICO_SEM_DADOS (pendência, M5-T09): gráfico gerado cuja tabela saiu do trabalho ou não tem
  *   número; GRAFICO_PARCIAL (aviso): parte da tabela ficou de fora (linha de total, séries a mais nos setores…).
  * - SEM_REMISSIVA (aviso, M5-T08): tabela, quadro ou ilustração que nenhuma remissiva cita (RN-060, PENDENTE-FONTE, por
  *   isso só aviso: D-M5-04). Equação fica de fora: a regra é de ilustração, estendida só à tabela pela D-M5-04.
  */
 import { textoPlano, type Documento, type Id } from '../modelo';
-import { numerarElementos } from '../numeracao';
+import { numerarElementos, numerarSecoes } from '../numeracao';
 import {
   larguraImpressaMm,
   larguraParaResolucaoMinimaMm,
@@ -46,7 +50,9 @@ export type CodigoProblemaVisual =
   | 'SEM_REMISSIVA'
   | 'GRAFICO_SEM_TABELA'
   | 'GRAFICO_SEM_DADOS'
-  | 'GRAFICO_PARCIAL';
+  | 'GRAFICO_PARCIAL'
+  | 'TABELA_SEM_CABECALHO'
+  | 'EQUACAO_SEM_NUMERO';
 
 export interface ProblemaVisual {
   codigo: CodigoProblemaVisual;
@@ -116,7 +122,7 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
       );
     }
     if (!citados.has(bloco.id)) {
-      add('SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], 'não é citado no texto; use Inserir › Remissiva… onde o texto fala dele.');
+      add('SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], 'não é citado no texto; use Inserir › Remissiva… onde o texto fala dele (recomendação provisória, sem fonte no Manual).');
     }
     if (bloco.tipo === 'grafico') {
       const d = dadosDoGrafico(bloco, tabelas.get(bloco.tabela));
@@ -138,13 +144,31 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
         'a maior parte dos dados não é numérica; conteúdo predominantemente textual vai em quadro.',
       );
     }
+    if (bloco.linhasCabecalho === 0) {
+      add('TABELA_SEM_CABECALHO', 'aviso', ['RN-251', 'RN-255'], 'não tem linha de cabeçalho; a tabela tem cabeçalho, e o segundo traço fica abaixo dele.');
+    }
     if (bloco.linhas.length > limiteLinhas) {
       add(
         'TABELA_LONGA',
         'aviso',
         ['RN-297', 'D-M5-03'],
-        `${bloco.linhas.length} linhas; recomenda-se que a tabela caiba em uma página. Divida-a ou confira a quebra no documento exportado.`,
+        // N-M5-03: não sugerir dividir em tabelas numeradas à parte (a tabela continua uma só, IBGE p. 29, seção 8.3).
+        `${bloco.linhas.length} linhas; recomenda-se que a tabela caiba em uma página. Se passar, o cabeçalho se repete, mas o título e o "continua", "continuação" e "conclusão" não: confira no documento exportado.`,
       );
+    }
+  }
+  // N-M5-04: equação sem número (RN-106; D-M5-52), na ordem do documento.
+  for (const { secao } of numerarSecoes(doc.corpo)) {
+    for (const b of secao.blocos) {
+      if (b.tipo !== 'equacao' || b.numerada === true) continue;
+      lista.push({
+        codigo: 'EQUACAO_SEM_NUMERO',
+        nivel: 'aviso',
+        origem: ['RN-106', 'D-M5-52'],
+        mensagem: `Equação sem número${textoPlano(b.conteudo) === '' ? '' : ` (${textoPlano(b.conteudo)})`}: o Manual pede equações numeradas entre parênteses, à direita.`,
+        secao: secao.id,
+        elemento: b.id,
+      });
     }
   }
   const rotulos = rotulosDeRemissiva(doc.corpo);

@@ -337,6 +337,7 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
           ...(literal ? { numbering: false as const } : {}),
           ...(b.lista && b.lista.rotulo !== null ? { numbering: { reference: 'alineas', level: b.lista.nivel, instance: b.lista.lista } } : {}),
           ...(b.novaPagina ? { pageBreakBefore: true } : {}),
+          ...(b.recuoEsquerdaTw !== undefined ? { indent: { left: b.recuoEsquerdaTw } } : {}),
           ...(b.tabulacaoDireitaTw !== undefined ? { tabStops: [{ type: TabStopType.RIGHT, position: b.tabulacaoDireitaTw }] } : {}),
           ...(b.antesTw !== undefined || b.depoisTw !== undefined
             ? { spacing: { ...(b.antesTw !== undefined ? { before: b.antesTw } : {}), ...(b.depoisTw !== undefined ? { after: b.depoisTw } : {}) } }

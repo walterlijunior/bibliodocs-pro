@@ -9,6 +9,7 @@ import {
   converterPlanilha,
   detectarSeparador,
   lerCsv,
+  lerTextoColado,
   lerTextoSeparado,
   opcoesSugeridas,
   rascunhoNovo,
@@ -187,5 +188,40 @@ describe('grade irregular e limites', () => {
     expect(novo.titulo.texto).toBe('Título');
     expect(novo.fonte.texto).toBe('Fonte');
     expect(novo.grade).toHaveLength(4);
+  });
+});
+
+describe('custo da tabela colada (R-M5-02, revisão do M5)', () => {
+  it('200 mil <br> numa célula: linear (menos de 1 s), e as quebras viram uma só', () => {
+    const inicio = performance.now();
+    const p = planilhaDoHtml(lerHtmlMinimo(`<table><tr><td>x${'<br>'.repeat(200_000)}y</td><td>${'<br>'.repeat(1000)}z${'<br>'.repeat(1000)}</td></tr></table>`))!;
+    expect(performance.now() - inicio).toBeLessThan(1000);
+    expect(p.linhas[0]!.map((c) => c.texto)).toEqual(['x\ny', 'z']);
+  });
+});
+
+describe('memória da leitura de CSV e de texto colado (R-M5-03, revisão do M5)', () => {
+  it('4 MB só de quebras: nada é guardado além do limite, e rápido', () => {
+    const inicio = performance.now();
+    const p = lerCsv('\n'.repeat(4 * 1024 * 1024));
+    expect(p.linhas.length).toBeLessThanOrEqual(5001);
+    expect(p.linhasNaoLidas).toBe(0); // linhas vazias não contam no relatório
+    expect(performance.now() - inicio).toBeLessThan(2000);
+  });
+
+  it('6.000 linhas com texto: guarda 5.001 e o relatório conta as 1.000 de fora', () => {
+    const texto = Array.from({ length: 6000 }, (_, i) => `Linha ${i};${i}`).join('\n');
+    const p = lerCsv(texto);
+    expect(p.linhas).toHaveLength(5001);
+    expect(p.linhasNaoLidas).toBe(999);
+    expect(converter(p).relatorio).toContain('Ficaram de fora 1000 linhas, além do tamanho máximo da tabela.');
+  });
+
+  it('texto colado com 100 colunas: guarda 64 campos por linha e conta os de fora', () => {
+    const linha = Array.from({ length: 100 }, (_, i) => `c${i}`).join('\t');
+    const p = lerTextoColado(`${linha}\n${linha}`, '\t');
+    expect(p.linhas.every((l) => l.length === 64)).toBe(true);
+    expect(p.camposNaoLidos).toBe(72);
+    expect(converter(p).relatorio.join(' ')).toContain('Ficaram de fora 74 células além da 63.ª coluna');
   });
 });
