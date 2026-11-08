@@ -1061,6 +1061,59 @@
 </w:p>
 <w:p>
 <w:pPr>
+<w:pStyle w:val="equacao"/>
+<w:tabs>
+<w:tab w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">E = mc</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:vertAlign w:val="superscript"/>
+</w:rPr>
+<w:t xml:space="preserve">2</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+<w:t xml:space="preserve">(1)</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="equacao"/>
+<w:tabs>
+<w:tab w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">(x + y) / 5 = n</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+<w:t xml:space="preserve">(2)</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="equacao"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">x</w:t>
+</w:r>
+<w:r>
+<w:rPr>
+<w:vertAlign w:val="subscript"/>
+</w:rPr>
+<w:t xml:space="preserve">i</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve"> + 1</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
 <w:pageBreakBefore/>
 </w:pPr>
 </w:p>

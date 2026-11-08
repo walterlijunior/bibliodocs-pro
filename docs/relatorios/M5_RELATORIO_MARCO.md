@@ -136,3 +136,31 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - Foto de celular com rotação no EXIF sai sem girar (D-M5-35).
 - A imagem não fica presa à fonte na quebra de página (D-M5-34).
 - Imagem muito grande (dezenas de MB) não foi medida quanto à memória (R-M3-13).
+
+## M5-T07 — Equações
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- Perfil: RN-105 (`equacaoDestacada`) e RN-106 (`numeroDaEquacao`) no alvo novo `equacao`; RN-108 (AMBÍGUA) com o parâmetro `alinhamentoEquacao` = esquerda, provisório (D-M5-05).
+- Motor: estilo `equacao` (corpo, sem recuo de primeira linha, alinhamento do parâmetro), `blocosEquacao` com "	(n)" e a parada de tabulação à direita na largura útil; numeração contínua no documento, só das numeradas; aviso `EQUACAO_VAZIA`. Sai o aviso `ELEMENTO_ADIADO` da equação.
+- Exportador: `tabStops` à direita no parágrafo; sem `<w:t>` vazio em volta da tabulação.
+- Editor: a equação deixa de ser folha atômica e passa a nó editável (texto com marcas e quebra de linha), com o atributo `numerada`; conversão de ida e volta exata.
+- Comandos: `alternarEquacao` (Alt+=, botão "Equação", Inserir › Equação), `alternarNumeroEquacao` (botão "Numerar (n)", só na equação), Enter no fim abre parágrafo, Backspace no começo volta a parágrafo. A tela mostra "(n)" à direita.
+- Corpus: o documento difícil ganhou duas equações numeradas, uma com expoente, e uma sem número, com índice.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-38 a 41.
+
+**Achado ao validar:** no fim do texto do documento difícil, as equações fizeram o LibreOffice levar REFERÊNCIAS para a folha seguinte, e o teste DOC-07 com o LibreOffice falhou. A estimativa do sumário não mudou com as equações nem com três parágrafos comuns no lugar delas. O Word, conferido por automação, deixa REFERÊNCIAS na folha 12, como a estimativa. É diferença de diagramação entre os dois editores, já prevista no R05, agora anotada lá. As equações do corpus foram para a seção 1, antes da quebra de página pedida, onde há folga.
+
+**Testado:**
+- `tests/equacoes.test.ts` (novo, 10 testes): motor, estilo, sem as regras, equação vazia, conversão, comandos.
+- `tests/regressao-docx.test.ts`: equações no XML (tabulação à direita em 9071, "(1)" e "(2)", sobrescrito, estilo à esquerda sem recuo, entrelinha automática). Instantâneos revistos: estilo "Equação" em todos, e as três equações no documento difícil (diffs só com acréscimos; a mudança de lugar deu diff equilibrado).
+- `e2e/equacao.spec.ts` (FUN-17) e axe da equação com o botão "Numerar (n)".
+- `npm run verificar:tudo` (2026-11-08, depois de mudar as equações de lugar no corpus): saída 0. `verificar` 1892/1892 (auditoria: 7 avisos moderados de ferramentas de empacotamento, abaixo do limite "alto"); externos 27/27, com DOC-07 no LibreOffice, o Word e o validador OOXML; build ok; Playwright 32/32.
+
+**Não testado / pendente:**
+- Não houve conferência visual por captura da equação no editor.
+- Fórmulas com frações, raízes ou matrizes não cabem no texto linear (D-M5-06); OMML fica para depois do M5.
+- Equação colada de outro programa entra como parágrafo; o autor a converte com Alt+=.
+

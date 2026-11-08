@@ -258,6 +258,14 @@
     "RN-311"
    ],
    "origem": "decisao-usuario-2026-10-15"
+  },
+  "alinhamentoEquacao": {
+   "valor": "esquerda",
+   "ajustavel": false,
+   "rn": [
+    "RN-108"
+   ],
+   "origem": "provisorio"
   }
  },
  "regras": [
@@ -1316,6 +1324,32 @@
    "propriedades": {
     "alinhamento": "centralizado"
    }
+  },
+  {
+   "id": "RN-105",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 27, seção 3.5",
+   "tipo": "procedimento",
+   "alvo": "equacao",
+   "procedimento": "equacaoDestacada"
+  },
+  {
+   "id": "RN-106",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 27, seção 3.5",
+   "tipo": "procedimento",
+   "alvo": "equacao",
+   "procedimento": "numeroDaEquacao"
+  },
+  {
+   "id": "RN-108",
+   "status": "AMBIGUA",
+   "fonte": "M, p. 27, exemplo",
+   "tipo": "estilo",
+   "alvo": "equacao",
+   "parametros": [
+    "alinhamentoEquacao"
+   ]
   },
   {
    "id": "RN-277",

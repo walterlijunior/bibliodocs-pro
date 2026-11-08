@@ -23,6 +23,7 @@ import {
   Paragraph,
   SectionType,
   Tab,
+  TabStopType,
   Table,
   TableCell,
   TableLayoutType,
@@ -186,7 +187,8 @@ function runsDeTexto(t: Extract<TrechoFormatado, { tipo: 'texto' }>): TextRun[] 
     ...(t.marcas.includes('subscrito') ? { subScript: true } : {}),
   };
   return t.texto.split('\n').map((linha, i) => {
-    const partes = linha.split('\t').flatMap((p, j) => (j === 0 ? [p] : [new Tab(), p]));
+    // Em volta da tabulação, sem `<w:t>` vazio ("\t(1)" da equação, M5-T07).
+    const partes = linha.split('\t').flatMap((p, j) => (j === 0 ? [p] : [new Tab(), p])).filter((p, _j, todas) => todas.length === 1 || p !== '');
     return new TextRun({ ...marcas, ...(i > 0 ? { break: 1 } : {}), children: partes });
   });
 }
@@ -335,6 +337,7 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
           ...(literal ? { numbering: false as const } : {}),
           ...(b.lista && b.lista.rotulo !== null ? { numbering: { reference: 'alineas', level: b.lista.nivel, instance: b.lista.lista } } : {}),
           ...(b.novaPagina ? { pageBreakBefore: true } : {}),
+          ...(b.tabulacaoDireitaTw !== undefined ? { tabStops: [{ type: TabStopType.RIGHT, position: b.tabulacaoDireitaTw }] } : {}),
           ...(b.antesTw !== undefined || b.depoisTw !== undefined
             ? { spacing: { ...(b.antesTw !== undefined ? { before: b.antesTw } : {}), ...(b.depoisTw !== undefined ? { after: b.depoisTw } : {}) } }
             : {}),

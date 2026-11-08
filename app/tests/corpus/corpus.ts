@@ -185,6 +185,12 @@ export function documentoDificil(): Documento {
       { tipo: 'alineas', id: 'a1', itens: [{ conteudo: [t('primeira;')], subalineas: [[t('subalínea;')], [t('outra subalínea;')]] }, { conteudo: [t('segunda;'), nota('n3', 'Nota na alínea.')] }, { conteudo: [t('terceira.')] }] },
       p('p1b', t('Texto entre listas.')),
       { tipo: 'alineas', id: 'a2', itens: Array.from({ length: 28 }, (_, i) => ({ conteudo: [t(`item ${i + 1};`)] })) },
+      // M5-T07: duas equações numeradas, (1) e (2), com expoente, e uma sem número, com índice. Antes da quebra de
+      // página pedida, onde há folga: no fim do texto, o LibreOffice passava REFERÊNCIAS para a folha seguinte e o Word
+      // não (DOC-07, conferido no Word em 2026-11-08).
+      { tipo: 'equacao', id: 'eqc_corpus01', numerada: true, conteudo: [...tx('E = mc'), { tipo: 'texto', texto: '2', marcas: ['sobrescrito'] }] },
+      { tipo: 'equacao', id: 'eqc_corpus02', numerada: true, conteudo: tx('(x + y) / 5 = n') },
+      { tipo: 'equacao', id: 'eqc_corpus03', conteudo: [...tx('x'), { tipo: 'texto', texto: 'i', marcas: ['subscrito'] }, ...tx(' + 1')] },
       { tipo: 'quebraPagina', id: 'q1' },
       p('p1c', t('Depois da quebra pedida pelo autor.\nCom quebra de linha\te tabulação.')),
     ], [q2]),

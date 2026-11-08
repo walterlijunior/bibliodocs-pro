@@ -113,12 +113,31 @@ const nos: Record<string, NodeSpec> = {
   },
 
   /**
-   * Tabela, ilustração e equação (M5-T01): folhas atômicas que guardam o bloco do modelo em `dados` (JSON sem o id), só
-   * para a ida e volta ser exata. A edição chega no M5-T04, T06 e T07. Sem `parseDOM`: colar não cria elemento visual.
+   * Tabela e ilustração (M5-T01): folhas atômicas que guardam o bloco do modelo em `dados` (JSON sem o id), só para a
+   * ida e volta ser exata; a edição é pela janela (M5-T04, T06). Sem `parseDOM`: colar não cria elemento visual.
    */
   tabela: elementoVisual('bd-tabela', 'Tabela'),
   ilustracao: elementoVisual('bd-ilustracao', 'Ilustração'),
-  equacao: elementoVisual('bd-equacao', 'Equação'),
+
+  /**
+   * Equação (M5-T07; D-M5-06): editada no próprio texto, como a citação longa; só texto com marcas e quebra de linha
+   * (`InlineDeTitulo`), sem nota nem citação. O número "(n)" é do documento e não entra aqui: a tela mostra o lugar dele
+   * pelo `data-numerada`. A regra com classe (prioridade 60) serve à releitura do DOM ao digitar.
+   */
+  equacao: {
+    group: 'bloco',
+    content: 'textual*',
+    attrs: { ...atributoId, numerada: { default: true, validate: 'boolean' } },
+    defining: true,
+    parseDOM: [
+      {
+        tag: 'div.bd-equacao',
+        priority: 60,
+        getAttrs: (el) => ({ ...idDoElemento(el), numerada: el.getAttribute('data-numerada') !== 'nao' }),
+      },
+    ],
+    toDOM: (no): DOMOutputSpec => ['div', { ...atributosComId('bd-equacao', no), 'data-numerada': no.attrs['numerada'] === true ? 'sim' : 'nao' }, 0],
+  },
 
   text: { group: 'inline textual' },
 

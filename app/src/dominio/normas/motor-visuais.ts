@@ -11,15 +11,20 @@
  *   depois do último parágrafo (RN-031, RN-308). Sem rodapé, sai um parágrafo vazio com esse espaço: a tabela nunca
  *   fica colada no que vem depois, e o Word sempre tem um parágrafo depois dela.
  * - Largura da tabela: a área útil da página.
+ *
+ * Equação (M5-T07): parágrafo próprio (RN-105) no estilo `equacao`; numerada, o número "(n)" vai depois de uma
+ * tabulação à direita na largura útil (RN-106), e a forma do parágrafo vem do estilo (RN-107, RN-108/D-M5-05).
  */
-import { numerarElementos, type SequenciaElemento } from '../numeracao';
 import { celulasComColuna, larguraImpressaMm, lerInfoImagem, rodapeDoElemento, rotuloElemento, tituloComRotulo } from '../visuais';
-import type { AlinhamentoColuna, BlocoIlustracao, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
+import { numerarElementos, rotuloEquacao, type SequenciaElemento } from '../numeracao';
+import type { AlinhamentoColuna, BlocoEquacao, BlocoIlustracao, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
 import type { BlocoFormatado, CelulaFormatada, PaginaResolvida, TracosMoldura, TrechoFormatado } from './formatado';
 import type { Perfil, RegraNormativa } from './perfil';
 
 export interface ContextoVisuais {
   numeros: ReadonlyMap<Id, { sequencia: SequenciaElemento; numero: number }>;
+  /** Número de cada equação numerada (RN-106). */
+  equacoes: ReadonlyMap<Id, number>;
   rn: {
     numeracao: string | null;
     rotulo: string | null;
@@ -34,6 +39,8 @@ export interface ContextoVisuais {
     espaco: readonly string[];
     /** Regras do parágrafo da imagem (RN-059). */
     imagem: readonly string[];
+    equacaoDestacada: string | null;
+    numeroEquacao: string | null;
   };
   separador: string;
   espacoDepoisTw: number | null;
@@ -50,8 +57,10 @@ export function contextoVisuais(corpo: readonly Secao[], regras: readonly RegraN
   const separador = perfil.parametros['separadorTitulo']?.valor;
   const rnEspaco = regras.filter((r) => r.parametros?.includes('espacoElementoPt')).map((r) => r.id);
   const espaco = perfil.parametros['espacoElementoPt']?.valor;
+  const numeracao = numerarElementos(corpo);
   return {
-    numeros: new Map(numerarElementos(corpo).elementos.map((e) => [e.bloco.id, { sequencia: e.sequencia, numero: e.numero }])),
+    numeros: new Map(numeracao.elementos.map((e) => [e.bloco.id, { sequencia: e.sequencia, numero: e.numero }])),
+    equacoes: new Map(numeracao.equacoes.map((e) => [e.bloco.id, e.numero])),
     rn: {
       numeracao: procedimento(regras, 'numeracaoDeElementos'),
       rotulo: rnRotulo,
@@ -65,6 +74,8 @@ export function contextoVisuais(corpo: readonly Secao[], regras: readonly RegraN
       cabecalho: procedimento(regras, 'repetirCabecalho'),
       espaco: rnEspaco,
       imagem: regras.filter((r) => r.alvo === 'ilustracao.imagem').map((r) => r.id),
+      equacaoDestacada: procedimento(regras, 'equacaoDestacada'),
+      numeroEquacao: procedimento(regras, 'numeroDaEquacao'),
     },
     // Sem a regra, só um espaço entre o rótulo e o título.
     separador: rnRotulo !== null && typeof separador === 'string' ? separador : ' ',
@@ -175,4 +186,21 @@ export function blocosIlustracao(b: BlocoIlustracao, c: ContextoVisuais, bytes: 
   }
   blocos.push(...rodapeFormatado(b, c));
   return { blocos, ausente: !(bytes && info) };
+}
+
+/**
+ * Equação (M5-T07): o texto num parágrafo só dela (RN-105); numerada, "	(n)" com a parada à direita na largura útil
+ * (RN-106). Sem a RN-106 no perfil, sai sem número; sem a RN-105, como parágrafo do corpo.
+ */
+export function blocosEquacao(b: BlocoEquacao, c: ContextoVisuais): BlocoFormatado[] {
+  const n = c.rn.numeroEquacao !== null ? c.equacoes.get(b.id) : undefined;
+  return [
+    {
+      tipo: 'paragrafo',
+      estilo: c.rn.equacaoDestacada !== null ? 'equacao' : 'corpo',
+      trechos: [...deInline(b.conteudo), ...(n !== undefined ? [texto(`	${rotuloEquacao(n)}`)] : [])],
+      ...(n !== undefined ? { tabulacaoDireitaTw: c.larguraTw } : {}),
+      origem: so(c.rn.equacaoDestacada, n !== undefined ? c.rn.numeroEquacao : null),
+    },
+  ];
 }

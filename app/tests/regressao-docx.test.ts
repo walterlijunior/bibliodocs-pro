@@ -196,6 +196,22 @@ describe('o documento difícil exercita o que deve', () => {
     expect(tbls[3]!.match(/<w:tblHeader\/>/g), 'RN-292').toHaveLength(1);
   });
 
+  it('tem equações destacadas, com "(n)" numa tabulação à direita na largura útil (M5-T07; RN-105, RN-106, RN-108)', () => {
+    const { partes } = gerados.get('documento-dificil')!;
+    const eqs = partes['word/document.xml']!.match(/<w:p>(?:(?!<\/w:p>).)*?w:val="equacao".*?<\/w:p>/gs)!;
+    expect(eqs, 'RN-105').toHaveLength(3);
+    const texto = (p: string) => [...p.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>|<w:(tab)\/>/g)].map((m) => m[1] ?? '	').join('');
+    expect(eqs.map(texto)).toEqual(['E = mc2	(1)', '(x + y) / 5 = n	(2)', 'xi + 1']);
+    // A4 com margens 3 e 2 cm: 11906 - 1701 - 1134 = 9071 twips.
+    for (const p of eqs.slice(0, 2)) expect(p, 'RN-106').toMatch(/<w:tabs><w:tab w:val="right" w:pos="9071"\/><\/w:tabs>/);
+    expect(eqs[2], 'sem número, sem tabulação').not.toContain('<w:tabs>');
+    expect(eqs[0], 'expoente').toMatch(/<w:vertAlign w:val="superscript"\/>/);
+    const e = estilosDe(partes).get('equacao')!;
+    expect(at(pPr(e)['w:jc'], 'val'), 'RN-108, D-M5-05').toBe('left');
+    expect(pPr(e)['w:ind'], 'sem recuo de primeira linha').toBeUndefined();
+    expect(at(pPr(e)['w:spacing'], 'lineRule'), 'RN-107: auto, a linha cresce com o expoente').toBe('auto');
+  });
+
   it('tem a lista REFERÊNCIAS ordenada e as chamadas no texto (M4-T05)', () => {
     const { formatado } = gerados.get('documento-dificil')!;
     const texto = (estilo: string) =>

@@ -8,7 +8,7 @@ import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferen
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
 import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
-import { blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
+import { blocosEquacao, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
@@ -164,6 +164,19 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
     alvos: ['documento', 'elemento', 'ilustracao.imagem'],
     semHerdar: ['linha', 'recuoPrimeiraLinhaTw', 'antesTw', 'depoisTw'],
   },
+  // M5-T07: equação em parágrafo próprio (RN-105), sem o recuo de primeira linha do texto e alinhada pelo parâmetro da
+  // RN-108 (D-M5-05: margem esquerda). Mantém a entrelinha do corpo: com `lineRule=auto` o Word já aumenta a linha que
+  // tem expoente ou índice, o que a RN-107 permite.
+  {
+    id: 'equacao',
+    nome: 'Equação',
+    alvos: ['documento', 'corpo.paragrafo', 'equacao'],
+    semHerdar: ['recuoPrimeiraLinhaTw'],
+    parametros: (v) => {
+      const a = v('alinhamentoEquacao');
+      return a === 'esquerda' || a === 'centralizado' ? { alinhamento: a } : {};
+    },
+  },
   {
     id: 'celulaTabela',
     nome: 'Célula de tabela e quadro',
@@ -235,9 +248,6 @@ function resolverEstilo(d: DefinicaoEstilo, regras: readonly RegraNormativa[], p
 
 const temProcedimento = (regras: readonly RegraNormativa[], nome: string): string | null =>
   regras.find((r) => r.procedimento === nome)?.id ?? null;
-
-/** Nome do elemento visual no aviso de elemento ainda não exportado (M5-T01). */
-const nomeAdiado = (_b: Extract<Bloco, { tipo: 'equacao' }>): string => 'A equação';
 
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
@@ -393,10 +403,9 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         if (r.ausente) avisos.push({ codigo: 'IMAGEM_AUSENTE', id: b.id, mensagem: 'A imagem de uma ilustração não pôde ser lida e ficou de fora do arquivo exportado.' });
         return r.blocos;
       }
-      // Formato no M5-T01; motor e DOCX no M5-T07. Até lá, o elemento fica de fora com aviso.
       case 'equacao':
-        avisos.push({ codigo: 'ELEMENTO_ADIADO', id: b.id, mensagem: `${nomeAdiado(b)} ainda não sai no arquivo exportado: chega numa tarefa seguinte do M5.` });
-        return [];
+        if (textoVazio(b.conteudo)) avisos.push({ codigo: 'EQUACAO_VAZIA', id: b.id, mensagem: 'Equação sem texto.' });
+        return blocosEquacao(b, visuais);
       case 'alineas': {
         const lista = proximaLista++;
         return b.itens.flatMap((item, posicao): BlocoFormatado[] => {

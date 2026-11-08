@@ -81,6 +81,8 @@ export type BlocoFormatado =
       antesTw?: number;
       /** Espaço depois só deste parágrafo (uma linha depois do rodapé da tabela, RN-031, RN-308). */
       depoisTw?: number;
+      /** Parada de tabulação à direita, a partir da margem esquerda (número da equação, RN-106; M5-T07). */
+      tabulacaoDireitaTw?: number;
       origem: readonly string[];
     }
   /** Caixa de tamanho fixo (ficha catalográfica, RN-136). */
@@ -157,6 +159,7 @@ export interface AvisoFormatacao {
     | 'FORMA_SEM_FONTE'
     | 'ELEMENTO_ADIADO'
     | 'IMAGEM_AUSENTE'
+    | 'EQUACAO_VAZIA'
     | 'LETRA_SEM_FONTE'
     | 'ROTULO_PROVISORIO'
     | 'CHAMADA_COM_AVISO'

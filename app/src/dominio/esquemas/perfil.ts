@@ -92,6 +92,7 @@ const regra = z
       'tabela.cabecalho',
       'quadro.moldura',
       'ilustracao.imagem',
+      'equacao',
     ]),
     propriedades: propriedades.optional(),
     procedimento: z.string().regex(/^[a-z][A-Za-z]{0,63}$/).optional(),

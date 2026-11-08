@@ -61,7 +61,9 @@ export type AlvoRegra =
   | 'tabela.cabecalho'
   | 'quadro.moldura'
   /** Parágrafo da imagem da ilustração (M5-T06). */
-  | 'ilustracao.imagem';
+  | 'ilustracao.imagem'
+  /** Parágrafo da equação (M5-T07). */
+  | 'equacao';
 
 export interface PropriedadesFormatacao {
   larguraMm?: number;

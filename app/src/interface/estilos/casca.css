@@ -341,6 +341,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-subalinea { padding-left: var(--esp-4); }
 .bd-citacao-longa { margin: 0 0 var(--esp-2) var(--esp-5); padding-left: var(--esp-3); border-left: 3px solid var(--cor-borda); }
 .bd-quebra-pagina { border: 0; border-top: 1px dashed var(--cor-borda-controle); margin: var(--esp-3) 0; }
+/* Equação (M5-T07): parágrafo destacado na margem esquerda (D-M5-05); o lugar do número "(n)" fica à direita. O número
+   é do documento (contado em todas as seções) e sai no DOCX. */
+.bd-equacao { position: relative; margin: 0 0 var(--esp-2); padding: 2px 4em 2px var(--esp-2); border-left: 3px double var(--cor-borda); line-height: 1.8; }
+.bd-equacao[data-numerada="sim"]::after { content: "(n)"; position: absolute; right: var(--esp-2); top: 2px; color: var(--cor-texto-sec); pointer-events: none; }
 
 /* Nota de rodapé: a chamada mostra "nota" (o número é do documento e ainda é PENDENTE-FONTE, RN-102). */
 .bd-nota { position: relative; cursor: pointer; }

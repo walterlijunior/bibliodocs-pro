@@ -44,7 +44,7 @@ import {
   type ChamadaNoEditor,
 } from './citacoes';
 import { colarSemFormatacaoNaProxima } from './colagem';
-import { alternarAlineas, alternarCitacaoLonga, estaEmAlineas, estaEmCitacao } from './comandos-blocos';
+import { alternarAlineas, alternarCitacaoLonga, alternarEquacao, alternarNumeroEquacao, equacaoNumerada, estaEmAlineas, estaEmCitacao, estaEmEquacao } from './comandos-blocos';
 import { alternarMarca, desfazer, inserirNota, marcaAtiva, META_ABRIR_NOTA, podeInserirNota, refazer } from './comandos';
 import { docParaSecao, type ConteudoSecao } from './conversao';
 import { criarEstadoSecao } from './estado';
@@ -91,6 +91,8 @@ export interface ControleEditor {
   pedirFigura(): boolean;
   inserirFigura(dados: DadosFigura): boolean;
   alterarFigura(id: string, dados: DadosFigura): boolean;
+  /** Liga ou desliga a equação nos parágrafos da seleção (M5-T07). */
+  alternarEquacao(): boolean;
 }
 
 /** Estados dos editores das seções visitadas no trabalho aberto. */
@@ -184,12 +186,15 @@ interface Barra {
   citacao: boolean;
   podeAlineas: boolean;
   podeCitacao: boolean;
+  equacao: boolean;
+  podeEquacao: boolean;
+  numerada: boolean;
   podeCitar: boolean;
   desfazer: boolean;
   refazer: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, podeCitar: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, desfazer: false, refazer: false };
 
 function barraDe(estado: EditorState): Barra {
   return {
@@ -202,6 +207,9 @@ function barraDe(estado: EditorState): Barra {
     citacao: estaEmCitacao(estado),
     podeAlineas: alternarAlineas(estado),
     podeCitacao: alternarCitacaoLonga(estado),
+    equacao: estaEmEquacao(estado),
+    podeEquacao: alternarEquacao(estado),
+    numerada: equacaoNumerada(estado),
     podeCitar: chamadaSelecionada(estado) !== null || podeInserirCitacao(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
@@ -407,6 +415,11 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirFigura,
+      alternarEquacao: () => {
+        const ok = executar(alternarEquacao);
+        if (ok) view.focus();
+        return ok;
+      },
       inserirFigura: (dados) => executar(inserirFigura(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarFigura: (id, dados) => executar(alterarFigura(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
     };
@@ -510,6 +523,30 @@ export function EditorSecao(p: PropsEditorSecao) {
           >
             Citação longa
           </button>
+          <button
+            type="button"
+            className="btn-formato"
+            disabled={!barra.podeEquacao}
+            aria-pressed={barra.equacao}
+            aria-keyshortcuts="Alt+="
+            title="Equação (Alt+=): o parágrafo vira equação destacada, numerada à direita"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => aplicarBloco(alternarEquacao)}
+          >
+            Equação
+          </button>
+          {barra.equacao && (
+            <button
+              type="button"
+              className="btn-formato"
+              aria-pressed={barra.numerada}
+              title="Número da equação: (1), (2)… à direita, contado no documento todo"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarNumeroEquacao)}
+            >
+              Numerar (n)
+            </button>
+          )}
           <button
             type="button"
             className="btn-formato"

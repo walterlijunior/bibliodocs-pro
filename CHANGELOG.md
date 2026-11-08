@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T07: equações.
+  - Alt+=, o botão "Equação" ou Inserir › Equação fazem do parágrafo uma equação, editada no próprio texto com itálico, negrito, sobrescrito e subscrito; o mesmo comando a desfaz.
+  - A equação nova já vem numerada; "Numerar (n)" tira e põe o número. Enter no fim volta ao texto; Backspace no começo a devolve a parágrafo.
+  - No DOCX, a equação sai em parágrafo próprio no estilo "Equação", na margem esquerda e sem recuo, com "(1)", "(2)"… alinhados à direita por tabulação. A contagem é do documento todo e só das numeradas.
+  - Equação vazia gera aviso na exportação.
 - Etapa 5, M5-T06: figuras.
   - Botão "Figura" e menu Inserir › Figura…: imagem PNG ou JPEG, espécie (Figura, Fotografia, Gráfico, Mapa…), título, largura, fonte e nota.
   - A janela mostra o tamanho em pixels, a largura impressa e a resolução; abaixo de 150 ppi, avisa e sugere a largura que resolve. O aviso também sai na exportação.

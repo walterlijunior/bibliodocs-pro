@@ -6,6 +6,10 @@
  *   Shift+Tab volta a alínea; Backspace no começo da linha desfaz um passo. Fora da lista o Tab sai do editor.
  *
  * O texto, as marcas e as notas passam intactos. Rótulos (`a)`) nunca entram no documento; ids novos vêm do plugin.
+ *
+ * Equação (M5-T07; RN-105, RN-106, D-M5-14): Alt+= liga e desliga a equação nos parágrafos da seleção (só os de texto:
+ * equação não tem nota nem citação); a nova já vem numerada, e "Numerar" tira e põe o número. Enter no fim da equação
+ * abre um parágrafo depois dela; Backspace no começo a devolve a parágrafo.
  */
 import type { Node as NoPm } from 'prosemirror-model';
 import { TextSelection, type Command, type EditorState, type Transaction } from 'prosemirror-state';
@@ -15,6 +19,7 @@ const { nodes: tipos } = esquemaEditor;
 const T = {
   paragrafo: tipos['paragrafo']!,
   citacao: tipos['citacaoLonga']!,
+  equacao: tipos['equacao']!,
   lista: tipos['alineas']!,
   alinea: tipos['alinea']!,
   linha: tipos['linhaAlinea']!,
@@ -206,5 +211,73 @@ export const voltarNoComeco: Command = (estado, despachar) => {
   if (!selection.empty || selection.$from.parentOffset !== 0) return false;
   const l = naLista(estado);
   if (l !== null) return l.filho > 0 ? promoverSubalinea(estado, despachar) : sairDaLista(estado, despachar);
-  return selection.$from.parent.type === T.citacao ? alternarCitacaoLonga(estado, despachar) : false;
+  const tipo = selection.$from.parent.type;
+  if (tipo === T.citacao) return alternarCitacaoLonga(estado, despachar);
+  if (tipo === T.equacao) return alternarEquacao(estado, despachar);
+  return false;
+};
+
+/** Parágrafo que pode virar equação: só texto e quebras de linha (sem nota nem chamada de citação). */
+const soTextual = (no: NoPm): boolean => {
+  let ok = true;
+  no.forEach((filho) => {
+    if (!filho.isText && filho.type.name !== 'quebraLinha') ok = false;
+  });
+  return ok;
+};
+
+export function estaEmEquacao(estado: EditorState): boolean {
+  const blocos = blocosDaSelecao(estado);
+  return blocos !== null && blocos.length > 0 && blocos.every((b) => b.no.type === T.equacao);
+}
+
+/** A seleção está só em equações e todas são numeradas. */
+export function equacaoNumerada(estado: EditorState): boolean {
+  return estaEmEquacao(estado) && blocosDaSelecao(estado)!.every((b) => b.no.attrs['numerada'] === true);
+}
+
+/**
+ * Parágrafos ↔ equação, mantendo o id do bloco. Todas equações: voltam a parágrafo. Senão, os parágrafos só de texto
+ * viram equação numerada (D-M5-14); os demais blocos ficam como estão.
+ */
+export const alternarEquacao: Command = (estado, despachar) => {
+  const blocos = blocosDaSelecao(estado);
+  if (blocos === null || blocos.length === 0) return false;
+  const voltar = blocos.every((b) => b.no.type === T.equacao);
+  const alvos = voltar ? blocos : blocos.filter((b) => b.no.type === T.paragrafo && soTextual(b.no));
+  if (alvos.length === 0) return false;
+  if (despachar) {
+    const tr = estado.tr;
+    for (const b of alvos) {
+      const id = b.no.attrs['id'] as string | null;
+      tr.setNodeMarkup(b.pos, voltar ? T.paragrafo : T.equacao, voltar ? { id } : { id, numerada: true });
+    }
+    despachar(tr.scrollIntoView());
+  }
+  return true;
+};
+
+/** Põe ou tira o número das equações da seleção (todas numeradas: tira; senão, põe em todas). */
+export const alternarNumeroEquacao: Command = (estado, despachar) => {
+  if (!estaEmEquacao(estado)) return false;
+  if (despachar) {
+    const numerar = !equacaoNumerada(estado);
+    const tr = estado.tr;
+    for (const b of blocosDaSelecao(estado)!) tr.setNodeAttribute(b.pos, 'numerada', numerar);
+    despachar(tr);
+  }
+  return true;
+};
+
+/** Enter no fim da equação: parágrafo novo depois dela (no meio, o Enter padrão divide a equação em duas). */
+export const enterNaEquacao: Command = (estado, despachar) => {
+  const { selection } = estado;
+  const { $from } = selection;
+  if (!selection.empty || $from.depth !== 1 || $from.parent.type !== T.equacao || $from.parentOffset !== $from.parent.content.size) return false;
+  if (despachar) {
+    const pos = $from.after(1);
+    const tr = estado.tr.insert(pos, T.paragrafo.create({ id: null }));
+    despachar(cursor(tr, pos + 1));
+  }
+  return true;
 };
