@@ -11,8 +11,8 @@
  * - CHAMADA_AMBIGUA: autores diferentes, mesmo sobrenome e ano: a chamada não distingue as obras e o sufixo a, b não se
  *   aplica (D-M4-03, que só o dá à mesma autoria).
  * - GRAFIA_DIVERGENTE: a mesma pessoa parece escrita de formas diferentes em obras diferentes (D-M4-10, provisório):
- *   mesmo sobrenome sem distinguir acentos e maiúsculas, prenomes com as mesmas iniciais, grafias diferentes. A lista
- *   ordenaria as formas separadas.
+ *   mesmo sobrenome sem distinguir acentos e maiúsculas, prenomes com as mesmas iniciais, e o sobrenome diferente só no
+ *   acento ou os prenomes por extenso diferentes em até 2 letras. A lista ordenaria as formas separadas.
  * - PRENOMES_NAO_UNIFORMES: na lista, prenomes por extenso e abreviados misturados (RN-182, C-B10: fica como digitado,
  *   com aviso).
  * - CHAMADA_COM_AVISO e REFERENCIA_INCOMPLETA: os avisos dos formatadores (obra sem ano, elemento que falta…).
@@ -152,7 +152,7 @@ export function verificarBibliografia(doc: Documento, opcoes: OpcoesVerificacao 
   }
   const elemento = (doc.posTextuais ?? []).find((e) => e.tipo === 'referencias');
   const todasNaLista = elemento?.tipo === 'referencias' && elemento.incluirNaoCitadas === true;
-  const listadas = ordenarReferencias(todasNaLista ? obras : obras.filter((o) => citadas.has(o.id)));
+  const listadas = ordenarReferencias(todasNaLista ? obras : obras.filter((o) => citadas.has(o.id)), { listarTodosAutores: opcoes.listarTodosAutores === true });
   const ctx = contextoDeChamadas(listadas);
 
   if (citacoes.length > 0 && !elemento) {
@@ -188,7 +188,7 @@ export function verificarBibliografia(doc: Documento, opcoes: OpcoesVerificacao 
     }
   }
 
-  for (const o of ordenarReferencias(obras)) {
+  for (const o of ordenarReferencias(obras, { listarTodosAutores: opcoes.listarTodosAutores === true })) {
     if (!citadas.has(o.id)) {
       problemas.push({
         codigo: 'OBRA_NAO_CITADA',
@@ -243,8 +243,11 @@ function grafiasDivergentes(obras: readonly Obra[]): ProblemaBibliografia[] {
     // Diferença só de maiúsculas no sobrenome não aparece (a referência põe em maiúsculas); abreviado × extenso é o caso
     // da RN-182 (prenomes não uniformes), não de grafia. Sobra: acento no sobrenome, ou prenomes por extenso diferentes.
     const sobrenomes = new Set(grupo.map((p) => p.autor.sobrenome.trim().toLocaleUpperCase(LOCALE)));
-    const extensos = new Set(grupo.filter((p) => formaDosPrenomes(p.autor.prenomes) === 'extenso').map((p) => p.autor.prenomes!.trim()));
-    if (formas.length < 2 || (sobrenomes.size < 2 && extensos.size < 2)) continue;
+    const extensos = [...new Set(grupo.filter((p) => formaDosPrenomes(p.autor.prenomes) === 'extenso').map((p) => p.autor.prenomes!.trim()))];
+    // Prenomes diferentes só contam quando quase iguais ("Luiz" × "Luis", "Antônio" × "Antonio"): "Ana" × "Antônio" são
+    // pessoas diferentes com a mesma inicial (D-M4-10, estreitada pelo usuário na revisão do M4, N-M4-11).
+    const quaseIguais = extensos.some((a, k) => extensos.slice(k + 1).some((b) => distancia(a.toLocaleLowerCase(LOCALE), b.toLocaleLowerCase(LOCALE)) <= 2));
+    if (formas.length < 2 || (sobrenomes.size < 2 && !quaseIguais)) continue;
     const obra = grupo.find((p) => grafia(p.autor) !== formas[0])!.obra;
     saida.push({
       codigo: 'GRAFIA_DIVERGENTE',
@@ -255,6 +258,17 @@ function grafiasDivergentes(obras: readonly Obra[]): ProblemaBibliografia[] {
     });
   }
   return saida;
+}
+
+/** Distância de edição (Levenshtein) entre dois textos curtos. */
+function distancia(a: string, b: string): number {
+  let anterior = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const atual = [i];
+    for (let j = 1; j <= b.length; j++) atual[j] = Math.min(anterior[j]! + 1, atual[j - 1]! + 1, anterior[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
+    anterior = atual;
+  }
+  return anterior[b.length]!;
 }
 
 /** RN-182, C-B10: na lista, prenomes por extenso e abreviados misturados. */

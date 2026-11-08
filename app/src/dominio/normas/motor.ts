@@ -285,7 +285,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   }
   const elementoReferencias = (doc.posTextuais ?? []).find((e) => e.tipo === 'referencias');
   const todasObras = doc.obras ?? [];
-  const listadas = ordenarReferencias(elementoReferencias?.tipo === 'referencias' && elementoReferencias.incluirNaoCitadas ? todasObras : todasObras.filter((o) => citadas.has(o.id)));
+  const listadas = ordenarReferencias(elementoReferencias?.tipo === 'referencias' && elementoReferencias.incluirNaoCitadas ? todasObras : todasObras.filter((o) => citadas.has(o.id)), { listarTodosAutores });
   const contextoCitacoes = contextoDeChamadas(listadas);
   if (citadas.size > 0 && !elementoReferencias) {
     avisos.push({ codigo: 'REFERENCIAS_AUSENTES', id: doc.corpo[0]?.id ?? '', mensagem: 'Há citações no texto, mas o trabalho não tem o elemento REFERÊNCIAS (RN-078).' });

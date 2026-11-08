@@ -5,6 +5,13 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Alterado
+- Etapa 5, revisão do M4 (decisões do usuário, 2026-11-07):
+  - "[S. l.]" e "[s. n.]" com a abreviatura em itálico, como nos exemplos do Manual.
+  - Título iniciado por artigo ou monossílabo leva a palavra seguinte em maiúsculas na lista: "OS PERIGOS do uso de tóxicos".
+  - Obras com "et al." do mesmo primeiro autor e ano se ordenam pelo título.
+  - O aviso de grafia divergente do mesmo autor não dispara mais para prenomes bem diferentes com a mesma inicial.
+
 ### Corrigido
 - Etapa 5, M4-T10 (revisão do M4):
   - Importação: arquivo BibTeX com abreviações (`@string`) que crescem não trava mais a tela. Arquivos com muitas quebras de linha ou espaços são lidos rápido. A natureza do trabalho acadêmico vem do arquivo, sem texto inventado. O DOI fica como veio no arquivo. A função dos editores vem com aviso para conferir. "Silva Neto" sem prenome fica todo como sobrenome.

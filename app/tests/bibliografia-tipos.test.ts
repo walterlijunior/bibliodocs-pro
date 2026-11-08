@@ -181,7 +181,7 @@ describe('o que falta vira aviso, não texto inventado', () => {
 
   it('trabalho em evento sem ano de publicação usa o ano do evento', () => {
     const ref = formatarReferencia(obra({ tipo: 'trabalhoEvento', titulo: t('Trabalho'), evento: { nome: 'Congresso de Exemplo', numero: 1, ano: 2020, local: 'Palmas' } }));
-    expect(marcado(ref)).toBe('TRABALHO. _In_: CONGRESSO DE EXEMPLO, 1., 2020, Palmas. **Anais** [...]. [S. l.]: [s. n.], 2020.');
+    expect(marcado(ref)).toBe('TRABALHO. _In_: CONGRESSO DE EXEMPLO, 1., 2020, Palmas. **Anais** [...]. [_S. l._]: [_s. n._], 2020.');
     expect(ref.avisos).toEqual([]);
   });
 

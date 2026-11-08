@@ -19,7 +19,7 @@ export {
   type OpcoesChamada,
 } from './chamadas';
 export { anoDaReferencia, dataAbreviada, MESES_ABREVIADOS } from './datas';
-export { compararReferencias, ordenarReferencias, sufixosDeAno } from './ordenacao';
+export { compararReferencias, ordenarReferencias, sufixosDeAno, type OpcoesOrdenacao } from './ordenacao';
 export { formatarReferencia, tiposComFormatador, type OpcoesReferencia } from './referencia';
 export {
   ORIGENS_PROVISORIAS,

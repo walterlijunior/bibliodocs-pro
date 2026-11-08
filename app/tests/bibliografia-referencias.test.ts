@@ -138,10 +138,12 @@ describe('elementos comuns', () => {
     expect(anoDaReferencia({})).toBeNull();
   });
 
-  it('D-M4-05: sem local "[S. l.]", sem editora "[s. n.]", 1.ª edição omitida', () => {
+  it('D-M4-05: sem local "[S. l.]", sem editora "[s. n.]", 1.ª edição omitida; D-M4-12: "S. l." e "s. n." em itálico', () => {
     const ref = formatarReferencia(livro({ autores: [p('Lima', 'Ana')], titulo: t('Obra'), edicao: 1, ano: 2001 }));
     expect(textoDaReferencia(ref)).toBe('LIMA, Ana. Obra. [S. l.]: [s. n.], 2001.');
-    expect(ref.trechos.find((x) => x.texto.includes('[S. l.]'))?.origem).toContain('D-M4-05');
+    // Colchetes em redondo, abreviatura em itálico, como nos exemplos das p. 54, 55, 59 e 62.
+    expect(ref.trechos.filter((x) => x.marcas.includes('italico')).map((x) => x.texto)).toEqual(['S. l.', 's. n.']);
+    expect(ref.trechos.find((x) => x.texto === 'S. l.')?.origem).toEqual(['RN-193', 'D-M4-05', 'D-M4-12']);
   });
 
   it('título com marcas do usuário mantém o itálico e ganha o negrito; subtítulo sem negrito (RN-178)', () => {
@@ -151,6 +153,15 @@ describe('elementos comuns', () => {
     const especie = ref.trechos.find((x) => x.texto === 'Caryocar brasiliense');
     expect(especie?.marcas).toEqual(['italico', 'negrito']);
     expect(ref.trechos.find((x) => x.texto.endsWith('um caso'))?.marcas).toEqual([]);
+  });
+
+  it('entrada pelo título com artigo ou monossílabo: duas palavras sobem, como na p. 63 (D-M4-13, PF-09 f)', () => {
+    const r = (titulo: string) => textoDaReferencia(formatarReferencia(livro({ titulo: t(titulo), local: 'L', editora: 'E', ano: 1983 })));
+    expect(r('Os perigos do uso de tóxicos')).toBe('OS PERIGOS do uso de tóxicos. L: E, 1983.');
+    expect(r('A  escola nova')).toBe('A  ESCOLA nova. L: E, 1983.');
+    expect(r('Sol e chuva')).toBe('SOL E chuva. L: E, 1983.');
+    expect(r('Manual de editoração')).toBe('MANUAL de editoração. L: E, 1983.');
+    expect(r('Os')).toBe('OS. L: E, 1983.');
   });
 
   it('entrada pelo título: só a primeira palavra sobe, mesmo partida em dois trechos (RN-179, PF-09 f)', () => {
@@ -244,5 +255,23 @@ describe('ordenação (RN-176; D-M4-05) e sufixos (D-M4-03)', () => {
     const antes = lista.map((o) => o.id);
     ordenarReferencias(lista);
     expect(lista.map((o) => o.id)).toEqual(antes);
+  });
+});
+
+describe('ordem pela autoria visível (D-M4-14)', () => {
+  const quatro = (segundo: string, titulo: string) => livro({ autores: [p('Silva', 'A.'), p(segundo, 'B.'), p('Dias', 'C.'), p('Melo', 'D.')], titulo: t(titulo), ano: 2020 });
+  const zulu = quatro('Alves', 'Zulu');
+  const alfa = quatro('Costa', 'Alfa');
+
+  it('com "et al.", o mesmo primeiro autor e ano se desempata pelo título, não pelos coautores ocultos', () => {
+    expect(ordenarReferencias([zulu, alfa]).map((o) => o.titulo[0]!.texto)).toEqual(['Alfa', 'Zulu']);
+  });
+
+  it('listando todos os autores (C-B12), contam todos', () => {
+    expect(ordenarReferencias([alfa, zulu], { listarTodosAutores: true }).map((o) => o.titulo[0]!.texto)).toEqual(['Zulu', 'Alfa']);
+  });
+
+  it('os sufixos a, b continuam pela autoria completa: autorias diferentes não recebem sufixo', () => {
+    expect(sufixosDeAno([zulu, alfa]).size).toBe(0);
   });
 });

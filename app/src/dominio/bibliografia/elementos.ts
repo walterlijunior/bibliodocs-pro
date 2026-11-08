@@ -4,6 +4,7 @@
  */
 import type { Autor, FuncaoResponsavel, InlineDeTitulo, Obra } from '../modelo';
 import { escreverAutoria, maiusculas, type OpcoesAutoria } from './autores';
+import { palavrasDaEntrada } from './chamadas';
 import { anoDaReferencia, dataAbreviada } from './datas';
 import type { AvisoReferencia, Montador } from './trechos';
 
@@ -59,27 +60,30 @@ function escreverSubtitulo(m: Montador, obra: { subtitulo?: readonly InlineDeTit
 
 /**
  * Entrada pelo título (RN-179): a primeira palavra em maiúsculas, sem negrito ("MANUAL de editoração de texto").
- * Título iniciado por artigo ("OS PERIGOS do uso") não tem regra escrita (PF-09 f): só a primeira palavra sobe.
+ * Título iniciado por artigo ou monossílabo leva a palavra seguinte junto ("OS PERIGOS do uso de tóxicos", p. 63), como
+ * na chamada (RN-091) — PF-09 (f), D-M4-13.
  */
 export function escreverTituloDeEntrada(m: Montador, obra: { titulo: readonly InlineDeTitulo[]; subtitulo?: readonly InlineDeTitulo[] }): void {
-  let dentroDaPrimeira = true;
-  let comecou = false;
+  const leva = palavrasDaEntrada(obra.titulo.map((i) => i.texto).join(''));
+  const origem = leva === 2 ? ['RN-179', 'D-M4-13'] : ['RN-179'];
+  let palavra = 0; // palavras já terminadas
+  let dentro = false;
   for (const i of obra.titulo) {
     let texto = '';
     for (const ch of i.texto) {
-      if (!dentroDaPrimeira) texto += ch;
-      else if (/\s/u.test(ch)) {
-        // Espaço antes da primeira palavra não entra; o primeiro depois dela encerra a palavra.
-        if (comecou) {
-          dentroDaPrimeira = false;
-          texto += ch;
+      if (/\s/u.test(ch)) {
+        if (dentro) {
+          dentro = false;
+          palavra++;
         }
+        // Espaço antes da primeira palavra não entra.
+        if (palavra > 0) texto += ch;
       } else {
-        comecou = true;
-        texto += maiusculas(ch);
+        dentro = true;
+        texto += palavra < leva ? maiusculas(ch) : ch;
       }
     }
-    m.texto(texto, ['RN-179'], i.marcas ?? []);
+    m.texto(texto, origem, i.marcas ?? []);
   }
   escreverSubtitulo(m, obra);
 }
@@ -116,15 +120,23 @@ export function anoOuAviso(obra: Obra, { avisos, opcoes }: Contexto, rn: string)
 
 /**
  * Imprenta "Local: Editora, ano." (RN-194). Sem local, "[S. l.]"; sem editora, "[s. n.]" (RN-193, D-M4-05,
- * provisório). Ano incerto entre colchetes (D-M4-04).
+ * provisório), com "S. l." e "s. n." em itálico e os colchetes em redondo, como em todos os exemplos do Manual (p. 54,
+ * 55, 59, 62; D-M4-12). Ano incerto entre colchetes (D-M4-04).
  */
 export function escreverImprenta(obra: Obra, ctx: Contexto, rn = 'RN-194'): void {
   const { m } = ctx;
   const local = obra.local?.trim();
   const editora = obra.editora?.trim();
-  m.texto(local || '[S. l.]', local ? [rn] : ['RN-193', 'D-M4-05']);
+  const semDado = (abreviatura: string) => {
+    m.texto('[', ['RN-193', 'D-M4-05']);
+    m.texto(abreviatura, ['RN-193', 'D-M4-05', 'D-M4-12'], ['italico']);
+    m.texto(']', ['RN-193', 'D-M4-05']);
+  };
+  if (local) m.texto(local, [rn]);
+  else semDado('S. l.');
   m.texto(': ', [rn]);
-  m.texto(editora || '[s. n.]', editora ? [rn] : ['RN-193', 'D-M4-05']);
+  if (editora) m.texto(editora, [rn]);
+  else semDado('s. n.');
   const ano = anoOuAviso(obra, ctx, rn);
   if (ano) {
     m.texto(', ', [rn]);

@@ -168,3 +168,17 @@ describe('revisão de segurança do M4 (R-M4-07)', () => {
     expect(performance.now() - t0).toBeLessThan(800);
   });
 });
+
+describe('grafia divergente estreitada (D-M4-10, N-M4-11)', () => {
+  const citarTodas2 = (obras: Obra[]) => documento(obras.map((o, i) => cita(`cta_estreita${String(i).padStart(4, '0')}`, o.id)), obras);
+  it('mesma inicial com prenomes bem diferentes não é a mesma pessoa', () => {
+    const a = livro('obr_estreita00001', [pessoa('Silva', 'Ana')], 2001);
+    const b = livro('obr_estreita00002', [pessoa('Silva', 'Antônio')], 2002);
+    expect(codigos(citarTodas2([a, b]))).toEqual([]);
+  });
+  it('acento no prenome é grafia divergente', () => {
+    const a = livro('obr_estreita00001', [pessoa('Silva', 'Antônio')], 2001);
+    const b = livro('obr_estreita00002', [pessoa('Silva', 'Antonio')], 2002);
+    expect(codigos(citarTodas2([a, b]))).toEqual(['GRAFIA_DIVERGENTE']);
+  });
+});

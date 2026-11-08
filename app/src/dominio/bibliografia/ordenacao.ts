@@ -6,6 +6,9 @@
  * - Comparação autor a autor e, em cada autor, sobrenome antes dos prenomes: "SILVA, José" vem antes de
  *   "SILVA NETO, Roberto" (nada vem antes de algo), o que a comparação da linha inteira inverteria.
  * - Desempate: mesmo autor por ano e depois pelo título (PF-09 g; D-M4-05, provisório). Sem ano vai por último.
+ * - "Mesmo autor" é a autoria como aparece na lista (D-M4-14): com mais de três autores e "et al.", só o primeiro conta,
+ *   e as obras do mesmo primeiro autor se desempatam por ano e título, não pelos coautores que não aparecem. Com a opção
+ *   de listar todos os autores (C-B12), contam todos. Os sufixos a, b continuam pela autoria completa (D-M4-03).
  * - Mesmo autor e mesmo ano: sufixo a, b, c… na ordem da lista (RN-096; D-M4-03, provisório).
  */
 import type { Autor, Id, InlineDeTitulo, Obra } from '../modelo';
@@ -13,9 +16,15 @@ import { autoresDeEntrada, LOCALE } from './autores';
 
 const colador = new Intl.Collator(LOCALE, { sensitivity: 'base', numeric: true });
 
-/** Elemento de entrada como lista de partes comparáveis, em ordem de importância. */
-function chaveDeEntrada(obra: Obra): string[] {
+export interface OpcoesOrdenacao {
+  /** C-B12: todos os autores na lista; sem ela, mais de três saem como "PRIMEIRO et al.". */
+  listarTodosAutores?: boolean;
+}
+
+/** Elemento de entrada como lista de partes comparáveis, em ordem de importância. `completa`: todos os autores. */
+function chaveDeEntrada(obra: Obra, completa = true): string[] {
   const autores = autoresDeEntrada(obra);
+  if (autores.length > 3 && !completa) return [...partesDoAutor(autores[0]!), 'et al.'];
   if (autores.length > 0) return autores.flatMap(partesDoAutor);
   return [textoDe(obra.titulo)];
 }
@@ -47,9 +56,10 @@ function compararAno(a: Obra, b: Obra): number {
   return a.ano - b.ano;
 }
 
-export function compararReferencias(a: Obra, b: Obra): number {
+export function compararReferencias(a: Obra, b: Obra, opcoes: OpcoesOrdenacao = {}): number {
+  const completa = opcoes.listarTodosAutores === true;
   return (
-    compararListas(chaveDeEntrada(a), chaveDeEntrada(b)) ||
+    compararListas(chaveDeEntrada(a, completa), chaveDeEntrada(b, completa)) ||
     compararAno(a, b) ||
     colador.compare(textoDe(a.titulo), textoDe(b.titulo)) ||
     // Estável e determinística mesmo com obras idênticas.
@@ -58,8 +68,8 @@ export function compararReferencias(a: Obra, b: Obra): number {
 }
 
 /** Nova lista na ordem das referências; não altera a entrada. */
-export function ordenarReferencias<T extends Obra>(obras: readonly T[]): T[] {
-  return [...obras].sort(compararReferencias);
+export function ordenarReferencias<T extends Obra>(obras: readonly T[], opcoes: OpcoesOrdenacao = {}): T[] {
+  return [...obras].sort((a, b) => compararReferencias(a, b, opcoes));
 }
 
 /**
@@ -68,7 +78,11 @@ export function ordenarReferencias<T extends Obra>(obras: readonly T[]): T[] {
  */
 export function sufixosDeAno(obras: readonly Obra[]): Map<Id, string> {
   const saida = new Map<Id, string>();
-  const ordem = ordenarReferencias(obras.filter((o) => autoresDeEntrada(o).length > 0 && o.ano !== undefined));
+  // Agrupa pela autoria completa (D-M4-03): a mesma autoria fica junta mesmo quando a lista mostra "et al.".
+  const ordem = ordenarReferencias(
+    obras.filter((o) => autoresDeEntrada(o).length > 0 && o.ano !== undefined),
+    { listarTodosAutores: true },
+  );
   let i = 0;
   while (i < ordem.length) {
     let j = i + 1;

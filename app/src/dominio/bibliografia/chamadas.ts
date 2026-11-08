@@ -185,14 +185,20 @@ export function entradaPeloTitulo(titulo: readonly InlineDeTitulo[]): string {
     .split(/\s+/u)
     .filter((p) => p !== '');
   if (palavras.length === 0) return '...';
-  const primeira = palavras[0]!;
-  const nucleo = primeira.replace(/[^\p{L}]/gu, '').toLocaleLowerCase(LOCALE);
-  const leva = palavras.length > 1 && (ARTIGOS.has(nucleo) || gruposDeVogais(nucleo) === 1) ? 2 : 1;
+  const leva = palavrasDaEntrada(palavras.join(' '));
   const entrada = palavras
     .slice(0, leva)
     .join(' ')
     .replace(/[\s.,;:!?…]+$/u, '');
   return `${maiusculas(entrada)}...`;
+}
+
+/** Quantas palavras do título entram na entrada: 2 se a primeira é artigo ou monossílabo e há outra; senão 1. */
+export function palavrasDaEntrada(titulo: string): 1 | 2 {
+  const palavras = titulo.trim().split(/\s+/u).filter((p) => p !== '');
+  if (palavras.length < 2) return 1;
+  const nucleo = palavras[0]!.replace(/[^\p{L}]/gu, '').toLocaleLowerCase(LOCALE);
+  return ARTIGOS.has(nucleo) || gruposDeVogais(nucleo) === 1 ? 2 : 1;
 }
 
 function gruposDeVogais(palavra: string): number {

@@ -19,7 +19,7 @@
   - segurança: R-M4-01, 02, 03, 05, 06, 07 e 09;
   - normas: N-M4-04, 05, 06, 07, 08, 09 e 10, e o comentário do N-M4-11;
   - N-M4-03 registrado na matriz (D-M4-11), porque já era decisão do usuário.
-- **Aguardam o usuário (mudam o documento sem fonte clara):** N-M4-01, N-M4-02, N-M4-12 e o estreitamento da D-M4-10 (N-M4-11).
+- **Decididos pelo usuário em 2026-11-07, com as recomendações, e feitos:** N-M4-01 (D-M4-12), N-M4-02 (D-M4-13), N-M4-12 (D-M4-14) e o estreitamento da D-M4-10 (N-M4-11).
 - **Abertos, de baixa prioridade:** R-M4-04 e R-M4-08; N-M4-13 a 18 (informativos).
 
 ## Achados corrigidos
@@ -43,7 +43,7 @@
 | N-M4-11 | Baixa | Comentário da D-M4-10 descrevia um agrupamento que o código não faz | Comentário corrigido. O estreitamento da regra é decisão do usuário (abaixo) |
 | N-M4-03 | Média | Apud: original e consultada entram as duas na lista, sem linha na matriz | Era decisão do usuário de 2026-11-07 (relatório do M4-T05 e adendo do ADR-0004). Agora está registrada como D-M4-11 |
 
-## Aguardam decisão do usuário
+## Decididos pelo usuário em 2026-11-07 ("siga as recomendações") e feitos
 
 | ID | Sev. | Questão | Recomendação |
 |---|---|---|---|
@@ -115,3 +115,11 @@
 ## Reverificação (2026-11-07)
 
 `npm run verificar:tudo` passou com as correções: 1695 testes unitários, 27 externos e 25 de 25 E2E. O pico de memória foi de 757 MB. O `npm audit` não mostrou nenhum aviso alto, só os mesmos 7 moderados de antes (R35).
+
+## Decisões aplicadas (2026-11-07)
+- **D-M4-12 (N-M4-01):** "[*S. l.*]" e "[*s. n.*]", com a abreviatura em itálico e os colchetes em redondo. Teste em `bibliografia-referencias`.
+- **D-M4-13 (N-M4-02):** "OS PERIGOS do uso de tóxicos". O cálculo de quantas palavras sobem (`palavrasDaEntrada`) é o mesmo da chamada, então lista e chamada não divergem mais.
+- **D-M4-14 (N-M4-12):** ordem pela autoria visível. Com "et al.", o desempate é por ano e título; os sufixos a, b continuam pela autoria completa. O motor e o verificador passam a opção de listar todos os autores.
+- **D-M4-10 estreitada (N-M4-11):** prenomes por extenso que diferem em até 2 letras (distância de edição). "Ana" × "Antônio" não avisa; "Antônio" × "Antonio" avisa.
+
+**Verificação das decisões (2026-11-07):** `npm run verificar:tudo` passou: 1701 testes unitários, 27 externos e 25 de 25 E2E. O pico de memória foi de 786 MB.
