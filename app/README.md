@@ -305,3 +305,14 @@ Até lá, não há salvamento automático; o que for escrito tem cópia de recup
 ### Cópias de segurança (M3-T09)
 
 Arquivo › Cópias de segurança… lista `backups\<id>\` e abre a cópia como trabalho sem arquivo: nada é alterado, e só "Salvar como…" a grava.
+
+### Listas de ilustrações e tabelas (M6-T01)
+
+Em Escrever, inclua os elementos "Lista de ilustrações" e "Lista de tabelas". Ao exportar o DOCX, as listas são geradas
+das legendas, na ordem do trabalho. Quadros e gráficos entram nas ilustrações; tabelas têm lista própria e aparecem
+uma vez, pela página inicial. Cada espécie com cinco ou mais ilustrações ganha uma lista própria. Marque "Usar lista
+única de ilustrações" para reunir as espécies. Listas vazias são omitidas.
+
+As páginas são estimadas e gravadas como campos PAGEREF. No Word, selecione todo o documento e pressione F9 para atualizar
+após editar ou repaginar. Inserir ou excluir elementos no BiblioDocs Pro refaz as listas na próxima exportação; editar
+as legendas diretamente no Word exige refazer o conteúdo da lista. A atualização de campos corrige as páginas.

@@ -151,6 +151,27 @@ describe('edição pura', () => {
 });
 
 describe('sessão', () => {
+  it('M6-T01: lista única participa do histórico e volta igual do .bdp', () => {
+    const { sessao, pre, doc, valido, semTexto } = montar();
+    sessao.incluirElemento('listaIlustracoes');
+    const id = pre().lista.find((e) => e.tipo === 'listaIlustracoes')!.id;
+    sessao.alterarElemento(id, { listaUnica: true });
+    const unica = () => doc().preTextuais!.find((e) => e.id === id);
+    expect(unica()).toMatchObject({ listaUnica: true });
+    valido();
+    const t = novo('tese');
+    const bytes = empacotarProjeto({ manifesto: t.manifesto, documento: doc(), midias: new Map() });
+    if (!bytes.ok) throw new Error(JSON.stringify(bytes.erros));
+    const lido = lerProjeto(bytes.bytes);
+    if (!lido.ok) throw new Error(JSON.stringify(lido.erros));
+    expect(lido.pacote.documento.preTextuais).toContainEqual(unica());
+    sessao.retirarElemento(id);
+    expect(unica()).toBeUndefined();
+    sessao.desfazer(semTexto);
+    expect(unica()).toMatchObject({ listaUnica: true });
+    sessao.refazer(semTexto);
+    expect(unica()).toBeUndefined();
+  });
   it('campos alterados continuam válidos para gravar; id de elemento desconhecido não faz nada', () => {
     const { sessao, pre, doc, valido } = montar();
     sessao.alterarDados({ campo: 'autoria', valor: 'Ana' });

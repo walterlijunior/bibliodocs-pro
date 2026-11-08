@@ -661,6 +661,14 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
               />
             ) : local.aba === 'escrever' ? (
               <AreaEscrever
+                aoAtualizarCadastros={(dados) => sessao.atualizarCadastros(dados)}
+                conformidade={{
+                  verificar: () => sessao.verificarConformidade(),
+                  exportar: () => {
+                    const pacote = sessao.pacote;
+                    return pacote ? window.bibliodocs.exportacao.relatorio(pacote) : Promise.resolve({ ok: false, motivo: 'CANCELADO' });
+                  },
+                }}
                 estado={sessaoEstado}
                 rotuloDescartar={saidaPedida ? 'Sair sem salvar' : 'Fechar sem salvar'}
                 ocupado={bib.ocupado}

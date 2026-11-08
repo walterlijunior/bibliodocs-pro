@@ -207,6 +207,17 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       return r.canceled || !r.filePath ? null : r.filePath;
     },
     exportar: (f) => exportarIsolado(join(__dirname, 'exportador-docx.js'), f),
+    escolherDestinoRelatorio: async (id, nome) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showSaveDialog(janela, {
+        title: 'Exportar relatório de conformidade',
+        defaultPath: join(app.getPath('documents'), nome),
+        filters: [{ name: 'Relatório de texto', extensions: ['txt'] }],
+        properties: ['showOverwriteConfirmation'],
+      });
+      return r.canceled || !r.filePath ? null : r.filePath;
+    },
     gravar: gravarExportacao,
   });
 

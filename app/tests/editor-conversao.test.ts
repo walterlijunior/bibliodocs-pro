@@ -58,6 +58,13 @@ const DOCUMENTOS: [string, Documento, boolean][] = [
   ['documento-bordas-m5.json', lerDocumento('documento-bordas-m5.json'), true],
   ['documento grande (20 páginas)', gerarDocumentoGrande({ paginas: 20, midias: 0 }).pacote.documento, false],
 ];
+const comSiglas = lerDocumento('documento-valido.json');
+comSiglas.siglas = [{ id: 'sig_editorcadastro01', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' }];
+comSiglas.corpo[0]!.blocos.push({ tipo: 'paragrafo', id: 'par_editorsigla01', conteudo: [
+  { tipo: 'sigla', id: 'sig_editorinline01', sigla: comSiglas.siglas[0]!.id },
+  { tipo: 'nota', id: 'nta_editorsigla01', conteudo: [{ tipo: 'sigla', id: 'sig_editorinline02', sigla: comSiglas.siglas[0]!.id }] },
+] });
+DOCUMENTOS.push(['documento com siglas', comSiglas, true]);
 
 describe('EDT — ida e volta modelo → editor → modelo nas fixtures', () => {
   it.each(DOCUMENTOS)('%s: cada seção volta na forma canônica e o documento continua válido', (_nome, documento, canonico) => {
@@ -266,7 +273,7 @@ describe('EDT — toDOM só com classes e data-* (CSP; ADR-0007, seção 2)', ()
     const amostras: [string, DOMOutputSpec][] = [];
     for (const [nome, tipo] of Object.entries(esquemaEditor.nodes)) {
       if (!tipo.spec.toDOM) continue;
-      const attrs = nome === 'remissiva' ? { id: 'rem_amostra01', alvo: 'tab_amostra01' } : nome === 'chamadaCitacao' || 'dados' in (tipo.spec.attrs ?? {}) ? { id: 'cta_amostra01', dados: '{}' } : nome in PREFIXO_ID ? { id: 'par_amostra01' } : null;
+      const attrs = nome === 'sigla' ? { id: 'sig_amostra01', sigla: 'sig_cadastro01' } : nome === 'remissiva' ? { id: 'rem_amostra01', alvo: 'tab_amostra01' } : nome === 'chamadaCitacao' || 'dados' in (tipo.spec.attrs ?? {}) ? { id: 'cta_amostra01', dados: '{}' } : nome in PREFIXO_ID ? { id: 'par_amostra01' } : null;
       const no: NoPm = tipo.createAndFill(attrs)!;
       amostras.push([nome, tipo.spec.toDOM(no)]);
     }

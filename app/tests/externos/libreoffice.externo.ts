@@ -60,4 +60,14 @@ describe.skipIf(!soffice)('LibreOffice', () => {
     expect(p[iIntro]!.startsWith(String(iIntro)), 'número da folha no alto').toBe(true);
     expect(p[iIntro - 1]!.startsWith(String(iIntro - 1))).toBe(false);
   });
+  it('M6-T01: listas de ilustrações e tabelas apontam às páginas iniciais dos elementos', () => {
+    const p = paginas.get('documento-dificil')!;
+    for (const titulo of ['LISTA DE ILUSTRAÇÕES', 'LISTA DE TABELAS']) {
+      const lista = p.find((t) => t.includes(titulo));
+      expect(lista, titulo).toBeDefined();
+      const entradas = [...lista!.matchAll(/((?:Figura|Quadro|Tabela) \d+\s*–\s*[^.]+?)\s*\.{3,}\s*(\d+)/g)];
+      expect(entradas.length, titulo).toBe(2);
+      for (const e of entradas) expect(p[Number(e[2])]!, e[1]).toContain(e[1]!.trim());
+    }
+  });
 });

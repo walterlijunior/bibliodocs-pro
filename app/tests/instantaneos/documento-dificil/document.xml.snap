@@ -340,6 +340,169 @@
 <w:pageBreakBefore/>
 </w:pPr>
 <w:r>
+<w:t xml:space="preserve">LISTA DE ILUSTRAÇÕES</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:leader="dot" w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Quadro 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Etapas fictícias do procedimento</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+</w:r>
+<w:fldSimple w:instr="PAGEREF _Lista_2 \h">
+<w:r>
+<w:t xml:space="preserve">14</w:t>
+</w:r>
+</w:fldSimple>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:leader="dot" w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Figura 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Degradê fictício de teste</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+</w:r>
+<w:fldSimple w:instr="PAGEREF _Lista_4 \h">
+<w:r>
+<w:t xml:space="preserve">15</w:t>
+</w:r>
+</w:fldSimple>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">LISTA DE TABELAS</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:leader="dot" w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Tabela 1 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Produção fictícia por região, 2020–2022</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+</w:r>
+<w:fldSimple w:instr="PAGEREF _Lista_1 \h">
+<w:r>
+<w:t xml:space="preserve">14</w:t>
+</w:r>
+</w:fldSimple>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:leader="dot" w:pos="9071" w:val="right"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Tabela 2 – </w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Medições fictícias por amostra</w:t>
+</w:r>
+<w:r>
+<w:tab/>
+</w:r>
+<w:fldSimple w:instr="PAGEREF _Lista_3 \h">
+<w:r>
+<w:t xml:space="preserve">14</w:t>
+</w:r>
+</w:fldSimple>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">LISTA DE ABREVIATURAS E SIGLAS</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:pos="3024" w:val="left"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">UFT</w:t>
+<w:tab/>
+<w:t xml:space="preserve">Universidade Federal do Tocantins</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">LISTA DE SÍMBOLOS</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:pos="3024" w:val="left"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">α</w:t>
+<w:tab/>
+<w:t xml:space="preserve">Alfa</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="entradaLista"/>
+<w:tabs>
+<w:tab w:pos="3024" w:val="left"/>
+</w:tabs>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">β</w:t>
+<w:tab/>
+<w:t xml:space="preserve">Beta</w:t>
+</w:r>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="tituloSemIndicativo"/>
+<w:pageBreakBefore/>
+</w:pPr>
+<w:r>
 <w:t xml:space="preserve">SUMÁRIO</w:t>
 </w:r>
 </w:p>
@@ -372,7 +535,7 @@
 </w:rPr>
 <w:t xml:space="default">1 INTRODUÇÃO À AÇÃO</w:t>
 <w:tab/>
-<w:t xml:space="default">7</w:t>
+<w:t xml:space="default">11</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -391,7 +554,7 @@
 </w:rPr>
 <w:t xml:space="default">1.1 Seção secundária</w:t>
 <w:tab/>
-<w:t xml:space="default">9</w:t>
+<w:t xml:space="default">13</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -410,7 +573,7 @@
 </w:rPr>
 <w:t xml:space="default">1.1.1 Seção terciária</w:t>
 <w:tab/>
-<w:t xml:space="default">9</w:t>
+<w:t xml:space="default">13</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -429,7 +592,7 @@
 </w:rPr>
 <w:t xml:space="default">1.1.1.1 Seção quaternária</w:t>
 <w:tab/>
-<w:t xml:space="default">9</w:t>
+<w:t xml:space="default">13</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -448,7 +611,7 @@
 </w:rPr>
 <w:t xml:space="default">1.1.1.1.1 Seção quinária</w:t>
 <w:tab/>
-<w:t xml:space="default">9</w:t>
+<w:t xml:space="default">13</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -467,7 +630,7 @@
 </w:rPr>
 <w:t xml:space="default">2 CONSIDERAÇÕES FINAIS</w:t>
 <w:tab/>
-<w:t xml:space="default">10</w:t>
+<w:t xml:space="default">14</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -486,7 +649,7 @@
 </w:rPr>
 <w:t xml:space="default">REFERÊNCIAS</w:t>
 <w:tab/>
-<w:t xml:space="default">12</w:t>
+<w:t xml:space="default">16</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -505,7 +668,7 @@
 </w:rPr>
 <w:t xml:space="default">GLOSSÁRIO</w:t>
 <w:tab/>
-<w:t xml:space="default">13</w:t>
+<w:t xml:space="default">17</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -524,7 +687,7 @@
 </w:rPr>
 <w:t xml:space="default">APÊNDICES</w:t>
 <w:tab/>
-<w:t xml:space="default">14</w:t>
+<w:t xml:space="default">18</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -543,7 +706,7 @@
 </w:rPr>
 <w:t xml:space="default">ANEXO</w:t>
 <w:tab/>
-<w:t xml:space="default">15</w:t>
+<w:t xml:space="default">19</w:t>
 </w:r>
 </w:hyperlink>
 </w:p>
@@ -562,7 +725,7 @@
 </w:rPr>
 <w:t xml:space="default">ÍNDICE</w:t>
 <w:tab/>
-<w:t xml:space="default">16</w:t>
+<w:t xml:space="default">20</w:t>
 </w:r>
 </w:hyperlink>
 <w:r>
@@ -1226,17 +1389,29 @@
 <w:r>
 <w:t xml:space="preserve">Este parágrafo fictício existe apenas para conferir a formatação do documento exportado, sem conteúdo real.</w:t>
 </w:r>
+<w:r>
+<w:t xml:space="preserve">
+</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">Universidade Federal do Tocantins (UFT)</w:t>
+</w:r>
+<w:r>
+<w:t xml:space="preserve">.</w:t>
+</w:r>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="tituloElemento"/>
 </w:pPr>
+<w:bookmarkStart w:id="7" w:name="_Lista_1"/>
 <w:r>
 <w:t xml:space="preserve">Tabela 1 – </w:t>
 </w:r>
 <w:r>
 <w:t xml:space="preserve">Produção fictícia por região, 2020–2022</w:t>
 </w:r>
+<w:bookmarkEnd w:id="7"/>
 </w:p>
 <w:tbl>
 <w:tblPr>
@@ -1667,12 +1842,14 @@
 <w:pPr>
 <w:pStyle w:val="tituloElemento"/>
 </w:pPr>
+<w:bookmarkStart w:id="8" w:name="_Lista_2"/>
 <w:r>
 <w:t xml:space="preserve">Quadro 1 – </w:t>
 </w:r>
 <w:r>
 <w:t xml:space="preserve">Etapas fictícias do procedimento</w:t>
 </w:r>
+<w:bookmarkEnd w:id="8"/>
 </w:p>
 <w:tbl>
 <w:tblPr>
@@ -1800,12 +1977,14 @@
 <w:pPr>
 <w:pStyle w:val="tituloElemento"/>
 </w:pPr>
+<w:bookmarkStart w:id="9" w:name="_Lista_3"/>
 <w:r>
 <w:t xml:space="preserve">Tabela 2 – </w:t>
 </w:r>
 <w:r>
 <w:t xml:space="preserve">Medições fictícias por amostra</w:t>
 </w:r>
+<w:bookmarkEnd w:id="9"/>
 </w:p>
 <w:tbl>
 <w:tblPr>
@@ -3685,12 +3864,14 @@
 <w:pPr>
 <w:pStyle w:val="tituloElemento"/>
 </w:pPr>
+<w:bookmarkStart w:id="10" w:name="_Lista_4"/>
 <w:r>
 <w:t xml:space="preserve">Figura 1 – </w:t>
 </w:r>
 <w:r>
 <w:t xml:space="preserve">Degradê fictício de teste</w:t>
 </w:r>
+<w:bookmarkEnd w:id="10"/>
 </w:p>
 <w:p>
 <w:pPr>
@@ -3801,11 +3982,11 @@
 <w:pPr>
 <w:pStyle w:val="tituloPosTextual"/>
 </w:pPr>
-<w:bookmarkStart w:id="7" w:name="_Toc_7"/>
+<w:bookmarkStart w:id="11" w:name="_Toc_7"/>
 <w:r>
 <w:t xml:space="preserve">REFERÊNCIAS</w:t>
 </w:r>
-<w:bookmarkEnd w:id="7"/>
+<w:bookmarkEnd w:id="11"/>
 </w:p>
 <w:p>
 <w:pPr>
@@ -3931,68 +4112,82 @@
 <w:pStyle w:val="tituloPosTextual"/>
 <w:pageBreakBefore/>
 </w:pPr>
-<w:bookmarkStart w:id="8" w:name="_Toc_8"/>
+<w:bookmarkStart w:id="12" w:name="_Toc_8"/>
 <w:r>
 <w:t xml:space="preserve">GLOSSÁRIO</w:t>
 </w:r>
-<w:bookmarkEnd w:id="8"/>
+<w:bookmarkEnd w:id="12"/>
+</w:p>
+<w:p>
+<w:pPr>
+<w:pStyle w:val="corpo"/>
+</w:pPr>
+<w:r>
+<w:t xml:space="preserve">Exemplo: Entrada fictícia para conferir a formatação.</w:t>
+</w:r>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="tituloPosTextual"/>
 <w:pageBreakBefore/>
 </w:pPr>
-<w:bookmarkStart w:id="9" w:name="_Toc_9"/>
+<w:bookmarkStart w:id="13" w:name="_Toc_9"/>
 <w:r>
 <w:t xml:space="preserve">APÊNDICES</w:t>
 </w:r>
-<w:bookmarkEnd w:id="9"/>
+<w:bookmarkEnd w:id="13"/>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="identificacaoPosTextual"/>
 </w:pPr>
+<w:bookmarkStart w:id="14" w:name="_Pos_A1"/>
 <w:r>
 <w:t xml:space="preserve">APÊNDICE A – Roteiro de exemplo</w:t>
 </w:r>
+<w:bookmarkEnd w:id="14"/>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="identificacaoPosTextual"/>
 </w:pPr>
+<w:bookmarkStart w:id="15" w:name="_Pos_A2"/>
 <w:r>
 <w:t xml:space="preserve">APÊNDICE B – Questionário de exemplo</w:t>
 </w:r>
+<w:bookmarkEnd w:id="15"/>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="tituloPosTextual"/>
 <w:pageBreakBefore/>
 </w:pPr>
-<w:bookmarkStart w:id="10" w:name="_Toc_10"/>
+<w:bookmarkStart w:id="16" w:name="_Toc_10"/>
 <w:r>
 <w:t xml:space="preserve">ANEXO</w:t>
 </w:r>
-<w:bookmarkEnd w:id="10"/>
+<w:bookmarkEnd w:id="16"/>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="identificacaoPosTextual"/>
 </w:pPr>
+<w:bookmarkStart w:id="17" w:name="_Pos_N1"/>
 <w:r>
 <w:t xml:space="preserve">ANEXO A – Documento de exemplo</w:t>
 </w:r>
+<w:bookmarkEnd w:id="17"/>
 </w:p>
 <w:p>
 <w:pPr>
 <w:pStyle w:val="tituloPosTextual"/>
 <w:pageBreakBefore/>
 </w:pPr>
-<w:bookmarkStart w:id="11" w:name="_Toc_11"/>
+<w:bookmarkStart w:id="18" w:name="_Toc_11"/>
 <w:r>
 <w:t xml:space="preserve">ÍNDICE</w:t>
 </w:r>
-<w:bookmarkEnd w:id="11"/>
+<w:bookmarkEnd w:id="18"/>
 </w:p>
 <w:sectPr>
 <w:headerReference r:id="rId7" w:type="default"/>

@@ -62,6 +62,7 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     },
   };
   const exportacao: ApiExportacao = {
+    relatorio: (pacote) => invocar(CANAIS_EXPORTACAO.relatorio, pacote) as ReturnType<ApiExportacao['relatorio']>,
     docx: (pacote, opcoes) => invocar(CANAIS_EXPORTACAO.docx, pacote, opcoes) as ReturnType<ApiExportacao['docx']>,
   };
   return Object.freeze({

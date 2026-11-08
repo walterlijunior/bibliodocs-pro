@@ -10,7 +10,9 @@
  *
  * Puro (sem DOM, sem Node e sem pacote do editor).
  */
-import type { ElementoPreTextual, Id, InversoSecao, Obra } from '../../dominio/modelo';
+import type { Documento, ElementoPosTextual, ElementoPreTextual, Id, InversoSecao, Obra } from '../../dominio/modelo';
+
+export type CadastrosDocumento = Pick<Documento, 'siglas' | 'simbolos' | 'glossario'>;
 
 /**
  * Incluir e retirar elemento pré-textual (M2-T08): o que desfaz é só aquele elemento. Os campos digitados depois em outros
@@ -33,6 +35,8 @@ export type EntradaHistorico =
   | { tipo: 'texto'; secaoId: Id }
   | { tipo: 'estrutura'; inverso: InversoSecao }
   | { tipo: 'elemento'; inverso: InversoElemento }
+  | { tipo: 'cadastros'; inverso: CadastrosDocumento }
+  | { tipo: 'posTextuais'; inverso: readonly ElementoPosTextual[] }
   | { tipo: 'obra'; inverso: InversoObra };
 
 /** Entradas guardadas em cada sentido (o `prosemirror-history` guarda 100 eventos por seção). */

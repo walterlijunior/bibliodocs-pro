@@ -1,6 +1,7 @@
 /** Obras e citações no modelo (M4-T01): listas fechadas e percurso das chamadas. */
 import { conteudosDoBloco } from './percorrer';
-import type { Documento, FuncaoResponsavel, InlineCitacao, Secao, TipoObra } from './tipos';
+import { secoesDeLeitura, type DocumentoDeLeitura } from './leitura';
+import type { FuncaoResponsavel, InlineCitacao, Secao, TipoObra } from './tipos';
 
 /** Primeira leva de tipos (D-M4-06), na ordem em que o cadastro os oferece. */
 export const TIPOS_OBRA: readonly TipoObra[] = [
@@ -18,7 +19,7 @@ export const TIPOS_OBRA: readonly TipoObra[] = [
 export const FUNCOES_RESPONSAVEL: readonly FuncaoResponsavel[] = ['org', 'coord', 'ed', 'comp'];
 
 /** Todas as chamadas de citação do corpo, também as das notas (M4-T07), em ordem de leitura. */
-export function citacoesDoDocumento(doc: Pick<Documento, 'corpo'>): InlineCitacao[] {
+export function citacoesDoDocumento(doc: DocumentoDeLeitura): InlineCitacao[] {
   const saida: InlineCitacao[] = [];
   const visitar = (s: Secao) => {
     for (const b of s.blocos) {
@@ -31,6 +32,6 @@ export function citacoesDoDocumento(doc: Pick<Documento, 'corpo'>): InlineCitaca
     }
     s.subsecoes.forEach(visitar);
   };
-  doc.corpo.forEach(visitar);
+  secoesDeLeitura(doc).forEach(visitar);
   return saida;
 }

@@ -23,6 +23,7 @@ interface Relatorio {
   imagens: number;
   sumarioGravado?: string;
   sumarioAtualizado?: string;
+  paginasListas?: { campo: string; gravada: string; atualizada: string }[];
 }
 
 describe.skipIf(!temWord)('Microsoft Word', () => {
@@ -33,7 +34,8 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
   afterAll(() => corpus?.apagar());
   const abrir = async (nome: string): Promise<Relatorio> => {
     const caminho = corpus.arquivos.find((a) => a.nome === nome)!.caminho;
-    const r = await rodar(POWERSHELL, ['-NoProfile', '-File', SCRIPT, '-Arquivo', caminho], 150_000);
+    const r = await rodar(POWERSHELL, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', SCRIPT, '-Arquivo', caminho], 150_000);
+    if (r.codigo !== 0) throw new Error(`conferência do Word falhou: ${r.erro.slice(-1000)}`);
     return JSON.parse(r.saida) as Relatorio;
   };
   const limpo = (s: string | undefined) => (s ?? '').replace(/[\r\n]+$/, '');
@@ -47,6 +49,7 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
     // As páginas gravadas valem o mesmo que as calculadas pelo Word.
     expect(limpo(r.sumarioAtualizado)).toBe(limpo(r.sumarioGravado));
     expect(r.paginasDepois).toBe(r.paginas);
+    for (const item of r.paginasListas ?? []) expect(item.gravada, item.campo).toBe(item.atualizada);
   });
 
   it('documento difícil: notas e seções como previsto', async () => {
@@ -55,6 +58,7 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
     expect(r.secoes).toBe(6);
     expect(r.tabelas).toBe(4); // ficha catalográfica, Tabela 1, Quadro 1 e Tabela 2 (M5-T03)
     expect(r.imagens).toBe(1); // Figura 1 (M5-T06)
+    expect(r.paginasListas).toHaveLength(4); // Figura, Quadro e duas Tabelas; a longa aparece uma vez.
     expect(r.sumarioGravado).toContain('1.1.1.1.1 Seção quinária');
     expect(r.sumarioGravado).toContain('REFERÊNCIAS');
   });

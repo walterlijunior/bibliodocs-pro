@@ -3,7 +3,7 @@
 import { createHash } from 'node:crypto';
 import { deflateSync } from 'node:zlib';
 import { criarTrabalhoDoTipo } from '../../src/aplicacao/servicos/criar-trabalho';
-import type { Bloco, BlocoIlustracao, BlocoTabela, CelulaTabela, Documento, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
+import type { Bloco, BlocoIlustracao, BlocoTabela, CelulaTabela, Documento, ElementoPreTextual, Inline, InlineCitacao, Obra, Secao, TipoTrabalhoUft } from '../../src/dominio/modelo';
 
 export const TIPOS: readonly TipoTrabalhoUft[] = ['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa'];
 
@@ -196,7 +196,7 @@ export function documentoDificil(): Documento {
       p('p1c', t('Depois da quebra pedida pelo autor.\nCom quebra de linha\te tabulação.')),
     ], [q2]),
     sec('s6', 'Considerações finais', [
-      p('p6', t(FRASE)),
+      p('p6', t(FRASE), t(' '), { tipo: 'sigla', id: 'sgu_corpus0001', sigla: 'sgl_corpus0001' }, t('.')),
       TABELA_CORPUS,
       p('p6b', t(FRASE)),
       QUADRO_CORPUS,
@@ -208,7 +208,13 @@ export function documentoDificil(): Documento {
   return {
     ...d,
     metadados: { ...d.metadados, coorientador: { titulacao: 'Dr.', nome: 'Coorientação Fictícia' }, areaConcentracao: 'Área de exemplo', volume: 'Volume 1' },
-    preTextuais: d.preTextuais!.map((e) => {
+    preTextuais: d.preTextuais!.flatMap((e): ElementoPreTextual[] => e.tipo === 'sumario' ? [
+      { tipo: 'listaIlustracoes', id: 'pre_corpuslista01' },
+      { tipo: 'listaTabelas', id: 'pre_corpuslista02' },
+      { tipo: 'listaSiglas', id: 'pre_corpuslista03' },
+      { tipo: 'listaSimbolos', id: 'pre_corpuslista04' },
+      e,
+    ] : [e]).map((e) => {
       switch (e.tipo) {
         case 'fichaCatalografica':
           return { ...e, texto: 'Dados fictícios da ficha.' };
@@ -224,6 +230,9 @@ export function documentoDificil(): Documento {
     }),
     corpo,
     obras: OBRAS_FICTICIAS,
+    siglas: [{ id: 'sgl_corpus0001', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' }],
+    simbolos: [{ id: 'smb_corpus0001', simbolo: 'α', significado: 'Alfa' }, { id: 'smb_corpus0002', simbolo: 'β', significado: 'Beta' }],
+    glossario: [{ id: 'gls_corpus0001', termo: 'Exemplo', definicao: 'Entrada fictícia para conferir a formatação.' }],
     posTextuais: [
       { tipo: 'referencias', id: 'r1' },
       { tipo: 'glossario', id: 'g1' },

@@ -24,7 +24,7 @@
  * - SEM_REMISSIVA (aviso, M5-T08): tabela, quadro ou ilustração que nenhuma remissiva cita (RN-060, PENDENTE-FONTE, por
  *   isso só aviso: D-M5-04). Equação fica de fora: a regra é de ilustração, estendida só à tabela pela D-M5-04.
  */
-import { textoPlano, type Documento, type Id } from '../modelo';
+import { secoesDeLeitura, textoPlano, type Documento, type Id } from '../modelo';
 import { numerarElementos, numerarSecoes } from '../numeracao';
 import {
   larguraImpressaMm,
@@ -97,12 +97,12 @@ export const LINHAS_TABELA_LONGA = 40;
 export const PROPORCAO_NUMERICA_MINIMA = 0.5;
 
 /** Problemas de cada elemento, na ordem do documento. */
-export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVerificacaoVisuais = {}): ProblemaVisual[] {
+export function verificarVisuais(doc: Pick<Documento, 'corpo'> & Partial<Pick<Documento, 'posTextuais'>>, opcoes: OpcoesVerificacaoVisuais = {}): ProblemaVisual[] {
   const limiteLinhas = opcoes.linhasTabelaLonga ?? LINHAS_TABELA_LONGA;
   const lista: ProblemaVisual[] = [];
-  const remissivas = remissivasDoCorpo(doc.corpo);
+  const remissivas = remissivasDoCorpo(doc);
   const citados = new Set(remissivas.map((r) => r.remissiva.alvo));
-  const { elementos } = numerarElementos(doc.corpo);
+  const { elementos } = numerarElementos(doc);
   const tabelas = new Map(elementos.flatMap((e) => (e.bloco.tipo === 'tabela' ? [[e.bloco.id, e.bloco] as const] : [])));
   for (const { bloco, secao, sequencia, numero } of elementos) {
     const rotulo = rotuloElemento(sequencia, numero);
@@ -158,7 +158,7 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
     }
   }
   // N-M5-04: equação sem número (RN-106; D-M5-52), na ordem do documento.
-  for (const { secao } of numerarSecoes(doc.corpo)) {
+  for (const { secao } of numerarSecoes(secoesDeLeitura(doc))) {
     for (const b of secao.blocos) {
       if (b.tipo !== 'equacao' || b.numerada === true) continue;
       lista.push({
@@ -171,7 +171,7 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
       });
     }
   }
-  const rotulos = rotulosDeRemissiva(doc.corpo);
+  const rotulos = rotulosDeRemissiva(doc);
   for (const { remissiva, secao } of remissivas) {
     if (rotulos.has(remissiva.alvo)) continue;
     lista.push({

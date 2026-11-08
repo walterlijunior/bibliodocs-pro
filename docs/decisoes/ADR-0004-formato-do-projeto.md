@@ -739,3 +739,31 @@ citam entram na de obras existentes.
 - O desenho é uma lista de primitivas calculada no domínio (`dominio/visuais/grafico.ts`, puro e testado em Node); a
   interface só pinta. Tela e arquivo usam o mesmo desenho.
 
+## Adendo do M6-T01 (2026-11-08) — opção da lista de ilustrações
+
+- Aditivo, sem subir `versaoFormato`: o elemento `listaIlustracoes` aceita `listaUnica?: true`. Ausente = separação
+  por espécie conforme RN-161/C-B8/D-M6-02. `false` é recusado pelo esquema, como as outras opções do v1.
+- O arquivo não guarda itens, números, páginas ou marcadores derivados. Na exportação, o motor usa as mesmas legendas
+  do corpo e cria marcadores `_Lista_n`; o exportador traduz as entradas para campos PAGEREF com páginas estimadas
+  em duas passadas, inclusive sem sumário. Medidas e critérios permanecem no perfil/motor (D-M6-01).
+- Atualizar os campos no Word recalcula as páginas. O conteúdo das listas é refeito ao exportar pelo aplicativo.
+
+## Adendo do M6-T02 a T06 (2026-11-08) — cadastros, sigla e conteúdo de apêndices e anexos
+
+Implementado pelo Codex e revisado pela sessão principal antes do commit (`M6_RELATORIO_MARCO.md`, seção "Revisão e
+consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os campos abre igual.
+
+- **Cadastros no `Documento`:** `siglas?: { id, sigla, extenso }[]`, `simbolos?: { id, simbolo, significado }[]` e
+  `glossario?: { id, termo, definicao }[]`, cada um com 1 a 5.000 entradas (`entradasCatalogo`); lista vazia é
+  recusada (o campo ausente já diz "nenhum"). Os ids entram na conferência de ids únicos.
+- **Sigla no texto:** `Inline` ganha `{ tipo: 'sigla', id, sigla }`, a ligação com o cadastro, no texto corrido e na
+  nota de rodapé (`InlineDeNota`). O texto ("Extenso (SIGLA)" na primeira ocorrência, "SIGLA" depois) é derivado na
+  exportação (D-M6-03). Sigla que aponta para cadastro que não existe não impede abrir: sai "[sigla sem cadastro]" e o
+  verificador aponta.
+- **Apêndice e anexo com conteúdo:** `blocos?: Bloco[]` (1 a `blocosPorSecao`), sem subseções (D-M6-07). Os elementos
+  visuais de dentro seguem a numeração do texto, e a ordem de leitura é corpo e depois apêndices e anexos
+  (`dominio/modelo/leitura.ts`).
+- **Remissiva:** o `alvo` pode ser também uma seção ou um apêndice/anexo (D-M6-08). Continua não conferido na leitura.
+- **Marcadores no DOCX:** `_Lista_n` nas legendas e `_Pos_A1`/`_Pos_N1` nas identificações de apêndice e anexo, sempre
+  curtos (o Word aceita até 40 caracteres, só letras, algarismos e "_"; revisão: o id do elemento não serve).
+

@@ -29,10 +29,17 @@ import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
+import type { CadastrosDocumento } from '../../aplicacao';
+import { Cadastros } from './Cadastros';
+import { DialogoSigla } from './DialogoSigla';
+import { Conformidade } from './Conformidade';
+import type { RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
 
 export interface PropsAreaEscrever {
+  aoAtualizarCadastros?: (dados: CadastrosDocumento) => ResultadoObra;
+  conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
   estado: EstadoSessao;
   /** Rótulo do botão de descartar: "Fechar sem salvar" ou, quando o usuário pediu para sair, "Sair sem salvar". */
   rotuloDescartar: string;
@@ -96,9 +103,28 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const t = p.estado.trabalho;
   const e = p.estrutura;
   const [avisosEditor, setAvisosEditor] = useState<readonly string[]>([]);
+  const [cadastrosAbertos, setCadastrosAbertos] = useState(false);
+  const [relatorioConformidade, setRelatorioConformidade] = useState<RelatorioConformidade | null>(null);
+  const [sugestaoPre, setSugestaoPre] = useState<ElementoPreTextualId | null>(null);
+  const [pedidoSigla, setPedidoSigla] = useState<{ existente: { id: string; pos: number; sigla: string } | null } | null>(null);
+  const pedirSigla = useCallback((existente: { id: string; pos: number; sigla: string } | null) => setPedidoSigla({ existente }), []);
   const refArvore = useRef<HTMLUListElement>(null);
   const refEscrever = useRef<HTMLDivElement>(null);
   const { controleEditor } = p;
+  useEffect(() => {
+    setCadastrosAbertos(false); setRelatorioConformidade(null); setPedidoSigla(null); setSugestaoPre(null);
+  }, [t?.geracao]);
+  useEffect(() => {
+    if (sugestaoPre !== null) refEscrever.current?.querySelector<HTMLSelectElement>('.elementos__incluir select')?.focus();
+  }, [sugestaoPre]);
+  const focarDepoisSigla = useRef(false);
+  useEffect(() => {
+    if (pedidoSigla !== null) focarDepoisSigla.current = true;
+    else if (!cadastrosAbertos && focarDepoisSigla.current) {
+      focarDepoisSigla.current = false;
+      controleEditor.current?.focarSigla();
+    }
+  }, [pedidoSigla, cadastrosAbertos, controleEditor]);
   // Elemento na tela no lugar do editor. Outra seção ativa (árvore, barra superior, desfazer) volta ao editor.
   const [elementoId, setElementoId] = useState<string | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
@@ -282,6 +308,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       <div className="principal__cab">
         <h1>Escrever</h1>
         <div className="acoes">
+          {p.conformidade && <button type="button" className="btn-secundario" onClick={() => setRelatorioConformidade(p.conformidade!.verificar())}>Verificar conformidade</button>}
+          {p.aoAtualizarCadastros && <button type="button" className="btn-secundario" onClick={() => setCadastrosAbertos(true)}>Siglas, símbolos e glossário…</button>}
           {t.podeSalvar && (
             <button type="button" className="btn-principal" onClick={p.aoSalvar} aria-keyshortcuts="Control+S">
               Salvar
@@ -340,6 +368,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             ativoId={elementoAtivo?.id ?? null}
             somenteLeitura={t.somenteLeitura}
             anuncio={anuncioElemento}
+            sugestaoInclusao={sugestaoPre}
             aoEscolher={(id) => {
               setAnuncioElemento(null);
               setObraAberta(null);
@@ -418,6 +447,24 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         )}
         </div>
 
+        {cadastrosAbertos && p.aoAtualizarCadastros && <Cadastros dados={t.cadastros ?? {}} somenteLeitura={t.somenteLeitura} aoAlterar={p.aoAtualizarCadastros} aoFechar={() => setCadastrosAbertos(false)} />}
+        {relatorioConformidade && p.conformidade && <Conformidade
+          relatorio={relatorioConformidade}
+          aoAtualizar={() => setRelatorioConformidade(p.conformidade!.verificar())}
+          aoExportar={p.conformidade.exportar}
+          aoFechar={() => setRelatorioConformidade(null)}
+          aoLocal={(local) => {
+            setRelatorioConformidade(null);
+            setConferencia(null); setObraAberta(null); setElementoId(null);
+            if (local.tipo === 'preTextual') {
+              const id = pre?.lista.find((x) => x.tipo === local.elemento)?.id ?? null;
+              setElementoId(id);
+              if (id === null) setSugestaoPre(local.elemento);
+            }
+            else if (local.tipo === 'obra') setObraAberta({ id: local.obra });
+            else if (local.tipo === 'texto') { setIrAoTexto({ ...local, trecho: local.trecho ?? '' }); e.escolher(local.secao, null); }
+          }}
+        />}
         <section
           className="escrever__texto"
           aria-labelledby={elementoAtivo || comObra || comConferencia ? undefined : 'titulo-secao-ativa'}
@@ -517,7 +564,21 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 aoPedirRemissiva={pedirRemissiva}
                 tabelasDoTrabalho={tabelasDoTrabalho}
                 aoPedirGrafico={pedirGrafico}
+                siglas={t.cadastros?.siglas ?? []}
+                aoPedirSigla={pedirSigla}
               />
+              {pedidoSigla !== null && <DialogoSigla
+                siglas={t.cadastros?.siglas ?? []}
+                atual={pedidoSigla.existente?.sigla ?? null}
+                aoConfirmar={(id) => {
+                  const existente = pedidoSigla.existente;
+                  setPedidoSigla(null);
+                  if (existente) controleEditor.current?.alterarSigla(existente.id, id);
+                  else controleEditor.current?.inserirSigla(id);
+                }}
+                aoFechar={() => setPedidoSigla(null)}
+                aoCadastrar={() => { setPedidoSigla(null); setCadastrosAbertos(true); }}
+              />}
               {pedidoGrafico !== null && (
                 <DialogoGrafico
                   elementos={t.elementos}

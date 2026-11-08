@@ -9,6 +9,7 @@ import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../
 import { textoPlano, type Secao } from '../../dominio/modelo';
 import { lerInfoImagem } from '../../dominio/visuais';
 import { verificarVisuais } from '../../dominio/verificador';
+import { avaliarConformidade, textoRelatorioConformidade } from '../../dominio/verificador/conformidade';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerPacoteTransferivel } from './argumentos';
 import { criarConferencia, type Manipulador } from './chamada';
@@ -28,6 +29,7 @@ export interface DependenciasExportacao {
   conteudosPermitidos: () => ReadonlySet<number>;
   perfil: Perfil;
   escolherDestino: (idConteudo: number, nomeSugerido: string) => Promise<string | null>;
+  escolherDestinoRelatorio?: (idConteudo: number, nomeSugerido: string) => Promise<string | null>;
   exportar: (f: DocumentoFormatado) => Promise<RespostaExportacao>;
   gravar: (destino: string, bytes: Uint8Array) => Promise<ResultadoGravacao>;
   log?: (m: string) => void;
@@ -87,7 +89,28 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       emCurso = false;
     }
   };
-  return Object.freeze({ [CANAIS_EXPORTACAO.docx]: docx });
+  const relatorio: Manipulador = async (r, argumentos): Promise<ResultadoExportar> => {
+    const canal = CANAIS_EXPORTACAO.relatorio;
+    conferir(canal, r, argumentos, 1);
+    const p = lerPacoteTransferivel(argumentos[0]);
+    if (!p.ok && p.recusado) return recusarArgumento(canal, `pacote (${p.motivo})`);
+    if (!p.ok) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_INVALIDA };
+    if (emCurso) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_EM_CURSO };
+    emCurso = true;
+    try {
+      const documento = p.valor.documento;
+      const nome = `${limparNomeArquivo(textoPlano(documento.metadados.titulo)).replace(/\.bdp$/i, '')}-conformidade.txt`;
+      const destino = await dep.escolherDestinoRelatorio?.(r.idConteudo, nome) ?? null;
+      if (destino === null) return { ok: false, motivo: 'CANCELADO' };
+      if (!destino.toLowerCase().endsWith('.txt')) return { ok: false, motivo: 'ERRO', mensagem: 'O arquivo precisa terminar em .txt.' };
+      const avaliacao = avaliarConformidade(documento, dep.perfil, { imagens: p.valor.midias });
+      const texto = textoRelatorioConformidade(documento, avaliacao.problemas, avaliacao.diagnosticos);
+      const g = await dep.gravar(destino, new TextEncoder().encode('\uFEFF' + texto));
+      if (!g.ok) return { ok: false, motivo: 'ERRO', mensagem: g.mensagem };
+      return { ok: true, nomeArquivo: basename(destino), avisos: avaliacao.diagnosticos.map((d) => d.mensagem) };
+    } finally { emCurso = false; }
+  };
+  return Object.freeze({ [CANAIS_EXPORTACAO.docx]: docx, [CANAIS_EXPORTACAO.relatorio]: relatorio });
 }
 
 /** Ids dos gráficos gerados de tabela do corpo (M5-T09). */

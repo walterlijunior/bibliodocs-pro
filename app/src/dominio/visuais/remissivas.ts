@@ -8,15 +8,15 @@
  * - Remissiva quebrada (alvo que não existe ou equação sem número) não é erro de leitura: é pendência do verificador
  *   (ADR-0005, invariantes).
  */
-import { conteudosDoBloco, textoPlano, type Id, type InlineRemissiva, type Secao } from '../modelo';
-import { numerarElementos, numerarSecoes, rotuloEquacao } from '../numeracao';
+import { conteudosDoBloco, secoesDaEntrada, textoPlano, type EntradaDeLeitura, type Id, type InlineRemissiva } from '../modelo';
+import { numerarElementos, numerarSecoes, rotuloEquacao, rotulosPosTextuais } from '../numeracao';
 import { rotuloElemento } from './rotulos';
 
 export interface AlvoRemissiva {
   id: Id;
   /** Seção onde o elemento está. */
   secao: Id;
-  tipo: 'tabela' | 'ilustracao' | 'grafico' | 'equacao';
+  tipo: 'tabela' | 'ilustracao' | 'grafico' | 'equacao' | 'secao' | 'apendice' | 'anexo';
   /** Texto da remissiva: "Tabela 3", "(2)". */
   rotulo: string;
   /** Para escolher o alvo: "Tabela 3 – Título", "Equação (2) – E = mc2". */
@@ -24,9 +24,21 @@ export interface AlvoRemissiva {
 }
 
 /** Os alvos possíveis, na ordem do documento. */
-export function alvosDeRemissiva(corpo: readonly Secao[]): AlvoRemissiva[] {
-  const { elementos, equacoes } = numerarElementos(corpo);
+export function alvosDeRemissiva(entrada: EntradaDeLeitura): AlvoRemissiva[] {
+  const corpo = secoesDaEntrada(entrada);
+  const { elementos, equacoes } = numerarElementos(entrada);
   const porId = new Map<Id, AlvoRemissiva>();
+  if ('corpo' in entrada) {
+    for (const n of numerarSecoes(entrada.corpo)) {
+      const titulo = textoPlano(n.secao.titulo);
+      porId.set(n.secao.id, { id: n.secao.id, secao: n.secao.id, tipo: 'secao', rotulo: n.alemDoLimite ? titulo : n.indicativo, descricao: `${n.alemDoLimite ? '' : `${n.indicativo} `}${titulo}` });
+    }
+    const rotulos = rotulosPosTextuais(entrada.posTextuais ?? []);
+    for (const e of entrada.posTextuais ?? []) if (e.tipo === 'apendice' || e.tipo === 'anexo') {
+      const rotulo = rotulos.get(e.id)!;
+      porId.set(e.id, { id: e.id, secao: e.id, tipo: e.tipo, rotulo, descricao: e.titulo ? `${rotulo} – ${e.titulo}` : rotulo });
+    }
+  }
   for (const e of elementos) {
     const rotulo = rotuloElemento(e.sequencia, e.numero);
     const titulo = textoPlano(e.bloco.titulo);
@@ -39,7 +51,10 @@ export function alvosDeRemissiva(corpo: readonly Secao[]): AlvoRemissiva[] {
   }
   // Ordem de leitura com os dois tipos intercalados.
   const ordem: AlvoRemissiva[] = [];
-  for (const { secao } of numerarSecoes(corpo)) for (const b of secao.blocos) if (porId.has(b.id)) ordem.push(porId.get(b.id)!);
+  for (const { secao } of numerarSecoes(corpo)) {
+    if (porId.has(secao.id)) ordem.push(porId.get(secao.id)!);
+    for (const b of secao.blocos) if (porId.has(b.id)) ordem.push(porId.get(b.id)!);
+  }
   return ordem;
 }
 
@@ -51,7 +66,8 @@ export interface RemissivaNoTexto {
 }
 
 /** As remissivas do texto corrido, na ordem de leitura. */
-export function remissivasDoCorpo(corpo: readonly Secao[]): RemissivaNoTexto[] {
+export function remissivasDoCorpo(entrada: EntradaDeLeitura): RemissivaNoTexto[] {
+  const corpo = secoesDaEntrada(entrada);
   const lista: RemissivaNoTexto[] = [];
   for (const { secao } of numerarSecoes(corpo)) {
     for (const bloco of secao.blocos) {
@@ -64,7 +80,7 @@ export function remissivasDoCorpo(corpo: readonly Secao[]): RemissivaNoTexto[] {
 }
 
 /** Texto de cada alvo pelo id (o que a remissiva mostra); alvo ausente = remissiva quebrada. */
-export function rotulosDeRemissiva(corpo: readonly Secao[]): ReadonlyMap<Id, string> {
+export function rotulosDeRemissiva(corpo: EntradaDeLeitura): ReadonlyMap<Id, string> {
   return new Map(alvosDeRemissiva(corpo).map((a) => [a.id, a.rotulo]));
 }
 

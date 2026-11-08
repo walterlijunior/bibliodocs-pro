@@ -36,6 +36,7 @@ export type {
   Inline,
   InlineCitacao,
   InlineRemissiva,
+  InlineSigla,
   InlineDeNota,
   InlineDeTitulo,
   InlineNota,
@@ -49,6 +50,9 @@ export type {
   ObraNoTodo,
   PessoaTitulada,
   Secao,
+  Sigla,
+  Simbolo,
+  TermoGlossario,
   TipoObra,
   TipoTrabalhoId,
   TipoTrabalhoUft,
@@ -70,6 +74,8 @@ export { conteudosDoBloco, idsDoBloco } from './percorrer';
 export { ESPECIES_ILUSTRACAO, problemaNaGrade, type MotivoGrade, type ProblemaGrade } from './visuais';
 export { citacoesDoDocumento, FUNCOES_RESPONSAVEL, TIPOS_OBRA } from './obras';
 export { textoPlano } from './texto-plano';
+export { ocorrenciasDeSiglas, chaveDeSigla, type OcorrenciaSigla } from './siglas';
+export { secoesDeLeitura, secoesDaEntrada, type DocumentoDeLeitura, type EntradaDeLeitura } from './leitura';
 export {
   alturaSecao,
   aplicarOperacaoSecao,

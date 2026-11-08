@@ -13,7 +13,8 @@
  * - Ordem de leitura: seção, os blocos dela e depois as subseções (pré-ordem, como o motor). Pré e pós-textuais não têm
  *   blocos no formato v1 (apêndice e anexo só guardam o título), então só o corpo entra na contagem.
  */
-import type { BlocoEquacao, BlocoGrafico, BlocoIlustracao, BlocoTabela, EspecieIlustracao, Id, Secao } from '../modelo';
+import type { BlocoEquacao, BlocoGrafico, BlocoIlustracao, BlocoTabela, EspecieIlustracao, Id } from '../modelo';
+import { secoesDaEntrada, type EntradaDeLeitura } from '../modelo';
 import { numerarSecoes } from './secoes';
 
 /** Sequência de numeração: a espécie da tabela ou da ilustração (cada palavra designativa conta à parte). */
@@ -42,7 +43,8 @@ export interface NumeracaoElementos {
 }
 
 /** Numera os elementos do corpo em ordem de leitura. */
-export function numerarElementos(corpo: readonly Secao[]): NumeracaoElementos {
+export function numerarElementos(entrada: EntradaDeLeitura): NumeracaoElementos {
+  const corpo = secoesDaEntrada(entrada);
   const contagem = new Map<SequenciaElemento, number>();
   const elementos: ElementoNumerado[] = [];
   const equacoes: EquacaoNumerada[] = [];
@@ -62,7 +64,7 @@ export function numerarElementos(corpo: readonly Secao[]): NumeracaoElementos {
 }
 
 /** Número de cada tabela, quadro, ilustração e equação numerada, por id do bloco (para rótulos e remissivas). */
-export function mapaNumerosElementos(corpo: readonly Secao[]): ReadonlyMap<Id, number> {
+export function mapaNumerosElementos(corpo: EntradaDeLeitura): ReadonlyMap<Id, number> {
   const { elementos, equacoes } = numerarElementos(corpo);
   return new Map([...elementos, ...equacoes].map((e) => [e.bloco.id, e.numero]));
 }

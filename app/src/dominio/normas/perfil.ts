@@ -41,6 +41,7 @@ export type AlvoRegra =
   | 'folhaAprovacao.banca'
   | 'preTextual.dedicatoria'
   | 'sumario.entrada'
+  | 'lista.entrada'
   | 'posTextual.identificacao'
   | 'folhaRosto.natureza'
   | 'preTextual.agradecimentos'

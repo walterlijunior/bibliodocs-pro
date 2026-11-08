@@ -37,6 +37,16 @@ try {
     $saida.sumarioAtualizado = $doc.TablesOfContents.Item(1).Range.Text
     $saida.paginasDepois = $doc.ComputeStatistics(2)
   }
+  # M6-T01: compara a página estimada das listas com o PAGEREF recalculado pelo Word, só em memória.
+  $saida.paginasListas = @(
+    foreach ($campo in $doc.Fields) {
+      if ($campo.Code.Text -match 'PAGEREF\s+_Lista_\d+') {
+        $antes = $campo.Result.Text.Trim()
+        $null = $campo.Update()
+        [ordered]@{ campo = $campo.Code.Text.Trim(); gravada = $antes; atualizada = $campo.Result.Text.Trim() }
+      }
+    }
+  )
   if ($Pdf -ne '') {
     # 17 = wdExportFormatPDF
     $doc.ExportAsFixedFormat([System.IO.Path]::GetFullPath($Pdf), 17)

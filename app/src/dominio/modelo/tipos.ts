@@ -83,14 +83,39 @@ export interface InlineRemissiva {
   alvo: Id;
 }
 
+/** Sigla ligada ao cadastro: o texto exibido é derivado; primeira ocorrência por extenso (M6-T02, RN-046/047). */
+export interface InlineSigla {
+  tipo: 'sigla';
+  id: Id;
+  sigla: Id;
+}
+
+export interface Sigla {
+  id: Id;
+  sigla: string;
+  extenso: string;
+}
+
+export interface Simbolo {
+  id: Id;
+  simbolo: string;
+  significado: string;
+}
+
+export interface TermoGlossario {
+  id: Id;
+  termo: string;
+  definicao: string;
+}
+
 /** Trecho do texto corrido. */
-export type Inline = InlineTexto | InlineNota | InlineCitacao | InlineRemissiva;
+export type Inline = InlineTexto | InlineNota | InlineCitacao | InlineRemissiva | InlineSigla;
 
 /**
  * Trecho do conteúdo de uma nota: tudo menos outra nota. Texto e, desde o M4-T07, chamada de citação (a nota que cita a
  * fonte). O M6 (remissiva, sigla) também alarga aqui e em `esquemaInlineNota`.
  */
-export type InlineDeNota = InlineTexto | InlineCitacao;
+export type InlineDeNota = InlineTexto | InlineCitacao | InlineSigla;
 
 /** Trecho de título de seção e de metadado: sem nota de rodapé no M2 (alargar junto com o esquema `conteudoTitulo`). */
 export type InlineDeTitulo = InlineTexto;
@@ -303,11 +328,13 @@ export interface MembroBanca {
 
 /**
  * Elemento pré-textual com o que é só dele (M2-T08). O que capa, folha de rosto e folha de aprovação repetem fica em
- * `Metadados`. Texto simples (`\n` separa parágrafos). Listas e sumário não têm campos: são gerados (M6). Campo vazio
- * fica ausente.
+ * `Metadados`. Texto simples (`\n` separa parágrafos). Listas e sumário são gerados (M6); a lista de ilustrações guarda
+ * só a opção de agrupamento. Campo vazio fica ausente.
  */
 export type ElementoPreTextual =
-  | SoLugar<'capa' | 'folhaRosto' | 'listaIlustracoes' | 'listaTabelas' | 'listaSiglas' | 'listaSimbolos' | 'sumario'>
+  | SoLugar<'capa' | 'folhaRosto' | 'listaTabelas' | 'listaSiglas' | 'listaSimbolos' | 'sumario'>
+  /** Ausente = listas por espécie a partir de cinco itens (RN-161, C-B8). */
+  | { tipo: 'listaIlustracoes'; id: Id; listaUnica?: true }
   | ComTexto<'fichaCatalografica' | 'errata' | 'dedicatoria' | 'agradecimentos' | 'epigrafe'>
   | { tipo: 'folhaAprovacao'; id: Id; dataAprovacao?: string; banca?: MembroBanca[] }
   | { tipo: 'resumo'; id: Id; texto?: string; palavrasChave?: string[] }
@@ -321,8 +348,8 @@ export type ElementoPosTextual =
   | SoLugar<'glossario' | 'indice'>
   /** A lista sai das obras citadas; `incluirNaoCitadas` põe também as demais obras da bibliografia (M4-T05). */
   | { tipo: 'referencias'; id: Id; incluirNaoCitadas?: true }
-  | { tipo: 'apendice'; id: Id; titulo?: string }
-  | { tipo: 'anexo'; id: Id; titulo?: string };
+  | { tipo: 'apendice'; id: Id; titulo?: string; blocos?: Bloco[] }
+  | { tipo: 'anexo'; id: Id; titulo?: string; blocos?: Bloco[] };
 
 /** Pessoa com titulação (orientador, coorientador; RN-127, RN-132). */
 export interface PessoaTitulada {
@@ -461,4 +488,8 @@ export interface Documento {
   posTextuais?: ElementoPosTextual[];
   /** Obras da bibliografia (M4-T01). Ausente quando não há obra (a lista vazia é recusada na leitura). */
   obras?: Obra[];
+  /** Cadastros de abreviaturas e siglas; ausência quando vazio (M6-T02). */
+  siglas?: Sigla[];
+  simbolos?: Simbolo[];
+  glossario?: TermoGlossario[];
 }

@@ -746,6 +746,20 @@
 <w:szCs w:val="24"/>
 </w:rPr>
 </w:style>
+<w:style w:styleId="entradaLista" w:type="paragraph">
+<w:name w:val="Entrada de lista de ilustrações ou tabelas"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
 <w:style w:styleId="identificacaoPosTextual" w:type="paragraph">
 <w:name w:val="Identificação de apêndice e anexo"/>
 <w:basedOn w:val="Normal"/>

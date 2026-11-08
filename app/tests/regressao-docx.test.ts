@@ -42,6 +42,10 @@ describe.each(CORPUS.map(([nome]) => nome))('propriedades normativas: %s', (nome
   };
   const secoes = () => (g().partes['word/document.xml']!.match(/<w:sectPr.*?<\/w:sectPr>/gs) ?? []);
 
+  it('marcadores com nome que o Word aceita: até 40 caracteres, letras, algarismos e "_" (revisão do M6)', () => {
+    const nomes = [...g().partes['word/document.xml']!.matchAll(/<w:bookmarkStart [^>]*w:name="([^"]*)"/g)].map((m) => m[1]!);
+    for (const n of nomes) expect(n, n).toMatch(/^[A-Za-z_][A-Za-z0-9_]{0,39}$/);
+  });
   it('XML bem formado', () => {
     for (const [n, x] of Object.entries(g().partes)) expect(XMLValidator.validate(x), n).toBe(true);
   });
@@ -184,7 +188,8 @@ describe('o documento difícil exercita o que deve', () => {
     expect(doc).toContain('w:val="subalinea"');
     expect(doc).toContain('APÊNDICE B – Questionário de exemplo');
     expect(doc).toContain('ANEXO A – Documento de exemplo');
-    expect(formatado.avisos.map((a) => a.codigo)).toEqual(['BRASAO_AUSENTE']);
+    // M6-T04: a forma "Termo: definição" do glossário é provisória (D-M6-06) e avisa.
+    expect(formatado.avisos.map((a) => a.codigo)).toEqual(['FORMA_SEM_FONTE', 'BRASAO_AUSENTE']);
   });
 
   it('tem tabela, quadro e tabela longa nativos, com os traços da norma (M5-T03; RN-251, RN-254, RN-061, RN-292)', () => {
@@ -246,7 +251,8 @@ describe('o documento difícil exercita o que deve', () => {
       'EXEMPLAR NETO, Autoria. Estudo de Caryocar brasiliense: um caso fictício. 2. ed. Palmas: Editora Fictícia, 2020a. 120 p.',
       'EXEMPLAR NETO, Autoria. Outro estudo. Palmas: Editora Fictícia, 2020b.',
     ]);
-    expect(texto('corpo').at(-1)).toBe(
+    // M6: o glossário (estilo do corpo) vem depois; a chamada narrativa é o último parágrafo do texto.
+    expect(texto('corpo').find((t) => t.startsWith('Coautoria A'))).toBe(
       'Coautoria A et al. (2021) e Capítulo (2019, p. 15 apud EXEMPLAR NETO, 2020b, p. 8) afirmam o exemplo (BRASIL, 2000; EXEMPLAR NETO, 2020a, não paginado, grifo nosso).',
     );
     expect(texto('citacaoLonga')[0]).toMatch(/\(EXEMPLAR NETO, 2020a, p\. 12\)$/u);

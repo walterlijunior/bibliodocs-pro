@@ -52,6 +52,12 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obr
   await criarTrabalho(p);
   await expect(p.getByLabel('Título do trabalho')).toBeVisible();
   await conferirAxe(p, 'escrever', info);
+  const pre = p.getByRole('navigation', { name: 'Elementos pré-textuais' });
+  await pre.getByLabel('Incluir elemento').selectOption('listaIlustracoes');
+  await pre.getByRole('button', { name: 'Incluir', exact: true }).click();
+  await expect(p.getByRole('checkbox', { name: 'Usar lista única de ilustrações' })).toBeVisible();
+  await conferirAxe(p, 'lista-ilustracoes', info);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
 
   // M4-T06: cadastro de obra com autoria, prévia e campos assinalados.
   await p.getByRole('navigation', { name: 'Bibliografia' }).getByRole('button', { name: 'Nova obra' }).click();
@@ -162,7 +168,8 @@ test('Janela da remissiva e remissiva quebrada no texto (M5-T08) sem violação 
   await p.keyboard.type('Ver ');
   await barra.getByRole('button', { name: 'Remissiva' }).click();
   const janela = p.getByRole('dialog', { name: 'Inserir remissiva' });
-  await expect(janela.getByRole('radio')).toHaveCount(1);
+  // Desde o M6 a janela lista também as seções; escolhe a equação.
+  await janela.getByRole('radio', { name: 'Equação (1) – x = y' }).check();
   await conferirAxe(p, 'janela-remissiva', info);
   await janela.getByRole('button', { name: 'Inserir remissiva' }).click();
   await editor.locator('.bd-equacao').click();

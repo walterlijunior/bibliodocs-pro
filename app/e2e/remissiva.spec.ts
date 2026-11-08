@@ -40,7 +40,9 @@ test('FUN-18: remissiva acompanha a numeração e avisa ao quebrar', async () =>
 
   await barra.getByRole('button', { name: 'Remissiva' }).click();
   const janela = p.getByRole('dialog', { name: 'Inserir remissiva' });
-  await expect(janela.getByRole('radio')).toHaveCount(2);
+  // Desde o M6 a janela lista também as seções (alvos de remissiva, D-M6-08); as duas equações estão lá.
+  await expect(janela.getByRole('radio', { name: /^Equação/ })).toHaveCount(2);
+  await expect(janela.getByRole('radio', { name: '1 Introdução' })).toBeVisible();
   await janela.getByRole('radio', { name: 'Equação (2) – x = y' }).check();
   await janela.getByRole('button', { name: 'Inserir remissiva' }).click();
   await expect(janela).toBeHidden();

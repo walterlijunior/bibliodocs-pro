@@ -9,6 +9,9 @@
  * sessão de edição (trabalho aberto e salvamento automático) no M1-T11; recuperação (instantâneos) no M1-T12; ordem
  * única de desfazer (`HistoricoEdicao`) e operações estruturais na sessão no M2-T07.
  */
+export type { CadastrosDocumento } from './servicos/historico-edicao';
+export type { RelatorioConformidade, NaoConformidade } from '../dominio/verificador/conformidade';
+
 export {
   CANAIS_PROJETOS,
   CODIGO_MIDIA_AUSENTE,

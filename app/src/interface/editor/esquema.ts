@@ -160,7 +160,7 @@ const nos: Record<string, NodeSpec> = {
     group: 'inline',
     inline: true,
     atom: true,
-    content: '(textual | chamadaCitacao)*',
+    content: '(textual | chamadaCitacao | sigla)*',
     attrs: atributoId,
     parseDOM: [{ tag: 'span.bd-nota', getAttrs: idDoElemento }],
     toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-nota', no), 0],
@@ -183,6 +183,14 @@ const nos: Record<string, NodeSpec> = {
     atom: true,
     attrs: { ...atributoId, alvo: { validate: 'string' } },
     toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-remissiva', no), 'remissiva'],
+  },
+
+  sigla: {
+    group: 'inline',
+    inline: true,
+    atom: true,
+    attrs: { ...atributoId, sigla: { validate: 'string' } },
+    toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-sigla', no), 'sigla'],
   },
 
   chamadaCitacao: {
@@ -230,4 +238,5 @@ export const PREFIXO_ID: Readonly<Record<string, string>> = {
   nota: 'nta',
   chamadaCitacao: 'cta',
   remissiva: 'rem',
+  sigla: 'sig',
 };

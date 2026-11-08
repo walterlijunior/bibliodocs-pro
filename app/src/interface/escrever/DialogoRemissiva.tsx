@@ -58,7 +58,7 @@ export function DialogoRemissiva(p: PropsDialogoRemissiva) {
       >
         <h2 id={`${base}-titulo`}>{acao}</h2>
         {elementos.length === 0 ? (
-          <p>O trabalho ainda não tem tabela, quadro, figura nem equação numerada para citar.</p>
+          <p>O trabalho ainda não tem seção, apêndice, tabela, quadro, figura nem equação numerada para citar.</p>
         ) : (
           <>
             {quebrada && <p role="alert">Esta remissiva está quebrada: o elemento citado foi excluído ou a equação ficou sem número. Escolha outro.</p>}
@@ -71,7 +71,7 @@ export function DialogoRemissiva(p: PropsDialogoRemissiva) {
                 </label>
               ))}
             </fieldset>
-            <p className="dialogo__nota">No texto aparece só o rótulo (“Tabela 3”, ou “(2)” na equação), que acompanha a numeração.</p>
+            <p className="dialogo__nota">No texto aparece só o rótulo (“2.1” na seção, “Tabela 3”, “(2)” na equação, “APÊNDICE A”), que acompanha a numeração.</p>
           </>
         )}
         <div className="dialogo__acoes">

@@ -177,10 +177,10 @@ describe('demais pré-textuais', () => {
     expect(b.entradas).toHaveLength(5);
     expect(b.entradas[1]).toMatchObject({ nivel: 2, indicativo: '1.1', texto: 'N2' });
   });
-  it('listas ainda não saem: só aviso, sem título vazio', () => {
+  it('lista de tabelas sem tabelas não reserva folha vazia', () => {
     const d = fmt({ preTextuais: pre({ tipo: 'listaTabelas' }) });
     expect(d.secoes.map((s) => s.papel)).toEqual(['textual']);
-    expect(d.avisos.map((a) => a.codigo)).toEqual(['ELEMENTO_ADIADO']);
+    expect(d.avisos).toEqual([]);
   });
 });
 

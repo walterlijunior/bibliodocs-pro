@@ -6,8 +6,10 @@
  */
 import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferencias, type TrechoReferencia } from '../bibliografia';
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
-import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
+import { citacoesDoDocumento, secoesDeLeitura, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
+import { listasDeElementos } from './motor-listas';
+import { blocosGlossario, blocosListaSiglas, blocosListaSimbolos } from './motor-catalogos';
 import { blocosEquacao, blocosGrafico, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
 import { rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA } from '../visuais';
 import type {
@@ -134,6 +136,7 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
   { id: 'aprovacaoData', nome: 'Aprovação – Data', alvos: ['documento', 'folhaAprovacao.data'] },
   { id: 'aprovacaoBanca', nome: 'Aprovação – Banca', alvos: ['documento', 'folhaAprovacao.banca'] },
   { id: 'entradaSumario', nome: 'Entrada do sumário', alvos: ['documento', 'sumario.entrada'] },
+  { id: 'entradaLista', nome: 'Entrada de lista de ilustrações ou tabelas', alvos: ['documento', 'lista.entrada'] },
   { id: 'identificacaoPosTextual', nome: 'Identificação de apêndice e anexo', alvos: ['documento', 'posTextual.identificacao'] },
   {
     id: 'referencia',
@@ -253,7 +256,7 @@ const temProcedimento = (regras: readonly RegraNormativa[], nome: string): strin
 const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 'texto' && i.texto.trim() === '');
 
 export type DocumentoParaFormatar = Pick<Documento, 'corpo'> &
-  Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>> & {
+  Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras' | 'siglas' | 'simbolos' | 'glossario'>> & {
     /** Bytes das imagens das ilustrações, pelo sha256 (M5-T06). Sem a imagem, a ilustração sai sem ela, com aviso. */
     imagens?: ReadonlyMap<string, Uint8Array>;
     /** PNG de cada gráfico gerado, pelo id do bloco, desenhado pela interface (M5-T09). Sem ele, sai sem a imagem. */
@@ -358,10 +361,23 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   };
 
   // Remissivas (M5-T08): o texto vem da numeração, a cada exportação; como texto simples no DOCX (D-M5-44).
-  const rotulosRemissiva = rotulosDeRemissiva(doc.corpo);
+  const rotulosRemissiva = rotulosDeRemissiva(doc);
+  const cadastroSiglas = new Map((doc.siglas ?? []).map((s) => [s.id, s]));
+  const siglasUsadas = new Set<string>();
+  const rnPrimeiraSigla = temProcedimento(regras, 'primeiraSiglaPorExtenso');
   const trechos = (conteudo: readonly Inline[]): TrechoFormatado[] =>
     conteudo.flatMap((i): TrechoFormatado[] => {
       if (i.tipo === 'texto') return [{ tipo: 'texto', texto: i.texto, marcas: i.marcas ?? [] }];
+      if (i.tipo === 'sigla') {
+        const s = cadastroSiglas.get(i.sigla);
+        if (!s) {
+          avisos.push({ codigo: 'SIGLA_QUEBRADA', id: i.id, mensagem: 'A sigla ligada no texto não está no cadastro (RN-046).' });
+          return [{ tipo: 'texto', texto: '[sigla sem cadastro]', marcas: [] }];
+        }
+        const primeira = !siglasUsadas.has(s.id);
+        siglasUsadas.add(s.id);
+        return [{ tipo: 'texto', texto: primeira && rnPrimeiraSigla !== null ? `${s.extenso} (${s.sigla})` : s.sigla, marcas: [] }];
+      }
       if (i.tipo === 'remissiva') {
         const rotulo = rotulosRemissiva.get(i.alvo);
         // Quebrada: sai marcada, para o autor achar; quem avisa é o verificador (REMISSIVA_QUEBRADA), sem repetir aqui.
@@ -396,9 +412,10 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   };
 
   const pagina = paginaDe(regras, perfil);
-  const visuais = contextoVisuais(doc.corpo, regras, perfil, pagina);
+  const leitura = secoesDeLeitura(doc);
+  const visuais = contextoVisuais(leitura, regras, perfil, pagina);
 
-  const bloco = (b: Bloco): BlocoFormatado[] => {
+  const converterBloco = (b: Bloco): BlocoFormatado[] => {
     switch (b.tipo) {
       case 'paragrafo':
         return [{ tipo: 'paragrafo', estilo: 'corpo', trechos: trechos(b.conteudo), origem: [] }];
@@ -447,6 +464,16 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     }
   };
 
+  const legendas = new Map<string, Extract<BlocoFormatado, { tipo: 'paragrafo' }>>();
+  const bloco = (b: Bloco): BlocoFormatado[] => {
+    const saida = converterBloco(b);
+    if ((b.tipo === 'tabela' || b.tipo === 'ilustracao' || b.tipo === 'grafico') && saida[0]?.tipo === 'paragrafo') {
+      const legenda = { ...saida[0], ancora: `_Lista_${legendas.size + 1}` };
+      legendas.set(b.id, legenda);
+      saida[0] = legenda;
+    }
+    return saida;
+  };
   const blocos = numerarSecoes(doc.corpo).flatMap((n): BlocoFormatado[] => {
     if (n.alemDoLimite) {
       avisos.push({ codigo: 'SECAO_ALEM_DO_LIMITE', id: n.secao.id, mensagem: `A seção ${n.indicativo} passa do quinto nível (RN-041) e saiu como quinária.` });
@@ -465,11 +492,16 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     ];
   });
 
-  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos, blocosReferencias).map((b, i): BlocoFormatado =>
+  const gerarGlossario = () => {
+    if (temProcedimento(regras, 'listaDeGlossario') === null) return [];
+    if ((doc.glossario ?? []).length > 0) avisos.push({ codigo: 'FORMA_SEM_FONTE', id: doc.posTextuais?.find((e) => e.tipo === 'glossario')?.id ?? '', mensagem: 'A forma “Termo: definição” do glossário é provisória: exemplo do Manual, p. 64 (D-M6-06, PF-10).' });
+    return blocosGlossario(doc.glossario ?? []);
+  };
+  const blocosPos = blocosPosTextuais(doc.posTextuais ?? [], avisos, blocosReferencias, gerarGlossario, (e) => (e.blocos ?? []).flatMap(bloco)).map((b, i): BlocoFormatado =>
     b.tipo === 'paragrafo' && b.estilo === 'tituloPosTextual' ? { ...b, ancora: ancoraDe(`pos:${i}`) } : b,
   );
   const titulosPos = blocosPos.flatMap((b) =>
-    b.tipo === 'paragrafo' && b.ancora ? [{ ancora: b.ancora, texto: b.trechos.map((t) => (t.tipo === 'texto' ? t.texto : '')).join('') }] : [],
+    b.tipo === 'paragrafo' && b.estilo === 'tituloPosTextual' && b.ancora ? [{ ancora: b.ancora, texto: b.trechos.map((t) => (t.tipo === 'texto' ? t.texto : '')).join('') }] : [],
   );
   const entradas = (): BlocoFormatado => ({
     tipo: 'sumario',
@@ -524,7 +556,12 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
     es: rnRotulos !== null && typeof rotulos?.es === 'string' ? rotulos.es : null,
     fr: rnRotulos !== null && typeof rotulos?.fr === 'string' ? rotulos.fr : null,
   };
-  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, { meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave }));
+  const blocosPre = pre.flatMap((e) => blocosPreTextual(e, m, {
+    meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave,
+    listas: (elemento) => listasDeElementos(elemento, leitura, legendas, regras, perfil, visuais.larguraTw),
+    siglas: () => temProcedimento(regras, 'listaDeSiglas') === null ? [] : blocosListaSiglas(doc.siglas ?? [], siglasUsadas, visuais.larguraTw),
+    simbolos: () => temProcedimento(regras, 'listaDeSimbolos') === null ? [] : blocosListaSimbolos(doc.simbolos ?? [], visuais.larguraTw),
+  }));
   if (blocosPre.length > 0) secoes.push({ papel: 'preTextual', exibirNumero: false, blocos: semQuebraNaPrimeira(blocosPre), origem: ['RN-067', 'RN-068'] });
   secoes.push({ papel: 'textual', exibirNumero: true, blocos, origem: ['RN-068', 'RN-069'] });
   if (blocosPos.length > 0) secoes.push({ papel: 'posTextual', exibirNumero: true, blocos: semQuebraNaPrimeira(blocosPos), origem: ['RN-073'] });

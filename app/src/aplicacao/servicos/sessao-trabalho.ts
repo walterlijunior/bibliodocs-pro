@@ -43,11 +43,15 @@ import {
   removerSecao,
   citacoesDoDocumento,
   conteudosDoBloco,
+  secoesDeLeitura,
   ehTipoTrabalhoUft,
   ORDEM_PRE_TEXTUAIS,
+  incluirPosTextual as incluirElementoPos,
   type Bloco,
   type BlocoTabela,
   type Documento,
+  type ElementoPosTextual,
+  type ElementoPosTextualId,
   type ElementoPreTextual,
   type ElementoPreTextualId,
   type Id,
@@ -60,15 +64,16 @@ import {
   type TipoTrabalhoId,
 } from '../../dominio/modelo';
 import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
-import { LIMITES_V1, midiasDoDocumento } from '../../dominio/esquemas';
+import { LIMITES_V1, midiasDoDocumento, validarDocumentoV1 } from '../../dominio/esquemas';
 import { alvosDeRemissiva, lerInfoImagem, type AlvoRemissiva, type InfoImagem } from '../../dominio/visuais';
-import { numerarSecoes } from '../../dominio/numeracao';
+import { letraPosTextual, numerarSecoes } from '../../dominio/numeracao';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
 import { formatarReferencia, ordenarReferencias, textoDaReferencia } from '../../dominio/bibliografia';
-import { HistoricoEdicao, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
+import { HistoricoEdicao, type CadastrosDocumento, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
 import { verificarBibliografiaDoDocumento } from './citacoes';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
+import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
 import { validarObra } from './obras';
 import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
 import {
@@ -191,6 +196,10 @@ export interface TrabalhoDaSessao {
   preTextuais: PreTextuaisDaSessao | null;
   /** Obras da bibliografia na ordem das referências (M4-T06). O objeto só muda quando as obras mudam. */
   obras: readonly ObraNaLista[];
+  cadastros?: CadastrosDocumento;
+  posTextuais?: readonly ElementoPosTextual[];
+  rotulosPosTextuais?: ReadonlyMap<string, string>;
+  secoesEdicao?: readonly ResumoSecao[];
   /** Alvos de remissiva (M5-T08). O objeto só muda quando a lista, os números, os títulos ou as contagens mudam. */
   elementos: readonly ElementoNaSessao[];
 }
@@ -430,7 +439,11 @@ export class SessaoTrabalho {
               secoes: this.#secoes,
               preTextuais: this.#preTextuais(a.pacote.documento),
               obras: this.#obrasNaLista(a.pacote.documento),
-              elementos: this.#publicarElementos(a.pacote.documento.corpo),
+              cadastros: this.#cadastros(a.pacote.documento),
+              posTextuais: a.pacote.documento.posTextuais ?? [],
+              rotulosPosTextuais: this.#rotulosPos(a.pacote.documento),
+              secoesEdicao: [...this.#secoes, ...this.#resumosPos(a.pacote.documento)],
+              elementos: this.#publicarElementos(a.pacote.documento),
             },
       avisos: this.#avisos,
     };
@@ -481,7 +494,7 @@ export class SessaoTrabalho {
 
   /** Remissivas por alvo de cada lista de blocos: a seção que não mudou guarda o mesmo array e não é relida. */
   readonly #remissivasDosBlocos = new WeakMap<readonly Bloco[], ReadonlyMap<Id, number>>();
-  #cacheElementos: { corpo: readonly Secao[]; chave: string; resultado: readonly ElementoNaSessao[] } | null = null;
+  #cacheElementos: { corpo: readonly Secao[]; pos: Documento['posTextuais']; chave: string; resultado: readonly ElementoNaSessao[] } | null = null;
   /** A última lista entregue à tela; `null` logo depois de abrir um trabalho. */
   #elementosEmitidos: readonly ElementoNaSessao[] | null = null;
   /** Texto do aviso de remissiva quebrada por elemento: sai quando o elemento volta (Ctrl+Z). */
@@ -508,21 +521,26 @@ export class SessaoTrabalho {
     return m;
   }
 
-  #elementosDe(corpo: readonly Secao[]): readonly ElementoNaSessao[] {
+  /**
+   * Revisão do M6 (integração do M6-T05/T06): corpo, apêndices e anexos. Seções e apêndices também são alvos de
+   * remissiva, e as tabelas e figuras dos apêndices entram na lista, como no motor.
+   */
+  #elementosDe(doc: Pick<Documento, 'corpo' | 'posTextuais'>): readonly ElementoNaSessao[] {
     const c = this.#cacheElementos;
-    if (c !== null && c.corpo === corpo) return c.resultado;
+    if (c !== null && c.corpo === doc.corpo && c.pos === doc.posTextuais) return c.resultado;
+    const leitura = secoesDeLeitura(doc);
     const total = new Map<Id, number>();
-    for (const { secao } of numerarSecoes(corpo)) for (const [alvo, n] of this.#contarRemissivas(secao.blocos)) total.set(alvo, (total.get(alvo) ?? 0) + n);
+    for (const { secao } of numerarSecoes(leitura)) for (const [alvo, n] of this.#contarRemissivas(secao.blocos)) total.set(alvo, (total.get(alvo) ?? 0) + n);
     const tabelas = new Map<Id, BlocoTabela>();
-    for (const { secao } of numerarSecoes(corpo)) for (const b of secao.blocos) if (b.tipo === 'tabela' && b.especie === 'tabela') tabelas.set(b.id, b);
-    const lista = alvosDeRemissiva(corpo).map((a): ElementoNaSessao => {
+    for (const { secao } of numerarSecoes(leitura)) for (const b of secao.blocos) if (b.tipo === 'tabela' && b.especie === 'tabela') tabelas.set(b.id, b);
+    const lista = alvosDeRemissiva(doc).map((a): ElementoNaSessao => {
       const t = tabelas.get(a.id);
       return { ...a, remissivas: total.get(a.id) ?? 0, ...(t ? { tabela: t } : {}) };
     });
     // A tabela entra na chave pela revisão do objeto (mudou o conteúdo, mudou o objeto): o gráfico redesenha.
     const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas, e.tabela ? this.#revisaoDoBloco(e.tabela) : 0]));
     const resultado = c !== null && c.chave === chave ? c.resultado : lista;
-    this.#cacheElementos = { corpo, chave, resultado };
+    this.#cacheElementos = { corpo: doc.corpo, pos: doc.posTextuais, chave, resultado };
     return resultado;
   }
 
@@ -530,8 +548,8 @@ export class SessaoTrabalho {
    * Lista para a tela e o aviso do aceite do RF-11: elemento citado que sai do documento (ou equação citada que perde o
    * número) deixa as remissivas quebradas; o aviso diz quantas e lembra o Ctrl+Z.
    */
-  #publicarElementos(corpo: readonly Secao[]): readonly ElementoNaSessao[] {
-    const atual = this.#elementosDe(corpo);
+  #publicarElementos(doc: Pick<Documento, 'corpo' | 'posTextuais'>): readonly ElementoNaSessao[] {
+    const atual = this.#elementosDe(doc);
     const antes = this.#elementosEmitidos;
     this.#elementosEmitidos = atual;
     if (antes === null || antes === atual) return atual;
@@ -543,8 +561,8 @@ export class SessaoTrabalho {
     }
     for (const e of antes) {
       if (e.remissivas === 0 || ficam.has(e.id)) continue;
-      const nome = e.tipo === 'equacao' ? `Equação ${e.rotulo}` : e.rotulo;
-      const como = e.tipo === 'equacao' && blocoExiste(corpo, e.id) ? 'sem número' : 'excluída do texto';
+      const nome = e.tipo === 'equacao' ? `Equação ${e.rotulo}` : e.tipo === 'secao' ? `Seção ${e.rotulo}` : e.rotulo;
+      const como = e.tipo === 'equacao' && blocoExiste(secoesDeLeitura(doc), e.id) ? 'sem número' : 'excluída do texto';
       const quantas = e.remissivas === 1 ? '1 remissiva ficou quebrada' : `${e.remissivas} remissivas ficaram quebradas`;
       const texto = `${nome} ${como}: ${quantas}. Ctrl+Z desfaz.`;
       this.#avisar({ nivel: 'alerta', texto, acoes: [] });
@@ -823,8 +841,111 @@ export class SessaoTrabalho {
       (d.preTextuais ?? []).some((e) => e.id === id) ||
       (d.posTextuais ?? []).some((e) => e.id === id) ||
       (d.obras ?? []).some((o) => o.id === id) ||
+      (d.siglas ?? []).some((o) => o.id === id) ||
+      (d.simbolos ?? []).some((o) => o.id === id) ||
+      (d.glossario ?? []).some((o) => o.id === id) ||
       citacoesDoDocumento(d).some((c) => c.id === id)
     );
+  }
+
+  #rotulosPos(doc: Documento): ReadonlyMap<string, string> {
+    const contador = { apendice: 0, anexo: 0 };
+    return new Map((doc.posTextuais ?? []).map((p) => {
+      const rotulo = p.tipo === 'apendice' || p.tipo === 'anexo'
+        ? `${p.tipo === 'apendice' ? 'APÊNDICE' : 'ANEXO'} ${letraPosTextual(contador[p.tipo]++)}${p.titulo ? ` – ${p.titulo}` : ''}`
+        : { referencias: 'REFERÊNCIAS', glossario: 'GLOSSÁRIO', indice: 'ÍNDICE' }[p.tipo];
+      return [p.id, rotulo];
+    }));
+  }
+
+  #resumosPos(doc: Documento): ResumoSecao[] {
+    const editaveis = (doc.posTextuais ?? []).filter((e) => e.tipo === 'apendice' || e.tipo === 'anexo');
+    const rotulos = this.#rotulosPos(doc);
+    return editaveis.map((p, i) => ({ id: p.id, titulo: 'titulo' in p ? p.titulo ?? '' : '', indicativo: rotulos.get(p.id) ?? '', nivel: 1, paiId: null, posicao: i + 1, irmas: editaveis.length }));
+  }
+
+  atualizarPosTextuais(lista: readonly ElementoPosTextual[]): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const antes = a.pacote.documento.posTextuais ?? [];
+    if (JSON.stringify(antes) === JSON.stringify(lista)) return { ok: true, id: a.pacote.documento.id };
+    if (!this.#trocarPos(a, lista)) return { ok: false, mensagem: 'Confira os títulos, a ordem, os limites e o conteúdo dos elementos pós-textuais.' };
+    this.#historico.registrar({ tipo: 'posTextuais', inverso: antes });
+    this.#emitir();
+    return { ok: true, id: a.pacote.documento.id };
+  }
+
+  #trocarPos(a: Extract<Aberto, { modo: 'edicao' }>, lista: readonly ElementoPosTextual[]): boolean {
+    const { posTextuais: _anteriores, ...resto } = a.pacote.documento;
+    const candidato: Documento = { ...resto, ...(lista.length ? { posTextuais: [...lista] } : {}) };
+    const r = validarDocumentoV1(candidato);
+    if (!r.ok) return false;
+    a.pacote = { ...a.pacote, documento: { ...resto, ...(r.valor.posTextuais ? { posTextuais: r.valor.posTextuais } : {}) } };
+    this.#marcarAlteracao();
+    return true;
+  }
+
+  incluirPosTextual(tipo: ElementoPosTextualId): string | null {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao' || !this.#dep.gerarIdElemento) return null;
+    let id = this.#dep.gerarIdElemento();
+    while (this.#idEmUso(a, id)) id = this.#dep.gerarIdElemento();
+    const lista = incluirElementoPos(a.pacote.documento.posTextuais ?? [], tipo, id);
+    return lista && this.atualizarPosTextuais(lista).ok ? id : null;
+  }
+
+  retirarPosTextual(id: string): boolean {
+    const lista = this.#aberto?.pacote.documento.posTextuais ?? [];
+    return lista.some((e) => e.id === id) && this.atualizarPosTextuais(lista.filter((e) => e.id !== id)).ok;
+  }
+
+  renomearPosTextual(id: string, texto: string): boolean {
+    const lista = this.#aberto?.pacote.documento.posTextuais ?? [];
+    const titulo = limparTexto(texto, LIMITES_V1.campoCurto);
+    return this.atualizarPosTextuais(lista.map((e) => {
+      if (e.id !== id || (e.tipo !== 'apendice' && e.tipo !== 'anexo')) return e;
+      const { titulo: _titulo, ...resto } = e;
+      return { ...resto, ...(titulo ? { titulo } : {}) };
+    })).ok;
+  }
+
+  moverPosTextual(id: string, sentido: 'cima' | 'baixo'): boolean {
+    const lista = [...(this.#aberto?.pacote.documento.posTextuais ?? [])];
+    const i = lista.findIndex((e) => e.id === id); const j = i + (sentido === 'cima' ? -1 : 1);
+    if (i < 0 || j < 0 || j >= lista.length || lista[i]!.tipo !== lista[j]!.tipo) return false;
+    [lista[i], lista[j]] = [lista[j]!, lista[i]!];
+    return this.atualizarPosTextuais(lista).ok;
+  }
+
+  #cadastros(doc: Documento): CadastrosDocumento {
+    return {
+      ...(doc.siglas ? { siglas: doc.siglas } : {}),
+      ...(doc.simbolos ? { simbolos: doc.simbolos } : {}),
+      ...(doc.glossario ? { glossario: doc.glossario } : {}),
+    };
+  }
+
+  /** Troca os cadastros em um passo do histórico; ids e limites conferidos como ao abrir o arquivo. */
+  atualizarCadastros(cadastros: CadastrosDocumento): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: 'Abra um trabalho para editar os cadastros.' };
+    const antes = this.#cadastros(a.pacote.documento);
+    if (JSON.stringify(antes) === JSON.stringify(cadastros)) return { ok: true, id: a.pacote.documento.id };
+    if (!this.#trocarCadastros(a, cadastros)) return { ok: false, mensagem: 'Confira os campos, os identificadores e os limites dos cadastros.' };
+    this.#historico.registrar({ tipo: 'cadastros', inverso: antes });
+    this.#emitir();
+    return { ok: true, id: a.pacote.documento.id };
+  }
+
+  #trocarCadastros(a: Extract<Aberto, { modo: 'edicao' }>, cadastros: CadastrosDocumento): boolean {
+    const { siglas: _s, simbolos: _y, glossario: _g, ...resto } = a.pacote.documento;
+    const candidato: Documento = { ...resto, ...cadastros };
+    const r = validarDocumentoV1(candidato);
+    if (!r.ok) return false;
+    // Guarda as cópias dos cadastros validados, preservando identidade do texto e caches do editor.
+    a.pacote = { ...a.pacote, documento: { ...resto, ...this.#cadastros(r.valor) } };
+    this.#marcarAlteracao();
+    return true;
   }
 
   // ---------- bibliografia (M4-T06) ----------
@@ -833,6 +954,12 @@ export class SessaoTrabalho {
   verificarBibliografia(): readonly ProblemaBibliografia[] {
     const a = this.#aberto;
     return a === null ? [] : verificarBibliografiaDoDocumento(a.pacote.documento);
+  }
+
+  verificarConformidade(): RelatorioConformidade {
+    const a = this.#aberto;
+    if (!a) return { problemas: [], diagnosticos: [] };
+    return avaliarConformidade(a.pacote.documento, PERFIL_UFT_2022, { imagens: new Map(a.pacote.midias.map((m) => [m.sha256, m.bytes])) });
   }
 
   /** Quantas chamadas do texto apontam para a obra, como citada ou como fonte do apud. */
@@ -989,7 +1116,10 @@ export class SessaoTrabalho {
   secao(id: Id): Secao | null {
     const a = this.#aberto;
     const caminho = this.#caminhos.get(id);
-    if (a === null || caminho === undefined) return null;
+    if (a === null) return null;
+    const pos = a.pacote.documento.posTextuais?.find((p) => p.id === id && (p.tipo === 'apendice' || p.tipo === 'anexo'));
+    if (pos && (pos.tipo === 'apendice' || pos.tipo === 'anexo')) return { id, titulo: [{ tipo: 'texto', texto: pos.titulo ?? '' }], blocos: pos.blocos ?? [], subsecoes: [] };
+    if (caminho === undefined) return null;
     return secaoNoCaminho(a.pacote.documento.corpo, caminho) ?? null;
   }
 
@@ -1001,6 +1131,14 @@ export class SessaoTrabalho {
   alterarSecao(id: Id, conteudo: ConteudoDaSecao): void {
     const a = this.#aberto;
     if (a?.modo !== 'edicao') return;
+    const pos = a.pacote.documento.posTextuais?.find((p) => p.id === id && (p.tipo === 'apendice' || p.tipo === 'anexo'));
+    if (pos && (pos.tipo === 'apendice' || pos.tipo === 'anexo')) {
+      const titulo = limparTexto(textoDoTitulo(conteudo.titulo), LIMITES_V1.campoCurto);
+      const { titulo: _titulo, blocos: _blocos, ...resto } = pos;
+      const novo = { ...resto, ...(titulo ? { titulo } : {}), ...(conteudo.blocos.length ? { blocos: conteudo.blocos } : {}) };
+      a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, posTextuais: a.pacote.documento.posTextuais!.map((p) => p.id === id ? novo : p) } };
+      this.#marcarAlteracao(); this.#emitir(); return;
+    }
     const caminho = this.#caminhos.get(id);
     const corpo = a.pacote.documento.corpo;
     const atual = caminho === undefined ? undefined : secaoNoCaminho(corpo, caminho);
@@ -1010,7 +1148,7 @@ export class SessaoTrabalho {
     a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: trocarSecao(corpo, caminho, nova) } };
     let emitir = this.#marcarAlteracao();
     // Elemento novo, excluído, renumerado ou remissiva incluída: a tela precisa da lista nova (M5-T08).
-    if (this.#elementosDe(a.pacote.documento.corpo) !== this.#elementosEmitidos) emitir = true;
+    if (this.#elementosDe(a.pacote.documento) !== this.#elementosEmitidos) emitir = true;
     const texto = textoDoTitulo(nova.titulo);
     if (texto !== textoDoTitulo(atual.titulo)) {
       this.#secoes = this.#secoes.map((s) => (s.id === id ? { ...s, titulo: texto } : s));
@@ -1084,7 +1222,7 @@ export class SessaoTrabalho {
    * desfazer muda numa transação que não é de desfazer/refazer): entra na ordem única.
    */
   registrarTexto(secaoId: Id): void {
-    if (this.#aberto?.modo === 'edicao' && this.#caminhos.has(secaoId)) this.#historico.registrar({ tipo: 'texto', secaoId });
+    if (this.#aberto?.modo === 'edicao' && this.secao(secaoId)) this.#historico.registrar({ tipo: 'texto', secaoId });
   }
 
   get podeDesfazer(): boolean {
@@ -1117,7 +1255,7 @@ export class SessaoTrabalho {
       }
       this.#historico.concluir(sentido, contraria);
       const id = e.tipo === 'texto' ? e.secaoId : e.tipo === 'estrutura' ? idDaOperacao(e.inverso) : null;
-      return { ok: true, mudou: true, secaoId: id !== null && this.#caminhos.has(id) ? id : null };
+      return { ok: true, mudou: true, secaoId: id !== null && this.secao(id) ? id : null };
     }
     return { ok: false, mensagem: sentido === 'desfazer' ? MENSAGEM_NADA_A_DESFAZER : MENSAGEM_NADA_A_REFAZER };
   }
@@ -1129,7 +1267,18 @@ export class SessaoTrabalho {
     sentido: 'desfazer' | 'refazer',
     aplicarTexto: AplicarTexto,
   ): EntradaHistorico | null {
-    if (e.tipo === 'texto') return this.#caminhos.has(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
+    if (e.tipo === 'texto') return this.secao(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
+    if (e.tipo === 'posTextuais') {
+      const antes = a.pacote.documento.posTextuais ?? [];
+      if (!this.#trocarPos(a, e.inverso)) return null;
+      this.#emitir(); return { tipo: 'posTextuais', inverso: antes };
+    }
+    if (e.tipo === 'cadastros') {
+      const antes = this.#cadastros(a.pacote.documento);
+      if (!this.#trocarCadastros(a, e.inverso)) return null;
+      this.#emitir();
+      return { tipo: 'cadastros', inverso: antes };
+    }
     if (e.tipo === 'elemento') return this.#aplicarInversoElemento(a, e.inverso);
     if (e.tipo === 'obra') return this.#aplicarInversoObra(a, e.inverso);
     // O inverso vai como foi recebido (só ele restaura além dos limites).

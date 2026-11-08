@@ -221,3 +221,21 @@ limpa, abertura, exportação e desinstalação no Windows 10 e 11 (DIST).
 |---|---|---|---|
 | DES-01 | Documento de ≈150 páginas e 25 MiB de mídia (`tests/apoio/documento-grande.ts`): abrir pela Biblioteca < 3 s; p95 por tecla < 50 ms com instantâneos a cada ~2 s e Ctrl+S; travada do processo principal < 100 ms; memória somada < 800 MB | RNF-06, RNF-07; R-M1-01/R36; plano M2-T01 | PASSOU (M2-T01, 2026-10-17, E2E-07): antes da correção, travadas de 244–406 ms e tecla de até 328 ms; depois, p95 6–12 ms, tecla mais lenta 11–30 ms (uma rodada com 80 ms sem travada do principal), abrir 0,45–1,43 s, pico de 700–760 MB. Tabela no relatório do M2 |
 | DIST-01 | Fumaça do instalador: `npm run dist` gera o NSIS por usuário; instala com `/S` sem administrador (`asInvoker`, só HKCU) em `%LOCALAPPDATA%\Programs\bibliodocs-pro`; atalhos sem argumentos; abre, cria, salva e reabre; desinstala com `/S /currentuser` sem sobras além dos dados do usuário; tamanho comparado a RNF-08 | Plano M1-T14; C-16 | PASSOU (M1-T14, 2026-10-17, Windows 11): instalador 111 841 150 bytes (< 200 MB), instalado 390 206 215 bytes; a 1.ª rodada achou `bibliodocs-pro-updater\installer.exe` (112 MB) sobrando → corrigido e conferido na 2.ª. Fluxo funcional (11/11) medido no pacote antes da correção A-1; depois dela, só pelo E2E sobre `out/` e pelo controle de abertura (o artefato de fumaça foi bloqueado pelo Controle Inteligente de Aplicativos). Instalação limpa em máquina nova e Windows 10: Etapa 7 |
+
+## Grupo M6 — listas (2026-11-08)
+
+| ID | Caso | Fonte do esperado | Resultado |
+|---|---|---|---|
+| LIS-01 | Listas da mesma numeração/legenda do corpo, ordem do texto, quadro nas ilustrações, tabela longa uma vez | RN-160, RN-163, RN-309; D-M6-02 | PASSOU: `tests/motor-listas.test.ts` |
+| LIS-02 | Limiar de quatro/cinco itens, lista própria por espécie, gráfico de imagem e gerado na mesma sequência, lista única e listas vazias | RN-161, C-B8, D-M6-02 | PASSOU: `tests/motor-listas.test.ts` |
+| LIS-03 | Estilo 12, espaço 1,5 e justificado com origem RN; marcador de legenda, PAGEREF preenchido sem sumário, pontilhado | RN-162; D-M6-01 | PASSOU: `tests/motor-listas.test.ts`; OOXML 9/9, LibreOffice 10/10 (inclui conferência das páginas nas listas) |
+| LIS-04 | Opção aditiva estrita, antigo sem opção abre; ida e volta .bdp e retirada/desfazer/refazer preservam a opção | ADR-0004, adendo M6-T01 | PASSOU: `tests/motor-listas.test.ts`, `tests/pre-textuais.test.ts` |
+| LIS-05 | Opção pela tela, salvar no arquivo e restaurar elemento; axe da tela | D-M6-02; RNF-09 | PASSOU (revisão da sessão principal, 2026-11-08): `e2e/listas.spec.ts` e axe em `e2e/acessibilidade.spec.ts` |
+| LIS-06 | Comparar página estimada com PAGEREF atualizado no Word real | D-M6-01 | PASSOU (revisão da sessão principal, 2026-11-08): `tests/externos/word.externo.ts`, 4 entradas com página gravada = recalculada pelo Word |
+| SIG-01 | Siglas: cadastro, primeira ocorrência por extenso e as demais pela sigla, lista ordenada só com as usadas, sigla quebrada, sugestão de ligar e aviso de sigla sem cadastro | RN-046, RN-047, RN-165, RN-166; D-M6-03, 04; RF-13 | PASSOU: `tests/siglas.test.ts`, `tests/editor-siglas.test.ts`, `tests/interface/editor-siglas.test.tsx`, regressão DOCX |
+| CAT-01 | Símbolos e glossário: cadastros, ordenação pt-BR, lista de símbolos pelo significado, glossário "Termo: definição" com aviso | RN-167, RN-230; D-M6-05, 06 | PASSOU: `tests/catalogos-m6.test.ts`, `tests/cadastros-sessao.test.ts` |
+| POS-01 | Apêndices e anexos com conteúdo: tela de incluir, retirar, renomear e ordenar; numeração dos elementos de dentro em sequência; remissiva a seção e apêndice, também na lista da tela | RF-14, RN-231 a 237; D-M6-07, 08 | PASSOU: `tests/interface/pos-textuais.test.tsx`, `tests/remissivas.test.ts`, regressão DOCX (marcadores válidos para o Word) |
+
+Verificações gerais do incremento (revisão da sessão principal, 2026-11-08): typecheck; `verificar` 2038/2038; externos 28/28;
+Playwright 37/37 (na 1.ª rodada completa, 36/37: FUN-13 da citação, instabilidade conhecida do M5-T05). `npm audit` com rede: só avisos moderados.
+Evidências e limites em `docs/relatorios/M6_RELATORIO_MARCO.md`.

@@ -88,12 +88,16 @@ export type BlocoFormatado =
       recuoEsquerdaTw?: number;
       /** Parada de tabulação à direita, a partir da margem esquerda (número da equação, RN-106; M5-T07). */
       tabulacaoDireitaTw?: number;
+      /** Segunda coluna de uma lista de siglas ou símbolos (M6). Medida já resolvida pelo motor. */
+      tabulacaoEsquerdaTw?: number;
       origem: readonly string[];
     }
   /** Caixa de tamanho fixo (ficha catalográfica, RN-136). */
   | { tipo: 'quadro'; estilo: string; larguraTw: number; alturaTw: number; trechos: readonly TrechoFormatado[]; origem: readonly string[] }
   /** Sumário: o exportador grava como campo; o motor entrega indicativo e título, e a página é estimada na exportação. */
   | { tipo: 'sumario'; estilo: string; entradas: readonly EntradaSumario[]; origem: readonly string[] }
+  /** Lista de elementos: texto resolvido pelo motor e página do marcador, estimada pelo exportador (M6-T01). */
+  | { tipo: 'listaElementos'; estilo: string; entradas: readonly { trechos: readonly TrechoFormatado[]; ancora: string }[]; tabulacaoDireitaTw: number; origem: readonly string[] }
   /** Pedida pelo autor, não por uma regra: por isso `origem` fica vazia. */
   | { tipo: 'quebraPagina'; origem: readonly string[] }
   /** Tabela ou quadro nativo do Word (M5-T03). Título e rodapé são parágrafos à parte, antes e depois. */
@@ -155,6 +159,7 @@ export interface BlocoTabelaFormatado {
 
 export interface AvisoFormatacao {
   codigo:
+    | 'SIGLA_QUEBRADA'
     | 'NOTA_VAZIA'
     | 'CITACAO_VAZIA'
     | 'ALINEA_VAZIA'

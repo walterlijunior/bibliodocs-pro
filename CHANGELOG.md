@@ -5,6 +5,18 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M6-T02 a T06 (Codex, revisado pela sessão principal):
+  - Siglas: cadastro, botão "Sigla" no editor, primeira ocorrência por extenso no DOCX ("Universidade Federal do Tocantins (UFT)") e depois só a sigla; lista de abreviaturas e siglas; sugestão de ligar sigla digitada e aviso de sigla sem cadastro.
+  - Símbolos e glossário: cadastros na janela "Siglas, símbolos e glossário…", lista de símbolos e glossário em ordem alfabética no DOCX.
+  - Apêndices e anexos com conteúdo (texto, tabelas, figuras), na tela "Elementos pós-textuais", com incluir, retirar, renomear e ordenar.
+  - Remissiva a seção ("2.1") e a apêndice ou anexo ("APÊNDICE A").
+  - Início do verificador de conformidade (M7): janela "Verificar conformidade", com "Ir ao local" e relatório em .txt.
+- Etapa 5, M6-T01: listas de ilustrações e tabelas no DOCX.
+  - Legendas e numeração compartilhadas com o texto; quadros e gráficos na lista de ilustrações; tabelas longas aparecem uma vez.
+  - Listas próprias por espécie com cinco ou mais itens, ou opção "Usar lista única de ilustrações", salva no projeto.
+  - Títulos em folha própria, entradas em 12 e espaço 1,5, pontilhado e página estimada por campo PAGEREF, atualizável com F9.
+
 ### Corrigido
 - Etapa 5, M5-T10 (revisão do M5):
   - Número enorme numa célula (como 1 seguido de 300 zeros) não trava mais o gráfico: fica fora do desenho, com aviso.

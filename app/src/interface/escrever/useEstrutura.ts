@@ -50,7 +50,7 @@ export function useEstrutura(sessao: SessaoTrabalho, trabalho: TrabalhoDaSessao 
     if (fechado) memoria.limpar();
   }, [fechado, memoria]);
 
-  const secoes = trabalho?.secoes ?? [];
+  const secoes = trabalho?.secoesEdicao ?? trabalho?.secoes ?? [];
   const geracao = trabalho?.geracao ?? -1;
   const ativa = trabalho === null ? null : resolverAtiva(secoes, escolha, geracao);
   const editavel = trabalho !== null && !trabalho.somenteLeitura;

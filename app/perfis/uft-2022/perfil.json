@@ -266,6 +266,30 @@
     "RN-108"
    ],
    "origem": "provisorio"
+  },
+  "minimoListaPropria": {
+   "valor": 5,
+   "ajustavel": false,
+   "rn": [
+    "RN-161"
+   ],
+   "origem": "decisao-usuario-2026-10-15"
+  },
+  "verificarUniformidadePrenomes": {
+   "valor": true,
+   "ajustavel": false,
+   "rn": [
+    "RN-182"
+   ],
+   "origem": "provisorio"
+  },
+  "verificarRemissivaIlustracoes": {
+   "valor": true,
+   "ajustavel": false,
+   "rn": [
+    "RN-060"
+   ],
+   "origem": "provisorio"
   }
  },
  "regras": [
@@ -1130,8 +1154,9 @@
    "id": "RN-230",
    "status": "CONFIRMADA",
    "fonte": "M, p. 64, cap. 6",
-   "tipo": "estrutura",
-   "alvo": "documento"
+   "tipo": "procedimento",
+   "alvo": "documento",
+   "procedimento": "listaDeGlossario"
   },
   {
    "id": "RN-231",
@@ -1428,6 +1453,213 @@
    "tipo": "procedimento",
    "alvo": "tabela.cabecalho",
    "procedimento": "repetirCabecalho"
+  },
+  {
+   "id": "RN-160",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 42, 5.11",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listaDeIlustracoes"
+  },
+  {
+   "id": "RN-161",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 42, 5.11 e anotação da Fig. 12",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listasPorEspecie",
+   "parametros": [
+    "minimoListaPropria"
+   ]
+  },
+  {
+   "id": "RN-163",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 43, 5.12 e anotação da Fig. 13",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listaDeTabelas"
+  },
+  {
+   "id": "RN-309",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 43, seção 5.12",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listaDeTabelas"
+  },
+  {
+   "id": "RN-162",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 42, anotação da Fig. 12; p. 15 (2.4)",
+   "tipo": "estilo",
+   "alvo": "lista.entrada",
+   "propriedades": {
+    "corpoPt": 12,
+    "entrelinha": "1,5",
+    "alinhamento": "justificado"
+   }
+  },
+  {
+   "id": "RN-046",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.7",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "primeiraSiglaPorExtenso"
+  },
+  {
+   "id": "RN-047",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.7",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "siglaAposPrimeira"
+  },
+  {
+   "id": "RN-165",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 44, 5.13",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listaDeSiglas"
+  },
+  {
+   "id": "RN-166",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 44, 5.13 e Fig. 14",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "tituloDaListaDeSiglas"
+  },
+  {
+   "id": "RN-167",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 45, 5.14 e anotação da Fig. 15",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "listaDeSimbolos"
+  },
+  {
+   "id": "RN-078",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 22, cap. 3",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-182",
+   "status": "PENDENTE-FONTE",
+   "fonte": "M, p. 50 (padrão \"Prenome\"; exemplos abreviados \"PASSOS, L. M. M.\"; por extenso \"CAGLIARI, Luiz Carlos\")",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade",
+   "provisoria": true,
+   "parametros": [
+    "verificarUniformidadePrenomes"
+   ]
+  },
+  {
+   "id": "RN-056",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.8",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-269",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 20, seção 4.10",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-274",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 20, seção 4.10, Nota",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-246",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 13, seção 4.2; M, p. 20, seção 2.9 (identificação na parte superior)",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-241",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 9, seção 3.1; M, p. 19, seção 2.8.1 e p. 20, seção 2.9",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-297",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 30, seção 9.1",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-060",
+   "status": "PENDENTE-FONTE",
+   "fonte": "— (o Manual não trata)",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade",
+   "provisoria": true,
+   "parametros": [
+    "verificarRemissivaIlustracoes"
+   ]
+  },
+  {
+   "id": "RN-255",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 15, seções 4.4–4.4.2",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-147",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 39, 5.8",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-133",
+   "status": "CONFIRMADA",
+   "fonte": "M, Fig. 5, p. 34 (par \"Tese/Dissertação\" × \"Mestre(a) / Doutor(a)\"); p. 53 (exemplo \"Dissertação (Mestrado...)\"); p. 21 (dissertação/tese em mestrado/doutorado)",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-168",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 46, 5.15",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-051",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 18, seção 2.8",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
   }
  ],
  "tiposTrabalho": {

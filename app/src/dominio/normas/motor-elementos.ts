@@ -1,6 +1,7 @@
 /**
  * Pré e pós-textuais no motor (M3-T04; RN-117 a RN-158, RN-231 a RN-237). Só estrutura e texto: a forma vem dos estilos,
- * que vêm do perfil. Os títulos fixos transcrevem o Manual. Listas geradas ficam para o M6 e saem só com aviso.
+ * que vêm do perfil. Os títulos fixos transcrevem o Manual. As listas (ilustrações, tabelas, siglas, símbolos) vêm dos
+ * geradores do M6 (`motor-listas.ts`, `motor-catalogos.ts`).
  *
  * Campo vazio não gera parágrafo: a falta já é pendência na aba Escrever (RF-04).
  */
@@ -89,7 +90,7 @@ function membro(b: MembroBanca): string {
 export function blocosPreTextual(
   e: ElementoPreTextual,
   m: Metadados,
-  opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado; rotulosPalavrasChave: RotulosPalavrasChave },
+  opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado; rotulosPalavrasChave: RotulosPalavrasChave; listas: (e: Extract<ElementoPreTextual, { tipo: 'listaIlustracoes' | 'listaTabelas' }>) => BlocoFormatado[]; siglas: () => BlocoFormatado[]; simbolos: () => BlocoFormatado[] },
 ): BlocoFormatado[] {
   const titulo = (texto: string, origem: readonly string[]) => paragrafo('tituloSemIndicativo', [trecho(texto)], origem, { novaPagina: true });
   switch (e.tipo) {
@@ -144,10 +145,11 @@ export function blocosPreTextual(
       return [titulo('SUMÁRIO', ['RN-007', 'RN-045', 'RN-171']), opcoes.entradas()];
     case 'listaIlustracoes':
     case 'listaTabelas':
+      return opcoes.listas(e);
     case 'listaSiglas':
+      return opcoes.siglas();
     case 'listaSimbolos':
-      opcoes.avisos.push({ codigo: 'ELEMENTO_ADIADO', id: e.id, mensagem: 'As listas chegam em um marco seguinte: esta ainda não foi exportada.' });
-      return [];
+      return opcoes.simbolos();
     case 'capa':
     case 'folhaRosto':
     case 'fichaCatalografica':
@@ -169,7 +171,7 @@ function resumo(titulo: string, rotulo: string, texto: string | undefined, palav
 }
 
 /** `referencias` gera a lista ordenada (M4-T05); chamado só se o trabalho tem o elemento. */
-export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: AvisoFormatacao[], referencias: () => BlocoFormatado[] = () => []): BlocoFormatado[] {
+export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: AvisoFormatacao[], referencias: () => BlocoFormatado[] = () => [], glossario: () => BlocoFormatado[] = () => [], conteudo: (e: Extract<ElementoPosTextual, { tipo: 'apendice' | 'anexo' }>) => BlocoFormatado[] = () => []): BlocoFormatado[] {
   const blocos: BlocoFormatado[] = [];
   const titulo = (texto: string, origem: readonly string[]) => blocos.push(paragrafo('tituloPosTextual', [trecho(texto)], origem, { novaPagina: true }));
   const contar = (tipo: 'apendice' | 'anexo') => lista.filter((e) => e.tipo === tipo).length;
@@ -182,6 +184,7 @@ export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: 
         break;
       case 'glossario':
         titulo('GLOSSÁRIO', ['RN-007', 'RN-045', 'RN-230']);
+        blocos.push(...glossario());
         break;
       case 'indice':
         titulo('ÍNDICE', ['RN-007', 'RN-045', 'RN-238']);
@@ -197,7 +200,9 @@ export function blocosPosTextuais(lista: readonly ElementoPosTextual[], avisos: 
         const letra = letraPosTextual(i);
         if (letraSemFonte(i)) avisos.push({ codigo: 'LETRA_SEM_FONTE', id: e.id, mensagem: `A letra ${letra} passa de ZZ: o Manual não define essa forma.` });
         const nome = e.titulo?.trim();
-        blocos.push(paragrafo('identificacaoPosTextual', [trecho(`${palavra} ${letra}${nome ? `${SEPARADOR}${nome}` : ''}`)], rn));
+        // Marcador curto: o Word aceita até 40 caracteres, só letras, algarismos e "_" (o id pode ter "-" e 64).
+        blocos.push({ ...paragrafo('identificacaoPosTextual', [trecho(`${palavra} ${letra}${nome ? `${SEPARADOR}${nome}` : ''}`)], rn), ancora: `_Pos_${apendice ? 'A' : 'N'}${i + 1}` } as BlocoFormatado);
+        blocos.push(...conteudo(e));
         break;
       }
     }

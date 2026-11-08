@@ -4,7 +4,7 @@
  * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos → obras citadas → grade das tabelas (M5-T01).
  */
 import { z } from 'zod';
-import { problemaNaGrade, problemaNosElementos, type Bloco, type BlocoIlustracao, type BlocoTabela, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
+import { problemaNaGrade, problemaNosElementos, type Bloco, type BlocoIlustracao, type BlocoTabela, type Documento, type DocumentoDeLeitura, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
 import { esquemaBlocoIlustracao, esquemaBlocoTabela, esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
@@ -97,8 +97,8 @@ const MENSAGENS_GRADE: Record<MotivoGrade | 'posicoesDemais', string> = {
 };
 
 /** Primeira tabela com grade incoerente ou grande demais (M5-T01), com o caminho a partir do documento. */
-function gradeInvalida(corpo: readonly Secao[]): ErroValidacao | null {
-  for (const p of percorrerCorpo(corpo)) {
+function gradeInvalida(doc: DocumentoDeLeitura): ErroValidacao | null {
+  for (const p of percorrerDocumento(doc)) {
     if (p.tipo !== 'bloco' || p.bloco.tipo !== 'tabela') continue;
     const b = p.bloco;
     if (b.linhas.length * b.colunas.length > LIMITES_V1.posicoesTabela) {
@@ -142,6 +142,23 @@ function* percorrerCorpo(corpo: readonly Secao[]): Generator<
   }
 }
 
+/** Inclui os conteúdos dos pós-textuais sem projetar caminhos falsos para `corpo`. */
+function* percorrerDocumento(doc: DocumentoDeLeitura): ReturnType<typeof percorrerCorpo> {
+  yield* percorrerCorpo(doc.corpo);
+  for (const [i, e] of (doc.posTextuais ?? []).entries()) {
+    if (e.tipo !== 'apendice' && e.tipo !== 'anexo') continue;
+    for (const [j, b] of (e.blocos ?? []).entries()) {
+      const caminho: PropertyKey[] = ['posTextuais', i, 'blocos', j];
+      yield { tipo: 'bloco', id: b.id, bloco: b, caminho };
+      for (const c of conteudosComCaminho(b)) for (const [k, inline] of c.conteudo.entries()) {
+        const aqui = [...caminho, ...c.caminho, k];
+        yield { tipo: 'inline', inline, caminho: aqui };
+        if (inline.tipo === 'nota') for (const [l, n] of inline.conteudo.entries()) yield { tipo: 'inline', inline: n, caminho: [...aqui, 'conteudo', l] };
+      }
+    }
+  }
+}
+
 /**
  * Primeiro id de elemento, seção, bloco, nota, citação ou obra repetido no documento, em ordem de leitura
  * (pré-textuais, corpo, pós-textuais, obras) e sem recursão.
@@ -150,20 +167,23 @@ function idRepetido(doc: Documento): readonly PropertyKey[] | null {
   const vistos = new Set<string>();
   const novo = (id: string) => (vistos.has(id) ? false : (vistos.add(id), true));
   for (const [i, e] of (doc.preTextuais ?? []).entries()) if (!novo(e.id)) return ['preTextuais', i, 'id'];
-  for (const p of percorrerCorpo(doc.corpo)) {
+  for (const p of percorrerDocumento(doc)) {
     if (p.tipo !== 'inline') {
       if (!novo(p.id)) return [...p.caminho, 'id'];
     } else if (p.inline.tipo !== 'texto' && !novo(p.inline.id)) return [...p.caminho, 'id'];
   }
   for (const [i, e] of (doc.posTextuais ?? []).entries()) if (!novo(e.id)) return ['posTextuais', i, 'id'];
   for (const [i, o] of (doc.obras ?? []).entries()) if (!novo(o.id)) return ['obras', i, 'id'];
+  for (const [i, s] of (doc.siglas ?? []).entries()) if (!novo(s.id)) return ['siglas', i, 'id'];
+  for (const [i, s] of (doc.simbolos ?? []).entries()) if (!novo(s.id)) return ['simbolos', i, 'id'];
+  for (const [i, s] of (doc.glossario ?? []).entries()) if (!novo(s.id)) return ['glossario', i, 'id'];
   return null;
 }
 
 /** Primeira citação que aponta para obra fora de `obras` (RF-07: não existe citação sem obra). */
 function citacaoSemObra(doc: Documento): readonly PropertyKey[] | null {
   const obras = new Set((doc.obras ?? []).map((o) => o.id));
-  for (const p of percorrerCorpo(doc.corpo)) {
+  for (const p of percorrerDocumento(doc)) {
     if (p.tipo !== 'inline' || p.inline.tipo !== 'citacao') continue;
     const c = p.inline;
     const k = c.obras.findIndex((o) => !obras.has(o.obra));
@@ -207,7 +227,7 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
   if (semObra) {
     return { ok: false, erros: [{ caminho: formatarCaminho('documento', semObra), mensagem: 'a citação aponta para uma obra que não está na bibliografia' }] };
   }
-  const grade = gradeInvalida(r.valor.corpo);
+  const grade = gradeInvalida(r.valor);
   if (grade) return { ok: false, erros: [grade] };
   return r;
 }
@@ -216,9 +236,9 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
  * Mídias de que o documento precisa (M5-T01): o sha256 de cada ilustração, com o caminho, em ordem de leitura. O
  * contêiner confere contra as mídias do pacote; o documento sozinho não sabe quais existem.
  */
-export function midiasDoDocumento(doc: Pick<Documento, 'corpo'>): { sha256: string; caminho: string }[] {
+export function midiasDoDocumento(doc: DocumentoDeLeitura): { sha256: string; caminho: string }[] {
   const saida: { sha256: string; caminho: string }[] = [];
-  for (const p of percorrerCorpo(doc.corpo)) {
+  for (const p of percorrerDocumento(doc)) {
     if (p.tipo === 'bloco' && p.bloco.tipo === 'ilustracao') saida.push({ sha256: p.bloco.midia, caminho: formatarCaminho('documento', [...p.caminho, 'midia']) });
   }
   return saida;

@@ -34,6 +34,7 @@ export interface PropsListaElementos {
   ativoId: string | null;
   somenteLeitura: boolean;
   anuncio: string | null;
+  sugestaoInclusao?: ElementoPreTextualId | null;
   aoEscolher: (id: string) => void;
   aoIncluir: (tipo: ElementoPreTextualId) => void;
   aoHistorico: (sentido: 'desfazer' | 'refazer') => boolean;
@@ -42,6 +43,7 @@ export interface PropsListaElementos {
 export function ListaElementos(p: PropsListaElementos) {
   const base = useId();
   const [incluir, setIncluir] = useState<ElementoPreTextualId | ''>('');
+  useEffect(() => { if (p.sugestaoInclusao && p.ausentes.includes(p.sugestaoInclusao)) setIncluir(p.sugestaoInclusao); }, [p.sugestaoInclusao, p.ausentes]);
   // Ctrl+Z na lista segue a ordem única: é daqui que o elemento retirado volta.
   const aoTeclar = (ev: KeyboardEvent) => {
     if (!ev.ctrlKey || ev.altKey || p.somenteLeitura) return;
@@ -219,6 +221,13 @@ export function FormularioElemento(p: PropsFormularioElemento) {
           <PalavrasChave rotulo="Palavras-chave na língua escolhida" chave={e.id} valor={e.palavrasChave ?? []} somenteLeitura={so} aoMudar={(palavrasChave) => p.aoAlterarElemento(e.id, { palavrasChave })} />
         </>
       )}
+      {e.tipo === 'listaIlustracoes' && (
+        <label className="elemento__marcar">
+          <input type="checkbox" checked={e.listaUnica === true} disabled={so} onChange={(ev) => p.aoAlterarElemento(e.id, { listaUnica: ev.target.checked })} />
+          Usar lista única de ilustrações
+        </label>
+      )}
+      {(e.tipo === 'listaIlustracoes' || e.tipo === 'listaTabelas' || e.tipo === 'sumario') && <p className="dica">Gerado automaticamente ao exportar o DOCX. As páginas são estimadas; no Word, selecione tudo e pressione F9 para atualizar os campos.</p>}
       {GERADOS.has(e.tipo) && <p className="dica">Este elemento é gerado a partir do texto do trabalho. A geração chega numa próxima versão.</p>}
 
       <ListaPendencias itens={p.pendencias} rotulo={`Pendências: ${ROTULOS_ELEMENTO[e.tipo]}`} />
@@ -227,7 +236,7 @@ export function FormularioElemento(p: PropsFormularioElemento) {
 }
 
 const CAMPO_TEXTO: ReadonlySet<ElementoPreTextualId> = new Set(['fichaCatalografica', 'errata', 'dedicatoria', 'agradecimentos', 'epigrafe', 'resumo', 'abstract']);
-const GERADOS: ReadonlySet<ElementoPreTextualId> = new Set(['listaIlustracoes', 'listaTabelas', 'listaSiglas', 'listaSimbolos', 'sumario']);
+const GERADOS: ReadonlySet<ElementoPreTextualId> = new Set(['listaSiglas', 'listaSimbolos']);
 
 function Campo(p: { rotulo: string; dica?: string | undefined; linhas?: number | undefined; valor: string; somenteLeitura: boolean; aoMudar: (v: string) => void }) {
   const id = useId();

@@ -16,12 +16,14 @@ import {
   HeightRule,
   LevelFormat,
   LevelSuffix,
+  LeaderType,
   LineRuleType,
   NumberFormat,
   Packer,
   PageNumber,
   Paragraph,
   SectionType,
+  SimpleField,
   Tab,
   TabStopType,
   Table,
@@ -311,6 +313,16 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
         new Paragraph({}),
       ];
     }
+    case 'listaElementos':
+      return b.entradas.map((e) => new Paragraph({
+        style: b.estilo,
+        tabStops: [{ type: TabStopType.RIGHT, position: b.tabulacaoDireitaTw, leader: LeaderType.DOT }],
+        children: [
+          ...converterTrechos(e.trechos, notas),
+          new TextRun({ children: [new Tab()] }),
+          new SimpleField(`PAGEREF ${e.ancora} \\h`, String(paginas?.get(e.ancora) ?? 1)),
+        ],
+      }));
     case 'sumario':
       return [
         new TableOfContents('Sumário', {
@@ -339,6 +351,7 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
           ...(b.novaPagina ? { pageBreakBefore: true } : {}),
           ...(b.recuoEsquerdaTw !== undefined ? { indent: { left: b.recuoEsquerdaTw } } : {}),
           ...(b.tabulacaoDireitaTw !== undefined ? { tabStops: [{ type: TabStopType.RIGHT, position: b.tabulacaoDireitaTw }] } : {}),
+          ...(b.tabulacaoEsquerdaTw !== undefined ? { tabStops: [{ type: TabStopType.LEFT, position: b.tabulacaoEsquerdaTw }] } : {}),
           ...(b.antesTw !== undefined || b.depoisTw !== undefined
             ? { spacing: { ...(b.antesTw !== undefined ? { before: b.antesTw } : {}), ...(b.depoisTw !== undefined ? { after: b.depoisTw } : {}) } }
             : {}),
@@ -387,13 +400,13 @@ function montar(f: DocumentoFormatado, paginas: ReadonlyMap<string, number> | nu
 }
 
 /**
- * Gera o DOCX. Com sumário, a primeira passada só mede em que página fica cada âncora, para as entradas já saírem com o
+ * Gera o DOCX. Com sumário ou listas de elementos, a primeira passada mede em que página fica cada âncora, para as entradas já saírem com o
  * número certo (M3-T01: igual ao do Word em 15 e 149 páginas); custa cerca de 4 s em 150 páginas.
  */
 export async function exportarDocx(f: DocumentoFormatado): Promise<Uint8Array> {
-  const temSumario = f.secoes.some((s) => s.blocos.some((b) => b.tipo === 'sumario'));
+  const temPaginasReferenciadas = f.secoes.some((s) => s.blocos.some((b) => b.tipo === 'sumario' || b.tipo === 'listaElementos'));
   let paginas: ReadonlyMap<string, number> | null = null;
-  if (temSumario) {
+  if (temPaginasReferenciadas) {
     let medido: ReturnType<typeof estimatePageNumbers> | undefined;
     const medir = ((corpo, contexto) => (medido = estimatePageNumbers(corpo, contexto))) as typeof estimatePageNumbers;
     await Packer.toBuffer(montar(f, null, medir));

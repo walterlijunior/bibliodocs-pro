@@ -78,7 +78,7 @@ export function normalizarConteudo(conteudo: readonly Inline[]): Inline[] {
       saida.push({ tipo: 'nota', id: i.id, conteudo: normalizarConteudo(i.conteudo as readonly InlineDeNota[]) });
       continue;
     }
-    if (i.tipo === 'citacao' || i.tipo === 'remissiva') {
+    if (i.tipo === 'citacao' || i.tipo === 'remissiva' || i.tipo === 'sigla') {
       saida.push(i);
       continue;
     }
@@ -156,6 +156,10 @@ function inlinesParaNos(conteudo: readonly Inline[]): NoPm[] {
     }
     if (i.tipo === 'remissiva') {
       nos.push(tipos['remissiva']!.create({ id: i.id, alvo: i.alvo }));
+      continue;
+    }
+    if (i.tipo === 'sigla') {
+      nos.push(tipos['sigla']!.create({ id: i.id, sigla: i.sigla }));
       continue;
     }
     const marcas = marcasPm(i.marcas);
@@ -240,6 +244,7 @@ function nosParaInlines(pai: NoPm): Inline[] {
     else if (no.type === tipos['quebraLinha']) bruto.push(texto('\n', marcasDe(no)));
     else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: semNota(nosParaInlines(no)) });
     else if (no.type === tipos['remissiva']) bruto.push({ tipo: 'remissiva', id: idDe(no), alvo: String(no.attrs['alvo']) });
+    else if (no.type === tipos['sigla']) bruto.push({ tipo: 'sigla', id: idDe(no), sigla: String(no.attrs['sigla']) });
     else if (no.type === tipos['chamadaCitacao']) bruto.push({ ...(JSON.parse(String(no.attrs['dados'])) as Omit<InlineCitacao, 'tipo' | 'id'>), tipo: 'citacao', id: idDe(no) });
   });
   return normalizarConteudo(bruto);

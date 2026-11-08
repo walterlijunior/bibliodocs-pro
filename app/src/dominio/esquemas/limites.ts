@@ -39,6 +39,8 @@ export const LIMITES_V1 = {
   obras: 5_000,
   autoresPorObra: 100,
   obrasPorCitacao: 50,
+  /** Entradas por catálogo de siglas, símbolos e glossário (M6). */
+  entradasCatalogo: 5_000,
   /**
    * Tabela e quadro (M5-T01): 63 colunas é o máximo do Word; linhas e posições da grade (linhas × colunas, conferido
    * só no código) limitam o custo da conferência da grade e da exportação. Notas específicas por tabela.

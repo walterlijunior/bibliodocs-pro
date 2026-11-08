@@ -116,14 +116,15 @@ describe('sessão: lista de elementos e aceite do RF-11', () => {
   it('lista com rótulo e contagem; digitar texto não troca o objeto; elemento novo troca', () => {
     const s = abrir([sec('sec_rem0000000001', [p, a, b])]);
     const lista = s.obterEstado().trabalho!.elementos;
-    expect(lista.map((e) => [e.rotulo, e.remissivas])).toEqual([
+    // Desde o M6 a seção também é alvo; aqui interessam as tabelas.
+    expect(lista.filter((e) => e.tipo === 'tabela').map((e) => [e.rotulo, e.remissivas])).toEqual([
       ['Tabela 1', 0],
       ['Tabela 2', 2],
     ]);
     s.alterarSecao('sec_rem0000000001', { titulo: [t('Seção')], blocos: [par('par_rem000000001', t('Outro texto, '), rem('rem_rem000000001', b.id), t(' e '), rem('rem_rem000000002', b.id)), a, b] });
     expect(s.obterEstado().trabalho!.elementos).toBe(lista);
     s.alterarSecao('sec_rem0000000001', { titulo: [t('Seção')], blocos: [p, tab('tab_rem000000003', 'Nova'), a, b] });
-    expect(s.obterEstado().trabalho!.elementos.map((e) => e.rotulo)).toEqual(['Tabela 1', 'Tabela 2', 'Tabela 3']);
+    expect(s.obterEstado().trabalho!.elementos.filter((e) => e.tipo === 'tabela').map((e) => e.rotulo)).toEqual(['Tabela 1', 'Tabela 2', 'Tabela 3']);
   });
 
   it('excluir a tabela citada avisa quantas remissivas ficaram quebradas; a não citada não avisa', () => {
@@ -151,5 +152,23 @@ describe('sessão: lista de elementos e aceite do RF-11', () => {
     s.abrir({ identificador: 'BBBBBBBBBBBBBBBBBBBBBB', nomeArquivo: 'U.bdp', pacote: { ...base, midias: [] }, avisos: [], atualizacao: null });
     expect(s.obterEstado().avisos).toEqual([]);
     expect(s.obterEstado().trabalho!.elementos).toEqual([]);
+  });
+});
+
+describe('sessão com apêndice e seção como alvos (revisão do M6: integração M6-T05/T06 com a lista da tela)', () => {
+  it('a lista da tela tem a seção, o apêndice e a tabela de dentro do apêndice, numerada depois das do texto', () => {
+    const base = criarTrabalhoVazio({ id: 'prj_abcdefghijklmnop', agora: '2026-11-08T10:00:00.000Z', appVersao: '0.1.0' });
+    const corpo = [sec('sec_rem0000000001', [tab('tab_rem000000001', 'No texto')])];
+    const posTextuais = [{ tipo: 'apendice' as const, id: 'ape_rem000000001', titulo: 'Questionário', blocos: [tab('tab_rem000000002', 'No apêndice')] }];
+    const pacote: PacoteTransferivel = { ...base, documento: { ...base.documento, corpo, posTextuais }, midias: [] };
+    const sessao = new SessaoTrabalho({ api: { salvar: async () => ({ ok: true, nomeArquivo: 'T.bdp', avisos: [] }), salvarComo: async () => ({ ok: false, cancelado: true }) as never, fechar: async () => {} }, agora: () => new Date(0), agendar: () => () => {} });
+    sessao.abrir({ identificador: 'AAAAAAAAAAAAAAAAAAAAAA', nomeArquivo: 'T.bdp', pacote, avisos: [], atualizacao: null });
+    const lista = sessao.obterEstado().trabalho!.elementos.map((e) => [e.tipo, e.rotulo]);
+    expect(lista).toEqual([
+      ['secao', '1'],
+      ['tabela', 'Tabela 1'],
+      ['apendice', 'APÊNDICE A'],
+      ['tabela', 'Tabela 2'],
+    ]);
   });
 });

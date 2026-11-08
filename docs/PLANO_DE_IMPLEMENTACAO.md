@@ -192,6 +192,9 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 **Aceite:** RF-11 (remissivas), RF-12, RF-13, RF-14.
 
 #### Tarefas do M6 (2026-11-08; decisões D-M6 na matriz, tomadas pela sessão principal por delegação do usuário)
+M6-T01 implementada em 2026-11-08, com validação parcial: testes locais, OOXML e LibreOffice aprovados;
+Word, auditorias e E2E impedidos pelo ambiente. Detalhes em `docs/relatorios/M6_RELATORIO_MARCO.md`.
+
 Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro.
 - **Base normativa:** Manual, p. 15, 18, 31 e 42–45 (RN-007, 045, 046, 047, 112, 113, 160 a 167), p. 64–67 (RN-230 a
   238), quase tudo `CONFIRMADA`, com as decisões do usuário C-B8, C-B9 e C-B17. O sumário existe desde o M3.
@@ -200,7 +203,7 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 
 | ID | Tarefa | Agente(s) | Depende de | Aceite | Verificação |
 |---|---|---|---|---|---|
-| M6-T00 | Plano do M6 e decisões D-M6-01 a 09 | sessão principal | M5 | Plano e matriz | Revisão do plano |
+| M6-T00 ✔ | Plano do M6 e decisões D-M6-01 a 09 | sessão principal | M5 | Plano e matriz | Revisão do plano |
 | M6-T01 | Listas de ilustrações e de tabelas no DOCX: marcador no título de cada elemento, itens "Figura 1 – Título" com pontilhado e PAGEREF, listas por espécie com 5 ou mais (RN-160 a 163, RN-309; D-M6-01, 02) e opção de lista única | especialista-documento | T00 | Aceite do RF-12: inserir figura atualiza a lista sem ação manual | `npm run verificar:tudo` |
 | M6-T02 | Siglas no formato e no motor: cadastro, inline `sigla`, primeira ocorrência por extenso, lista de abreviaturas e siglas (RN-046, 047, 165, 166; D-M6-03, 04) | especialista-documento | T00 | DOCX com "Extenso (SIGLA)" e a lista | `npm run verificar:tudo` |
 | M6-T03 | Siglas na tela: cadastro, inserir no editor, sugestão de ligar o texto digitado, aviso de sigla sem cadastro (RF-13) | especialista-interface | T02 | Aceite do RF-13 | `npm run verificar:tudo` |

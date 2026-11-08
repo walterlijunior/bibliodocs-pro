@@ -6,6 +6,7 @@ import type { PacoteTransferivel } from './projetos';
 
 export const CANAIS_EXPORTACAO = {
   docx: 'bibliodocs:exportacao:docx',
+  relatorio: 'bibliodocs:exportacao:relatorio',
 } as const;
 
 export type CanalExportacao = (typeof CANAIS_EXPORTACAO)[keyof typeof CANAIS_EXPORTACAO];
@@ -35,5 +36,6 @@ export type ResultadoExportar =
   | { ok: false; motivo: 'ERRO'; mensagem: string };
 
 export interface ApiExportacao {
+  relatorio(pacote: PacoteTransferivel): Promise<ResultadoExportar>;
   docx(pacote: PacoteTransferivel, opcoes: OpcoesExportacao): Promise<ResultadoExportar>;
 }

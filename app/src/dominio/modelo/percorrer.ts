@@ -29,8 +29,8 @@ export function idsDoBloco(bloco: Bloco): Id[] {
   const ids = [bloco.id];
   for (const conteudo of conteudosDoBloco(bloco)) {
     for (const inline of conteudo) {
-      if (inline.tipo === 'nota' || inline.tipo === 'citacao' || inline.tipo === 'remissiva') ids.push(inline.id);
-      if (inline.tipo === 'nota') for (const n of inline.conteudo) if (n.tipo === 'citacao') ids.push(n.id);
+      if (inline.tipo !== 'texto') ids.push(inline.id);
+      if (inline.tipo === 'nota') for (const n of inline.conteudo) if (n.tipo !== 'texto') ids.push(n.id);
     }
   }
   return ids;

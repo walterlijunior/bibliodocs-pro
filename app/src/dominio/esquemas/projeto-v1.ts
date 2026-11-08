@@ -107,13 +107,15 @@ export const esquemaInlineCitacao = z
 /**
  * Nota de rodapé no ponto da chamada (RN-100): texto e chamadas de citação (M4-T07), sem nota dentro de nota.
  */
+export const esquemaInlineSigla = z.strictObject({ tipo: z.literal('sigla'), id, sigla: id }).meta({ id: 'InlineSigla' });
+
 export const esquemaInlineNota = z
   .strictObject({
     tipo: z.literal('nota'),
     id,
     conteudo: z
       .array(
-        z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineCitacao], {
+        z.discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineCitacao, esquemaInlineSigla], {
           error: (issue) =>
             typeof issue.input === 'object' && issue.input !== null && (issue.input as { tipo?: unknown }).tipo === 'nota'
               ? 'nota de rodapé não pode conter outra nota'
@@ -128,7 +130,7 @@ export const esquemaInlineNota = z
 export const esquemaInlineRemissiva = z.strictObject({ tipo: z.literal('remissiva'), id, alvo: id }).meta({ id: 'InlineRemissiva' });
 
 export const esquemaInline = z
-  .discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao, esquemaInlineRemissiva])
+  .discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao, esquemaInlineRemissiva, esquemaInlineSigla])
   .meta({ id: 'Inline' });
 
 const conteudoInline = z.array(esquemaInline).max(LIMITES_V1.inlinesPorConteudo);
@@ -288,7 +290,7 @@ export const esquemaElementoPreTextual = z
         .max(LIMITES_V1.membrosBanca)
         .optional(),
     }),
-    soLugar('listaIlustracoes'),
+    z.strictObject({ tipo: z.literal('listaIlustracoes'), id, listaUnica: z.literal(true).optional() }),
     soLugar('listaTabelas'),
     soLugar('listaSiglas'),
     soLugar('listaSimbolos'),
@@ -305,8 +307,8 @@ export const esquemaElementoPosTextual = z
   .discriminatedUnion('tipo', [
     z.strictObject({ tipo: z.literal('referencias'), id, incluirNaoCitadas: z.literal(true).optional() }),
     soLugar('glossario'),
-    z.strictObject({ tipo: z.literal('apendice'), id, titulo: campoCurto.optional() }),
-    z.strictObject({ tipo: z.literal('anexo'), id, titulo: campoCurto.optional() }),
+    z.strictObject({ tipo: z.literal('apendice'), id, titulo: campoCurto.optional(), blocos: z.array(esquemaBloco).min(1).max(LIMITES_V1.blocosPorSecao).optional() }),
+    z.strictObject({ tipo: z.literal('anexo'), id, titulo: campoCurto.optional(), blocos: z.array(esquemaBloco).min(1).max(LIMITES_V1.blocosPorSecao).optional() }),
     soLugar('indice'),
   ])
   .meta({ id: 'ElementoPosTextual' });
@@ -369,6 +371,10 @@ export const esquemaObra = z
   .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
   .meta({ id: 'Obra' });
 
+export const esquemaSigla = z.strictObject({ id, sigla: campoCurto, extenso: campoCurto }).meta({ id: 'Sigla' });
+export const esquemaSimbolo = z.strictObject({ id, simbolo: campoCurto, significado: campoCurto }).meta({ id: 'Simbolo' });
+export const esquemaTermoGlossario = z.strictObject({ id, termo: campoCurto, definicao: campoCurto }).meta({ id: 'TermoGlossario' });
+
 export const esquemaDocumentoV1 = z.strictObject({
   id,
   tipoTrabalho: esquemaTipoTrabalho,
@@ -392,6 +398,9 @@ export const esquemaDocumentoV1 = z.strictObject({
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),
   posTextuais: z.array(esquemaElementoPosTextual).min(1).max(LIMITES_V1.elementosPosTextuais).optional(),
   obras: z.array(esquemaObra).min(1, { error: 'lista de obras vazia: omita o campo quando não houver obras' }).max(LIMITES_V1.obras).optional(),
+  siglas: z.array(esquemaSigla).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
+  simbolos: z.array(esquemaSimbolo).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
+  glossario: z.array(esquemaTermoGlossario).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
 });
 
 // ---------- manifesto.json ----------

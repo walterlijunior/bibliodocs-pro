@@ -27,10 +27,12 @@ import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-stat
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ChamadaEscrita, DadosCitacao, DadosFigura, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
-import type { MarcaTexto } from '../../dominio/modelo';
+import type { MarcaTexto, Sigla } from '../../dominio/modelo';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
 import { alterarRemissiva, inserirRemissiva, podeInserirRemissiva, remissivaSelecionada, type RemissivaNoEditor } from './remissivas';
 import { RegistroRemissivas, RemissivaView } from './remissiva-view';
+import { alterarSigla, inserirSigla, ligarSiglasEscritas, podeInserirSigla, siglaSelecionada, siglasEscritasNoDoc, type SiglaEscrita, type SiglaNoEditor } from './siglas';
+import { RegistroSiglas, SiglaView } from './sigla-view';
 import {
   alterarCitacao,
   chamadaSelecionada,
@@ -119,6 +121,10 @@ export interface ControleEditor {
   alterarRemissiva(id: string, alvo: string): boolean;
   /** Liga ou desliga a equação nos parágrafos da seleção (M5-T07). */
   alternarEquacao(): boolean;
+  pedirSigla(): boolean;
+  inserirSigla(sigla: string): boolean;
+  alterarSigla(id: string, sigla: string): boolean;
+  focarSigla(): void;
 }
 
 /** Estados dos editores das seções visitadas no trabalho aberto. */
@@ -135,6 +141,7 @@ export class MemoriaEditores {
   readonly chamadas = new RegistroChamadas();
   /** Texto das remissivas na tela (M5-T08): troca quando a numeração muda e redesenha as remissivas. */
   readonly remissivas = new RegistroRemissivas();
+  readonly siglas = new RegistroSiglas();
   /** Tabelas do trabalho para os gráficos gerados (M5-T09): trocar uma tabela redesenha os gráficos dela. */
   readonly graficos = new RegistroGraficos();
 
@@ -212,6 +219,8 @@ export interface PropsEditorSecao {
   tabelasDoTrabalho: ReadonlyMap<string, BlocoTabela>;
   /** Abre a janela do gráfico: `existente` é o gráfico a alterar; `null`, um novo no cursor (M5-T09). */
   aoPedirGrafico: (existente: GraficoNoEditor | null) => void;
+  siglas?: readonly Sigla[];
+  aoPedirSigla?: (existente: SiglaNoEditor | null) => void;
 }
 
 interface Barra {
@@ -229,11 +238,13 @@ interface Barra {
   numerada: boolean;
   podeCitar: boolean;
   podeRemissiva: boolean;
+  podeSigla: boolean;
   desfazer: boolean;
   refazer: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, podeSigla: false, desfazer: false, refazer: false };
+const SIGLAS_VAZIAS: readonly Sigla[] = [];
 
 function barraDe(estado: EditorState): Barra {
   return {
@@ -251,6 +262,7 @@ function barraDe(estado: EditorState): Barra {
     numerada: equacaoNumerada(estado),
     podeCitar: chamadaSelecionada(estado) !== null || podeInserirCitacao(estado),
     podeRemissiva: remissivaSelecionada(estado) !== null || podeInserirRemissiva(estado),
+    podeSigla: siglaSelecionada(estado) !== null || podeInserirSigla(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
   };
@@ -271,6 +283,8 @@ export function EditorSecao(p: PropsEditorSecao) {
   const [barra, setBarra] = useState<Barra>(BARRA_VAZIA);
   // Chamadas escritas à mão no texto colado (M4-T07): a sugestão espera o aceite.
   const [sugestao, setSugestao] = useState<readonly ChamadaEscritaNoDoc[]>([]);
+  const [sugestaoSigla, setSugestaoSigla] = useState<readonly SiglaEscrita[]>([]);
+  const refBlocosSiglas = useRef<ReadonlySet<string>>(new Set());
   // Blocos tocados pela colagem: a sugestão e o "Ligar às obras" ficam neles (revisão R-M4-03).
   const refBlocosColados = useRef<ReadonlySet<string>>(new Set());
   // As funções de fora mudam a cada renderização da casca; o editor lê sempre a mais recente.
@@ -283,6 +297,7 @@ export function EditorSecao(p: PropsEditorSecao) {
   // Antes de montar o editor: as chamadas e as remissivas nascem já com o texto.
   useEffect(() => memoria.chamadas.definir(formatarChamada), [memoria, formatarChamada]);
   useEffect(() => memoria.remissivas.definir(rotulosRemissiva), [memoria, rotulosRemissiva]);
+  useEffect(() => memoria.siglas.definir(p.siglas ?? SIGLAS_VAZIAS), [memoria, p.siglas]);
   useEffect(() => memoria.graficos.definir(tabelasDoTrabalho), [memoria, tabelasDoTrabalho]);
   useEffect(() => {
     const hospedeiro = refHospedeiro.current;
@@ -305,9 +320,14 @@ export function EditorSecao(p: PropsEditorSecao) {
     };
     // Destino da janela da citação: o texto da seção ou o de uma nota aberta (M4-T07).
     let alvo: AlvoCitacao | null = null;
+    let alvoSigla: AlvoCitacao | null = null;
     const pedirNoAlvo = (existente: ChamadaNoEditor | null, destino: AlvoCitacao) => {
       alvo = destino;
       refProps.current.aoPedirCitacao(existente);
+    };
+    const pedirSiglaNoAlvo = (existente: SiglaNoEditor | null, destino: AlvoCitacao) => {
+      alvoSigla = destino;
+      refProps.current.aoPedirSigla?.(existente);
     };
     const notas = new Set<NotaView>();
     // Janela da tabela (M5-T04): a selecionada, ou uma nova no cursor.
@@ -345,6 +365,14 @@ export function EditorSecao(p: PropsEditorSecao) {
       pedirNoAlvo(existente, { estado: () => view.state, despachar: (tr) => view.dispatch(tr), focar: () => view.focus() });
       return true;
     };
+    const pedirSigla = (): boolean => {
+      if (somenteLeitura || !refProps.current.aoPedirSigla) return false;
+      for (const n of notas) if (n.temFoco()) return n.pedirSigla();
+      const existente = siglaSelecionada(view.state);
+      if (existente === null && !podeInserirSigla(view.state)) return false;
+      pedirSiglaNoAlvo(existente, { estado: () => view.state, despachar: (tr) => view.dispatch(tr), focar: () => view.focus() });
+      return true;
+    };
     const teclas = keydownHandler({
       'Mod-z': consumir('desfazer'),
       'Mod-y': consumir('refazer'),
@@ -354,6 +382,7 @@ export function EditorSecao(p: PropsEditorSecao) {
         return true;
       },
       Enter: () =>
+        (siglaSelecionada(view.state) !== null && pedirSigla()) ||
         (chamadaSelecionada(view.state) !== null && pedirCitacao()) ||
         (tabelaSelecionada(view.state) !== null && pedirTabela()) ||
         (figuraSelecionada(view.state) !== null && pedirFigura()) ||
@@ -365,12 +394,11 @@ export function EditorSecao(p: PropsEditorSecao) {
       state: estado,
       editable: () => !somenteLeitura,
       handleKeyDown: teclas,
-      ...copiaComChamadas(memoria.chamadas, memoria.remissivas),
+      ...copiaComChamadas(memoria.chamadas, memoria.remissivas, memoria.siglas),
       nodeViews: {
         nota: (no, v, posicao) => {
           const n: NotaView = new NotaView(no, v, posicao, () => memoria.avisar(['limite']), historico, { registro: memoria.chamadas, pedir: pedirNoAlvo }, () =>
-            notas.delete(n),
-          );
+            notas.delete(n), { registro: memoria.siglas, pedir: pedirSiglaNoAlvo });
           notas.add(n);
           return n;
         },
@@ -402,6 +430,12 @@ export function EditorSecao(p: PropsEditorSecao) {
             v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
             pedirRemissiva();
           }),
+        sigla: (no, v, posicao) => new SiglaView(no, memoria.siglas, () => {
+          const pos = posicao();
+          if (pos === undefined || somenteLeitura) return;
+          v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+          pedirSigla();
+        }),
         chamadaCitacao: (no, v, posicao) =>
           new ChamadaView(no, memoria.chamadas, () => {
             const pos = posicao();
@@ -423,6 +457,15 @@ export function EditorSecao(p: PropsEditorSecao) {
         const novo = anterior.apply(tr);
         view.updateState(novo);
         if (novo.doc !== anterior.doc) refProps.current.aoAlterar(secaoId, docParaSecao(novo.doc));
+        if (novo.doc !== anterior.doc) {
+          const blocos = blocosMudados(anterior.doc, novo.doc);
+          refBlocosSiglas.current = blocos;
+          const achadas = siglasEscritasNoDoc(novo.doc, refProps.current.siglas ?? SIGLAS_VAZIAS, blocos);
+          setSugestaoSigla((atuais) => atuais.length === achadas.length && atuais.every((x, i) => {
+            const y = achadas[i]!;
+            return x.de === y.de && x.ate === y.ate && x.sigla === y.sigla && x.texto === y.texto;
+          }) ? atuais : achadas);
+        }
         // Colagem com chamadas escritas de obras cadastradas: sugere ligar (nunca liga sozinho).
         if (tr.getMeta('uiEvent') === 'paste' && novo.doc !== anterior.doc) {
           // Só os blocos que a colagem criou ou mudou: o resto da seção não é examinado (revisão R-M4-03).
@@ -453,6 +496,13 @@ export function EditorSecao(p: PropsEditorSecao) {
       const estadoAlvo = alvo?.estado() ?? null;
       if (somenteLeitura || alvo === null || estadoAlvo === null) return false;
       const ok = c(estadoAlvo, alvo.despachar);
+      if (ok) view.dispatch(closeHistory(view.state.tr));
+      return ok;
+    };
+    const passoSigla = (c: typeof desfazer): boolean => {
+      const estadoAlvo = alvoSigla?.estado() ?? null;
+      if (somenteLeitura || alvoSigla === null || estadoAlvo === null) return false;
+      const ok = c(estadoAlvo, alvoSigla.despachar);
       if (ok) view.dispatch(closeHistory(view.state.tr));
       return ok;
     };
@@ -493,6 +543,10 @@ export function EditorSecao(p: PropsEditorSecao) {
       pedirRemissiva,
       inserirRemissiva: (alvo) => executar(inserirRemissiva(alvo)),
       alterarRemissiva: (id, alvo) => executar(alterarRemissiva(id, alvo)),
+      pedirSigla,
+      inserirSigla: (id) => passoSigla(inserirSigla(id)),
+      alterarSigla: (id, sigla) => passoSigla(alterarSigla(id, sigla)),
+      focarSigla: () => (alvoSigla ?? { focar: () => view.focus() }).focar(),
       alternarEquacao: () => {
         const ok = executar(alternarEquacao);
         if (ok) view.focus();
@@ -503,6 +557,7 @@ export function EditorSecao(p: PropsEditorSecao) {
     };
 
     setSugestao([]);
+    setSugestaoSigla([]);
     return () => {
       // Guardado com o grupo fechado: o que for digitado em outra seção entra depois na ordem única.
       memoria.guardar(geracao, secaoId, view.state.apply(closeHistory(view.state.tr)));
@@ -537,6 +592,14 @@ export function EditorSecao(p: PropsEditorSecao) {
     }
     view.focus();
   };
+  const ligarSugestaoSigla = () => {
+    const view = refView.current;
+    setSugestaoSigla([]);
+    if (!view || somenteLeitura) return;
+    const achadas = siglasEscritasNoDoc(view.state.doc, refProps.current.siglas ?? SIGLAS_VAZIAS, refBlocosSiglas.current);
+    if (ligarSiglasEscritas(achadas)(view.state, view.dispatch)) view.dispatch(closeHistory(view.state.tr));
+    view.focus();
+  };
 
   const aplicarBloco = (comando: typeof alternarAlineas) => {
     const view = refView.current;
@@ -566,6 +629,9 @@ export function EditorSecao(p: PropsEditorSecao) {
             </button>
           ))}
           <span className="barra-formatacao__separador" aria-hidden="true" />
+          <button type="button" className="btn-formato" disabled={!barra.podeSigla || !p.aoPedirSigla} onMouseDown={(ev) => ev.preventDefault()} onClick={() => controle.current?.pedirSigla()}>
+            Sigla
+          </button>
           <button
             type="button"
             className="btn-formato"
@@ -697,6 +763,13 @@ export function EditorSecao(p: PropsEditorSecao) {
         </div>
       )}
       <div ref={refHospedeiro} className="editor-secao__texto" />
+      {sugestaoSigla.length > 0 && !somenteLeitura && (
+        <div className="editor-secao__sugestao" role="group" aria-label="Siglas escritas no texto">
+          <p role="status">O texto contém siglas cadastradas: {[...new Set(sugestaoSigla.map((s) => s.texto))].join(', ')}. Deseja ligar ao cadastro para gerar a primeira ocorrência por extenso?</p>
+          <button type="button" className="btn-principal" onClick={ligarSugestaoSigla}>Ligar siglas ao cadastro</button>
+          <button type="button" className="btn-secundario" onClick={() => { setSugestaoSigla([]); refView.current?.focus(); }}>Manter siglas como texto</button>
+        </div>
+      )}
     </div>
   );
 }

@@ -50,8 +50,38 @@ function montar(extra: Partial<DependenciasExportacao> = {}) {
     ...extra,
   };
   const m = criarManipuladoresExportacao(dep)[CANAIS_EXPORTACAO.docx];
-  return { chamar: (...a: unknown[]) => m(LEGITIMO, a) as Promise<ResultadoExportar>, m, gravados, pedidos, exportados };
+  const relatorio = criarManipuladoresExportacao(dep)[CANAIS_EXPORTACAO.relatorio];
+  return { chamar: (...a: unknown[]) => m(LEGITIMO, a) as Promise<ResultadoExportar>, m, relatorio, gravados, pedidos, exportados };
 }
+
+describe('M7: relatório TXT pelo principal', () => {
+  it('gera da cópia validada do trabalho e grava texto UTF-8 sem expor destino ao renderer', async () => {
+    const x = montar({ escolherDestinoRelatorio: async () => 'C:\\pasta\\relatorio.txt' });
+    const r = await x.relatorio(LEGITIMO, [pacote()]) as ResultadoExportar;
+    expect(r).toMatchObject({ ok: true, nomeArquivo: 'relatorio.txt' });
+    expect(JSON.stringify(r)).not.toContain('C:\\pasta');
+    expect(x.gravados).toHaveLength(1);
+    const texto = new TextDecoder().decode(x.gravados[0]![1]);
+    expect(texto).toContain('Meu trabalho');
+    expect(texto).toContain('RN-');
+    expect(x.exportados).toHaveLength(0);
+  });
+  it('cancela e recusa extensão errada sem gravar', async () => {
+    const cancelado = montar({ escolherDestinoRelatorio: async () => null });
+    expect(await cancelado.relatorio(LEGITIMO, [pacote()])).toEqual({ ok: false, motivo: 'CANCELADO' });
+    expect(cancelado.gravados).toEqual([]);
+    const errado = montar({ escolherDestinoRelatorio: async () => 'C:\\pasta\\relatorio.docx' });
+    expect(await errado.relatorio(LEGITIMO, [pacote()])).toMatchObject({ ok: false, motivo: 'ERRO' });
+    expect(errado.gravados).toEqual([]);
+  });
+  it('remetente estranho, argumento extra e pacote falso são recusados antes de diálogo/gravação', async () => {
+    const x = montar({ escolherDestinoRelatorio: async (_id, nome) => (x.pedidos.push(nome), 'C:\\pasta\\relatorio.txt') });
+    await expect(x.relatorio({ ...LEGITIMO, quadroPrincipal: false }, [pacote()])).rejects.toBeInstanceOf(ErroIpcRecusado);
+    await expect(x.relatorio(LEGITIMO, [pacote(), 'conteúdo forjado'])).rejects.toBeInstanceOf(ErroIpcRecusado);
+    await expect(x.relatorio(LEGITIMO, [{ arbitrario: true }])).rejects.toBeInstanceOf(ErroIpcRecusado);
+    expect(x.pedidos).toEqual([]); expect(x.gravados).toEqual([]);
+  });
+});
 
 describe('exportação', () => {
   it('grava no destino escolhido, sugere o nome do título e não devolve a pasta', async () => {

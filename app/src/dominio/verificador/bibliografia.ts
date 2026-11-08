@@ -24,7 +24,7 @@ import {
   ordenarReferencias,
   type EdicaoNbr10520,
 } from '../bibliografia';
-import { conteudosDoBloco, type Autor, type Documento, type Id, type Inline, type InlineCitacao, type Obra, type Secao } from '../modelo';
+import { conteudosDoBloco, secoesDeLeitura, type Autor, type Documento, type Id, type Inline, type InlineCitacao, type Obra, type Secao } from '../modelo';
 
 export type CodigoProblemaBibliografia =
   | 'REFERENCIAS_AUSENTES'
@@ -144,7 +144,7 @@ const grafia = (a: Extract<Autor, { tipo: 'pessoa' }>): string => `${a.sobrenome
 export function verificarBibliografia(doc: Documento, opcoes: OpcoesVerificacao = {}): ProblemaBibliografia[] {
   const problemas: ProblemaBibliografia[] = [];
   const obras = doc.obras ?? [];
-  const citacoes = citacoesComLocal(doc.corpo);
+  const citacoes = citacoesComLocal(secoesDeLeitura(doc));
   const citadas = new Set<Id>();
   for (const { citacao } of citacoes) {
     for (const o of citacao.obras) citadas.add(o.obra);
@@ -166,7 +166,7 @@ export function verificarBibliografia(doc: Documento, opcoes: OpcoesVerificacao 
   }
 
   // Chamadas escritas à mão (a citação órfã possível).
-  for (const t of trechosDoCorpo(doc.corpo)) {
+  for (const t of trechosDoCorpo(secoesDeLeitura(doc))) {
     for (const escrita of chamadasEscritas(t.conteudo)) {
       problemas.push({
         codigo: 'CHAMADA_SEM_LIGACAO',

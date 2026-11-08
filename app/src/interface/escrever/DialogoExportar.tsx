@@ -69,7 +69,7 @@ export function DialogoExportar(p: PropsDialogoExportar) {
         {exportando && <p role="status">Gerando o arquivo…</p>}
         {estado.etapa === 'concluido' && (
           <>
-            <p role="status">“{estado.nomeArquivo}” foi exportado. Se o trabalho mudar no Word, atualize o sumário com F9.</p>
+            <p role="status">“{estado.nomeArquivo}” foi exportado. Se editar no Word, selecione todo o documento e pressione F9 para atualizar as páginas das listas e o sumário.</p>
             {estado.avisos.length > 0 && (
               <>
                 <p>Confira antes de entregar:</p>
