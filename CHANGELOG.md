@@ -5,6 +5,19 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M6-T07 (revisão do M6):
+  - A tela "Elementos pós-textuais" passa a funcionar no app: incluir, retirar e ordenar apêndices, anexos e glossário, com Ctrl+Z. O título do apêndice é escrito na primeira linha do editor.
+  - Desfazer a inclusão ou a retirada de um apêndice não apaga mais o texto de outro.
+  - Gráfico dentro de apêndice sai com a imagem no DOCX.
+  - O relatório de conformidade não pode ser falsificado por um título com quebras de linha, e a conferência de siglas fica rápida mesmo com milhares de siglas.
+
+### Alterado
+- Etapa 5, M6-T07 (revisão do M6):
+  - Sigla dentro de citação longa não é expandida nem conferida (a citação reproduz o original). A primeira vez que a sigla aparece no texto corrido sai sempre por extenso, mesmo se já apareceu numa nota.
+  - Glossário sem recuo de primeira linha; apêndice e anexo com conteúdo começam em folha nova.
+  - Novos avisos: apêndice ou anexo sem título, lista incluída sem itens, forma por extenso repetida depois da sigla. Numeral romano não é tomado por sigla. Avisos que vêm de decisões do projeto saem como "critério provisório" no relatório.
+
 ### Adicionado
 - Etapa 5, M6-T02 a T06 (Codex, revisado pela sessão principal):
   - Siglas: cadastro, botão "Sigla" no editor, primeira ocorrência por extenso no DOCX ("Universidade Federal do Tocantins (UFT)") e depois só a sigla; lista de abreviaturas e siglas; sugestão de ligar sigla digitada e aviso de sigla sem cadastro.

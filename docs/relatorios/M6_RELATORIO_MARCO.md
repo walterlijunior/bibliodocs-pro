@@ -103,3 +103,38 @@ sigla limitadas (200) e verificador limitado (1.000 itens); nada de `innerHTML`.
 
 **Testado:** `npx vitest run` 2038/2038; E2E da remissiva e axe depois do ajuste. `npm run verificar:tudo`: saída 0 nas camadas de verificação: `verificar` 2038/2038 (auditoria só com avisos moderados de ferramentas de empacotamento), externos 28/28 (Word confere as 4 páginas das listas: PAGEREF gravado = recalculado), build ok; Playwright 36/37 na suíte completa (FUN-13 da citação, instabilidade já registrada no M5-T05) e 37/37 na repetição, FUN-13 3/3 sozinho.
 
+## M6-T07 — Revisão independente e fechamento do M6
+
+**Feito pela sessão principal em 2026-11-08**, com dois revisores independentes só de leitura (segurança e normas).
+Relatório: `docs/relatorios/REVISAO_M6.md`.
+
+- **Altas corrigidas:**
+  - R-M6-01: typecheck vermelho por um teste da sessão principal;
+  - R-M6-02: tela de pós-textuais não ligada ao app. Ao ligá-la, o E2E achou o título do apêndice com duas fontes; o
+    título ficou só no editor.
+- **Médias corrigidas:**
+  - R-M6-03: desfazer estrutural apagava texto de apêndice;
+  - R-M6-04: gráfico em apêndice;
+  - R-M6-05: RN-047 com custo quadrático;
+  - N-M6-01: apêndice sem título;
+  - N-M6-02: citação longa;
+  - N-M6-03: RN-096 fora do perfil.
+- **Também feitos:**
+  - RN-047, 2.ª parte (aviso da forma por extenso repetida);
+  - D-M6-10 a 12 por delegação;
+  - as Baixas e Infos listadas no relatório.
+- **Abertos:** R-M6-10 e 12; N-M6-06, 10, 11 (parcial), 12 (do usuário) e 14.
+
+**Aceite do M6 (RF-11, RF-12, RF-13, RF-14):**
+
+| Requisito | Aceite | Onde foi demonstrado |
+|---|---|---|
+| RF-11 | Remissivas por id, também a seção e a apêndice | `tests/remissivas.test.ts` (inclusive a lista da tela com seção e apêndice), `e2e/remissiva.spec.ts` |
+| RF-12 | Inserir seção ou figura atualiza sumário e listas sem ação manual | Listas e sumário gerados na exportação a partir da numeração: `tests/motor-listas.test.ts`, `e2e/listas.spec.ts`; Word confere a página de cada entrada |
+| RF-13 | Cadastro, uso no texto, lista ordenada, aviso de sigla usada sem cadastro | `tests/siglas.test.ts`, `tests/editor-siglas.test.ts`, conformidade |
+| RF-14 | Referências, glossário, apêndices e anexos com letra; imagens em apêndice e anexo | `e2e/pos-textuais.spec.ts` (FUN-20), `tests/pos-textuais-sessao.test.ts`, `tests/grafico.test.ts` (gráfico em apêndice), regressão DOCX. Índice (F) fora (D-M6-09) |
+
+**Testado:** `npx vitest run` 2055/2055; `npm run typecheck` sem erros. `npm run verificar:tudo`: interrompido pelo sistema por falta de memória na máquina (não é falha de teste). Passaram antes da interrupção: typecheck, `verificar` 2055/2055 (auditoria só com avisos moderados), externos 28/28 (Word, LibreOffice, OOXML) e build. A suíte E2E (39 testes) foi parada no início; FUN-20 e o axe novo passaram rodados sozinhos. **Falta reexecutar o E2E completo**.
+
+**M6 pronto para fechar**: falta só o E2E completo, a reexecutar quando houver memória livre.
+
