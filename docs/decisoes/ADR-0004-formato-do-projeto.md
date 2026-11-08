@@ -725,3 +725,17 @@ citam entram na de obras existentes.
   destino); copiar leva o texto. Recortar e colar dentro do app perde a ligação (pendência M5 do ADR-0007, agora
   também para a remissiva).
 
+## Adendo do M5-T09 (2026-11-08) — gráfico gerado de tabela
+
+- **Aditivo, sem subir `versaoFormato`.** `Bloco` ganha `grafico`: `{ tipo, id, tabela, forma, titulo, series?,
+  larguraMm?, fonte?, nota? }` (`BlocoGrafico`; `forma` em colunas, barras, linhas ou setores; `series` com colunas
+  distintas, lista vazia recusada). JSON Schema regenerado. Prefixo de id no editor: `gra_`.
+- Guarda a ligação, nunca os dados nem a imagem (D-M5-47): os valores são lidos da tabela a cada vez, e o gráfico
+  acompanha a tabela (aceite do RF-10). A `tabela` não é conferida na leitura: ausente é pendência (D-M5-49).
+- O PNG não vai para o `.bdp`. Na exportação, o renderer desenha cada gráfico num canvas a 300 ppi e manda os PNG nas
+  opções do canal (`graficos`, por id). O principal recusa forma errada (não é objeto, mais de 500, bytes que não são
+  `Uint8Array` ou acima de 20 MB) e usa só PNG legível de um gráfico que existe no documento; o resto fica de fora, e o
+  gráfico sai sem a imagem, com aviso.
+- O desenho é uma lista de primitivas calculada no domínio (`dominio/visuais/grafico.ts`, puro e testado em Node); a
+  interface só pinta. Tela e arquivo usam o mesmo desenho.
+

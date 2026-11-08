@@ -18,3 +18,19 @@ export {
 export { celulasComColuna, ehDadoNumerico, proporcaoNumerica, textoDaCelula } from './dados-numericos';
 export { PALAVRA_DESIGNATIVA, rodapeDoElemento, rotuloElemento, temFonte, tituloComRotulo, type ParteRodape } from './rotulos';
 export { alvosDeRemissiva, remissivasDoCorpo, rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA, type AlvoRemissiva, type RemissivaNoTexto } from './remissivas';
+export {
+  CATEGORIAS_MAXIMAS,
+  CORES_GRAFICO,
+  dadosDoGrafico,
+  desenharGrafico,
+  escalaRedonda,
+  LARGURA_PADRAO_GRAFICO_MM,
+  lerNumero,
+  numeroBr,
+  tamanhoGraficoMm,
+  type DadosGrafico,
+  type OpcoesDesenho,
+  type Ponto,
+  type Primitiva,
+  type SerieGrafico,
+} from './grafico';

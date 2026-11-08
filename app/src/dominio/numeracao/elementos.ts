@@ -13,14 +13,15 @@
  * - Ordem de leitura: seção, os blocos dela e depois as subseções (pré-ordem, como o motor). Pré e pós-textuais não têm
  *   blocos no formato v1 (apêndice e anexo só guardam o título), então só o corpo entra na contagem.
  */
-import type { BlocoEquacao, BlocoIlustracao, BlocoTabela, EspecieIlustracao, Id, Secao } from '../modelo';
+import type { BlocoEquacao, BlocoGrafico, BlocoIlustracao, BlocoTabela, EspecieIlustracao, Id, Secao } from '../modelo';
 import { numerarSecoes } from './secoes';
 
 /** Sequência de numeração: a espécie da tabela ou da ilustração (cada palavra designativa conta à parte). */
 export type SequenciaElemento = BlocoTabela['especie'] | EspecieIlustracao;
 
 export interface ElementoNumerado {
-  bloco: BlocoTabela | BlocoIlustracao;
+  /** Gráfico gerado de tabela (M5-T09) conta na sequência "Gráfico", com os gráficos com imagem (RN-049). */
+  bloco: BlocoTabela | BlocoIlustracao | BlocoGrafico;
   secao: Id;
   sequencia: SequenciaElemento;
   /** 1, 2, 3… dentro da sequência. */
@@ -47,10 +48,11 @@ export function numerarElementos(corpo: readonly Secao[]): NumeracaoElementos {
   const equacoes: EquacaoNumerada[] = [];
   for (const { secao } of numerarSecoes(corpo)) {
     for (const bloco of secao.blocos) {
-      if (bloco.tipo === 'tabela' || bloco.tipo === 'ilustracao') {
-        const numero = (contagem.get(bloco.especie) ?? 0) + 1;
-        contagem.set(bloco.especie, numero);
-        elementos.push({ bloco, secao: secao.id, sequencia: bloco.especie, numero });
+      if (bloco.tipo === 'tabela' || bloco.tipo === 'ilustracao' || bloco.tipo === 'grafico') {
+        const sequencia: SequenciaElemento = bloco.tipo === 'grafico' ? 'grafico' : bloco.especie;
+        const numero = (contagem.get(sequencia) ?? 0) + 1;
+        contagem.set(sequencia, numero);
+        elementos.push({ bloco, secao: secao.id, sequencia, numero });
       } else if (bloco.tipo === 'equacao' && bloco.numerada === true) {
         equacoes.push({ bloco, secao: secao.id, numero: equacoes.length + 1 });
       }

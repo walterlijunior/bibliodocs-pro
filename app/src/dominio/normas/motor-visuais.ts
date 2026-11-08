@@ -15,9 +15,9 @@
  * Equação (M5-T07): parágrafo próprio (RN-105) no estilo `equacao`; numerada, o número "(n)" vai depois de uma
  * tabulação à direita na largura útil (RN-106), e a forma do parágrafo vem do estilo (RN-107, RN-108/D-M5-05).
  */
-import { celulasComColuna, larguraImpressaMm, lerInfoImagem, rodapeDoElemento, rotuloElemento, tituloComRotulo } from '../visuais';
+import { celulasComColuna, larguraImpressaMm, lerInfoImagem, rodapeDoElemento, rotuloElemento, tamanhoGraficoMm, tituloComRotulo } from '../visuais';
 import { numerarElementos, rotuloEquacao, type SequenciaElemento } from '../numeracao';
-import type { AlinhamentoColuna, BlocoEquacao, BlocoIlustracao, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
+import type { AlinhamentoColuna, BlocoEquacao, BlocoGrafico, BlocoIlustracao, BlocoTabela, Id, InlineDeTitulo, Secao } from '../modelo';
 import type { BlocoFormatado, CelulaFormatada, PaginaResolvida, TracosMoldura, TrechoFormatado } from './formatado';
 import type { Perfil, RegraNormativa } from './perfil';
 
@@ -107,7 +107,7 @@ function tracos(b: BlocoTabela, c: ContextoVisuais): { tracos: TracosMoldura; or
  * Rodapé do elemento: Fonte → Nota → notas específicas (RN-277), chamada entre parênteses (RN-267); uma linha depois do
  * último parágrafo (RN-031, RN-308). Sem rodapé, um parágrafo vazio com esse espaço.
  */
-function rodapeFormatado(b: BlocoTabela | BlocoIlustracao, c: ContextoVisuais): BlocoFormatado[] {
+function rodapeFormatado(b: BlocoTabela | BlocoIlustracao | BlocoGrafico, c: ContextoVisuais): BlocoFormatado[] {
   const rodape: BlocoFormatado[] = rodapeDoElemento(b).map((p): BlocoFormatado => {
     const prefixo = p.parte === 'notaEspecifica' ? `(${p.chamada}) ` : `${p.prefixo} `;
     const origem = p.parte === 'notaEspecifica' ? so(c.rn.ordemRodape, c.rn.chamada) : so(c.rn.ordemRodape);
@@ -186,6 +186,33 @@ export function blocosIlustracao(b: BlocoIlustracao, c: ContextoVisuais, bytes: 
   }
   blocos.push(...rodapeFormatado(b, c));
   return { blocos, ausente: !(bytes && info) };
+}
+
+/**
+ * Gráfico gerado de tabela (M5-T09; D-M5-08): como a ilustração, título, imagem e rodapé. O PNG é desenhado pela interface
+ * (canvas) e chega pronto, pelo id do bloco; o tamanho impresso é o do domínio (`tamanhoGraficoMm`), e a altura segue a
+ * proporção do PNG. Sem o PNG (ou ilegível), sai sem a imagem.
+ */
+export function blocosGrafico(b: BlocoGrafico, c: ContextoVisuais, png: Uint8Array | undefined): { blocos: BlocoFormatado[]; ausente: boolean } {
+  const n = c.numeros.get(b.id);
+  const titulo = c.rn.numeracao !== null && n !== undefined ? tituloComRotulo(rotuloElemento(n.sequencia, n.numero), b.titulo, c.separador) : b.titulo;
+  const info = png ? lerInfoImagem(png) : null;
+  const blocos: BlocoFormatado[] = [{ tipo: 'paragrafo', estilo: 'tituloElemento', trechos: deInline(titulo), origem: so(c.rn.numeracao, c.rn.rotulo) }];
+  if (png && info && info.tipo === 'image/png') {
+    const larguraTw = Math.round(tamanhoGraficoMm(b, (c.larguraTw * 25.4) / 1440).larguraMm * MM_EM_TW);
+    blocos.push({
+      tipo: 'imagem',
+      estilo: 'imagemElemento',
+      dados: png,
+      formato: 'png',
+      larguraTw,
+      alturaTw: Math.round((larguraTw * info.alturaPx) / info.larguraPx),
+      descricao: titulo.map((i) => i.texto).join(''),
+      origem: c.rn.imagem,
+    });
+  }
+  blocos.push(...rodapeFormatado(b, c));
+  return { blocos, ausente: !(png && info && info.tipo === 'image/png') };
 }
 
 /**

@@ -15,6 +15,8 @@
  *   bytes das imagens nas opções.
  *
  * - REMISSIVA_QUEBRADA (pendência, M5-T08): remissiva cujo alvo não existe ou é equação sem número (RF-11).
+ * - GRAFICO_SEM_TABELA e GRAFICO_SEM_DADOS (pendência, M5-T09): gráfico gerado cuja tabela saiu do trabalho ou não tem
+ *   número; GRAFICO_PARCIAL (aviso): parte da tabela ficou de fora (linha de total, séries a mais nos setores…).
  * - SEM_REMISSIVA (aviso, M5-T08): tabela, quadro ou ilustração que nenhuma remissiva cita (RN-060, PENDENTE-FONTE, por
  *   isso só aviso: D-M5-04). Equação fica de fora: a regra é de ilustração, estendida só à tabela pela D-M5-04.
  */
@@ -27,13 +29,24 @@ import {
   proporcaoNumerica,
   RESOLUCAO_MINIMA_PPI,
   resolucaoEfetivaPpi,
+  dadosDoGrafico,
   remissivasDoCorpo,
   rotuloElemento,
   rotulosDeRemissiva,
   temFonte,
 } from '../visuais';
 
-export type CodigoProblemaVisual = 'SEM_TITULO' | 'SEM_FONTE' | 'TABELA_SEM_DADO_NUMERICO' | 'TABELA_LONGA' | 'RESOLUCAO_BAIXA' | 'REMISSIVA_QUEBRADA' | 'SEM_REMISSIVA';
+export type CodigoProblemaVisual =
+  | 'SEM_TITULO'
+  | 'SEM_FONTE'
+  | 'TABELA_SEM_DADO_NUMERICO'
+  | 'TABELA_LONGA'
+  | 'RESOLUCAO_BAIXA'
+  | 'REMISSIVA_QUEBRADA'
+  | 'SEM_REMISSIVA'
+  | 'GRAFICO_SEM_TABELA'
+  | 'GRAFICO_SEM_DADOS'
+  | 'GRAFICO_PARCIAL';
 
 export interface ProblemaVisual {
   codigo: CodigoProblemaVisual;
@@ -83,7 +96,9 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
   const lista: ProblemaVisual[] = [];
   const remissivas = remissivasDoCorpo(doc.corpo);
   const citados = new Set(remissivas.map((r) => r.remissiva.alvo));
-  for (const { bloco, secao, sequencia, numero } of numerarElementos(doc.corpo).elementos) {
+  const { elementos } = numerarElementos(doc.corpo);
+  const tabelas = new Map(elementos.flatMap((e) => (e.bloco.tipo === 'tabela' ? [[e.bloco.id, e.bloco] as const] : [])));
+  for (const { bloco, secao, sequencia, numero } of elementos) {
     const rotulo = rotuloElemento(sequencia, numero);
     const tabela = sequencia === 'tabela';
     const add = (codigo: CodigoProblemaVisual, nivel: ProblemaVisual['nivel'], origem: string[], mensagem: string) =>
@@ -102,6 +117,11 @@ export function verificarVisuais(doc: Pick<Documento, 'corpo'>, opcoes: OpcoesVe
     }
     if (!citados.has(bloco.id)) {
       add('SEM_REMISSIVA', 'aviso', ['RN-060', 'D-M5-04'], 'não é citado no texto; use Inserir › Remissiva… onde o texto fala dele.');
+    }
+    if (bloco.tipo === 'grafico') {
+      const d = dadosDoGrafico(bloco, tabelas.get(bloco.tabela));
+      if (!d.ok) add(d.motivo === 'semTabela' ? 'GRAFICO_SEM_TABELA' : 'GRAFICO_SEM_DADOS', 'pendencia', ['RF-10', 'D-M5-49'], d.mensagem);
+      else for (const a of d.avisos) add('GRAFICO_PARCIAL', 'aviso', ['D-M5-50'], a);
     }
     if (bloco.tipo === 'ilustracao') {
       const bytes = opcoes.imagens?.get(bloco.midia);

@@ -54,7 +54,23 @@ import { MENSAGENS_AVISO, type AvisoColagem } from './html-colado';
 import { NotaView } from './nota-view';
 import { FiguraView } from './figura-view';
 import { TabelaView } from './tabela-view';
-import { alterarFigura, alterarTabela, figuraSelecionada, inserirFigura, inserirTabela, tabelaSelecionada, type FiguraNoEditor, type TabelaNoEditor } from './tabelas';
+import {
+  alterarFigura,
+  alterarGrafico,
+  alterarTabela,
+  figuraSelecionada,
+  graficoSelecionado,
+  inserirFigura,
+  inserirGrafico,
+  inserirTabela,
+  tabelaSelecionada,
+  type CamposGrafico,
+  type FiguraNoEditor,
+  type GraficoNoEditor,
+  type TabelaNoEditor,
+} from './tabelas';
+import { GraficoView, RegistroGraficos } from './grafico-view';
+import type { BlocoTabela } from '../../dominio/modelo';
 
 /** Desfazer ou refazer na ordem única do trabalho (texto e estrutura). */
 export type SentidoHistorico = 'desfazer' | 'refazer';
@@ -93,6 +109,10 @@ export interface ControleEditor {
   pedirFigura(): boolean;
   inserirFigura(dados: DadosFigura): boolean;
   alterarFigura(id: string, dados: DadosFigura): boolean;
+  /** Pede a janela do gráfico: o selecionado, ou um novo no cursor (M5-T09). */
+  pedirGrafico(): boolean;
+  inserirGrafico(dados: CamposGrafico): boolean;
+  alterarGrafico(id: string, dados: CamposGrafico): boolean;
   /** Pede a janela da remissiva: a selecionada, ou uma nova no cursor (M5-T08). */
   pedirRemissiva(): boolean;
   inserirRemissiva(alvo: string): boolean;
@@ -115,6 +135,8 @@ export class MemoriaEditores {
   readonly chamadas = new RegistroChamadas();
   /** Texto das remissivas na tela (M5-T08): troca quando a numeração muda e redesenha as remissivas. */
   readonly remissivas = new RegistroRemissivas();
+  /** Tabelas do trabalho para os gráficos gerados (M5-T09): trocar uma tabela redesenha os gráficos dela. */
+  readonly graficos = new RegistroGraficos();
 
   obter(geracao: number, secaoId: string): EditorState | undefined {
     if (geracao !== this.#geracao) {
@@ -186,6 +208,10 @@ export interface PropsEditorSecao {
   rotulosRemissiva: ReadonlyMap<string, string>;
   /** Abre a janela da remissiva: `existente` é a remissiva a alterar; `null`, uma nova no cursor (M5-T08). */
   aoPedirRemissiva: (existente: RemissivaNoEditor | null) => void;
+  /** Tabelas do trabalho, pelo id, para desenhar os gráficos gerados (M5-T09). */
+  tabelasDoTrabalho: ReadonlyMap<string, BlocoTabela>;
+  /** Abre a janela do gráfico: `existente` é o gráfico a alterar; `null`, um novo no cursor (M5-T09). */
+  aoPedirGrafico: (existente: GraficoNoEditor | null) => void;
 }
 
 interface Barra {
@@ -253,10 +279,11 @@ export function EditorSecao(p: PropsEditorSecao) {
     refProps.current = p;
   });
 
-  const { secaoId, geracao, memoria, somenteLeitura, controle, formatarChamada, rotulosRemissiva } = p;
+  const { secaoId, geracao, memoria, somenteLeitura, controle, formatarChamada, rotulosRemissiva, tabelasDoTrabalho } = p;
   // Antes de montar o editor: as chamadas e as remissivas nascem já com o texto.
   useEffect(() => memoria.chamadas.definir(formatarChamada), [memoria, formatarChamada]);
   useEffect(() => memoria.remissivas.definir(rotulosRemissiva), [memoria, rotulosRemissiva]);
+  useEffect(() => memoria.graficos.definir(tabelasDoTrabalho), [memoria, tabelasDoTrabalho]);
   useEffect(() => {
     const hospedeiro = refHospedeiro.current;
     if (!hospedeiro) return;
@@ -295,6 +322,12 @@ export function EditorSecao(p: PropsEditorSecao) {
       refProps.current.aoPedirFigura(figuraSelecionada(view.state));
       return true;
     };
+    // Janela do gráfico (M5-T09).
+    const pedirGrafico = (): boolean => {
+      if (somenteLeitura) return false;
+      refProps.current.aoPedirGrafico(graficoSelecionado(view.state));
+      return true;
+    };
     // Janela da remissiva (M5-T08): a selecionada, ou uma nova no cursor (só no texto corrido).
     const pedirRemissiva = (): boolean => {
       if (somenteLeitura) return false;
@@ -324,7 +357,8 @@ export function EditorSecao(p: PropsEditorSecao) {
         (chamadaSelecionada(view.state) !== null && pedirCitacao()) ||
         (tabelaSelecionada(view.state) !== null && pedirTabela()) ||
         (figuraSelecionada(view.state) !== null && pedirFigura()) ||
-        (remissivaSelecionada(view.state) !== null && pedirRemissiva()),
+        (remissivaSelecionada(view.state) !== null && pedirRemissiva()) ||
+        (graficoSelecionado(view.state) !== null && pedirGrafico()),
     });
 
     const view: EditorView = new EditorView(hospedeiro, {
@@ -353,6 +387,13 @@ export function EditorSecao(p: PropsEditorSecao) {
             if (pos === undefined || somenteLeitura) return;
             v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
             pedirFigura();
+          }),
+        grafico: (no, v, posicao) =>
+          new GraficoView(no, memoria.graficos, () => {
+            const pos = posicao();
+            if (pos === undefined || somenteLeitura) return;
+            v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+            pedirGrafico();
           }),
         remissiva: (no, v, posicao) =>
           new RemissivaView(no, memoria.remissivas, () => {
@@ -446,6 +487,9 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirFigura,
+      pedirGrafico,
+      inserirGrafico: (dados) => executar(inserirGrafico(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      alterarGrafico: (id, dados) => executar(alterarGrafico(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirRemissiva,
       inserirRemissiva: (alvo) => executar(inserirRemissiva(alvo)),
       alterarRemissiva: (id, alvo) => executar(alterarRemissiva(id, alvo)),
@@ -619,6 +663,15 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => controle.current?.pedirFigura()}
           >
             Figura
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            title="Gráfico: gerar de uma tabela do trabalho, no cursor, ou alterar o selecionado"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => controle.current?.pedirGrafico()}
+          >
+            Gráfico
           </button>
         </div>
       )}

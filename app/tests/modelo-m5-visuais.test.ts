@@ -58,10 +58,10 @@ describe('fixture documento-bordas-m5.json', () => {
     expect(r.valor).toEqual(doc);
   });
 
-  it('tem tabela, quadro, ilustração e equação, numerada e não', () => {
+  it('tem tabela, quadro, ilustração, equação, numerada e não, e gráfico', () => {
     const blocos = [...doc.corpo[0]!.blocos, ...doc.corpo[0]!.subsecoes[0]!.blocos];
     const tipos = blocos.map((b) => (b.tipo === 'tabela' ? b.especie : b.tipo === 'equacao' ? `equacao${b.numerada ? 'Numerada' : ''}` : b.tipo));
-    expect(new Set(tipos)).toEqual(new Set(['paragrafo', 'tabela', 'quadro', 'ilustracao', 'equacaoNumerada', 'equacao']));
+    expect(new Set(tipos)).toEqual(new Set(['paragrafo', 'tabela', 'quadro', 'ilustracao', 'equacaoNumerada', 'equacao', 'grafico']));
   });
 
   it('o id do elemento conta nas operações de seção (alvo das remissivas do M5-T08)', () => {

@@ -19,6 +19,7 @@ export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
     case 'tabela':
     case 'ilustracao':
     case 'equacao':
+    case 'grafico':
       return [];
   }
 }

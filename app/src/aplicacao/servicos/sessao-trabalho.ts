@@ -46,6 +46,7 @@ import {
   ehTipoTrabalhoUft,
   ORDEM_PRE_TEXTUAIS,
   type Bloco,
+  type BlocoTabela,
   type Documento,
   type ElementoPreTextual,
   type ElementoPreTextualId,
@@ -161,6 +162,8 @@ export interface ObraNaLista {
  */
 export interface ElementoNaSessao extends AlvoRemissiva {
   remissivas: number;
+  /** A tabela (espécie `tabela`), para o gráfico gerado ler os dados (M5-T09). Muda de objeto quando a tabela muda. */
+  tabela?: BlocoTabela;
 }
 
 /** Resultado de incluir, alterar ou excluir obra. */
@@ -484,6 +487,17 @@ export class SessaoTrabalho {
   /** Texto do aviso de remissiva quebrada por elemento: sai quando o elemento volta (Ctrl+Z). */
   #avisosDeRemissiva = new Map<Id, string>();
 
+  readonly #revisoesBloco = new WeakMap<object, number>();
+  #proximaRevisaoBloco = 1;
+  #revisaoDoBloco(o: object): number {
+    let r = this.#revisoesBloco.get(o);
+    if (r === undefined) {
+      r = this.#proximaRevisaoBloco++;
+      this.#revisoesBloco.set(o, r);
+    }
+    return r;
+  }
+
   #contarRemissivas(blocos: readonly Bloco[]): ReadonlyMap<Id, number> {
     let m = this.#remissivasDosBlocos.get(blocos);
     if (m) return m;
@@ -499,8 +513,14 @@ export class SessaoTrabalho {
     if (c !== null && c.corpo === corpo) return c.resultado;
     const total = new Map<Id, number>();
     for (const { secao } of numerarSecoes(corpo)) for (const [alvo, n] of this.#contarRemissivas(secao.blocos)) total.set(alvo, (total.get(alvo) ?? 0) + n);
-    const lista = alvosDeRemissiva(corpo).map((a) => ({ ...a, remissivas: total.get(a.id) ?? 0 }));
-    const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas]));
+    const tabelas = new Map<Id, BlocoTabela>();
+    for (const { secao } of numerarSecoes(corpo)) for (const b of secao.blocos) if (b.tipo === 'tabela' && b.especie === 'tabela') tabelas.set(b.id, b);
+    const lista = alvosDeRemissiva(corpo).map((a): ElementoNaSessao => {
+      const t = tabelas.get(a.id);
+      return { ...a, remissivas: total.get(a.id) ?? 0, ...(t ? { tabela: t } : {}) };
+    });
+    // A tabela entra na chave pela revisão do objeto (mudou o conteúdo, mudou o objeto): o gráfico redesenha.
+    const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas, e.tabela ? this.#revisaoDoBloco(e.tabela) : 0]));
     const resultado = c !== null && c.chave === chave ? c.resultado : lista;
     this.#cacheElementos = { corpo, chave, resultado };
     return resultado;

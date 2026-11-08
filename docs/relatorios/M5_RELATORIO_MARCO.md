@@ -193,3 +193,33 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - O aviso de elemento sem remissiva aparece para quem escreve "Tabela 1" à mão: não há sugestão de ligar texto escrito, como existe para as citações.
 - A posição do elemento "próximo ao trecho" (RN-060) não é conferida.
 
+## M5-T09 — Gráfico gerado de tabela
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- Formato: bloco `grafico` ligado à tabela (adendo do M5-T09 no ADR-0004); fixture `documento-bordas-m5.json` com dois gráficos, um de tabela excluída.
+- Domínio: `dominio/visuais/grafico.ts`: leitura dos números no padrão brasileiro, dados da tabela, escala, tamanho e desenho em primitivas (colunas, barras, linhas, setores, legenda). Numeração "Gráfico n" na sequência dos gráficos com imagem; alvo de remissiva.
+- Motor: `blocosGrafico` (título, imagem do PNG, rodapé); aviso `GRAFICO_NAO_DESENHADO` sem o PNG.
+- Verificador: `GRAFICO_SEM_TABELA`, `GRAFICO_SEM_DADOS` (pendências) e `GRAFICO_PARCIAL` (aviso); título e fonte como a ilustração.
+- Exportação: o renderer desenha os PNG a 300 ppi (`graficosParaExportar`) e manda nas opções; o principal confere forma, tamanho, id e PNG antes de usar.
+- Sessão: a lista de elementos leva a tabela, e a revisão dela entra na chave: mudar a tabela redesenha os gráficos.
+- Interface: `pintar-grafico.ts` (canvas, padrões e marcadores), `grafico-view.ts` (gráfico no texto), `DialogoGrafico.tsx` (tabela, forma, séries, prévia, título, largura, fonte, nota), botão "Gráfico", menu Inserir › Gráfico…. As cores do desenho ficam no domínio (`CORES_GRAFICO`): são do documento impresso, não da tela.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-47 a 51.
+
+**Achados ao validar:**
+- Conferência visual dos quatro tipos exportados (colunas, barras, linhas, setores): a marca mais alta do eixo ficava cortada ao meio no topo nas colunas e nas linhas. Corrigido, com teste que impede texto fora da borda de cima.
+- Duas regras do projeto pegaram desvios na primeira versão: a interface importava funções do domínio (passaram para `aplicacao/servicos/graficos.ts`) e havia cores escritas à mão na interface (foram para o domínio).
+- Um clique no título logo depois de fechar a janela (menos de cerca de 300 ms) ainda deixa o gráfico recém-inserido selecionado por um instante, e o botão "Gráfico" abre "Alterar" em vez de "Inserir". Medido: não há tarefa longa nem redesenho a mais; é o tempo do editor ao receber o foco de volta. O mesmo vale para a figura. Fica anotado, sem correção.
+
+**Testado:**
+- `tests/grafico.test.ts` (novo, 30 testes) e o modelo do M5 com os gráficos na fixture.
+- `e2e/grafico.spec.ts` (FUN-19): tabela de CSV, gráfico pela janela, mudar a tabela redesenha (aceite do RF-10), exportação com o PNG de 1772 px no DOCX. Axe da janela e do gráfico no texto.
+- `npm run verificar:tudo` (2026-11-08): saída 0. `verificar` 1936/1936; externos 27/27; build ok; Playwright 36/36.
+
+**Não testado / pendente:**
+- O documento difícil do corpus (instantâneos, Word e LibreOffice) não ganhou gráfico: um gráfico de 9 cm mexeria na paginação que o DOC-07 confere. O PNG no DOCX passa pelo mesmo caminho da figura, já conferido no Word no M5-T06; o E2E confere o arquivo exportado.
+- O texto do gráfico usa a fonte do trabalho, se instalada no Windows; sem ela, o canvas usa a serifada padrão.
+- Gráfico com dezenas de categorias inclina os rótulos a 45°, mas não foi conferido visualmente com nomes longos.
+

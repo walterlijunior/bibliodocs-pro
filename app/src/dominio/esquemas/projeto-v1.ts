@@ -211,6 +211,26 @@ export const esquemaBlocoEquacao = z
   })
   .meta({ id: 'BlocoEquacao' });
 
+/** Gráfico gerado de tabela (M5-T09; D-M5-08). A tabela não é conferida na leitura (ausente = pendência). */
+export const esquemaBlocoGrafico = z
+  .strictObject({
+    tipo: z.literal('grafico'),
+    id,
+    tabela: id,
+    forma: z.enum(['colunas', 'barras', 'linhas', 'setores']),
+    titulo: tituloElemento,
+    series: z
+      .array(z.int().min(0).max(LIMITES_V1.colunasTabela - 1))
+      .min(1, { error: 'lista de séries vazia: omita o campo para usar todas as colunas numéricas' })
+      .max(LIMITES_V1.colunasTabela)
+      .refine((s) => new Set(s).size === s.length, { error: 'coluna repetida nas séries do gráfico' })
+      .optional(),
+    larguraMm: z.int().min(LIMITES_V1.larguraIlustracaoMm.minimo).max(LIMITES_V1.larguraIlustracaoMm.maximo).optional(),
+    fonte: textoDeElemento.optional(),
+    nota: textoDeElemento.optional(),
+  })
+  .meta({ id: 'BlocoGrafico' });
+
 export const esquemaBloco = z.discriminatedUnion('tipo', [
   z.strictObject({ tipo: z.literal('paragrafo'), id, conteudo: conteudoInline }),
   z.strictObject({
@@ -226,6 +246,7 @@ export const esquemaBloco = z.discriminatedUnion('tipo', [
   esquemaBlocoTabela,
   esquemaBlocoIlustracao,
   esquemaBlocoEquacao,
+  esquemaBlocoGrafico,
 ]);
 
 export const esquemaSecao = z

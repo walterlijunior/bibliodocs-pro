@@ -160,6 +160,7 @@ export interface AvisoFormatacao {
     | 'ELEMENTO_ADIADO'
     | 'IMAGEM_AUSENTE'
     | 'EQUACAO_VAZIA'
+    | 'GRAFICO_NAO_DESENHADO'
     | 'LETRA_SEM_FONTE'
     | 'ROTULO_PROVISORIO'
     | 'CHAMADA_COM_AVISO'

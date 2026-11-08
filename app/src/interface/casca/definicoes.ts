@@ -32,6 +32,8 @@ export type ComandoMenu =
   | 'inserirTabela'
   // M5-T06: Inserir › Figura… (botão "Figura" no editor).
   | 'inserirFigura'
+  // M5-T09: Inserir › Gráfico… (botão "Gráfico" no editor).
+  | 'inserirGrafico'
   // M5-T07: Inserir › Equação (Alt+= no editor).
   | 'inserirEquacao'
   // M5-T08: Inserir › Remissiva… (botão "Remissiva" no editor).
@@ -104,6 +106,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C', comando: 'inserirCitacao' },
       { rotulo: 'Tabela ou quadro…', comando: 'inserirTabela' },
       { rotulo: 'Figura…', comando: 'inserirFigura' },
+      { rotulo: 'Gráfico…', comando: 'inserirGrafico' },
       { rotulo: 'Equação', atalho: 'Alt+=', comando: 'inserirEquacao' },
       { rotulo: 'Remissiva…', comando: 'inserirRemissiva' },
       { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
@@ -145,6 +148,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('inserirFigura');
     d.add('inserirEquacao');
     d.add('inserirRemissiva');
+    d.add('inserirGrafico');
   }
   if (trabalho === null) {
     d.add('estruturaSecoes');

@@ -1,7 +1,7 @@
 /**
  * Remissivas (M5-T08; RF-11): o que pode ser alvo e o texto de cada uma, derivado da numeração a cada vez (nunca gravado).
  *
- * - Alvos: toda tabela, quadro e ilustração (cada palavra designativa com a sua contagem, RN-052, D-M5-07) e as equações
+ * - Alvos: toda tabela, quadro, ilustração e gráfico gerado (M5-T09) (cada palavra designativa com a sua contagem, RN-052, D-M5-07) e as equações
  *   numeradas (RN-106). Equação sem número não é alvo: a remissiva a ela fica quebrada.
  * - Texto: o rótulo, "Tabela 3", "Gráfico 1"; na equação, o número entre parênteses, "(2)", como se escreve "a equação
  *   (2)" (D-M5-42). O resto da frase é do autor.
@@ -16,7 +16,7 @@ export interface AlvoRemissiva {
   id: Id;
   /** Seção onde o elemento está. */
   secao: Id;
-  tipo: 'tabela' | 'ilustracao' | 'equacao';
+  tipo: 'tabela' | 'ilustracao' | 'grafico' | 'equacao';
   /** Texto da remissiva: "Tabela 3", "(2)". */
   rotulo: string;
   /** Para escolher o alvo: "Tabela 3 – Título", "Equação (2) – E = mc2". */

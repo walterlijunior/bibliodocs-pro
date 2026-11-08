@@ -118,6 +118,8 @@ const nos: Record<string, NodeSpec> = {
    */
   tabela: elementoVisual('bd-tabela', 'Tabela'),
   ilustracao: elementoVisual('bd-ilustracao', 'Ilustração'),
+  /** Gráfico gerado de tabela (M5-T09): editado pela janela; o desenho vem da tabela, na `GraficoView`. */
+  grafico: elementoVisual('bd-grafico', 'Gráfico'),
 
   /**
    * Equação (M5-T07; D-M5-06): editada no próprio texto, como a citação longa; só texto com marcas e quebra de linha
@@ -224,6 +226,7 @@ export const PREFIXO_ID: Readonly<Record<string, string>> = {
   tabela: 'tab',
   ilustracao: 'ilu',
   equacao: 'eqc',
+  grafico: 'gra',
   nota: 'nta',
   chamadaCitacao: 'cta',
   remissiva: 'rem',

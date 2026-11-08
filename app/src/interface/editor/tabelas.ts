@@ -1,5 +1,5 @@
 /**
- * Tabela e quadro (M5-T04; RF-09) e figura (M5-T06; RF-10) no editor de seção. Puros: rodam em Node.
+ * Tabela e quadro (M5-T04; RF-09), figura (M5-T06; RF-10) e gráfico gerado (M5-T09) no editor de seção. Puros: rodam em Node.
  *
  * A tabela é um nó atômico com o bloco em `dados` (M5-T01). A janela da tabela edita o bloco e volta por aqui: inserir
  * cria o nó (o id vem do plugin de ids únicos) e alterar troca os `dados` mantendo o id. Cada um é um passo próprio no
@@ -9,11 +9,23 @@ import { closeHistory } from 'prosemirror-history';
 import type { NodeType, Node as NoPm } from 'prosemirror-model';
 import { NodeSelection, type Command, type EditorState } from 'prosemirror-state';
 import type { DadosFigura, DadosTabela } from '../../aplicacao';
+import type { BlocoGrafico } from '../../dominio/modelo';
 import { esquemaEditor } from './esquema';
 
 const tipoTabela = esquemaEditor.nodes['tabela']!;
 const tipoIlustracao = esquemaEditor.nodes['ilustracao']!;
 const tipoParagrafo = esquemaEditor.nodes['paragrafo']!;
+const tipoGrafico = esquemaEditor.nodes['grafico']!;
+
+/** Campos do gráfico gerado (M5-T09): o bloco sem o id. */
+export type CamposGrafico = Omit<BlocoGrafico, 'id'>;
+
+export interface GraficoNoEditor {
+  id: string;
+  dados: CamposGrafico;
+}
+
+export const dadosDoGrafico = (no: NoPm): CamposGrafico => JSON.parse(String(no.attrs['dados'])) as CamposGrafico;
 
 export interface TabelaNoEditor {
   id: string;
@@ -48,6 +60,12 @@ export function figuraSelecionada(estado: EditorState): FiguraNoEditor | null {
   return x && { id: x.id, dados: dadosDaFigura(x.no) };
 }
 
+/** O gráfico selecionado, para a janela alterar (M5-T09). */
+export function graficoSelecionado(estado: EditorState): GraficoNoEditor | null {
+  const x = selecionado(estado, tipoGrafico);
+  return x && { id: x.id, dados: dadosDoGrafico(x.no) };
+}
+
 /** Onde a tabela nova entra: no lugar do parágrafo vazio do cursor, ou depois do bloco do cursor (do título, no começo). */
 function lugarDaNova(estado: EditorState): { de: number; ate: number } {
   const { $from } = estado.selection;
@@ -72,6 +90,7 @@ const inserirAtomo = (tipo: NodeType, dados: unknown): Command => (estado, despa
 
 export const inserirTabela = (dados: DadosTabela): Command => inserirAtomo(tipoTabela, dados);
 export const inserirFigura = (dados: DadosFigura): Command => inserirAtomo(tipoIlustracao, dados);
+export const inserirGrafico = (dados: CamposGrafico): Command => inserirAtomo(tipoGrafico, dados);
 
 function posicaoDoAtomo(doc: NoPm, tipo: NodeType, id: string): number | null {
   let achada: number | null = null;
@@ -83,6 +102,7 @@ function posicaoDoAtomo(doc: NoPm, tipo: NodeType, id: string): number | null {
 
 export const alterarTabela = (id: string, dados: DadosTabela): Command => alterarAtomo(tipoTabela, id, dados);
 export const alterarFigura = (id: string, dados: DadosFigura): Command => alterarAtomo(tipoIlustracao, id, dados);
+export const alterarGrafico = (id: string, dados: CamposGrafico): Command => alterarAtomo(tipoGrafico, id, dados);
 
 function alterarAtomo(tipo: NodeType, id: string, dados: unknown): Command {
   return (estado, despachar) => {

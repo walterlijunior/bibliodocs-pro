@@ -3,10 +3,11 @@
  * processo utilitário e grava por gravação atômica, sem `.bak`: o diálogo do sistema já confirmou a substituição (R-M3-06). Uma exportação por vez.
  */
 import { basename } from 'node:path';
-import { CANAIS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
+import { CANAIS_EXPORTACAO, LIMITES_GRAFICOS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
 import { areaUtilMm, formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
 import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
-import { textoPlano } from '../../dominio/modelo';
+import { textoPlano, type Secao } from '../../dominio/modelo';
+import { lerInfoImagem } from '../../dominio/visuais';
 import { verificarVisuais } from '../../dominio/verificador';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { lerPacoteTransferivel } from './argumentos';
@@ -46,6 +47,17 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
     if (typeof opcoes !== 'object' || opcoes === null) return recusarArgumento(canal, 'opções');
     const fonte = (opcoes as { fonte?: unknown }).fonte;
     if (fonte !== undefined && (typeof fonte !== 'string' || fonte.length > 64)) return recusarArgumento(canal, 'fonte');
+    // M5-T09: PNG dos gráficos, desenhados no renderer. Forma e tamanho conferidos aqui; ids e conteúdo, depois.
+    const graficosArg = (opcoes as { graficos?: unknown }).graficos;
+    let graficosRecebidos: [string, Uint8Array][] = [];
+    if (graficosArg !== undefined) {
+      if (typeof graficosArg !== 'object' || graficosArg === null || Array.isArray(graficosArg)) return recusarArgumento(canal, 'gráficos');
+      graficosRecebidos = Object.entries(graficosArg) as [string, Uint8Array][];
+      if (graficosRecebidos.length > LIMITES_GRAFICOS_EXPORTACAO.quantidade) return recusarArgumento(canal, 'gráficos (quantidade)');
+      for (const [, bytes] of graficosRecebidos) {
+        if (!(bytes instanceof Uint8Array) || bytes.length > LIMITES_GRAFICOS_EXPORTACAO.bytesPorGrafico) return recusarArgumento(canal, 'gráficos (imagem)');
+      }
+    }
     if (!p.ok) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_INVALIDA };
     if (emCurso) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_EM_CURSO };
     emCurso = true;
@@ -56,7 +68,10 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       if (!destino.toLowerCase().endsWith(EXTENSAO_DOCX)) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXTENSAO_DOCX };
       // M5-T06: as imagens das ilustrações vão com o documento, pelo sha256 (o pacote já foi conferido na leitura).
       const imagens = p.valor.midias;
-      const formatado = formatar({ ...documento, imagens }, dep.perfil, fonte !== undefined ? { fonte } : {});
+      // Só PNG legível e de um gráfico que existe no documento; o resto fica de fora (o gráfico sai sem a imagem, com aviso).
+      const idsGraficos = idsDeGraficos(documento.corpo);
+      const graficos = new Map(graficosRecebidos.filter(([id, bytes]) => idsGraficos.has(id) && lerInfoImagem(bytes)?.tipo === 'image/png'));
+      const formatado = formatar({ ...documento, imagens, graficos }, dep.perfil, fonte !== undefined ? { fonte } : {});
       const gerado = await dep.exportar(formatado);
       if (!gerado.ok) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_FALHOU };
       const g = await dep.gravar(destino, gerado.bytes);
@@ -74,3 +89,17 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
   };
   return Object.freeze({ [CANAIS_EXPORTACAO.docx]: docx });
 }
+
+/** Ids dos gráficos gerados de tabela do corpo (M5-T09). */
+function idsDeGraficos(corpo: readonly Secao[]): Set<string> {
+  const ids = new Set<string>();
+  const visitar = (secoes: readonly Secao[]): void => {
+    for (const s of secoes) {
+      for (const b of s.blocos) if (b.tipo === 'grafico') ids.add(b.id);
+      visitar(s.subsecoes);
+    }
+  };
+  visitar(corpo);
+  return ids;
+}
+

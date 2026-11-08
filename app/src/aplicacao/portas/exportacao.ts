@@ -13,7 +13,15 @@ export type CanalExportacao = (typeof CANAIS_EXPORTACAO)[keyof typeof CANAIS_EXP
 export interface OpcoesExportacao {
   /** Fonte escolhida para este arquivo; fora das opções do perfil, vale a padrão. */
   fonte?: string;
+  /**
+   * PNG de cada gráfico gerado de tabela, pelo id do bloco, desenhado no renderer (M5-T09): o principal não tem canvas. O
+   * principal confere cada um (id de gráfico do documento, PNG legível, tamanho) antes de usar.
+   */
+  graficos?: Record<string, Uint8Array>;
 }
+
+/** Limites dos PNG dos gráficos na exportação (M5-T09). */
+export const LIMITES_GRAFICOS_EXPORTACAO = { quantidade: 500, bytesPorGrafico: 20 * 1024 * 1024 } as const;
 
 export type ResultadoExportar =
   | {

@@ -6,6 +6,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T09: gráfico gerado de tabela.
+  - Botão "Gráfico" e Inserir › Gráfico…: escolhe a tabela, a forma (colunas, barras, linhas ou setores) e as colunas que viram séries, com a prévia na janela.
+  - O gráfico fica ligado à tabela: mudar um número da tabela muda o gráfico, no texto e no arquivo exportado.
+  - Desenho em tons de cinza e padrões, legível impresso em preto e branco, com números no padrão brasileiro e legenda.
+  - No DOCX, "Gráfico 1 – Título" acima, a imagem a 300 ppi e a fonte abaixo; o gráfico conta junto com os gráficos de imagem.
+  - Tabela excluída ou sem números aparece como pendência, e a linha de total fica fora do gráfico, com aviso.
 - Etapa 5, M5-T08: remissivas.
   - Botão "Remissiva" e Inserir › Remissiva…: a janela lista as tabelas, quadros, figuras e equações numeradas do trabalho, na ordem do texto.
   - No texto aparece só o rótulo, "Tabela 3" ou "(2)" na equação, que muda sozinho quando a numeração muda. Duplo clique troca o elemento citado.

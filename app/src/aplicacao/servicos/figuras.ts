@@ -99,3 +99,7 @@ export function validarFigura(r: RascunhoFigura): ResultadoValidacaoFigura {
   }
   return { ok: true, dados };
 }
+
+/** Largura da área útil do perfil padrão, em mm (largura máxima da figura e do gráfico gerado, M5-T09). */
+export const areaUtilDoPerfilMm = (): number => areaUtilMm(PERFIL_UFT_2022);
+

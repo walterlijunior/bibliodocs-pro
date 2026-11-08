@@ -19,6 +19,10 @@ import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
 import { DialogoFigura } from './DialogoFigura';
 import { DialogoRemissiva } from './DialogoRemissiva';
+import { DialogoGrafico } from './DialogoGrafico';
+import type { GraficoNoEditor } from '../editor/tabelas';
+import { areaUtilDoPerfilMm } from '../../aplicacao';
+import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportacao } from './DialogoImportacao';
@@ -150,6 +154,18 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   }, [pedidoRemissiva, controleEditor]);
   const elementos = t?.elementos;
   const rotulosRemissiva = useMemo(() => new Map((elementos ?? []).map((x) => [x.id, x.rotulo])), [elementos]);
+  const tabelasDoTrabalho = useMemo(() => new Map((elementos ?? []).flatMap((x): [string, BlocoTabela][] => (x.tabela ? [[x.id, x.tabela]] : []))), [elementos]);
+  // Janela do gráfico (M5-T09), como a da figura.
+  const [pedidoGrafico, setPedidoGrafico] = useState<{ existente: GraficoNoEditor | null } | null>(null);
+  const pedirGrafico = useCallback((existente: GraficoNoEditor | null) => setPedidoGrafico({ existente }), []);
+  const focarAoFecharGrafico = useRef(false);
+  useEffect(() => {
+    if (pedidoGrafico === null && focarAoFecharGrafico.current) {
+      focarAoFecharGrafico.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoGrafico !== null) focarAoFecharGrafico.current = true;
+  }, [pedidoGrafico, controleEditor]);
   const listaObras = t?.obras;
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
@@ -194,6 +210,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setPedidoTabela(null);
     setPedidoFigura(null);
     setPedidoRemissiva(null);
+    setPedidoGrafico(null);
     setConferencia(null);
   }, [ativaId, t?.geracao]);
   // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
@@ -498,7 +515,23 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 lerMidia={p.midias.ler}
                 rotulosRemissiva={rotulosRemissiva}
                 aoPedirRemissiva={pedirRemissiva}
+                tabelasDoTrabalho={tabelasDoTrabalho}
+                aoPedirGrafico={pedirGrafico}
               />
+              {pedidoGrafico !== null && (
+                <DialogoGrafico
+                  elementos={t.elementos}
+                  inicial={pedidoGrafico.existente?.dados ?? null}
+                  areaUtilMm={areaUtilDoPerfilMm()}
+                  aoConfirmar={(dados) => {
+                    const x = pedidoGrafico.existente;
+                    setPedidoGrafico(null);
+                    if (x === null) controleEditor.current?.inserirGrafico(dados);
+                    else controleEditor.current?.alterarGrafico(x.id, dados);
+                  }}
+                  aoFechar={() => setPedidoGrafico(null)}
+                />
+              )}
               {pedidoRemissiva !== null && (
                 <DialogoRemissiva
                   elementos={t.elementos}

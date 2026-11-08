@@ -114,6 +114,7 @@ export function normalizarBloco(bloco: Bloco): Bloco {
     // Tabela e ilustração passam inteiras: são editadas pela janela, que já entrega a forma do formato.
     case 'tabela':
     case 'ilustracao':
+    case 'grafico':
       return bloco;
     case 'equacao':
       return { tipo: 'equacao', id: bloco.id, conteudo: normalizarConteudo(bloco.conteudo), ...(bloco.numerada === true ? { numerada: true as const } : {}) };
@@ -177,7 +178,8 @@ export function blocoParaNo(bloco: Bloco): NoPm {
     case 'equacao':
       return tipos['equacao']!.create({ id: bloco.id, numerada: bloco.numerada === true }, inlinesParaNos(bloco.conteudo));
     case 'tabela':
-    case 'ilustracao': {
+    case 'ilustracao':
+    case 'grafico': {
       const { id, ...dados } = bloco;
       return tipos[bloco.tipo]!.create({ id, dados: JSON.stringify(dados) });
     }
@@ -268,6 +270,7 @@ export function noParaBloco(no: NoPm): Bloco {
       break;
     case 'tabela':
     case 'ilustracao':
+    case 'grafico':
       // `tipo` vem do nó, não dos dados: o nó de tabela só devolve tabela.
       bloco = { ...(JSON.parse(String(no.attrs['dados'])) as Omit<Bloco, 'id'>), tipo: no.type.name, id: idDe(no) } as Bloco;
       break;

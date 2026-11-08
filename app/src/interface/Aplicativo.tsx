@@ -21,6 +21,8 @@ import type {
   ResultadoRecuperar,
   VersaoDescartada,
 } from '../aplicacao';
+import { areaUtilDoPerfilMm } from '../aplicacao';
+import { graficosParaExportar } from './editor/pintar-grafico';
 import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
@@ -221,7 +223,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     if (pacote === null) return;
     setExportacao({ etapa: 'exportando' });
     try {
-      const r = await api.exportacao.docx(pacote, { fonte: fonteExportacao });
+      // Os gráficos gerados de tabela são desenhados aqui, no canvas, e vão prontos (M5-T09).
+      const graficos = await graficosParaExportar(pacote.documento.corpo, areaUtilDoPerfilMm(), fonteExportacao);
+      const r = await api.exportacao.docx(pacote, { fonte: fonteExportacao, ...(Object.keys(graficos).length > 0 ? { graficos } : {}) });
       if (r.ok) setExportacao({ etapa: 'concluido', nomeArquivo: r.nomeArquivo, avisos: r.avisos });
       else if (r.motivo === 'CANCELADO') setExportacao({ etapa: 'escolher' });
       else setExportacao({ etapa: 'erro', mensagem: r.mensagem });
@@ -454,6 +458,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirEquacao':
           refEditor.current?.alternarEquacao();
           return;
+        case 'inserirGrafico':
+          refEditor.current?.pedirGrafico();
+          return;
         case 'inserirRemissiva':
           refEditor.current?.pedirRemissiva();
           return;
@@ -524,6 +531,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       d.add('inserirFigura');
       d.add('inserirEquacao');
       d.add('inserirRemissiva');
+      d.add('inserirGrafico');
     }
     return d;
   }, [trabalho, local.aba, comFormulario]);

@@ -405,6 +405,40 @@
               "texto": "Escala aproximada."
             }
           ]
+        },
+        {
+          "tipo": "grafico",
+          "id": "gra_bordm5001",
+          "tabela": "tab_bordm5001",
+          "forma": "colunas",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Gráfico da tabela de bordas"
+            }
+          ],
+          "series": [
+            1
+          ],
+          "larguraMm": 120,
+          "fonte": [
+            {
+              "tipo": "texto",
+              "texto": "Tabela 1."
+            }
+          ]
+        },
+        {
+          "tipo": "grafico",
+          "id": "gra_bordm5002",
+          "tabela": "tab_naoexiste01",
+          "forma": "setores",
+          "titulo": [
+            {
+              "tipo": "texto",
+              "texto": "Gráfico de tabela excluída"
+            }
+          ]
         }
       ],
       "subsecoes": [

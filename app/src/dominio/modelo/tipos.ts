@@ -226,7 +226,35 @@ export interface BlocoEquacao {
   numerada?: true;
 }
 
-export type Bloco = BlocoParagrafo | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina | BlocoTabela | BlocoIlustracao | BlocoEquacao;
+/** Forma do gráfico gerado da tabela (D-M5-08). */
+export type FormaGrafico = 'colunas' | 'barras' | 'linhas' | 'setores';
+
+/**
+ * Gráfico gerado de uma tabela do trabalho (M5-T09; RF-10; D-M5-08). Guarda a ligação e as escolhas, nunca os dados nem
+ * a imagem: os valores são lidos da tabela a cada vez (o gráfico acompanha a tabela) e o PNG é desenhado ao exportar.
+ * Numera como "Gráfico n", na mesma sequência dos gráficos com imagem (RN-049, RN-052). Tabela que não existe mais não
+ * impede abrir o arquivo: é pendência do verificador (D-M5-49).
+ */
+export interface BlocoGrafico {
+  tipo: 'grafico';
+  id: Id;
+  /** Id da tabela (espécie `tabela`) de onde vêm os dados. */
+  tabela: Id;
+  forma: FormaGrafico;
+  /** Título sem o rótulo (RN-055); obrigatório e não vazio. */
+  titulo: InlineDeTitulo[];
+  /**
+   * Colunas da tabela que viram séries, a partir de 0. Ausente = todas as colunas numéricas depois da 1.ª, que é a
+   * coluna indicadora (as categorias, RN-256). Setores usa só a primeira série.
+   */
+  series?: number[];
+  /** Largura impressa em milímetros; ausente = padrão (D-M5-48), limitada à área útil. */
+  larguraMm?: number;
+  fonte?: InlineDeTitulo[];
+  nota?: InlineDeTitulo[];
+}
+
+export type Bloco = BlocoParagrafo | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina | BlocoTabela | BlocoIlustracao | BlocoEquacao | BlocoGrafico;
 
 /** Seção do corpo. O nível é derivado da profundidade na árvore, nunca armazenado. */
 export interface Secao {

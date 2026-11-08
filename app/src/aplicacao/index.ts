@@ -120,6 +120,8 @@ export {
   type FormatadorDeChamadas,
   type ResultadoValidacaoCitacao,
 } from './servicos/citacoes';
+export { areaUtilDoPerfilMm } from './servicos/figuras';
+export { CORES_GRAFICO, dadosDoGrafico, desenharGrafico, lerNumero, tamanhoGraficoMm, type DadosGrafico, type Primitiva } from './servicos/graficos';
 export {
   avaliarImagem,
   ESPECIES_FIGURA,

@@ -10,7 +10,7 @@
  *   regra 2), quem chama passa o valor.
  * - Rodapé: Fonte → Nota → notas específicas (RN-277, IBGE p. 20–21; RN-058, Manual p. 18 e exemplo da p. 20).
  */
-import { textoPlano, type BlocoIlustracao, type BlocoTabela, type InlineDeTitulo } from '../modelo';
+import { textoPlano, type BlocoGrafico, type BlocoIlustracao, type BlocoTabela, type InlineDeTitulo } from '../modelo';
 import type { SequenciaElemento } from '../numeracao';
 
 /** Palavra designativa de cada sequência (RN-049; "Gráfico" com acento, como no Manual, p. 18). */
@@ -59,7 +59,7 @@ const temTexto = (c: readonly InlineDeTitulo[] | undefined): c is readonly Inlin
  * Rodapé na ordem obrigatória Fonte → Nota → notas específicas (RN-277; RN-058 para ilustrações, que não têm nota
  * específica). Campo sem texto não sai.
  */
-export function rodapeDoElemento(bloco: BlocoTabela | BlocoIlustracao): ParteRodape[] {
+export function rodapeDoElemento(bloco: BlocoTabela | BlocoIlustracao | BlocoGrafico): ParteRodape[] {
   const partes: ParteRodape[] = [];
   if (temTexto(bloco.fonte)) partes.push({ parte: 'fonte', prefixo: 'Fonte:', conteudo: bloco.fonte });
   if (temTexto(bloco.nota)) partes.push({ parte: 'nota', prefixo: 'Nota:', conteudo: bloco.nota });
@@ -72,4 +72,4 @@ export function rodapeDoElemento(bloco: BlocoTabela | BlocoIlustracao): ParteRod
 }
 
 /** O elemento tem fonte com texto (RN-056, RN-274)? */
-export const temFonte = (bloco: BlocoTabela | BlocoIlustracao): boolean => temTexto(bloco.fonte);
+export const temFonte = (bloco: BlocoTabela | BlocoIlustracao | BlocoGrafico): boolean => temTexto(bloco.fonte);

@@ -81,6 +81,7 @@ function conteudosComCaminho(b: Bloco): { conteudo: readonly Inline[]; caminho: 
     case 'tabela':
     case 'ilustracao':
     case 'equacao':
+    case 'grafico':
       return [];
   }
 }

@@ -728,6 +728,9 @@
               },
               {
                 "$ref": "#/$defs/BlocoEquacao"
+              },
+              {
+                "$ref": "#/$defs/BlocoGrafico"
               }
             ]
           }
@@ -1186,6 +1189,91 @@
         "tipo",
         "id",
         "conteudo"
+      ],
+      "additionalProperties": false
+    },
+    "BlocoGrafico": {
+      "type": "object",
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "const": "grafico"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "tabela": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "forma": {
+          "type": "string",
+          "enum": [
+            "colunas",
+            "barras",
+            "linhas",
+            "setores"
+          ]
+        },
+        "titulo": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "series": {
+          "minItems": 1,
+          "maxItems": 63,
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 62
+          }
+        },
+        "larguraMm": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 500
+        },
+        "fonte": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        },
+        "nota": {
+          "minItems": 1,
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/InlineTexto"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "tipo",
+        "id",
+        "tabela",
+        "forma",
+        "titulo"
       ],
       "additionalProperties": false
     },

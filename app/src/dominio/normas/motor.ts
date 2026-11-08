@@ -8,7 +8,7 @@ import { contextoDeChamadas, formatarChamada, formatarReferencia, ordenarReferen
 import { rotuloAlinea, numerarSecoes } from '../numeracao';
 import { citacoesDoDocumento, type Bloco, type Documento, type ElementoPreTextual, type Id, type Inline, type InlineDeTitulo, type Metadados } from '../modelo';
 import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } from './motor-elementos';
-import { blocosEquacao, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
+import { blocosEquacao, blocosGrafico, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
 import { rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA } from '../visuais';
 import type {
   AvisoFormatacao,
@@ -256,6 +256,8 @@ export type DocumentoParaFormatar = Pick<Documento, 'corpo'> &
   Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras'>> & {
     /** Bytes das imagens das ilustrações, pelo sha256 (M5-T06). Sem a imagem, a ilustração sai sem ela, com aviso. */
     imagens?: ReadonlyMap<string, Uint8Array>;
+    /** PNG de cada gráfico gerado, pelo id do bloco, desenhado pela interface (M5-T09). Sem ele, sai sem a imagem. */
+    graficos?: ReadonlyMap<string, Uint8Array>;
   };
 
 /** Largura da área útil da página do perfil, em mm (largura impressa máxima de uma ilustração, D-M5-09). */
@@ -410,6 +412,11 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
       case 'ilustracao': {
         const r = blocosIlustracao(b, visuais, doc.imagens?.get(b.midia));
         if (r.ausente) avisos.push({ codigo: 'IMAGEM_AUSENTE', id: b.id, mensagem: 'A imagem de uma ilustração não pôde ser lida e ficou de fora do arquivo exportado.' });
+        return r.blocos;
+      }
+      case 'grafico': {
+        const r = blocosGrafico(b, visuais, doc.graficos?.get(b.id));
+        if (r.ausente) avisos.push({ codigo: 'GRAFICO_NAO_DESENHADO', id: b.id, mensagem: 'Um gráfico não pôde ser desenhado e saiu sem a imagem: confira a tabela de onde ele vem.' });
         return r.blocos;
       }
       case 'equacao':

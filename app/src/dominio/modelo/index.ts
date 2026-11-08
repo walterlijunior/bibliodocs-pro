@@ -14,6 +14,8 @@ export type {
   BlocoAlineas,
   BlocoCitacaoLonga,
   BlocoEquacao,
+  BlocoGrafico,
+  FormaGrafico,
   BlocoIlustracao,
   BlocoParagrafo,
   BlocoQuebraPagina,

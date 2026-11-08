@@ -170,3 +170,24 @@ test('Janela da remissiva e remissiva quebrada no texto (M5-T08) sem violação 
   await expect(editor.locator('.bd-remissiva')).toHaveText('[remissiva quebrada]');
   await conferirAxe(p, 'remissiva-quebrada', info);
 });
+
+test('Janela do gráfico e gráfico no texto (M5-T09) sem violação séria', async ({}, info) => {
+  const { pagina: p } = await abrirApp(amb);
+  await criarTrabalho(p);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  const barra = p.getByRole('toolbar', { name: 'Formatação do texto' });
+  await barra.getByRole('button', { name: 'Tabela', exact: true }).click();
+  const tabela = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
+  await tabela.getByLabel('Título', { exact: true }).fill('Municípios');
+  await tabela.getByLabel('Arquivo CSV').setInputFiles(join(RAIZ_APP, 'tests', 'fixtures', 'planilha', 'municipios.csv'));
+  await tabela.getByRole('region', { name: 'Prévia dos dados da planilha' }).getByRole('button', { name: 'Usar estes dados' }).click();
+  await tabela.getByRole('button', { name: 'Inserir tabela' }).click();
+  await barra.getByRole('button', { name: 'Gráfico', exact: true }).click();
+  const janela = p.getByRole('dialog', { name: 'Inserir gráfico' });
+  await expect(janela.getByRole('list', { name: 'O que impede gravar o gráfico' })).toBeVisible();
+  await conferirAxe(p, 'janela-grafico', info);
+  await janela.getByLabel('Título', { exact: true }).fill('População');
+  await janela.getByRole('button', { name: 'Inserir gráfico' }).click();
+  await expect(p.locator('.bd-grafico canvas')).toHaveCount(1);
+  await conferirAxe(p, 'grafico-no-texto', info);
+});
