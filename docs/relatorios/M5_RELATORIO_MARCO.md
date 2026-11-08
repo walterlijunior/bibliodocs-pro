@@ -61,3 +61,26 @@ Andamento do marco, tarefa por tarefa. Plano em `docs/PLANO_DE_IMPLEMENTACAO.md`
 - Playwright: 24/25. Falhou só o E2E de desempenho por memória (813 MB contra 800); numa repetição passou. É a falha já registrada no M5-T01 (R-M3-13).
 
 **Não testado / pendente:** conferência visual impressa da tabela longa no LibreOffice (só o Word foi aberto pelo teste externo); largura por coluna fica para o editor (M5-T04).
+
+## M5-T04 — Editor de tabela e quadro
+
+**Feito pela sessão principal em 2026-11-08.**
+
+**Implementado:**
+- `app/src/aplicacao/servicos/tabelas.ts` (novo): o rascunho da janela (grade completa, `null` nas posições cobertas); inserir e excluir linha e coluna (a mesclada que atravessa cresce ou encolhe), mesclar à direita e abaixo, separar, cabeçalho; sinais convencionais (RN-263, RN-264) e a explicação na nota (RN-265); `validarTabela`.
+- `dominio/esquemas/validar.ts`: `validarTabelaV1` (esquema e grade de uma tabela sozinha).
+- `interface/editor/tabelas.ts` (novo): inserir (no parágrafo vazio ou depois do bloco do cursor) e alterar pelo id, cada um um passo próprio do histórico.
+- `interface/editor/tabela-view.ts` (novo): a tabela no texto, com título, grade, rodapé, "Falta a fonte" e as 30 primeiras linhas.
+- `interface/escrever/DialogoTabela.tsx` (novo), `EditorSecao.tsx`, `AreaEscrever.tsx`, menu Inserir (`definicoes.ts`, `Aplicativo.tsx`), `casca.css`.
+
+**Decisões por delegação (provisórias, na matriz):** D-M5-25 a 28.
+
+**Testado:**
+- `npm run verificar`: 1841/1841 (25 novos em `tabelas-servico`, 7 em `editor-tabela`); audit sem alta.
+- `npm run test:externos`: 27/27. `npm run build`: ok.
+- Playwright: 27/27, com `e2e/tabela.spec.ts` (FUN-14) e o axe da janela e da tabela no texto. O E2E de desempenho passou nesta rodada.
+- Conferência visual por captura de tela da janela e da tabela no texto.
+
+**Não testado / pendente:**
+- Marcas (itálico, sobrescrito) dentro da célula: a janela edita texto simples (D-M5-26).
+- Tabela muito grande na janela: todas as células viram campos; com milhares de linhas a janela fica pesada. Colar da planilha chega no M5-T05.

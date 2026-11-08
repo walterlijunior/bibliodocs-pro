@@ -6,6 +6,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Adicionado
+- Etapa 5, M5-T04: inserir e editar tabela e quadro no editor.
+  - Botão "Tabela" na barra e menu Inserir › Tabela ou quadro…; duplo clique, "Editar" ou Enter na tabela selecionada abrem a janela.
+  - Janela com espécie, título, grade (inserir e excluir linha e coluna, cabeçalho, mesclar e separar, alinhamento por coluna), fonte, nota e notas específicas.
+  - Sinais convencionais do IBGE em botões; "-" sozinho na célula é gravado como "–"; a nota geral pode explicar os sinais usados.
+  - Só a tabela que o formato aceita é gravada; Ctrl+Z e Ctrl+Y desfazem e refazem a tabela junto com o texto.
 - Etapa 5, M5-T03: tabela e quadro saem no DOCX como tabela nativa do Word.
   - Título "Tabela n – Título" em 12, centralizado, acima e preso à tabela, com uma linha antes.
   - Tabela aberta com três traços (acima, abaixo do cabeçalho e no fim), sem laterais nem traços internos; quadro fechado.

@@ -4,9 +4,9 @@
  * profundidade da árvore de seções → elementos pré e pós-textuais → ids únicos → obras citadas → grade das tabelas (M5-T01).
  */
 import { z } from 'zod';
-import { problemaNaGrade, problemaNosElementos, type Bloco, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
+import { problemaNaGrade, problemaNosElementos, type Bloco, type BlocoTabela, type Documento, type Inline, type InlineCitacao, type MotivoGrade, type Obra, type Secao } from '../modelo';
 import { LIMITES_V1 } from './limites';
-import { esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
+import { esquemaBlocoTabela, esquemaDocumentoV1, esquemaInlineCitacao, esquemaManifestoV1, esquemaObra, type Manifesto } from './projeto-v1';
 
 export interface ErroValidacao {
   /** Caminho legível, ex.: `documento.corpo[0].titulo[1].texto`. */
@@ -231,6 +231,22 @@ export function validarObraV1(json: unknown): ResultadoValidacao<Obra> {
 /** Uma chamada sozinha (M4-T07): o editor só insere a citação que o documento aceitaria. Caminhos a partir de `citacao`. */
 export function validarCitacaoV1(json: unknown): ResultadoValidacao<InlineCitacao> {
   return validarComEsquema('citacao', esquemaInlineCitacao as z.ZodType<InlineCitacao>, json);
+}
+
+/**
+ * Uma tabela ou quadro sozinho (M5-T04): o editor só grava a tabela que o documento aceitaria, esquema e grade.
+ * Caminhos a partir de `tabela`.
+ */
+export function validarTabelaV1(json: unknown): ResultadoValidacao<BlocoTabela> {
+  const r = validarComEsquema('tabela', esquemaBlocoTabela as z.ZodType<BlocoTabela>, json);
+  if (!r.ok) return r;
+  const b = r.valor;
+  if (b.linhas.length * b.colunas.length > LIMITES_V1.posicoesTabela) {
+    return { ok: false, erros: [{ caminho: 'tabela.linhas', mensagem: MENSAGENS_GRADE.posicoesDemais }] };
+  }
+  const problema = problemaNaGrade(b);
+  if (problema) return { ok: false, erros: [{ caminho: formatarCaminho('tabela', problema.caminho), mensagem: MENSAGENS_GRADE[problema.motivo] }] };
+  return r;
 }
 
 export function validarManifestoV1(json: unknown): ResultadoValidacao<Manifesto> {

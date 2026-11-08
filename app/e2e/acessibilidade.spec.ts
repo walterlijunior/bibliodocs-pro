@@ -98,3 +98,17 @@ test('Biblioteca, Novo trabalho, Versões descartadas, Escrever, cadastro de obr
   await expect(sobre).toContainText('docx 9.15.1 (MIT)');
   await conferirAxe(p, 'sobre', info);
 });
+
+test('Janela da tabela (M5-T04) sem violação séria', async ({}, info) => {
+  const { pagina: p } = await abrirApp(amb);
+  await criarTrabalho(p);
+  await p.getByRole('treeitem', { name: '1 Introdução' }).click();
+  await p.getByRole('toolbar', { name: 'Formatação do texto' }).getByRole('button', { name: 'Tabela', exact: true }).click();
+  const janela = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
+  await expect(janela.getByRole('list', { name: 'O que impede gravar a tabela' })).toBeVisible();
+  await conferirAxe(p, 'janela-tabela', info);
+  await janela.getByLabel('Título', { exact: true }).fill('Exemplo');
+  await janela.getByRole('button', { name: 'Inserir tabela' }).click();
+  await expect(p.locator('.bd-tabela')).toHaveCount(1);
+  await conferirAxe(p, 'tabela-no-texto', info);
+});

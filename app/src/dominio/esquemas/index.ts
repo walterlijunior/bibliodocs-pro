@@ -38,6 +38,7 @@ export {
   validarManifestoV1,
   validarObraV1,
   validarCitacaoV1,
+  validarTabelaV1,
   type ErroValidacao,
   type ResultadoValidacao,
 } from './validar';

@@ -17,13 +17,16 @@
 // (`aoPedirCitacao`), que volta pelo `ControleEditor`. A chamada mostra o texto do formatador atual (`RegistroChamadas`, na
 // memória). Colar texto com "(AUTOR, ano)" de uma obra cadastrada mostra a sugestão de ligar as chamadas. Com o foco no
 // texto de uma nota, a citação vai para a nota (`AlvoCitacao`).
+//
+// M5-T04: tabela e quadro. O botão "Tabela", o menu Inserir › Tabela ou quadro…, o duplo clique ou Enter na tabela
+// selecionada pedem a janela da tabela (`aoPedirTabela`), que volta pelo `ControleEditor` como um passo próprio.
 import 'prosemirror-view/style/prosemirror.css';
 import { closeHistory, isHistoryTransaction, redoDepth, undoDepth } from 'prosemirror-history';
 import { keydownHandler } from 'prosemirror-keymap';
 import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import type { ChamadaEscrita, DadosCitacao, FormatadorDeChamadas } from '../../aplicacao';
+import type { ChamadaEscrita, DadosCitacao, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
 import type { MarcaTexto } from '../../dominio/modelo';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
 import {
@@ -47,6 +50,8 @@ import { docParaSecao, type ConteudoSecao } from './conversao';
 import { criarEstadoSecao } from './estado';
 import { MENSAGENS_AVISO, type AvisoColagem } from './html-colado';
 import { NotaView } from './nota-view';
+import { TabelaView } from './tabela-view';
+import { alterarTabela, inserirTabela, tabelaSelecionada, type TabelaNoEditor } from './tabelas';
 
 /** Desfazer ou refazer na ordem única do trabalho (texto e estrutura). */
 export type SentidoHistorico = 'desfazer' | 'refazer';
@@ -77,6 +82,10 @@ export interface ControleEditor {
   inserirCitacao(dados: DadosCitacao): boolean;
   alterarCitacao(id: string, dados: DadosCitacao): boolean;
   retirarCitacao(id: string): boolean;
+  /** Pede a janela da tabela: a selecionada, ou uma nova no cursor (M5-T04). */
+  pedirTabela(): boolean;
+  inserirTabela(dados: DadosTabela): boolean;
+  alterarTabela(id: string, dados: DadosTabela): boolean;
 }
 
 /** Estados dos editores das seções visitadas no trabalho aberto. */
@@ -152,6 +161,8 @@ export interface PropsEditorSecao {
   reconhecerChamadas: (texto: string) => readonly ChamadaEscrita[];
   /** Abre a janela da citação: `existente` é a chamada a alterar; `null`, uma nova no cursor. */
   aoPedirCitacao: (existente: ChamadaNoEditor | null) => void;
+  /** Abre a janela da tabela: `existente` é a tabela a alterar; `null`, uma nova no cursor (M5-T04). */
+  aoPedirTabela: (existente: TabelaNoEditor | null) => void;
 }
 
 interface Barra {
@@ -240,6 +251,12 @@ export function EditorSecao(p: PropsEditorSecao) {
       refProps.current.aoPedirCitacao(existente);
     };
     const notas = new Set<NotaView>();
+    // Janela da tabela (M5-T04): a selecionada, ou uma nova no cursor.
+    const pedirTabela = (): boolean => {
+      if (somenteLeitura) return false;
+      refProps.current.aoPedirTabela(tabelaSelecionada(view.state));
+      return true;
+    };
     // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
     const pedirCitacao = (): boolean => {
       if (somenteLeitura) return false;
@@ -257,7 +274,7 @@ export function EditorSecao(p: PropsEditorSecao) {
         pedirCitacao();
         return true;
       },
-      Enter: () => chamadaSelecionada(view.state) !== null && pedirCitacao(),
+      Enter: () => (chamadaSelecionada(view.state) !== null && pedirCitacao()) || (tabelaSelecionada(view.state) !== null && pedirTabela()),
     });
 
     const view: EditorView = new EditorView(hospedeiro, {
@@ -273,6 +290,13 @@ export function EditorSecao(p: PropsEditorSecao) {
           notas.add(n);
           return n;
         },
+        tabela: (no, v, posicao) =>
+          new TabelaView(no, () => {
+            const pos = posicao();
+            if (pos === undefined || somenteLeitura) return;
+            v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
+            pedirTabela();
+          }),
         chamadaCitacao: (no, v, posicao) =>
           new ChamadaView(no, memoria.chamadas, () => {
             const pos = posicao();
@@ -353,6 +377,10 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirCitacao: (dados) => passoProprio(inserirCitacao(dados)),
       alterarCitacao: (id, dados) => passoProprio(alterarCitacao(id, dados)),
       retirarCitacao: (id) => passoProprio(retirarCitacao(id)),
+      pedirTabela,
+      // Passo próprio: o que for digitado logo depois não se junta à tabela no desfazer.
+      inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
     };
 
     setSugestao([]);
@@ -464,6 +492,15 @@ export function EditorSecao(p: PropsEditorSecao) {
             onClick={() => controle.current?.pedirCitacao()}
           >
             Citação
+          </button>
+          <button
+            type="button"
+            className="btn-formato"
+            title="Tabela ou quadro: inserir no cursor, ou alterar a selecionada"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => controle.current?.pedirTabela()}
+          >
+            Tabela
           </button>
         </div>
       )}

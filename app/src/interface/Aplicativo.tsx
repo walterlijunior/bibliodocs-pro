@@ -445,6 +445,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirNota':
           refEditor.current?.inserirNota();
           return;
+        case 'inserirTabela':
+          refEditor.current?.pedirTabela();
+          return;
         case 'inserirCitacao':
           refEditor.current?.pedirCitacao();
           return;
@@ -508,6 +511,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     if (local.aba !== 'escrever' || comFormulario) {
       d.add('inserirNota');
       d.add('inserirCitacao');
+      d.add('inserirTabela');
     }
     return d;
   }, [trabalho, local.aba, comFormulario]);

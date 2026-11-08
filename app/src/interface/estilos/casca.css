@@ -360,6 +360,40 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-citacao { background: var(--cor-superficie); border-radius: var(--raio); padding: 0 2px; cursor: pointer; }
 .bd-citacao--aviso { text-decoration: underline wavy var(--cor-alerta); }
 .bd-citacao.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
+/* Tabela e quadro no texto (M5-T04): só conteúdo; traços e corpo 10 são do documento, na Pré-visualização. */
+.bd-tabela { margin: var(--esp-3) 0; padding: var(--esp-2); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); cursor: pointer; }
+.bd-tabela.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+.bd-tabela__cabeca { display: flex; align-items: flex-start; gap: var(--esp-2); }
+.bd-tabela__titulo { flex: 1 1 auto; margin: 0 0 var(--esp-2); text-align: center; overflow-wrap: anywhere; }
+.bd-tabela__rotulo { color: var(--cor-texto-sec); }
+.bd-tabela__grade { width: 100%; border-collapse: collapse; font-size: var(--tam-peq); background: var(--cor-fundo); }
+.bd-tabela__grade th, .bd-tabela__grade td { padding: 2px var(--esp-1); border-bottom: 1px solid var(--cor-borda); vertical-align: top; overflow-wrap: anywhere; }
+.bd-tabela__grade thead th { font-weight: 600; border-bottom-color: var(--cor-borda-controle); }
+.bd-tabela--quadro .bd-tabela__grade th, .bd-tabela--quadro .bd-tabela__grade td { border: 1px solid var(--cor-borda-controle); }
+.bd-tabela__celula--esquerda { text-align: left; }
+.bd-tabela__celula--centro { text-align: center; }
+.bd-tabela__celula--direita { text-align: right; }
+.bd-tabela__rodape { margin: var(--esp-1) 0 0; font-size: var(--tam-peq); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bd-tabela__pendente { color: var(--cor-alerta); }
+.bd-tabela__mais { margin: var(--esp-1) 0 0; }
+/* Janela da tabela. */
+.dialogo--tabela { width: min(960px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--tabela .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.tabela-edicao { display: grid; gap: var(--esp-2); min-width: 0; }
+.tabela-edicao .barra-formatacao { flex-wrap: wrap; }
+.tabela-edicao__rotulo { align-self: center; font-size: var(--tam-peq); color: var(--cor-texto-sec); }
+.tabela-edicao__rolagem { overflow: auto; max-height: 50vh; border: 1px solid var(--cor-borda); border-radius: var(--raio); }
+.tabela-edicao__grade { border-collapse: collapse; }
+.tabela-edicao__grade th, .tabela-edicao__grade td { padding: 2px; border: 1px solid var(--cor-borda); vertical-align: top; min-width: 7em; }
+.tabela-edicao__grade thead th { background: var(--cor-superficie); position: sticky; top: 0; z-index: 1; font-weight: normal; }
+.tabela-edicao__linha--cabecalho td { background: var(--cor-superficie); }
+.tabela-edicao__celula { width: 100%; box-sizing: border-box; }
+.tabela-edicao__celula--esquerda { text-align: left; }
+.tabela-edicao__celula--centro { text-align: center; }
+.tabela-edicao__celula--direita { text-align: right; }
+.tabela-edicao__celula--ativa { border-color: var(--cor-foco); }
+.tabela-edicao__nota { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--esp-2); }
+.campo--curto { width: 6em; }
 .editor-secao__sugestao { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; padding: var(--esp-2); margin-bottom: var(--esp-2); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }
 .editor-secao__sugestao p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
 .bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

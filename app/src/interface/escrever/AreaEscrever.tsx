@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type EstadoSessao, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
+import type { TabelaNoEditor } from '../editor/tabelas';
 import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
@@ -16,6 +17,7 @@ import { Icone, Pequi } from '../Icones';
 import { ArvoreSecoes } from './ArvoreSecoes';
 import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
+import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
@@ -105,6 +107,17 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     }
     if (pedidoCitacao !== null) focarAoFecharCitacao.current = true;
   }, [pedidoCitacao, controleEditor]);
+  // Janela da tabela (M5-T04): `existente` é a tabela selecionada; `null`, uma nova no cursor. Fechada, o foco volta ao editor.
+  const [pedidoTabela, setPedidoTabela] = useState<{ existente: TabelaNoEditor | null } | null>(null);
+  const pedirTabela = useCallback((existente: TabelaNoEditor | null) => setPedidoTabela({ existente }), []);
+  const focarAoFecharTabela = useRef(false);
+  useEffect(() => {
+    if (pedidoTabela === null && focarAoFecharTabela.current) {
+      focarAoFecharTabela.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoTabela !== null) focarAoFecharTabela.current = true;
+  }, [pedidoTabela, controleEditor]);
   const listaObras = t?.obras;
   const obrasDoTrabalho = useMemo(() => (listaObras ?? []).map((o) => o.obra), [listaObras]);
   const formatarChamada = useMemo(() => formatadorDeChamadas(obrasDoTrabalho), [obrasDoTrabalho]);
@@ -146,6 +159,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setElementoId(null);
     setObraAberta(null);
     setPedidoCitacao(null);
+    setPedidoTabela(null);
     setConferencia(null);
   }, [ativaId, t?.geracao]);
   // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
@@ -445,7 +459,20 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 formatarChamada={formatarChamada}
                 reconhecerChamadas={reconhecerChamadas}
                 aoPedirCitacao={pedirCitacao}
+                aoPedirTabela={pedirTabela}
               />
+              {pedidoTabela !== null && (
+                <DialogoTabela
+                  inicial={pedidoTabela.existente?.dados ?? null}
+                  aoConfirmar={(dados) => {
+                    const x = pedidoTabela.existente;
+                    setPedidoTabela(null);
+                    if (x === null) controleEditor.current?.inserirTabela(dados);
+                    else controleEditor.current?.alterarTabela(x.id, dados);
+                  }}
+                  aoFechar={() => setPedidoTabela(null)}
+                />
+              )}
               {pedidoCitacao !== null && (
                 <DialogoCitacao
                   obras={t.obras}
