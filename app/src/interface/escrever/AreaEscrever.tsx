@@ -28,6 +28,8 @@ import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
+import { PosTextuais } from './PosTextuais';
+import type { ElementoPosTextual } from '../../dominio/modelo';
 import type { Estrutura, PedidoFoco } from './useEstrutura';
 import type { CadastrosDocumento } from '../../aplicacao';
 import { Cadastros } from './Cadastros';
@@ -39,6 +41,13 @@ export const ID_CAMPO_TITULO = 'campo-titulo';
 
 export interface PropsAreaEscrever {
   aoAtualizarCadastros?: (dados: CadastrosDocumento) => ResultadoObra;
+  /** Elementos pós-textuais (M6-T05; ligado na revisão do M6, R-M6-02): incluir, retirar, renomear e ordenar. */
+  posTextuais?: {
+    incluir: (tipo: ElementoPosTextual['tipo']) => string | null;
+    retirar: (id: string) => boolean;
+    renomear: (id: string, titulo: string) => boolean;
+    mover: (id: string, sentido: 'cima' | 'baixo') => boolean;
+  };
   conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
   estado: EstadoSessao;
   /** Rótulo do botão de descartar: "Fechar sem salvar" ou, quando o usuário pediu para sair, "Sair sem salvar". */
@@ -402,6 +411,24 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoHistorico={e.historico}
           aoIrAoTexto={e.pedirFoco}
         />
+        {p.posTextuais && (
+          <PosTextuais
+            elementos={t.posTextuais ?? []}
+            somenteLeitura={t.somenteLeitura}
+            ativoId={ativa?.id ?? null}
+            {...(t.rotulosPosTextuais ? { rotulos: t.rotulosPosTextuais } : {})}
+            aoEscolher={(id) => escolher(id, 'editor')}
+            aoIncluir={(tipo) => {
+              const id = p.posTextuais!.incluir(tipo);
+              // Apêndice e anexo têm conteúdo: o novo abre no editor.
+              if (id !== null && (tipo === 'apendice' || tipo === 'anexo')) escolher(id, 'titulo');
+            }}
+            aoRetirar={(id) => void p.posTextuais!.retirar(id)}
+            aoRenomear={(id, titulo) => void p.posTextuais!.renomear(id, titulo)}
+            aoMover={(id, sentido) => void p.posTextuais!.mover(id, sentido)}
+            aoHistorico={e.historico}
+          />
+        )}
         <ListaObras
           obras={t.obras}
           ativaId={obraDaLista?.id ?? null}

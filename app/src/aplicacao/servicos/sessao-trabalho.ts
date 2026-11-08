@@ -1270,7 +1270,16 @@ export class SessaoTrabalho {
     if (e.tipo === 'texto') return this.secao(e.secaoId) && aplicarTexto(e.secaoId, sentido) ? e : null;
     if (e.tipo === 'posTextuais') {
       const antes = a.pacote.documento.posTextuais ?? [];
-      if (!this.#trocarPos(a, e.inverso)) return null;
+      // R-M6-03: o passo estrutural (incluir, retirar, renomear, ordenar) não volta o conteúdo dos apêndices e anexos que
+      // continuam no trabalho: o texto deles é do histórico de texto. Só o elemento que volta traz os blocos guardados.
+      const atuais = new Map(antes.map((p) => [p.id, p]));
+      const restaurada = e.inverso.map((p): ElementoPosTextual => {
+        const agora = atuais.get(p.id);
+        if ((p.tipo !== 'apendice' && p.tipo !== 'anexo') || (agora?.tipo !== 'apendice' && agora?.tipo !== 'anexo')) return p;
+        const { blocos: _guardados, ...resto } = p;
+        return agora.blocos ? { ...resto, blocos: agora.blocos } : resto;
+      });
+      if (!this.#trocarPos(a, restaurada)) return null;
       this.#emitir(); return { tipo: 'posTextuais', inverso: antes };
     }
     if (e.tipo === 'cadastros') {

@@ -20,15 +20,14 @@ describe('pós-textuais na barra lateral', () => {
     expect(html).toContain('Elementos pós-textuais');
     expect(html).toContain('APÊNDICE A — Roteiro');
     expect(html).toContain('aria-current="true"');
-    expect(html).toContain('Título do apêndice');
-    expect(html).toContain('value="Roteiro"');
+    // O título é editado na linha de título do editor, não num campo aqui (revisão do M6).
+    expect(html).toContain('O título do apêndice é a primeira linha do texto');
     expect(html).toMatch(/aria-label="Subir APÊNDICE A — Roteiro" disabled/);
     expect(html).not.toContain('<option value="referencias"');
     expect(html).toContain('Ctrl+Z restaura');
   });
   it('somente leitura conserva conteúdo e não oferece alterações', () => {
     const html = renderToStaticMarkup(<PosTextuais {...props} somenteLeitura />);
-    expect(html).toMatch(/readonly/i);
     expect(html).not.toContain('Incluir pós-textual');
     expect(html).not.toContain('aria-label="Retirar');
     expect(html).not.toContain('aria-label="Subir');

@@ -198,3 +198,13 @@ test('Janela do gráfico e gráfico no texto (M5-T09) sem violação séria', as
   await expect(p.locator('.bd-grafico canvas')).toHaveCount(1);
   await conferirAxe(p, 'grafico-no-texto', info);
 });
+
+test('Elementos pós-textuais com apêndice (revisão do M6, R-M6-02) sem violação séria', async ({}, info) => {
+  const { pagina: p } = await abrirApp(amb);
+  await criarTrabalho(p);
+  const pos = p.getByRole('navigation', { name: 'Elementos pós-textuais' });
+  await pos.getByRole('combobox', { name: 'Incluir pós-textual' }).selectOption('apendice');
+  await pos.getByRole('button', { name: 'Incluir pós-textual' }).click();
+  await expect(pos.getByRole('button', { name: /^APÊNDICE A/ })).toBeVisible();
+  await conferirAxe(p, 'pos-textuais', info);
+});

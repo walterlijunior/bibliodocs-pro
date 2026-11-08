@@ -662,6 +662,12 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
             ) : local.aba === 'escrever' ? (
               <AreaEscrever
                 aoAtualizarCadastros={(dados) => sessao.atualizarCadastros(dados)}
+                posTextuais={{
+                  incluir: (tipo) => sessao.incluirPosTextual(tipo),
+                  retirar: (id) => sessao.retirarPosTextual(id),
+                  renomear: (id, titulo) => sessao.renomearPosTextual(id, titulo),
+                  mover: (id, sentido) => sessao.moverPosTextual(id, sentido),
+                }}
                 conformidade={{
                   verificar: () => sessao.verificarConformidade(),
                   exportar: () => {

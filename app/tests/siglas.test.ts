@@ -98,7 +98,7 @@ describe('RN-047, 2.ª parte (M6-T07): forma por extenso repetida depois da sigl
   const s = (id: string): Inline => ({ tipo: 'sigla', id, sigla: 'sgl_teste0000001' });
   const doc = (...paragrafos: Inline[][]): Pick<Documento, 'corpo' | 'siglas'> => ({
     siglas: [{ id: 'sgl_teste0000001', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' }],
-    corpo: [{ id: 'sec_teste0000001', titulo: [t('S')], subsecoes: [], blocos: paragrafos.map((conteudo, i) => ({ tipo: 'paragrafo' as const, id: `par_teste000000${i}`, conteudo })) }],
+    corpo: [{ id: 'sec_teste0000001', titulo: [{ tipo: 'texto', texto: 'S' }], subsecoes: [], blocos: paragrafos.map((conteudo, i) => ({ tipo: 'paragrafo' as const, id: `par_teste000000${i}`, conteudo })) }],
   });
   const repetidas = (d: Pick<Documento, 'corpo' | 'siglas'>) => conferirSiglas(d).filter((p) => p.codigo === 'SIGLA_EXTENSO_REPETIDO');
 
