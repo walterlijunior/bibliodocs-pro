@@ -69,6 +69,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
   const [sobreAberto, setSobreAberto] = useState(false);
+  // E7-T03: cada pedido do menu (F7) abre a janela do verificador na aba Escrever.
+  const [pedidoConformidade, setPedidoConformidade] = useState(0);
+  const atenderPedidoConformidade = useCallback(() => setPedidoConformidade(0), []);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
@@ -501,6 +504,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'sobre':
           setSobreAberto(true);
           return;
+        case 'verificarConformidade':
+          irParaEscrever();
+          setPedidoConformidade((n) => n + 1);
+          return;
         case 'exportarDocx':
           setExportacao({ etapa: 'escolher' });
           return;
@@ -668,6 +675,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   renomear: (id, titulo) => sessao.renomearPosTextual(id, titulo),
                   mover: (id, sentido) => sessao.moverPosTextual(id, sentido),
                 }}
+                pedidoConformidade={pedidoConformidade}
+                aoAtenderPedidoConformidade={atenderPedidoConformidade}
                 conformidade={{
                   verificar: () => sessao.verificarConformidade(),
                   exportar: () => {

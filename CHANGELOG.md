@@ -5,6 +5,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 7, E7-T03: Verificar › Verificar conformidade e a tecla F7 abrem o verificador (o item do menu não fazia nada).
+
+### Documentação
+- Etapa 7, E7-T03: `app/README.md` passa a ser o guia de quem usa o aplicativo; o conteúdo de desenvolvimento foi para `app/DESENVOLVIMENTO.md`. Novo `docs/INSTALACAO_APP.md` (instalar, aviso do Windows sem assinatura, dados, atualizar, desinstalar, problemas comuns).
+
 ### Adicionado
 - Etapa 6, E6-T04: dois avisos novos nas tabelas: sinal convencional usado sem explicação na nota geral, e chamada sem nota específica (ou nota sem chamada).
 

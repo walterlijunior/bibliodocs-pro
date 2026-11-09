@@ -62,8 +62,8 @@ test('FUN-09 (M7-T03): verificar, filtrar, ir ao local no texto e no pré-textua
   await expect(editor).toBeFocused();
   await expect.poll(() => p.evaluate(() => window.getSelection()?.toString())).toBe('(...)');
 
-  // Ir ao local num pré-textual: a janela fecha e o elemento é aberto.
-  await p.getByRole('button', { name: 'Verificar conformidade' }).click();
+  // Ir ao local num pré-textual: a janela fecha e o elemento é aberto. Desta vez ela abre pelo F7 (menu Verificar, E7-T03).
+  await p.keyboard.press('F7');
   const pre = dialogo.getByRole('region', { name: /^Elementos pré-textuais/u }).getByRole('listitem').first();
   const local = (await pre.getByText(/^Local: /u).textContent())!.replace('Local: ', '');
   await pre.getByRole('button', { name: 'Ir ao local' }).click();

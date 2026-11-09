@@ -22,7 +22,8 @@ export type AcaoGlobal =
   | 'voltar'
   | 'avancar'
   | 'secaoAnterior'
-  | 'proximaSecao';
+  | 'proximaSecao'
+  | 'verificarConformidade';
 
 /** Atalho global da janela; `null` deixa a tecla seguir para o controle em foco. */
 export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
@@ -39,6 +40,8 @@ export function acaoDoAtalho(t: Tecla): AcaoGlobal | null {
   // M2-T07: botões "Seção anterior" e "Próxima seção" da barra superior.
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'PageUp') return 'secaoAnterior';
   if (t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'PageDown') return 'proximaSecao';
+  // E7-T03: F7 abre o verificador de conformidade (menu Verificar).
+  if (!t.ctrlKey && !t.altKey && !t.shiftKey && tecla === 'F7') return 'verificarConformidade';
   return null;
 }
 

@@ -49,6 +49,9 @@ export interface PropsAreaEscrever {
     mover: (id: string, sentido: 'cima' | 'baixo') => boolean;
   };
   conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
+  /** E7-T03: maior que 0 quando Verificar › Verificar conformidade (F7) pediu a janela; atendido, volta a 0. */
+  pedidoConformidade?: number;
+  aoAtenderPedidoConformidade?: () => void;
   estado: EstadoSessao;
   /** Rótulo do botão de descartar: "Fechar sem salvar" ou, quando o usuário pediu para sair, "Sair sem salvar". */
   rotuloDescartar: string;
@@ -114,6 +117,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [avisosEditor, setAvisosEditor] = useState<readonly string[]>([]);
   const [cadastrosAbertos, setCadastrosAbertos] = useState(false);
   const [relatorioConformidade, setRelatorioConformidade] = useState<RelatorioConformidade | null>(null);
+  const { pedidoConformidade = 0, aoAtenderPedidoConformidade } = p;
+  const verificarConformidade = p.conformidade?.verificar;
+  useEffect(() => {
+    if (pedidoConformidade === 0 || !verificarConformidade) return;
+    setRelatorioConformidade(verificarConformidade());
+    aoAtenderPedidoConformidade?.();
+  }, [pedidoConformidade, verificarConformidade, aoAtenderPedidoConformidade]);
   const [sugestaoPre, setSugestaoPre] = useState<ElementoPreTextualId | null>(null);
   const [pedidoSigla, setPedidoSigla] = useState<{ existente: { id: string; pos: number; sigla: string } | null } | null>(null);
   const pedirSigla = useCallback((existente: { id: string; pos: number; sigla: string } | null) => setPedidoSigla({ existente }), []);

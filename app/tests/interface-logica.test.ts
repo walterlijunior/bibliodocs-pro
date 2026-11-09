@@ -144,6 +144,9 @@ describe('teclado', () => {
     expect(acaoDoAtalho(t('PageDown'))).toBeNull();
     expect(acaoDoAtalho(t('PageUp', { ctrlKey: true, shiftKey: true }))).toBeNull();
     expect(acaoDoAtalho(t('s'))).toBeNull();
+    // E7-T03: F7 abre o verificador de conformidade; com modificador, não.
+    expect(acaoDoAtalho(t('F7'))).toBe('verificarConformidade');
+    expect(acaoDoAtalho(t('F7', { ctrlKey: true }))).toBeNull();
   });
 
   it('grade 2D: setas respeitam colunas e bordas; Home/End; outras teclas = null', () => {
@@ -287,7 +290,7 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
 
   it('comandos desativados conforme o trabalho aberto', () => {
     const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
-    expect(lista(null)).toEqual(['estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior']);
+    expect(lista(null)).toEqual(['estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior', 'verificarConformidade']);
     expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
     // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
     expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);

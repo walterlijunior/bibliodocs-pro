@@ -41,7 +41,9 @@ export type ComandoMenu =
   // M2-T07: Trabalho › Estrutura de seções… (foco na árvore) e os botões de seção da barra superior.
   | 'estruturaSecoes'
   | 'secaoAnterior'
-  | 'proximaSecao';
+  | 'proximaSecao'
+  // E7-T03: Verificar › Verificar conformidade (F7), ligado à janela do verificador da aba Escrever (M7).
+  | 'verificarConformidade';
 
 export interface ItemMenu {
   rotulo: string;
@@ -116,7 +118,7 @@ export const MENUS: readonly Menu[] = [
   {
     rotulo: 'Verificar',
     itens: [
-      { rotulo: 'Verificar conformidade', atalho: 'F7' }, // M4
+      { rotulo: 'Verificar conformidade', atalho: 'F7', comando: 'verificarConformidade' }, // M7
       { rotulo: 'Ir para a próxima não conformidade', atalho: 'F8' }, // M4
     ],
   },
@@ -141,6 +143,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
   if (trabalho === null || trabalho.somenteLeitura) d.add('exportarDocx');
   if (trabalho === null) d.add('fecharTrabalho');
+  if (trabalho === null) d.add('verificarConformidade');
   if (trabalho === null || trabalho.somenteLeitura) {
     d.add('inserirNota');
     d.add('inserirCitacao');
