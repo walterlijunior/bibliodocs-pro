@@ -4,7 +4,8 @@ import type { BlocoTabela, Documento } from '../src/dominio/modelo';
 import type { Perfil } from '../src/dominio/normas';
 import { avaliarConformidade } from '../src/dominio/verificador/conformidade';
 import { verificarTabelas } from '../src/dominio/verificador/tabelas';
-import { QUADRO_CORPUS } from './corpus/corpus';
+import { rodapeDoElemento } from '../src/dominio/visuais';
+import { FIGURA_CORPUS, QUADRO_CORPUS } from './corpus/corpus';
 
 const t = (texto: string) => [{ tipo: 'texto' as const, texto }];
 const linha = (...c: string[]) => c.map((x) => ({ conteudo: t(x) }));
@@ -53,9 +54,12 @@ describe('M7-T02: cada verificação, positiva e negativa', () => {
   it('RN-256: cabeçalho da coluna indicadora vazio', () => {
     expect(codigos({ ...base, linhas: [linha('', 'Total', 'Mulheres', 'Homens'), ...base.linhas.slice(1)] })).toEqual(['TABELA_SEM_INDICADOR']);
   });
-  it('RN-279: série consecutiva com meia-risca ou "a"; hífen e barra passam', () => {
+  it('RN-279: série consecutiva com meia-risca, no título ou no cabeçalho; hífen, barra e "a" passam', () => {
     expect(codigos({ ...base, titulo: t('População - Brasil - 1981–1985') })).toEqual(['TABELA_SERIE_TEMPORAL']);
-    expect(codigos({ ...base, titulo: t('População - Brasil - 1981 a 1985') })).toEqual(['TABELA_SERIE_TEMPORAL']);
+    expect(codigos({ ...base, linhas: [linha('Situação', 'Média 2010–2015', 'Mulheres', 'Homens'), ...base.linhas.slice(1)] })).toEqual(['TABELA_SERIE_TEMPORAL']);
+    // N-M7-02: período por extenso no título (IBGE 4.2.2) e classe "w a z" na indicadora (6.3) não são acusados.
+    expect(codigos({ ...base, titulo: t('Mortes registradas de 1956 a 1964 - Japão') })).toEqual([]);
+    expect(codigos({ ...base, linhas: [linha('Renda', 'Famílias'), linha('1500 a 1999', '10'), linha('2000 a 2499', '20')] })).toEqual([]);
     expect(codigos({ ...base, titulo: t('População - Brasil - 1981-1985') })).toEqual([]);
     expect(codigos({ ...base, titulo: t('População - Brasil - 1981/1985') })).toEqual([]);
   });
@@ -72,11 +76,43 @@ describe('M7-T02: cada verificação, positiva e negativa', () => {
     const classes = (a: string, z: string) => ({ ...base, linhas: [linha('Idade', 'Pessoas'), linha(a, '10'), linha('5 a menos de 10', '20'), linha(z, '30')] });
     expect(codigos(classes('Até 5 anos', '10 anos ou mais'))).toEqual(['TABELA_CLASSE_ABERTA']);
     expect(codigos(classes('0 a menos de 5', '10 a menos de 15'))).toEqual([]);
+    // N-M7-03 e N-M7-11: "mais de w a z" é fechada; "w e mais" e "w ou mais anos" são abertas.
+    expect(codigos(classes('Mais de 0 a 5', 'Mais de 10 a 15'))).toEqual([]);
+    expect(codigos(classes('0 a menos de 5', '50 e mais bovinos por km²'))).toEqual(['TABELA_CLASSE_ABERTA']);
+    expect(codigos(classes('0 a menos de 5', '15 ou mais anos'))).toEqual(['TABELA_CLASSE_ABERTA']);
   });
   it('RN-287: total diferente da soma sem nota geral; com nota passa', () => {
     const b = { ...base, linhas: [linha('Situação', 'Pessoas', 'Taxa (%)'), linha('Total', '100', '100,0'), linha('Urbana', '60', '33,3'), linha('Rural', '41', '66,6')] };
     expect(codigos(b)).toEqual(['TABELA_TOTAL_DIVERGENTE']);
     expect(codigos({ ...b, nota: t('A soma das parcelas difere do total por arredondamento.') })).toEqual([]);
+  });
+  it('N-M7-05: diferença maior que o arredondamento (subtotais, taxa, parcela parcial) não é acusada; "Subtotal" fica fora', () => {
+    expect(codigos({ ...base, linhas: [linha('Via', 'Turistas'), linha('Total', '100'), linha('Via aérea', '70'), linha('SP', '40'), linha('RJ', '30'), linha('Via terrestre', '30')] })).toEqual([]);
+    expect(codigos({ ...base, linhas: [linha('Região', 'Taxa (%)'), linha('Total', '3,2'), linha('Norte', '2,1'), linha('Sul', '4,0')] })).toEqual([]);
+    expect(codigos({ ...base, linhas: [linha('Região', 'Pessoas'), linha('Total', '60'), linha('Subtotal Norte', '30'), linha('Norte A', '10'), linha('Norte B', '20'), linha('Sul', '31')] })).toEqual(['TABELA_TOTAL_DIVERGENTE']);
+  });
+  it('R-M7-01: número infinito, acima de 2^53 ou com casas demais não entra nas contas', () => {
+    const nove = '9'.repeat(400);
+    expect(codigos({ ...base, linhas: [linha('Situação', 'Pessoas'), linha('Total', nove), linha('A', nove), linha('B', '5')] })).not.toContain('TABELA_TOTAL_DIVERGENTE');
+    expect(codigos({ ...base, linhas: [linha('Produto', 'Toneladas'), linha('Soja', '50'), linha('Outros', nove)] })).not.toContain('TABELA_OUTROS_MAIOR');
+    const zeros = `0,${'0'.repeat(400)}`;
+    expect(codigos({ ...base, linhas: [linha('Situação', 'Taxa'), linha('Total', zeros), linha('A', zeros), linha('B', zeros)] })).not.toContain('TABELA_TOTAL_DIVERGENTE');
+    expect(codigos({ ...base, linhas: [linha('Situação', 'Taxa'), linha('Total', '0,30000000000000000'), linha('A', '0,10000000000000000'), linha('B', '0,20000000000000000')] })).not.toContain('TABELA_TOTAL_DIVERGENTE');
+  });
+  it('R-M7-03: texto do usuário cortado em 80 caracteres na mensagem e no trecho', () => {
+    const longo = 'n/d '.repeat(100_000);
+    const r = verificarTabelas(doc({ ...base, linhas: [base.linhas[0]!, linha('Total', '10', '5', '5'), linha('Urbana', '6', longo, '3'), linha('Rural', '4', '5', '2')] }));
+    const p = r.find((x) => x.codigo === 'TABELA_CELULA_FORA_DOS_SINAIS')!;
+    expect(p.trecho!.length).toBeLessThanOrEqual(80);
+    expect(p.mensagem.length).toBeLessThan(300);
+  });
+  it('N-M7-07: linha separadora ou de grupo, com os dados todos vazios, não é célula sem sinal', () => {
+    expect(codigos({ ...base, linhas: [base.linhas[0]!, linha('Total', '10', '5', '5'), linha('Situação urbana', '', '', ''), linha('Urbana', '6', '3', '3'), linha('Rural', '4', '2', '2')] })).toEqual([]);
+  });
+  it('N-M7-04: Anexo B, Tabela 7 do IBGE: sigla junto da forma por extenso, mês abreviado e moeda passam', () => {
+    expect(codigos({ ...base, titulo: t('Preço médio de produto selecionado do Índice Nacional de Preços ao Consumidor - INPC - Brasil - JUN/DEZ 1989-JUN/DEZ 1990') })).toEqual([]);
+    expect(codigos({ ...base, titulo: t('Exportações em US$ milhões - Brasil - 1990') })).toEqual([]);
+    expect(codigos({ ...base, titulo: t('Índice Nacional de Preços ao Consumidor (INPC) - Brasil - 1990') })).toEqual([]);
   });
   it('RN-298: sinais tantos quanto os dados', () => {
     expect(codigos({ ...base, linhas: [linha('Ano', 'Valor'), linha('2000', '...'), linha('2001', '5'), linha('2002', 'X')] })).toEqual(['TABELA_SINAIS_DEMAIS']);
@@ -85,6 +121,16 @@ describe('M7-T02: cada verificação, positiva e negativa', () => {
     const b = (outros: string) => ({ ...base, linhas: [linha('Produto', 'Toneladas'), linha('Soja', '50'), linha('Milho', '30'), linha('Outros', outros)] });
     expect(codigos(b('40'))).toEqual(['TABELA_OUTROS_MAIOR']);
     expect(codigos(b('10'))).toEqual([]);
+  });
+});
+
+describe('N-M7-01: "Fontes:" na tabela com mais de um responsável (RN-270)', () => {
+  it('tabela com ";" na fonte sai "Fontes:"; uma fonte, quadro e figura seguem "Fonte:"', () => {
+    const prefixo = (b: BlocoTabela | typeof FIGURA_CORPUS) => rodapeDoElemento(b).find((x) => x.parte === 'fonte');
+    expect(prefixo({ ...IBGE_TABELA_1, fonte: t('Ministério da Saúde; Fundação Instituto Brasileiro de Geografia e Estatística') })).toMatchObject({ prefixo: 'Fontes:' });
+    expect(prefixo(IBGE_TABELA_1)).toMatchObject({ prefixo: 'Fonte:' });
+    expect(prefixo({ ...QUADRO_CORPUS, fonte: t('Autor A; Autor B') })).toMatchObject({ prefixo: 'Fonte:' });
+    expect(prefixo({ ...FIGURA_CORPUS, fonte: t('Autor A; Autor B') })).toMatchObject({ prefixo: 'Fonte:' });
   });
 });
 

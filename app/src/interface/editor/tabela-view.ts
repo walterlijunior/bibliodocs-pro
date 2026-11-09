@@ -8,7 +8,7 @@
  */
 import type { Node as NoPm } from 'prosemirror-model';
 import type { NodeView } from 'prosemirror-view';
-import type { DadosTabela } from '../../aplicacao';
+import { prefixoFonte, type DadosTabela } from '../../aplicacao';
 import type { InlineDeTitulo } from '../../dominio/modelo';
 import { dadosDoNo } from './tabelas';
 
@@ -120,7 +120,7 @@ export class TabelaView implements NodeView {
       p.textContent = faltam === 1 ? 'Mais 1 linha: abra a janela da tabela para ver tudo.' : `Mais ${faltam} linhas: abra a janela da tabela para ver tudo.`;
       rodape.push(p);
     }
-    if (d.fonte) linhaRodape('Fonte: ', d.fonte);
+    if (d.fonte) linhaRodape(`${prefixoFonte({ tipo: 'tabela', especie: d.especie, fonte: d.fonte })} `, d.fonte);
     else {
       const p = document.createElement('p');
       p.className = 'bd-tabela__rodape bd-tabela__pendente';

@@ -5,6 +5,15 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Corrigido
+- Etapa 5, M7-T05 (revisão do M7):
+  - Menos avisos falsos nas tabelas: período "de 1956 a 1964" no título, classe "1500 a 1999" ou "Mais de 0 a 5", sigla junto da forma por extenso ("Índice Nacional de Preços ao Consumidor - INPC"), mês abreviado e moeda, total com subtotais ou taxas, linha separadora vazia.
+  - Menos avisos falsos no texto: reticências do próprio original ("eu... não sei") e título que é uma sigla longa ("EMBRAPA").
+  - Números enormes ou com muitas casas não geram mais aviso de total errado; texto muito longo de uma célula sai cortado no relatório; o relatório .txt não aceita mais caracteres que forjam linhas.
+
+### Alterado
+- Etapa 5, M7-T05: tabela com mais de uma fonte, separadas por ";", sai com "Fontes:" no DOCX e no editor, como no IBGE (critério provisório).
+
 ### Adicionado
 - Etapa 5, M7-T01: o verificador de conformidade passa a conferir o texto (avisos):
   - título de seção secundária a quinária escrito todo em maiúsculas (RN-043);

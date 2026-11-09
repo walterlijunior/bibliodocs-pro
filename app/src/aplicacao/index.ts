@@ -12,6 +12,7 @@
 export type { CadastrosDocumento } from './servicos/historico-edicao';
 export type { RelatorioConformidade, NaoConformidade, FamiliaConformidade } from '../dominio/verificador/conformidade';
 export { FAMILIAS_CONFORMIDADE } from '../dominio/verificador/conformidade';
+export { prefixoFonte } from '../dominio/visuais';
 
 export {
   CANAIS_PROJETOS,

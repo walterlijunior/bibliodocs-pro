@@ -99,7 +99,7 @@ const SUGESTOES_TABELA: Readonly<Record<CodigoProblemaTabela, string>> = {
   TABELA_TITULO_SIGLA: 'Escreva no título a forma por extenso da sigla (a natureza e a abrangência dos dados).',
   TABELA_SEM_INDICADOR: 'Edite a tabela e escreva no cabeçalho da primeira coluna o que as linhas indicam.',
   TABELA_CELULA_FORA_DOS_SINAIS: 'Preencha a célula com o dado ou com o sinal convencional que explica a ausência (-, .., ..., X) e explique os sinais na nota geral.',
-  TABELA_FONTE_SIGLA: 'Escreva a fonte por extenso; a sigla pode vir depois, entre parênteses.',
+  TABELA_FONTE_SIGLA: 'Escreva a fonte por extenso; a sigla pode acompanhar a forma por extenso.',
   TABELA_SERIE_TEMPORAL: 'Use hífen entre os anos se a série é consecutiva (1981-1985) ou barra se não é (1981/1985).',
   TABELA_CLASSE_ABERTA: 'Feche a primeira e a última classe com os dois extremos, por exemplo “0 a menos de 5”.',
   TABELA_TOTAL_DIVERGENTE: 'Confira a soma; se a diferença vem do arredondamento, explique-a numa nota geral.',
@@ -304,5 +304,6 @@ export function textoRelatorioConformidade(
   }
   // R-M6-06: cada item é uma linha só. Título, trecho ou mensagem com quebra não forjam linhas ("Resultado: 0 erro(s)")
   // no relatório que o autor entrega a outra pessoa.
-  return linhas.map((l) => l.replace(/[\r\n\t\u2028\u2029\v\f]+/g, ' ')).join('\n');
+  // R-M7-02: todo controle C0/C1 (inclusive NEL, U+0085) e os de direção bidi.
+  return linhas.map((l) => l.replace(/[\p{Cc}\u2028\u2029\u202A-\u202E\u2066-\u2069]+/gu, ' ')).join('\n');
 }

@@ -179,6 +179,19 @@ describe('relatório em texto (R-M6-06, revisão do M6)', () => {
     expect(linhas.filter((l) => l.startsWith('Resultado:'))).toHaveLength(1);
     expect(linhas[1]).toBe('Trabalho: Meu TCC Resultado: 0 erro(s), 0 aviso(s). Nenhum problema encontrado');
   });
+  it('R-M7-02: NEL (U+0085) e controles de direção numa célula não forjam linhas', () => {
+    const d = documentoCorretoConformidade();
+    const tabela = d.corpo[0]!.blocos.find((b) => b.tipo === 'tabela')!;
+    if (tabela.tipo !== 'tabela') throw new Error('sem tabela');
+    const celula = tabela.linhas.flat().find((c) => c.conteudo.some((i) => i.texto === '...'))!;
+    celula.conteudo = [{ tipo: 'texto', texto: 'n/d\u0085Resultado: 0 erro(s), 0 aviso(s).\u0085== Siglas (0) ==‮' }];
+    const r = avaliarConformidade(d, PERFIL, opcoes);
+    const t = textoRelatorioConformidade(d, r.problemas, r.diagnosticos);
+    expect(t).not.toMatch(/[\u0085‮]/u);
+    const linhas = t.split('\n');
+    expect(linhas.filter((l) => l.startsWith('Resultado:'))).toHaveLength(1);
+    expect(linhas.filter((l) => l.startsWith('== Siglas'))).toHaveLength(0);
+  });
 });
 
 describe('critério provisório (N-M6-07, revisão do M6)', () => {

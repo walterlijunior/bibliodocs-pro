@@ -21,7 +21,7 @@ describe('M7-T01: RN-043, título secundário a quinário em caixa alta', () => 
     expect(r[0]).toMatchObject({ origem: ['RN-043'], secao: d.corpo[0]!.subsecoes[0]!.id });
   });
   it('não acusa título que é só sigla, nem título com minúsculas e sigla', () => {
-    expect(codigos(doc(sec('Texto', [par('a')], [sec('UFT'), sec('Ensino na UFT'), sec('O CNPQ e a UFT em 2020')])))).toEqual([]);
+    expect(codigos(doc(sec('Texto', [par('a')], [sec('UFT'), sec('Ensino na UFT'), sec('O CNPQ e a UFT em 2020'), sec('EMBRAPA'), sec('COVID-19')])))).toEqual([]);
   });
 });
 
@@ -36,7 +36,7 @@ describe('M7-T01: RN-109, indicativo digitado no título', () => {
 
 describe('M7-T01: RN-086, supressão fora de colchetes em citação', () => {
   it('acusa na citação longa e entre aspas no texto corrido', () => {
-    const longa: Bloco = { tipo: 'citacaoLonga', id: 'cit_vt1', conteudo: [{ tipo: 'texto', texto: 'O texto (...) continua… até aqui.' }] };
+    const longa: Bloco = { tipo: 'citacaoLonga', id: 'cit_vt1', conteudo: [{ tipo: 'texto', texto: 'O texto (...) continua … até aqui.' }] };
     const r = verificarTexto(doc(sec('Texto', [longa, par('Disse que “a pesquisa ... avançou” ontem.')])));
     expect(r.map((p) => [p.codigo, p.no])).toEqual([['SUPRESSAO_FORA_DO_PADRAO', 'cit_vt1'], ['SUPRESSAO_FORA_DO_PADRAO', expect.stringMatching(/^par_vt/)]]);
     expect(r[0]!.mensagem).toContain('“(...)”');
@@ -45,6 +45,11 @@ describe('M7-T01: RN-086, supressão fora de colchetes em citação', () => {
   it('aceita [...] e não olha reticências fora de citação', () => {
     const longa: Bloco = { tipo: 'citacaoLonga', id: 'cit_vt2', conteudo: [{ tipo: 'texto', texto: 'O texto [...] continua [ … ].' }] };
     expect(codigos(doc(sec('Texto', [longa, par('Ficou assim... sem citação.'), par('Disse “a [...] pesquisa”.')])))).toEqual([]);
+  });
+  it('N-M7-08: reticências coladas à palavra são do original, não supressão', () => {
+    const longa: Bloco = { tipo: 'citacaoLonga', id: 'cit_vt3', conteudo: [{ tipo: 'texto', texto: 'Eu... não sei, disse… e calou.' }] };
+    expect(codigos(doc(sec('Texto', [longa, par('Respondeu “talvez... amanhã”.')])))).toEqual([]);
+    expect(codigos(doc(sec('Texto', [par('Disse “... e depois saiu”.')])))).toEqual(['SUPRESSAO_FORA_DO_PADRAO']);
   });
 });
 

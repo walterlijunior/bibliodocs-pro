@@ -46,8 +46,8 @@ export function tituloComRotulo(rotulo: string, titulo: readonly InlineDeTitulo[
 
 /** Parte do rodapé do elemento, na ordem em que sai. */
 export type ParteRodape =
-  /** "Fonte:" (RN-056, RN-064, RN-269). */
-  | { parte: 'fonte'; prefixo: 'Fonte:'; conteudo: readonly InlineDeTitulo[] }
+  /** "Fonte:" (RN-056, RN-064, RN-269); "Fontes:" na tabela com mais de um responsável (RN-270). */
+  | { parte: 'fonte'; prefixo: 'Fonte:' | 'Fontes:'; conteudo: readonly InlineDeTitulo[] }
   /** "Nota:" (RN-058; RN-275, nota geral). */
   | { parte: 'nota'; prefixo: 'Nota:'; conteudo: readonly InlineDeTitulo[] }
   /** Nota específica com o número da chamada, na ordem das chamadas (RN-268, RN-276); a forma da chamada é do motor. */
@@ -56,12 +56,21 @@ export type ParteRodape =
 const temTexto = (c: readonly InlineDeTitulo[] | undefined): c is readonly InlineDeTitulo[] => c !== undefined && textoPlano(c) !== '';
 
 /**
+ * Palavra antes da fonte (N-M7-01). Na tabela (Norma Tabular), "Fontes:" quando a fonte tem mais de um responsável,
+ * separados por ";" (RN-270; IBGE p. 20, 4.10.1; Anexo B, Tabela 6). Quadro e ilustração seguem o Manual, "Fonte:"
+ * (RN-056). Decidido pela sessão principal por delegação do usuário (2026-11-08), provisório.
+ */
+export function prefixoFonte(bloco: { tipo: string; especie?: string; fonte?: readonly InlineDeTitulo[] }): 'Fonte:' | 'Fontes:' {
+  return bloco.tipo === 'tabela' && bloco.especie === 'tabela' && bloco.fonte !== undefined && textoPlano(bloco.fonte).includes(';') ? 'Fontes:' : 'Fonte:';
+}
+
+/**
  * Rodapé na ordem obrigatória Fonte → Nota → notas específicas (RN-277; RN-058 para ilustrações, que não têm nota
  * específica). Campo sem texto não sai.
  */
 export function rodapeDoElemento(bloco: BlocoTabela | BlocoIlustracao | BlocoGrafico): ParteRodape[] {
   const partes: ParteRodape[] = [];
-  if (temTexto(bloco.fonte)) partes.push({ parte: 'fonte', prefixo: 'Fonte:', conteudo: bloco.fonte });
+  if (temTexto(bloco.fonte)) partes.push({ parte: 'fonte', prefixo: prefixoFonte(bloco), conteudo: bloco.fonte });
   if (temTexto(bloco.nota)) partes.push({ parte: 'nota', prefixo: 'Nota:', conteudo: bloco.nota });
   if (bloco.tipo === 'tabela') {
     (bloco.notasEspecificas ?? []).forEach((conteudo, i) => {
