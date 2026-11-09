@@ -190,7 +190,7 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/editor-conversao.tes
 | FUN-06 | RF-09 | Importar CSV/XLSX com acentos, vírgula decimal, vazios e datas | NÃO EXECUTADO |
 | FUN-07 | RF-11 | Excluir figura referenciada gera aviso | NÃO EXECUTADO |
 | FUN-08 | RF-12 | Inserir seção/figura atualiza sumário e listas | NÃO EXECUTADO |
-| FUN-09 | RF-15 | 10 não conformidades plantadas detectadas, 0 falsos positivos no documento correto | NÃO EXECUTADO |
+| FUN-09 | RF-15 | 10 não conformidades plantadas detectadas, 0 falsos positivos no documento correto | APROVADO (2026-11-08, M7-T04: `tests/conformidade-aceite-m7.test.ts` e `e2e/conformidade-aceite.spec.ts`; seis famílias, uma regra por falha) |
 
 ## Grupo DOC — regressão documental (DOCX)
 
@@ -249,3 +249,4 @@ Evidências e limites em `docs/relatorios/M6_RELATORIO_MARCO.md`.
 | M7-T01 | RF-15; RN-043, 086, 109; D-M7-02 | `tests/verificador-texto.test.ts`: positivo e negativo de cada código, sigla e ano não acusados, `[...]` aceito, apêndice vazio permitido, controle correto e documento difícil sem aviso, limite técnico com diagnóstico, documento intacto | APROVADO (2026-11-08) |
 | M7-T02 | RF-15; RN-247, 256, 263, 271, 279, 284, 287, 298, 299, 310 | `tests/verificador-tabelas.test.ts`: Tabelas 1 e 4 do Anexo B do IBGE sem aviso, quadro de fora, positivo e negativo de cada código, RN-310 provisória e desligável, documento intacto | APROVADO (2026-11-08) |
 | M7-T03 | RF-15 | `e2e/conformidade.spec.ts`: resumo, grupo por família, filtro pendência/aviso, local legível, Ir ao local no texto (trecho selecionado) e no pré-textual, axe sem violação séria; `tests/conformidade.test.ts`: .txt agrupado, numeração contínua, sem id interno no local | APROVADO (2026-11-08) |
+| M7-T04 | RF-15 (aceite) | Dez não conformidades em seis famílias detectadas, controle correto sem nenhuma, no domínio e no Electron real; corrigir uma parte tira só os itens dela | APROVADO (2026-11-08) |

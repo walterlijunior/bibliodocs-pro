@@ -11,6 +11,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   - título que começa com um número digitado ("2.1 Objetivos"), que sairia em dobro (RN-109);
   - supressão em citação indicada por "(...)" ou reticências, em vez de [...] (RN-086);
   - seção sem título ou sem texto (critério provisório, D-M7-02).
+- Etapa 5, M7-T04: aceite do verificador (RF-15) com um trabalho de dez não conformidades de seis assuntos diferentes, todas detectadas, e o mesmo trabalho corrigido sem nenhuma, também no aplicativo.
 - Etapa 5, M7-T03: janela "Verificar conformidade" reorganizada:
   - resumo com o número de pendências e de avisos, e filtro para ver só uns ou outros;
   - itens agrupados por assunto (pré-textuais, texto, citações, elementos visuais, tabelas, siglas);

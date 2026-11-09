@@ -5,6 +5,7 @@ import { FIGURA_CORPUS, IMAGENS_CORPUS, TABELA_CORPUS } from './corpus';
 
 export { IMAGENS_CORPUS as IMAGENS_CONFORMIDADE };
 const texto = (t: string): Inline => ({ tipo: 'texto', texto: t });
+const tt = (t: string) => ({ tipo: 'texto' as const, texto: t });
 const resumo = Array.from({ length: 180 }, () => 'palavra').join(' ');
 
 export function documentoCorretoConformidade(): Documento {
@@ -52,5 +53,54 @@ export function documentoDezFalhasConformidade(): Documento {
   figura.larguraMm = 160; // RNF-17/D-M5-09: 600 px a 160 mm, abaixo de 150 ppi.
   const eq = blocos[3]!;
   if (eq.tipo === 'equacao') delete eq.numerada; // RN-106.
+  return d;
+}
+
+/**
+ * M7-T04 (aceite ampliado do RF-15, D-M7-05): controle correto com uma subseção, citação com supressão em colchetes e texto
+ * sem sigla solta. É o controle de `documentoCorretoConformidade` mais o que as famílias novas (texto, tabela, sigla) leem.
+ */
+export function documentoCorretoM7(): Documento {
+  const d = documentoCorretoConformidade();
+  d.metadados.titulo = [tt('Trabalho fictício de aceite do verificador')];
+  d.corpo[0]!.subsecoes = [{ id: 'sec_conformidade02', titulo: [tt('Metodologia da pesquisa')], subsecoes: [], blocos: [
+    { tipo: 'paragrafo', id: 'par_conformidade02', conteudo: [texto('Disse que “a pesquisa [...] avançou” e a universidade apoiou.')] },
+  ] }];
+  return d;
+}
+
+/** As dez não conformidades do aceite, cada uma de uma regra, em seis famílias. Comentário: código esperado. */
+export const DEZ_FALHAS_M7 = [
+  'PRE_TEXTUAL_INCOMPLETO', // pré-textual: ficha sem texto (RN-135)
+  'CHAMADA_SEM_LIGACAO', // bibliografia: "Silva (2020)" escrito como texto (RN-078)
+  'OBRA_NAO_CITADA', // bibliografia: a obra deixa de ser citada (RN-078)
+  'SEM_FONTE', // visual: figura sem fonte (RN-056)
+  'EQUACAO_SEM_NUMERO', // visual: equação sem número (RN-106)
+  'TABELA_SERIE_TEMPORAL', // tabela: "2020–2022" com meia-risca (RN-279)
+  'TABELA_CELULA_FORA_DOS_SINAIS', // tabela: "n/d" no lugar de "..." (RN-263)
+  'SUPRESSAO_FORA_DO_PADRAO', // texto: "(...)" na citação (RN-086)
+  'TITULO_CAIXA_ALTA', // texto: subseção em maiúsculas (RN-043)
+  'SIGLA_SEM_CADASTRO', // sigla: "UFT" sem cadastro (RN-046)
+] as const;
+
+export function documentoDezFalhasM7(): Documento {
+  const d = documentoCorretoM7();
+  d.preTextuais = d.preTextuais!.map((e) => {
+    if (e.tipo === 'fichaCatalografica') { const { texto: _t, ...resto } = e; return resto; }
+    return e;
+  });
+  const sec = d.corpo[0]!;
+  const p = sec.blocos[0]!;
+  if (p.tipo === 'paragrafo') p.conteudo = [texto('Segundo Silva (2020), veja '), ...p.conteudo.slice(3)];
+  const tabela = sec.blocos[1] as BlocoTabela;
+  tabela.titulo = [tt('Produção fictícia por região, 2020–2022')];
+  const celula = tabela.linhas.flat().find((c) => c.conteudo.some((i) => i.texto === '...'))!;
+  celula.conteudo = [tt('n/d')];
+  delete (sec.blocos[2] as BlocoIlustracao).fonte;
+  const eq = sec.blocos[3]!;
+  if (eq.tipo === 'equacao') delete eq.numerada;
+  const sub = sec.subsecoes[0]!;
+  sub.titulo = [tt('METODOLOGIA DA PESQUISA')];
+  sub.blocos = [{ tipo: 'paragrafo', id: 'par_conformidade02', conteudo: [texto('Disse que “a pesquisa (...) avançou” e a UFT apoiou.')] }];
   return d;
 }
