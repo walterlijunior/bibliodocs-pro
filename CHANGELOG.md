@@ -6,6 +6,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Corrigido
+- Etapa 6, E6-T01: três regras usadas pelo motor (título da lista de tabelas, ordem alfabética e destaque do título nas referências: RN-044, RN-176, RN-178) passam a constar do perfil, para que toda formatação do DOCX tenha regra de origem conferível.
+
+### Corrigido
 - Etapa 5, M7-T05 (revisão do M7):
   - Menos avisos falsos nas tabelas: período "de 1956 a 1964" no título, classe "1500 a 1999" ou "Mais de 0 a 5", sigla junto da forma por extenso ("Índice Nacional de Preços ao Consumidor - INPC"), mês abreviado e moeda, total com subtotais ou taxas, linha separadora vazia.
   - Menos avisos falsos no texto: reticências do próprio original ("eu... não sei") e título que é uma sigla longa ("EMBRAPA").

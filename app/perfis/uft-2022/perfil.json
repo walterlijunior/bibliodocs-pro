@@ -1735,6 +1735,30 @@
    ]
   },
   {
+   "id": "RN-044",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 43, 5.12 (anotação da Fig. 13); p. 15, 2.4",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "tituloDaListaDeTabelas"
+  },
+  {
+   "id": "RN-176",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 50, 5.19",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "ordenarReferencias"
+  },
+  {
+   "id": "RN-178",
+   "status": "CONFIRMADA",
+   "fonte": "M, padrões e exemplos p. 50–63 (ex.: p. 50, linha-padrão \"SOBRENOME, Prenome do autor. **Título**: subtítulo.\")",
+   "tipo": "procedimento",
+   "alvo": "lista.entrada",
+   "procedimento": "destaqueDoTitulo"
+  },
+  {
    "id": "RN-060",
    "status": "PENDENTE-FONTE",
    "fonte": "— (o Manual não trata)",
