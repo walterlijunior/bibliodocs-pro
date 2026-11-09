@@ -25,7 +25,10 @@ const IBGE_TABELA_1 = tabela({
 /** Anexo B, Tabela 4 (p. 49), recorte, com as chamadas de nota "(2)", "(3)". */
 const IBGE_TABELA_4 = tabela({
   titulo: t('Esperança de vida ao nascer, por região socioeconômica - Brasil - 1940/1980'),
-  linhas: [linha('Região socioeconômica', '1940', '1950', '1960'), linha('Brasil', '(2) 42,74', '(2) 45,90', '(3) 52,37'), linha('Região I - RJ', '45,38', '50,91', '59,19'), linha('Região VI - DF', '...', '48,91', '54,17')],
+  // E6-T04: o recorte leva a chamada (1) do cabeçalho, as três notas específicas e o sinal explicado na nota geral.
+  nota: t('Sinal convencional utilizado: ... Dado numérico não disponível.'),
+  notasEspecificas: [t('Nota fictícia um.'), t('Nota fictícia dois.'), t('Nota fictícia três.')],
+  linhas: [linha('Região socioeconômica (1)', '1940', '1950', '1960'), linha('Brasil', '(2) 42,74', '(2) 45,90', '(3) 52,37'), linha('Região I - RJ', '45,38', '50,91', '59,19'), linha('Região VI - DF', '...', '48,91', '54,17')],
 });
 
 describe('M7-T02: controles do Anexo B do IBGE sem falso positivo', () => {
@@ -115,12 +118,35 @@ describe('M7-T02: cada verificação, positiva e negativa', () => {
     expect(codigos({ ...base, titulo: t('Índice Nacional de Preços ao Consumidor (INPC) - Brasil - 1990') })).toEqual([]);
   });
   it('RN-298: sinais tantos quanto os dados', () => {
-    expect(codigos({ ...base, linhas: [linha('Ano', 'Valor'), linha('2000', '...'), linha('2001', '5'), linha('2002', 'X')] })).toEqual(['TABELA_SINAIS_DEMAIS']);
+    expect(codigos({ ...base, nota: t('Sinais convencionais utilizados: ... Dado numérico não disponível. X Dado omitido.'), linhas: [linha('Ano', 'Valor'), linha('2000', '...'), linha('2001', '5'), linha('2002', 'X')] })).toEqual(['TABELA_SINAIS_DEMAIS']);
   });
   it('RN-299: "Outros" maior que outra classificação', () => {
     const b = (outros: string) => ({ ...base, linhas: [linha('Produto', 'Toneladas'), linha('Soja', '50'), linha('Milho', '30'), linha('Outros', outros)] });
     expect(codigos(b('40'))).toEqual(['TABELA_OUTROS_MAIOR']);
     expect(codigos(b('10'))).toEqual([]);
+  });
+});
+
+describe('E6-T04 (N-M5-06): sinal sem explicação e chamada × nota específica', () => {
+  const base = IBGE_TABELA_1;
+  const dados = [base.linhas[0]!, linha('Total', '10', '5', '5'), linha('Urbana', '6', '...', '3'), linha('Rural', '4', '–', '2')];
+  it('RN-265: cada sinal usado aparece na nota geral; "–" e "-", "…" e "..." valem o mesmo', () => {
+    expect(codigos({ ...base, linhas: dados })).toEqual(['TABELA_SINAL_SEM_NOTA']);
+    expect(verificarTabelas(doc({ ...base, linhas: dados, nota: t('Sinal convencional utilizado: - Dado igual a zero.') }))[0]!.mensagem).toContain('“...”');
+    expect(codigos({ ...base, linhas: dados, nota: t('Sinais convencionais utilizados: - Dado igual a zero. … Dado não disponível.') })).toEqual([]);
+    // O hífen de uma palavra não explica o sinal.
+    expect(codigos({ ...base, linhas: [base.linhas[0]!, linha('Total', '10', '5', '5'), linha('Urbana', '6', '-', '3')], nota: t('Dados da região Centro-Oeste.') })).toEqual(['TABELA_SINAL_SEM_NOTA']);
+  });
+  it('RN-276: chamada sem nota e nota sem chamada; chamada sobrescrita conta', () => {
+    const comChamada = [linha('Situação (1)', 'Total', 'Mulheres', 'Homens'), ...base.linhas.slice(1)];
+    expect(codigos({ ...base, linhas: comChamada })).toEqual(['TABELA_CHAMADA_SEM_NOTA']);
+    expect(verificarTabelas(doc({ ...base, linhas: comChamada }))[0]!.mensagem).toContain('chamada (1) sem nota específica');
+    expect(codigos({ ...base, linhas: comChamada, notasEspecificas: [t('Nota um.')] })).toEqual([]);
+    expect(verificarTabelas(doc({ ...base, notasEspecificas: [t('Nota um.')] }))[0]!.mensagem).toContain('nota específica (1) sem chamada');
+    const sobrescrita = [[{ conteudo: [{ tipo: 'texto' as const, texto: 'Situação' }, { tipo: 'texto' as const, texto: '1', marcas: ['sobrescrito' as const] }] }, ...base.linhas[0]!.slice(1)], ...base.linhas.slice(1)];
+    expect(codigos({ ...base, linhas: sobrescrita, notasEspecificas: [t('Nota um.')] })).toEqual([]);
+    // Ano entre parênteses não é chamada.
+    expect(codigos({ ...base, linhas: [linha('Situação (2020)', 'Total', 'Mulheres', 'Homens'), ...base.linhas.slice(1)] })).toEqual([]);
   });
 });
 

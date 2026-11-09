@@ -36,7 +36,9 @@ export type CodigoProblemaTabela =
   | 'TABELA_TOTAL_DIVERGENTE'
   | 'TABELA_SINAIS_DEMAIS'
   | 'TABELA_OUTROS_MAIOR'
-  | 'TABELA_TITULO_PONTO';
+  | 'TABELA_TITULO_PONTO'
+  | 'TABELA_SINAL_SEM_NOTA'
+  | 'TABELA_CHAMADA_SEM_NOTA';
 
 export interface ProblemaTabela {
   codigo: CodigoProblemaTabela;
@@ -56,6 +58,24 @@ const CLASSE_ABERTA = /^(?:até|menos de)\s|^mais de\s(?!.*\sa\s)|\s(?:ou|e) mai
 const SUBTOTAL = /^subtotal\b/iu;
 const TOTAL = /^total\b/iu;
 const OUTROS = /^outr[oa]s\b/iu;
+
+/** Forma única de cada sinal (o "–" e o "…" do corretor automático valem "-" e "..."). */
+const SINAL_CANONICO: Readonly<Record<string, string>> = { '–': '-', '…': '...', x: 'X' };
+/** O sinal escrito sozinho na nota geral (não o hífen de uma palavra, nem ".." dentro de "..."). */
+const SINAL_NA_NOTA: Readonly<Record<string, RegExp>> = {
+  '-': /(?<![\p{L}\p{N}])-(?![\p{L}\p{N}])/u,
+  '..': /(?<!\.)\.\.(?!\.)/u,
+  '...': /\.\.\./u,
+  X: /(?<![\p{L}\p{N}])[Xx](?![\p{L}\p{N}])/u,
+};
+/** Números das chamadas de nota específica: "(1)" ou "[1]" no começo ou no fim, ou algarismo sobrescrito (RN-267). */
+function chamadasDe(conteudo: readonly { texto: string; marcas?: readonly string[] }[]): number[] {
+  const saida: number[] = [];
+  for (const i of conteudo) if ((i.marcas ?? []).includes('sobrescrito') && /^\s*\d{1,2}\s*$/u.test(i.texto)) saida.push(Number(i.texto));
+  const texto = conteudo.filter((i) => !(i.marcas ?? []).includes('sobrescrito')).map((i) => i.texto).join('').trim();
+  for (const m of texto.matchAll(/^[([](\d{1,2})[)\]]|[([](\d{1,2})[)\]]$/gu)) saida.push(Number(m[1] ?? m[2]));
+  return saida;
+}
 
 /** R-M7-03: texto do usuário em mensagem e trecho, cortado em 80 caracteres. */
 const curto = (x: string): string => (x.length > 80 ? `${x.slice(0, 79)}…` : x);
@@ -120,17 +140,35 @@ function conferirTabela(t: BlocoTabela, add: (p: Omit<ProblemaTabela, 'secao' | 
   let sinais = 0;
   let numeros = 0;
   const foraDosSinais = new Set<string>();
+  const usados = new Set<string>();
   for (const c of colunasDados) {
     // N-M7-07: linha com todas as células de dados vazias é separadora ou de grupo, não dado ausente.
     const coluna = dados.filter((l) => colunasDados.some((k) => (l[k] ?? '') !== '')).map((l) => l[c]).filter((x): x is string => x !== null);
     if (!coluna.some((x) => numero(x) !== null && !SINAIS.has(x))) continue;
     for (const x of coluna) {
-      if (SINAIS.has(x)) sinais++;
+      if (SINAIS.has(x)) { sinais++; usados.add(SINAL_CANONICO[x] ?? x); }
       else if (ehDadoNumerico(x)) numeros++;
       else foraDosSinais.add(x === '' ? '(vazia)' : x);
     }
   }
   if (foraDosSinais.size > 0) add({ codigo: 'TABELA_CELULA_FORA_DOS_SINAIS', origem: ['RN-263'], mensagem: `Célula de dados com ${[...foraDosSinais].slice(0, 5).map((x) => x === '(vazia)' ? 'conteúdo vazio' : `“${curto(x)}”`).join(', ')}; o dado ausente se indica por sinal convencional (-, .., ..., X).`, ...(foraDosSinais.has('(vazia)') ? {} : { trecho: curto([...foraDosSinais][0]!) }) });
+  // E6-T04 (N-M5-06): cada sinal usado é explicado na nota geral (RN-265; I, p. 19, 4.8.2).
+  const nota = plano(t.nota).replace(/–/gu, '-').replace(/…/gu, '...');
+  const semExplicacao = [...usados].filter((s) => !SINAL_NA_NOTA[s]!.test(nota));
+  if (semExplicacao.length > 0) add({ codigo: 'TABELA_SINAL_SEM_NOTA', origem: ['RN-265'], mensagem: `A tabela usa ${semExplicacao.map((s) => `“${s}”`).join(', ')} sem explicação na nota geral; os sinais convencionais usados são explicados na nota, cada um com seu significado.`, trecho: semExplicacao[0]! });
+  // E6-T04 (N-M5-06): cada chamada tem a sua nota específica, e cada nota a sua chamada (RN-276; I, p. 21, 4.12).
+  const chamadas = new Set<number>();
+  for (const conteudo of [t.titulo, ...t.linhas.flat().map((c) => c.conteudo)]) for (const n of chamadasDe(conteudo)) chamadas.add(n);
+  const nNotas = (t.notasEspecificas ?? []).length;
+  const semNota = [...chamadas].filter((n) => n > nNotas).sort((a, b) => a - b);
+  const semChamada = Array.from({ length: nNotas }, (_, i) => i + 1).filter((n) => !chamadas.has(n));
+  if (semNota.length > 0 || semChamada.length > 0) {
+    const partes = [
+      ...(semNota.length > 0 ? [`chamada ${semNota.map((n) => `(${n})`).join(', ')} sem nota específica`] : []),
+      ...(semChamada.length > 0 ? [`nota específica ${semChamada.map((n) => `(${n})`).join(', ')} sem chamada na tabela`] : []),
+    ];
+    add({ codigo: 'TABELA_CHAMADA_SEM_NOTA', origem: ['RN-276'], mensagem: `Na tabela há ${partes.join(' e ')}; cada chamada remete a uma nota específica, na mesma ordem.` });
+  }
   if (sinais > 0 && sinais >= numeros) add({ codigo: 'TABELA_SINAIS_DEMAIS', origem: ['RN-298'], mensagem: `A tabela tem ${sinais} sinal(is) convencional(is) e ${numeros} dado(s) numérico(s); recomenda-se haver mais dados que sinais.` });
 
   if (nCol > 1) {

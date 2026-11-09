@@ -106,6 +106,8 @@ const SUGESTOES_TABELA: Readonly<Record<CodigoProblemaTabela, string>> = {
   TABELA_SINAIS_DEMAIS: 'Confira se a tabela é a melhor forma de apresentar esses dados, ou se convém reorganizá-la.',
   TABELA_OUTROS_MAIOR: 'Confira se convém detalhar a classificação “Outros” em categorias próprias.',
   TABELA_TITULO_PONTO: 'Retire o ponto final do título da tabela.',
+  TABELA_SINAL_SEM_NOTA: 'Acrescente à nota geral o sinal e o seu significado, por exemplo “Sinal convencional utilizado: ... Dado numérico não disponível.”',
+  TABELA_CHAMADA_SEM_NOTA: 'Escreva a nota específica de cada chamada, na ordem das chamadas, ou retire a chamada ou a nota que sobrou.',
 };
 
 type Candidato = Omit<NaoConformidade, 'id' | 'rotuloLocal'>;

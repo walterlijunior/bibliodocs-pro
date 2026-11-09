@@ -1759,6 +1759,22 @@
    "procedimento": "destaqueDoTitulo"
   },
   {
+   "id": "RN-265",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 19, seção 4.8.2 e Nota",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-276",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 21, seções 4.12–4.12.2",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
    "id": "RN-060",
    "status": "PENDENTE-FONTE",
    "fonte": "— (o Manual não trata)",

@@ -187,7 +187,7 @@ export function PainelDetalhes({ item, aoFechar, ocupado = false, aoAbrir, aoRen
         </div>
       )}
       <h3>Conformidade</h3>
-      <p>A verificação de conformidade ainda não está disponível nesta versão.</p>
+      <p>Abra o trabalho e use “Verificar conformidade” na aba Escrever.</p>
       <div className="acoes">
         <button type="button" className="btn-secundario" onClick={aoFechar}>
           Fechar painel

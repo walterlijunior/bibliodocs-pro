@@ -5,6 +5,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 6, E6-T04: dois avisos novos nas tabelas: sinal convencional usado sem explicação na nota geral, e chamada sem nota específica (ou nota sem chamada).
+
+### Alterado
+- Etapa 6, E6-T04: o painel do trabalho na Biblioteca não diz mais que a verificação de conformidade não está disponível; indica o botão "Verificar conformidade" da aba Escrever.
+
 ### Corrigido
 - Etapa 6, E6-T01: três regras usadas pelo motor (título da lista de tabelas, ordem alfabética e destaque do título nas referências: RN-044, RN-176, RN-178) passam a constar do perfil, para que toda formatação do DOCX tenha regra de origem conferível.
 

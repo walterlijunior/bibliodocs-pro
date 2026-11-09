@@ -24,7 +24,13 @@ export function documentoCorretoConformidade(): Documento {
     corpo: [{ id: 'sec_conformidade01', titulo: [{ tipo: 'texto', texto: 'Introdução' }], subsecoes: [], blocos: [
       { tipo: 'paragrafo', id: 'par_conformidade01', conteudo: [texto('Segundo '), { tipo: 'citacao', id: 'cit_conformidade01', forma: 'narrativa', obras: [{ obra: obra.id }] }, texto(', veja '), { tipo: 'remissiva', id: 'rem_conformidade01', alvo: TABELA_CORPUS.id }, texto(' e '), { tipo: 'remissiva', id: 'rem_conformidade02', alvo: FIGURA_CORPUS.id }, texto('.')] },
       // M7-T02: série consecutiva com hífen (RN-279); o corpus da regressão DOCX mantém a meia-risca.
-      { ...structuredClone(TABELA_CORPUS), titulo: [{ tipo: 'texto', texto: 'Produção fictícia por região, 2020-2022' }] },
+      // E6-T04: os dois sinais usados explicados na nota geral (RN-265) e uma nota específica para a única chamada (RN-276).
+      {
+        ...structuredClone(TABELA_CORPUS),
+        titulo: [{ tipo: 'texto', texto: 'Produção fictícia por região, 2020-2022' }],
+        nota: [{ tipo: 'texto', texto: 'Sinais convencionais utilizados: – Dado numérico igual a zero não resultante de arredondamento. ... Dado numérico não disponível.' }],
+        notasEspecificas: [TABELA_CORPUS.notasEspecificas![0]!],
+      },
       { ...structuredClone(FIGURA_CORPUS), larguraMm: 80 },
       { tipo: 'equacao', id: 'equ_conformidade01', numerada: true, conteudo: [{ tipo: 'texto', texto: 'x + 1 = 2' }] },
     ] }],
