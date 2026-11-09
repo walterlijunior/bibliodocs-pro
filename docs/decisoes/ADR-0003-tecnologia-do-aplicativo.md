@@ -310,3 +310,22 @@ bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 
   depois, se houver pedido.
 
 **Adendo do M3-T01 (2026-11-02).** `docx` fixada em 9.15.1, testada no Word 16 real (`docs/relatorios/M3_RELATORIO_MARCO.md`). Os itens essenciais da PoC continuam atendidos, e o desempate pela alternativa C não se aplica.
+
+**Adendo do E7-T01 (2026-11-08) — pendências do pacote do M1-T14.**
+- **Smart App Control bloqueia o instalador nesta máquina [VERIFICADO 2026-11-08 23:20].** `npm run dist` monta o
+  `win-unpacked`, mas o passo do NSIS que executa o instalador intermediário para gerar o desinstalador falhou com
+  `spawn UNKNOWN`. Os eventos 3033, 3077 e 3118 (CodeIntegrity) mostram o bloqueio pelo Controle Inteligente de
+  Aplicativos (`VerifiedAndReputablePolicyState = 1`), que decide pela reputação de cada hash: no M1-T14 o
+  instalador passou; agora, não. **Não contornado** (desligar o Controle Inteligente não tem volta sem reinstalar o
+  Windows). O app empacotado (`BiblioDocs Pro.exe`, sem assinatura) abre normalmente. Consequência: o teste de
+  instalação (E7-T02) depende da decisão de assinatura (D-E7-01) ou de outra máquina sem o Controle Inteligente.
+- **NSIS 3.0.4.1 (CVE-2023-37378):** a falha é de controle de acesso na pasta do desinstalador executado com
+  privilégio elevado; o instalador é por usuário, `asInvoker`, sem elevação (C-16). **Risco aceito** nesta versão. O
+  electron-builder 26.15.3 oferece `toolsets.nsis: "1.2.1"` (beta, makensis 3.12); adotar junto com a assinatura,
+  quando o instalador puder ser montado e testado de novo.
+- **Fuse do índice 8:** `WasmTrapHandlers` do Electron 44 (o `@electron/fuses` instalado o mostra como
+  "undefined is Enabled"). Ligado é o padrão e protege o WebAssembly; fica como está. Os seis do C-13 conferidos no
+  `win-unpacked` de 2026-11-08.
+- **Cache das ferramentas** validado só pela contagem: aceito para build local; build de distribuição com o cache
+  limpo (anotado em `app/DESENVOLVIMENTO.md`).
+- **`CompanyName` "BiblioDocs Pro":** segue o nome provisório do produto (CLAUDE.md); muda junto com o nome.
