@@ -12,7 +12,7 @@ module.exports = {
 
   // Só o build do electron-vite e o package.json. As dependências de produção entram sozinhas; React, react-dom e o
   // ProseMirror (com as 3 dependências dele, M2-T05) já vão embutidos no bundle da interface, então ficam fora. Só zod
-  // e fflate são carregados pelo principal em execução.
+  // e fflate são carregados pelo principal em execução, e o docx pelo processo utilitário que gera o DOCX (R-E7-09).
   files: [
     'out/**/*',
     'package.json',

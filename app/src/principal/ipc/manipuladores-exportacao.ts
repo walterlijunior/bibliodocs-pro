@@ -5,7 +5,7 @@
 import { basename } from 'node:path';
 import { CANAIS_EXPORTACAO, LIMITES_GRAFICOS_EXPORTACAO, type CanalExportacao, type ResultadoExportar } from '../../aplicacao/portas/exportacao';
 import { areaUtilMm, formatar, type DocumentoFormatado, type Perfil } from '../../dominio/normas';
-import { gravarAtomico, limparNomeArquivo, type ResultadoGravacao } from '../../persistencia';
+import { gravarAtomico, limparNomeArquivo, LIMITES_CONTEINER, type ResultadoGravacao } from '../../persistencia';
 import { secoesDeLeitura, textoPlano, type Secao } from '../../dominio/modelo';
 import { lerInfoImagem } from '../../dominio/visuais';
 import { verificarVisuais } from '../../dominio/verificador';
@@ -56,9 +56,13 @@ export function criarManipuladoresExportacao(dep: DependenciasExportacao): Reado
       if (typeof graficosArg !== 'object' || graficosArg === null || Array.isArray(graficosArg)) return recusarArgumento(canal, 'gráficos');
       graficosRecebidos = Object.entries(graficosArg) as [string, Uint8Array][];
       if (graficosRecebidos.length > LIMITES_GRAFICOS_EXPORTACAO.quantidade) return recusarArgumento(canal, 'gráficos (quantidade)');
+      let totalGraficos = 0;
       for (const [, bytes] of graficosRecebidos) {
         if (!(bytes instanceof Uint8Array) || bytes.length > LIMITES_GRAFICOS_EXPORTACAO.bytesPorGrafico) return recusarArgumento(canal, 'gráficos (imagem)');
+        totalGraficos += bytes.length;
       }
+      // R-E7-04: teto somado, como o das mídias (500 × 20 MB passaria de 10 GB).
+      if (totalGraficos > LIMITES_CONTEINER.bytesArquivo) return recusarArgumento(canal, 'gráficos (tamanho total)');
     }
     if (!p.ok) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_INVALIDA };
     if (emCurso) return { ok: false, motivo: 'ERRO', mensagem: MENSAGEM_EXPORTACAO_EM_CURSO };

@@ -6,6 +6,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 ## [Não lançado]
 
 ### Corrigido
+- Etapa 7, E7-T04 (revisão final): o canal de exportação recusa gráficos que, somados, passem de 1 GiB.
 - Etapa 7, E7-T03: Verificar › Verificar conformidade e a tecla F7 abrem o verificador (o item do menu não fazia nada).
 
 ### Documentação

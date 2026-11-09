@@ -213,6 +213,17 @@ describe('recusas (C-11)', () => {
     await expect(x.chamar(pacote(), { fonte: 'x'.repeat(65) })).rejects.toBeInstanceOf(ErroIpcRecusado);
     expect(x.gravados).toEqual([]);
   });
+
+  it('R-E7-04: gráficos acima do teto somado são recusados antes de exportar', async () => {
+    const x = montar();
+    // 52 visões do mesmo buffer de 20 MB: cada uma cabe no limite por gráfico, mas a soma passa de 1 GiB (sem alocar 1 GiB).
+    const buffer = new ArrayBuffer(20 * 1024 * 1024);
+    const graficos = Object.fromEntries(Array.from({ length: 52 }, (_, i) => [`grf_teto${String(i).padStart(8, '0')}`, new Uint8Array(buffer)]));
+    await expect(x.chamar(pacote(), { graficos })).rejects.toBeInstanceOf(ErroIpcRecusado);
+    expect(x.pedidos).toEqual([]);
+    const poucos = Object.fromEntries(Object.entries(graficos).slice(0, 3));
+    await expect(x.chamar(pacote(), { graficos: poucos })).resolves.toMatchObject({ ok: true });
+  });
 });
 
 describe('gravação do .docx (R-M3-06, decisão do usuário 2026-11-05)', () => {

@@ -27,7 +27,9 @@ Nesta versão o instalador **não tem assinatura digital** (decisão pendente D-
   reputação do arquivo e **não oferece "executar assim mesmo"**. Não desligue essa proteção para instalar o
   BiblioDocs Pro: depois de desligada, ela só volta reinstalando o Windows. A solução é a versão assinada.
 
-Por isso, **não distribua** o instalador desta versão a outras pessoas.
+Por isso, **não distribua** o instalador desta versão a outras pessoas. Quando houver distribuição, publique junto do
+link o SHA-256 do instalador (`Get-FileHash BiblioDocsPro-Instalador-<versão>.exe`), para quem baixar conferir que o
+arquivo é o original (R-E7-02).
 
 ## Primeiro uso
 
