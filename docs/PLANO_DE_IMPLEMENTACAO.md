@@ -259,6 +259,29 @@ manual no Word entra aqui como caso manual (DOC-08), sem bloquear as tarefas aut
 | E6-T04 ✔ | Pendências de teste herdadas: E2E de diálogos nativos e da Lixeira (R-M1-10); sinal convencional sem explicação na nota geral e chamada × nota específica no verificador (N-M5-06; RN-265, RN-276) | engenheiro-qualidade + especialista-elementos-visuais | T01 | Teste de cada uma | `npm run verificar:tudo` |
 | E6-T05 ✔ | Relatório `ETAPA6_VALIDACAO.md` (modelo `templates/RELATORIO_DE_TESTES.md`): resultado por caso, limitações conhecidas, casos manuais do usuário (DOC-08, KIT-08) | sessão principal | T01–T04 | Critério de conclusão da Etapa 6 | Revisão |
 
+## Etapa 7 — Estabilização e distribuição Windows
+
+**Base:** `PROMPT_EXECUCAO.md`, Etapa 7; ADR-0003 (empacotamento, assinatura); pendências do M1-T14
+(`docs/relatorios/M1_RELATORIO_MARCO.md`). **Critério de conclusão:** instalador gerado e testado; fluxos essenciais
+validados; documentação de instalação completa; pendências registradas para a próxima versão.
+Plano feito em 2026-11-08 pela sessão principal ("siga o próximo passo"), com a Etapa 6 aguardando o usuário (DOC-08,
+F-E6-01), que não bloqueia o empacotamento.
+
+- **Decisão do usuário pendente (D-E7-01, assinatura de código, ADR-0003):** (i) certificado OV, (ii) MSIX na
+  Microsoft Store, (iii) sem assinatura, com o alerta do SmartScreen documentado. Até a resposta, o instalador sai
+  **sem assinatura e sem atualização automática** (recomendação do ADR-0003 para uso próprio) e **não deve ser
+  distribuído a outras pessoas**.
+- **Limite:** Windows 10 não está disponível nesta máquina: o roteiro DIST roda no Windows 11 e o Windows 10 fica como
+  caso manual. Sem dependência nova.
+
+| ID | Tarefa | Agente(s) | Depende de | Aceite | Verificação |
+|---|---|---|---|---|---|
+| E7-T00 | Plano da Etapa 7 | sessão principal | E6 | Plano | Revisão do plano |
+| E7-T01 | Pendências do pacote (M1-T14): NSIS 3.0.4.1 × CVE-2023-37378 avaliado e registrado; fuse do índice 8; cache das ferramentas; `CompanyName` | arquiteto-software | T00 | Cada item corrigido ou aceito com motivo | `npm run dist`; `tests/empacotamento.test.ts` |
+| E7-T02 | Roteiro DIST no Windows 11: instalação limpa por usuário sem administrador, abrir com dados isolados, fumaça de exportação no pacote, reinstalar por cima, desinstalar com o app aberto, desinstalação limpa (só ficam os dados do usuário), tamanhos contra o RNF-08 | engenheiro-qualidade | T01 | DIST-01 a 05 `PASSOU` ou limitação registrada | Roteiro com saída real |
+| E7-T03 | Documentação: `app/README.md` para o usuário final (o conteúdo de desenvolvimento passa para `app/DESENVOLVIMENTO.md`) e `docs/INSTALACAO_APP.md` (instalar, primeiro uso, onde ficam os dados, desinstalar, SmartScreen) | sessão principal | T02 | Guias completos | Revisão |
+| E7-T04 | Revisão final de segurança e de dependências e licenças (`revisor-seguranca`), relatório `ETAPA7_DISTRIBUICAO.md` com as pendências para a próxima versão | sessão principal + revisor-seguranca | T01–T03 | Critério de conclusão da Etapa 7 | `npm run verificar:tudo` |
+
 ## Regras de priorização
 1. Algo funcionando de ponta a ponta cedo (M1 + M3 parcial) vale mais que um módulo perfeito isolado.
 2. Exportação DOCX é a saída do produto: toda funcionalidade só está pronta quando sai certa no DOCX.
