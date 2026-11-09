@@ -8,6 +8,8 @@ import { numerarSecoes, rotulosPosTextuais } from '../numeracao';
 import { areaUtilMm, pendenciasPreTextuais, type Perfil, type RegraNormativa } from '../normas';
 import { verificarBibliografia, type CodigoProblemaBibliografia } from './bibliografia';
 import { conferirSiglas, MAXIMO_PROBLEMAS_SIGLAS } from './siglas';
+import { verificarTabelas, type CodigoProblemaTabela } from './tabelas';
+import { MAXIMO_PROBLEMAS_TEXTO, verificarTexto, type CodigoProblemaTexto } from './texto';
 import { verificarVisuais, type CodigoProblemaVisual, type OpcoesVerificacaoVisuais } from './visuais';
 
 export type LocalConformidade =
@@ -69,13 +71,34 @@ const SUGESTOES_BIBLIOGRAFIA: Readonly<Record<CodigoProblemaBibliografia, string
   REFERENCIA_INCOMPLETA: 'Abra a obra e confira os dados bibliográficos apontados na mensagem.',
 };
 
+const SUGESTOES_TEXTO: Readonly<Record<CodigoProblemaTexto, string>> = {
+  TITULO_CAIXA_ALTA: 'Reescreva o título com só a inicial maiúscula, mantendo maiúsculas apenas em nomes próprios e siglas.',
+  TITULO_COM_INDICATIVO: 'Apague o número digitado no início do título; o indicativo é gerado pelo aplicativo.',
+  SUPRESSAO_FORA_DO_PADRAO: 'Troque a marca de supressão por [...], entre colchetes, como pede o Manual.',
+  TITULO_VAZIO: 'Escreva o título da seção ou retire a seção, se ela sobrou.',
+  SECAO_SEM_TEXTO: 'Escreva o texto da seção ou retire-a, se ela sobrou.',
+};
+
+const SUGESTOES_TABELA: Readonly<Record<CodigoProblemaTabela, string>> = {
+  TABELA_TITULO_SIGLA: 'Escreva no título a forma por extenso da sigla (a natureza e a abrangência dos dados).',
+  TABELA_SEM_INDICADOR: 'Edite a tabela e escreva no cabeçalho da primeira coluna o que as linhas indicam.',
+  TABELA_CELULA_FORA_DOS_SINAIS: 'Preencha a célula com o dado ou com o sinal convencional que explica a ausência (-, .., ..., X) e explique os sinais na nota geral.',
+  TABELA_FONTE_SIGLA: 'Escreva a fonte por extenso; a sigla pode vir depois, entre parênteses.',
+  TABELA_SERIE_TEMPORAL: 'Use hífen entre os anos se a série é consecutiva (1981-1985) ou barra se não é (1981/1985).',
+  TABELA_CLASSE_ABERTA: 'Feche a primeira e a última classe com os dois extremos, por exemplo “0 a menos de 5”.',
+  TABELA_TOTAL_DIVERGENTE: 'Confira a soma; se a diferença vem do arredondamento, explique-a numa nota geral.',
+  TABELA_SINAIS_DEMAIS: 'Confira se a tabela é a melhor forma de apresentar esses dados, ou se convém reorganizá-la.',
+  TABELA_OUTROS_MAIOR: 'Confira se convém detalhar a classificação “Outros” em categorias próprias.',
+  TABELA_TITULO_PONTO: 'Retire o ponto final do título da tabela.',
+};
+
 type Candidato = Omit<NaoConformidade, 'id'>;
 
 function decisaoPreenchida(regra: RegraNormativa, perfil: Perfil): boolean {
   return (regra.parametros?.length ?? 0) > 0 && regra.parametros!.every((p) => perfil.parametros[p]?.valor !== undefined);
 }
 
-/** Pretextuais, bibliografia, elementos visuais e siglas; nenhuma correção é aplicada silenciosamente. */
+/** Pretextuais, bibliografia, elementos visuais, tabelas (IBGE), texto e siglas; nenhuma correção é aplicada silenciosamente. */
 export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: OpcoesConformidade = {}): RelatorioConformidade {
   const candidatos: Candidato[] = [];
   let truncado = false;
@@ -115,6 +138,16 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
       local: { tipo: 'texto', secao: p.secao, no: p.elemento },
     })) break;
   }
+  const tabelas = truncado ? [] : verificarTabelas(doc);
+  for (const p of tabelas) if (!add({
+    codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TABELA[p.codigo],
+    local: { tipo: 'texto', secao: p.secao, no: p.elemento, ...(p.trecho ? { trecho: p.trecho } : {}) },
+  })) break;
+  const texto = truncado ? [] : verificarTexto(doc);
+  for (const p of texto) if (!add({
+    codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TEXTO[p.codigo],
+    local: { tipo: 'texto', secao: p.secao, no: p.no, ...(p.trecho ? { trecho: p.trecho } : {}) },
+  })) break;
   const siglas = truncado ? [] : conferirSiglas(doc);
   for (const p of siglas) if (!add({
     codigo: p.codigo,
@@ -132,6 +165,7 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
   const regras = new Map(perfil.regras.map((r) => [r.id, r]));
   const diagnosticos = new Map<string, DiagnosticoConformidade>();
   if (truncado) diagnosticos.set('limite', { codigo: 'LIMITE_RELATORIO', origem: [], mensagem: `A análise foi limitada aos primeiros ${MAXIMO_PROBLEMAS_CONFORMIDADE} resultados. Corrija os itens e verifique novamente para continuar a conferência.` });
+  if (texto.length >= MAXIMO_PROBLEMAS_TEXTO) diagnosticos.set('limiteTexto', { codigo: 'LIMITE_RELATORIO', origem: [], mensagem: `A conferência do texto atingiu o limite técnico de ${MAXIMO_PROBLEMAS_TEXTO} ocorrências; pode haver outras a conferir. Corrija os itens e verifique novamente.` });
   if (siglas.length >= MAXIMO_PROBLEMAS_SIGLAS) diagnosticos.set('limiteSiglas', { codigo: 'LIMITE_RELATORIO', origem: ['RN-046'], mensagem: `A conferência de siglas atingiu o limite técnico de ${MAXIMO_PROBLEMAS_SIGLAS} ocorrências; pode haver outras a conferir. Corrija os itens e verifique novamente.` });
   const problemas: Candidato[] = [];
   for (const p of candidatos) {

@@ -290,6 +290,14 @@
     "RN-060"
    ],
    "origem": "provisorio"
+  },
+  "verificarPontoFinalTituloTabela": {
+   "valor": true,
+   "ajustavel": false,
+   "rn": [
+    "RN-310"
+   ],
+   "origem": "provisorio"
   }
 ,
   "verificarChamadasAmbiguas": {
@@ -1617,6 +1625,114 @@
    "tipo": "verificacao",
    "alvo": "documento",
    "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-043",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 17, Quadro 1; p. 28–29, exemplos",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-086",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 23, seção 3.1",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-109",
+   "status": "CONFIRMADA",
+   "fonte": "M, p. 15, seção 2.3; p. 28–29, exemplos",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-247",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 13, seção 4.2.1",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-256",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 15–16, seção 4.5 e 4.5.1–4.5.2; Anexo A (\"cabeçalho das colunas indicadoras\")",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-263",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 18, seção 4.8.1",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-271",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 20, seção 4.10.2",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-279",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 21–22, seção 5.2",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-284",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 24, seção 6.4",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-287",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 26–27, seção 7.4",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-298",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 30, seção 9.2",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-299",
+   "status": "CONFIRMADA",
+   "fonte": "I, p. 30, seção 9.3",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade"
+  },
+  {
+   "id": "RN-310",
+   "status": "PENDENTE-FONTE",
+   "fonte": "Nenhum texto normativo; exemplos unânimes: I, Anexo B, p. 45–60; M, p. 19–20, 43",
+   "tipo": "verificacao",
+   "alvo": "documento",
+   "procedimento": "verificarConformidade",
+   "provisoria": true,
+   "parametros": [
+    "verificarPontoFinalTituloTabela"
+   ]
   },
   {
    "id": "RN-060",

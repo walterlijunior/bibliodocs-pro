@@ -24,3 +24,5 @@ export {
   type OpcoesVerificacaoVisuais,
   type ProblemaVisual,
 } from './visuais';
+export { MAXIMO_PROBLEMAS_TEXTO, verificarTexto, type CodigoProblemaTexto, type ProblemaTexto } from './texto';
+export { verificarTabelas, type CodigoProblemaTabela, type ProblemaTabela } from './tabelas';

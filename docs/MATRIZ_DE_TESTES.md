@@ -241,3 +241,10 @@ limpa, abertura, exportação e desinstalação no Windows 10 e 11 (DIST).
 Verificações gerais do incremento (revisão da sessão principal, 2026-11-08): typecheck; `verificar` 2038/2038; externos 28/28;
 Playwright 37/37 (na 1.ª rodada completa, 36/37: FUN-13 da citação, instabilidade conhecida do M5-T05). `npm audit` com rede: só avisos moderados.
 Evidências e limites em `docs/relatorios/M6_RELATORIO_MARCO.md`.
+
+## M7
+
+| ID | Requisito | Cenário | Status |
+|---|---|---|---|
+| M7-T01 | RF-15; RN-043, 086, 109; D-M7-02 | `tests/verificador-texto.test.ts`: positivo e negativo de cada código, sigla e ano não acusados, `[...]` aceito, apêndice vazio permitido, controle correto e documento difícil sem aviso, limite técnico com diagnóstico, documento intacto | APROVADO (2026-11-08) |
+| M7-T02 | RF-15; RN-247, 256, 263, 271, 279, 284, 287, 298, 299, 310 | `tests/verificador-tabelas.test.ts`: Tabelas 1 e 4 do Anexo B do IBGE sem aviso, quadro de fora, positivo e negativo de cada código, RN-310 provisória e desligável, documento intacto | APROVADO (2026-11-08) |

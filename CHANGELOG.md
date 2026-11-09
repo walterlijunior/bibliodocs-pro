@@ -5,6 +5,14 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 5, M7-T01: o verificador de conformidade passa a conferir o texto (avisos):
+  - título de seção secundária a quinária escrito todo em maiúsculas (RN-043);
+  - título que começa com um número digitado ("2.1 Objetivos"), que sairia em dobro (RN-109);
+  - supressão em citação indicada por "(...)" ou reticências, em vez de [...] (RN-086);
+  - seção sem título ou sem texto (critério provisório, D-M7-02).
+- Etapa 5, M7-T02: avisos da Norma Tabular do IBGE nas tabelas (não nos quadros): sigla no título, cabeçalho da coluna indicadora vazio, célula vazia ou com "n/d" em vez de sinal convencional, fonte só com sigla, série temporal com meia-risca ou "a", classe aberta, total diferente da soma sem nota, mais sinais que dados, "Outros" maior que outra classe e ponto final no título (provisório).
+
 ### Corrigido
 - Etapa 5, M6-T07 (revisão do M6):
   - A tela "Elementos pós-textuais" passa a funcionar no app: incluir, retirar e ordenar apêndices, anexos e glossário, com Ctrl+Z. O título do apêndice é escrito na primeira linha do editor.
