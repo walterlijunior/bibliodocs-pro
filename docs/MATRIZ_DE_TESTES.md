@@ -257,3 +257,4 @@ Evidências e limites em `docs/relatorios/M6_RELATORIO_MARCO.md`.
 | ID | Requisito | Cenário | Status |
 |---|---|---|---|
 | E6-02 | RF-02, RF-05, RNF-05; DOC-01 a 08 | Exemplo completo de cada um dos seis tipos (`tests/corpus/exemplos.ts`): válido, sem não conformidade, DOCX com A4, margens, títulos 1 a 5 nomeados, paginação, sumário, listas, referências, sigla, rótulos, apêndice, anexo e glossário (`tests/exemplos-e6.test.ts`); validador OOXML, LibreOffice e Word (`tests/externos`, 46/46; páginas do sumário e das listas iguais às recalculadas pelo Word) | PASSOU (2026-11-08) |
+| E6-03 | RNF-05; DOC-08 (parte visual) | Exemplo de tese em PDF pelo Word e pelo LibreOffice, páginas-chave comparadas com o Manual e as RN (`ETAPA6_VALIDACAO.md`, E6-T03): conforme; V-01 a V-03 registradas | PASSOU (2026-11-08); conferência manual do usuário no Word segue pendente (DOC-08) |

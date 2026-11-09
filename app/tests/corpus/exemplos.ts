@@ -55,7 +55,7 @@ function corpo(): Secao[] {
       p('par_exemplo00002', t('A '), { tipo: 'sigla', id: 'sgu_exemplo00002', sigla: 'sgl_exemplo00001' }, t(' aparece de novo só com a sigla. '), t(FRASE)),
     ]),
     sec('sec_exemplo00002', 'Referencial teórico', [
-      p('par_exemplo00003', t('Segundo '), { tipo: 'citacao', id: 'cit_exemplo00001', forma: 'narrativa', obras: [{ obra: 'obr_exemplo_o4' }] }, t(', o exemplo vale. '), t(FRASE), t(' '),
+      p('par_exemplo00003', t('Segundo '), { tipo: 'citacao', id: 'cit_exemplo00001', forma: 'narrativa', obras: [{ obra: 'obr_exemplo_o4' }] }, t(', o exemplo vale. '), t(FRASE.slice(0, -1)), t(' '),
         { tipo: 'citacao', id: 'cit_exemplo00002', forma: 'parentetica', obras: [{ obra: 'obr_exemplo_o1', pagina: '12' }] }, t('.')),
       { tipo: 'citacaoLonga', id: 'cil_exemplo00001', conteudo: [t(`${FRASE} [...] ${FRASE} ${FRASE}`), t(' '), { tipo: 'citacao', id: 'cit_exemplo00003', forma: 'parentetica', obras: [{ obra: 'obr_exemplo_o3', pagina: '15' }] }] },
       p('par_exemplo00004', t('A legislação fictícia '), { tipo: 'citacao', id: 'cit_exemplo00004', forma: 'parentetica', obras: [{ obra: 'obr_exemplo_o5' }] }, t(' e outra obra '),
