@@ -238,6 +238,27 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 | M7-T04 ✔ | Aceite do RF-15 ampliado: documento de 10 não conformidades de famílias diferentes (texto, tabela, pré-textual, bibliografia, siglas, visual) e documento correto de referência, no domínio e no E2E | sessão principal | T01–T03 | As 10 detectadas, nenhum falso positivo | `npm run verificar:tudo` |
 | M7-T05 ✔ | Fechamento: `REVISAO_M7.md` com revisão independente (normas: falso positivo e fonte de cada aviso; segurança: relatório e desempenho em 150 páginas), relatório do marco, matriz de testes | sessão principal | T01–T04 | Aceite do M7 demonstrado | `npm run verificar:tudo` |
 
+## Etapa 6 — Testes e validação
+
+**Base:** `PROMPT_EXECUCAO.md`, Etapa 6. **Critério de conclusão:** todos os casos críticos da matriz de testes
+`PASSOU`; falhas restantes documentadas com impacto e plano em `docs/relatorios/ETAPA6_VALIDACAO.md`.
+Plano feito em 2026-11-08 pela sessão principal ("prosseguir"), com o M3-T12 ainda aguardando o usuário: a conferência
+manual no Word entra aqui como caso manual (DOC-08), sem bloquear as tarefas automáticas.
+
+- **Casos críticos** (D-E6-01): os de RF com prioridade M (RF-01 a RF-15), DOC-01 a 08, SEG, PER e DES-01. UI e KIT
+  são importantes, não críticos.
+- **Limite:** sem dependência nova; a conferência visual usa o LibreOffice já instalado (PDF → imagem) e a automação do
+  Word já usada no M3. Documentos de exemplo só com dados fictícios.
+
+| ID | Tarefa | Agente(s) | Depende de | Aceite | Verificação |
+|---|---|---|---|---|---|
+| E6-T00 | Plano da Etapa 6 e D-E6-01 | sessão principal | M7 | Plano | Revisão do plano |
+| E6-T01 | Reconciliar a matriz de testes: cada caso com o teste que o cobre hoje, executado, e o resultado real; casos sem teste ganham teste (FUN-03 a 08, FUN-11, UI-01) | engenheiro-qualidade | T00 | Nenhum caso crítico `NÃO EXECUTADO` | `npm run verificar:tudo` |
+| E6-T02 | Documentos de exemplo, um por tipo de trabalho (seis), com todos os elementos (pré-textuais, cinco níveis, citações, tabela, figura, gráfico, equação, siglas, listas, referências, apêndice e anexo), gerados por script e validados no DOCX: estrutura, estilos, margens, numeração de páginas, sumário, listas e referências, no validador OOXML, no LibreOffice e no Word | engenheiro-qualidade + especialista-documento | T01 | Seis DOCX sem erro nos três validadores; propriedades conferidas por teste | `npm run test:externos` |
+| E6-T03 | Conferência visual: páginas-chave dos exemplos (capa, folha de rosto, resumo, sumário, listas, 1.ª página textual, tabela, figura, referências, apêndice) renderizadas pelo LibreOffice e comparadas com os exemplos do Manual; diferenças registradas com descrição | sessão principal | T02 | Diferenças registradas, cada uma com RN e decisão | Relatório |
+| E6-T04 | Pendências de teste herdadas: E2E de diálogos nativos e da Lixeira (R-M1-10); sinal convencional sem explicação na nota geral e chamada × nota específica no verificador (N-M5-06; RN-265, RN-276) | engenheiro-qualidade + especialista-elementos-visuais | T01 | Teste de cada uma | `npm run verificar:tudo` |
+| E6-T05 | Relatório `ETAPA6_VALIDACAO.md` (modelo `templates/RELATORIO_DE_TESTES.md`): resultado por caso, limitações conhecidas, casos manuais do usuário (DOC-08, KIT-08) | sessão principal | T01–T04 | Critério de conclusão da Etapa 6 | Revisão |
+
 ## Regras de priorização
 1. Algo funcionando de ponta a ponta cedo (M1 + M3 parcial) vale mais que um módulo perfeito isolado.
 2. Exportação DOCX é a saída do produto: toda funcionalidade só está pronta quando sai certa no DOCX.
