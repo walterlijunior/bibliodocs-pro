@@ -4,7 +4,8 @@
  * A conferência de formatação do DOCX continua na regressão documental, não nesta análise sem layout.
  */
 import type { Documento, ElementoPreTextualId, Id } from '../modelo';
-import { numerarSecoes, rotulosPosTextuais } from '../numeracao';
+import { numerarElementos, numerarSecoes, rotuloEquacao, rotulosPosTextuais } from '../numeracao';
+import { rotuloElemento } from '../visuais';
 import { areaUtilMm, pendenciasPreTextuais, type Perfil, type RegraNormativa } from '../normas';
 import { verificarBibliografia, type CodigoProblemaBibliografia } from './bibliografia';
 import { conferirSiglas, MAXIMO_PROBLEMAS_SIGLAS } from './siglas';
@@ -18,9 +19,24 @@ export type LocalConformidade =
   | { tipo: 'texto'; secao: Id; no: Id; trecho?: string }
   | { tipo: 'trabalho' };
 
+/** Família da verificação, para agrupar na tela e no relatório (M7-T03). */
+export type FamiliaConformidade = 'preTextual' | 'bibliografia' | 'visual' | 'tabela' | 'texto' | 'sigla';
+/** Ordem e nomes das famílias na tela e no relatório. */
+export const FAMILIAS_CONFORMIDADE: readonly { familia: FamiliaConformidade; nome: string }[] = [
+  { familia: 'preTextual', nome: 'Elementos pré-textuais' },
+  { familia: 'texto', nome: 'Texto e seções' },
+  { familia: 'bibliografia', nome: 'Citações e referências' },
+  { familia: 'visual', nome: 'Tabelas, quadros, ilustrações e equações' },
+  { familia: 'tabela', nome: 'Apresentação das tabelas (Norma Tabular do IBGE)' },
+  { familia: 'sigla', nome: 'Siglas' },
+];
+
 export interface NaoConformidade {
   id: string;
   codigo: string;
+  familia: FamiliaConformidade;
+  /** Local para ler: "Seção 2.1 Método — Tabela 3", "Ficha catalográfica", "Obra: Título". */
+  rotuloLocal: string;
   gravidade: 'erro' | 'aviso';
   origem: readonly string[];
   mensagem: string;
@@ -92,7 +108,7 @@ const SUGESTOES_TABELA: Readonly<Record<CodigoProblemaTabela, string>> = {
   TABELA_TITULO_PONTO: 'Retire o ponto final do título da tabela.',
 };
 
-type Candidato = Omit<NaoConformidade, 'id'>;
+type Candidato = Omit<NaoConformidade, 'id' | 'rotuloLocal'>;
 
 function decisaoPreenchida(regra: RegraNormativa, perfil: Perfil): boolean {
   return (regra.parametros?.length ?? 0) > 0 && regra.parametros!.every((p) => perfil.parametros[p]?.valor !== undefined);
@@ -109,6 +125,7 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
   };
   for (const p of pendenciasPreTextuais(doc, perfil)) {
     if (!add({
+      familia: 'preTextual',
       codigo: 'PRE_TEXTUAL_INCOMPLETO',
       gravidade: p.nivel === 'pendencia' ? 'erro' : 'aviso',
       origem: [p.rn],
@@ -124,12 +141,13 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
     listarTodosAutores: perfil.parametros['autoresReferencia']?.valor === 'todos',
   });
   for (const p of bibliografia) if (!add({
-    codigo: p.codigo, gravidade: p.gravidade, origem: p.origem, mensagem: p.mensagem,
+    familia: 'bibliografia', codigo: p.codigo, gravidade: p.gravidade, origem: p.origem, mensagem: p.mensagem,
     sugestao: SUGESTOES_BIBLIOGRAFIA[p.codigo], local: p.local,
   })) break;
   const visuais = truncado ? [] : verificarVisuais(doc, { ...opcoes, areaUtilMm: opcoes.areaUtilMm ?? areaUtilMm(perfil) });
   for (const p of visuais) {
     if (!add({
+      familia: 'visual',
       codigo: p.codigo,
       gravidade: p.nivel === 'pendencia' ? 'erro' : 'aviso',
       origem: p.origem,
@@ -140,17 +158,17 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
   }
   const tabelas = truncado ? [] : verificarTabelas(doc);
   for (const p of tabelas) if (!add({
-    codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TABELA[p.codigo],
+    familia: 'tabela', codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TABELA[p.codigo],
     local: { tipo: 'texto', secao: p.secao, no: p.elemento, ...(p.trecho ? { trecho: p.trecho } : {}) },
   })) break;
   const texto = truncado ? [] : verificarTexto(doc);
   for (const p of texto) if (!add({
-    codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TEXTO[p.codigo],
+    familia: 'texto', codigo: p.codigo, gravidade: 'aviso', origem: p.origem, mensagem: p.mensagem, sugestao: SUGESTOES_TEXTO[p.codigo],
     local: { tipo: 'texto', secao: p.secao, no: p.no, ...(p.trecho ? { trecho: p.trecho } : {}) },
   })) break;
   const siglas = truncado ? [] : conferirSiglas(doc);
   for (const p of siglas) if (!add({
-    codigo: p.codigo,
+    familia: 'sigla', codigo: p.codigo,
     gravidade: p.codigo === 'SIGLA_QUEBRADA' ? 'erro' : 'aviso',
     origem: p.rn,
     mensagem: p.mensagem,
@@ -195,10 +213,11 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
     if (aplicada) problemas.push({ ...p, origem: p.origem.filter((rn) => !/^RN-\d{3}$/.test(rn) || ativas.has(rn)), ...(provisoria ? { gravidade: 'aviso', provisoria: true as const } : {}) });
   }
   const peso = { erro: 0, aviso: 1 } as const;
+  const rotular = rotuladorDeLocais(doc);
   return {
     problemas: problemas.map((p, ordem) => ({ p, ordem }))
       .sort((a, b) => peso[a.p.gravidade] - peso[b.p.gravidade] || a.ordem - b.ordem)
-      .map(({ p }, i) => ({ id: `nc_${String(i + 1).padStart(6, '0')}`, ...p })),
+      .map(({ p }, i) => ({ id: `nc_${String(i + 1).padStart(6, '0')}`, ...p, rotuloLocal: rotular(p.local) })),
     diagnosticos: [...diagnosticos.values()],
   };
 }
@@ -214,24 +233,46 @@ const PRE_TEXTUAIS: Readonly<Record<ElementoPreTextualId, string>> = {
   listaTabelas: 'Lista de tabelas', listaSiglas: 'Lista de abreviaturas e siglas', listaSimbolos: 'Lista de símbolos', sumario: 'Sumário',
 };
 
+/**
+ * Rotulador de locais para ler (M7-T03): seção com indicativo e título, ou apêndice/anexo com a letra; o elemento numerado
+ * do local ("Tabela 3", "Equação (2)") no lugar do id interno; o trecho entre aspas.
+ */
+export function rotuladorDeLocais(doc: Documento): (l: LocalConformidade) => string {
+  const secoes = new Map(numerarSecoes(doc.corpo).map((n) => [n.secao.id, `Seção ${n.indicativo} ${n.secao.titulo.map((t) => t.tipo === 'texto' ? t.texto : '').join('')}`.trim()]));
+  const posTextuais = rotulosPosTextuais(doc.posTextuais ?? []);
+  for (const e of doc.posTextuais ?? []) {
+    const rotulo = posTextuais.get(e.id);
+    if (rotulo && (e.tipo === 'apendice' || e.tipo === 'anexo')) secoes.set(e.id, `${rotulo}${e.titulo ? ` – ${e.titulo}` : ''}`);
+  }
+  let elementos: Map<string, string> | null = null;
+  const elemento = (id: string): string | undefined => {
+    if (!elementos) {
+      const n = numerarElementos(doc);
+      elementos = new Map([
+        ...n.elementos.map((e) => [e.bloco.id, rotuloElemento(e.sequencia, e.numero)] as const),
+        ...n.equacoes.map((e) => [e.bloco.id, `Equação ${rotuloEquacao(e.numero)}`] as const),
+      ]);
+    }
+    return elementos.get(id);
+  };
+  return (l) => {
+    if (l.tipo === 'preTextual') return PRE_TEXTUAIS[l.elemento];
+    if (l.tipo === 'obra') return `Obra: ${doc.obras?.find((o) => o.id === l.obra)?.titulo.map((t) => t.texto).join('') || '(obra excluída)'}`;
+    if (l.tipo === 'texto') {
+      const e = elemento(l.no);
+      return `${secoes.get(l.secao) ?? 'Texto'}${e ? ` — ${e}` : ''}${l.trecho ? `: “${l.trecho}”` : ''}`;
+    }
+    return 'Trabalho';
+  };
+}
+
 /** Texto sem HTML ou caminhos de arquivo, pronto para gravação UTF-8 pela camada principal. */
 export function textoRelatorioConformidade(
   doc: Documento,
   problemas: readonly NaoConformidade[],
   diagnosticos: readonly DiagnosticoConformidade[] = [],
 ): string {
-  const secoes = new Map(numerarSecoes(doc.corpo).map((n) => [n.secao.id, `Seção ${n.indicativo} ${n.secao.titulo.map((t) => t.texto).join('')}`.trim()]));
-  const posTextuais = rotulosPosTextuais(doc.posTextuais ?? []);
-  for (const e of doc.posTextuais ?? []) {
-    const rotulo = posTextuais.get(e.id);
-    if (rotulo && (e.tipo === 'apendice' || e.tipo === 'anexo')) secoes.set(e.id, `${rotulo}${e.titulo ? ` – ${e.titulo}` : ''}`);
-  }
-  const local = (l: LocalConformidade): string => {
-    if (l.tipo === 'preTextual') return PRE_TEXTUAIS[l.elemento];
-    if (l.tipo === 'obra') return `Obra: ${doc.obras?.find((o) => o.id === l.obra)?.titulo.map((t) => t.texto).join('') || l.obra}`;
-    if (l.tipo === 'texto') return `${secoes.get(l.secao) ?? `Texto ${l.secao}`}; trecho ${l.no}${l.trecho ? `: ${l.trecho}` : ''}`;
-    return 'Trabalho';
-  };
+  const local = rotuladorDeLocais(doc);
   const erros = problemas.filter((p) => p.gravidade === 'erro').length;
   const linhas = [
     'BiblioDocs Pro — Relatório de verificações automáticas',
@@ -241,14 +282,21 @@ export function textoRelatorioConformidade(
     '',
   ];
   if (problemas.length === 0) linhas.push('Nenhum problema encontrado nas verificações aplicadas.', '');
-  problemas.forEach((p, i) => linhas.push(
-    `${i + 1}. ${p.gravidade === 'erro' ? 'ERRO' : 'AVISO'}${p.provisoria ? ' (critério provisório)' : ''} — ${p.codigo}`,
+  // M7-T03: agrupado por família, na ordem da tela; a numeração dos itens segue contínua.
+  let n = 0;
+  for (const f of FAMILIAS_CONFORMIDADE) {
+    const grupo = problemas.filter((p) => p.familia === f.familia);
+    if (grupo.length === 0) continue;
+    linhas.push(`== ${f.nome} (${grupo.length}) ==`, '');
+    for (const p of grupo) linhas.push(
+    `${++n}. ${p.gravidade === 'erro' ? 'ERRO' : 'AVISO'}${p.provisoria ? ' (critério provisório)' : ''} — ${p.codigo}`,
     `Local: ${local(p.local)}`,
     `Origem: ${p.origem.join(', ')}`,
     p.mensagem,
     `Sugestão: ${p.sugestao}`,
     '',
-  ));
+    );
+  }
   if (diagnosticos.length > 0) {
     linhas.push('Regras não verificadas nesta análise:');
     for (const d of diagnosticos) linhas.push(`- ${d.mensagem}`);

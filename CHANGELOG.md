@@ -11,6 +11,10 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
   - título que começa com um número digitado ("2.1 Objetivos"), que sairia em dobro (RN-109);
   - supressão em citação indicada por "(...)" ou reticências, em vez de [...] (RN-086);
   - seção sem título ou sem texto (critério provisório, D-M7-02).
+- Etapa 5, M7-T03: janela "Verificar conformidade" reorganizada:
+  - resumo com o número de pendências e de avisos, e filtro para ver só uns ou outros;
+  - itens agrupados por assunto (pré-textuais, texto, citações, elementos visuais, tabelas, siglas);
+  - local legível em cada item ("Seção 1 Introdução — Tabela 1", trecho entre aspas), também no relatório .txt, que sai agrupado do mesmo jeito.
 - Etapa 5, M7-T02: avisos da Norma Tabular do IBGE nas tabelas (não nos quadros): sigla no título, cabeçalho da coluna indicadora vazio, célula vazia ou com "n/d" em vez de sinal convencional, fonte só com sigla, série temporal com meia-risca ou "a", classe aberta, total diferente da soma sem nota, mais sinais que dados, "Outros" maior que outra classe e ponto final no título (provisório).
 
 ### Corrigido

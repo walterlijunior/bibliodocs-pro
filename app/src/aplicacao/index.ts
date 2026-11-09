@@ -10,7 +10,8 @@
  * única de desfazer (`HistoricoEdicao`) e operações estruturais na sessão no M2-T07.
  */
 export type { CadastrosDocumento } from './servicos/historico-edicao';
-export type { RelatorioConformidade, NaoConformidade } from '../dominio/verificador/conformidade';
+export type { RelatorioConformidade, NaoConformidade, FamiliaConformidade } from '../dominio/verificador/conformidade';
+export { FAMILIAS_CONFORMIDADE } from '../dominio/verificador/conformidade';
 
 export {
   CANAIS_PROJETOS,

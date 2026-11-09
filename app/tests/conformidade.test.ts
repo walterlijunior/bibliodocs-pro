@@ -141,7 +141,14 @@ describe('exportação pura do relatório de conformidade', () => {
     expect(t).toContain('Resultado: 4 erro(s), 6 aviso(s).');
     expect(t).toContain('Escopo: verificações automáticas implementadas');
     expect(t).toContain('Local: Ficha catalográfica');
-    expect(t).toContain('Local: Seção 1 Introdução; trecho');
+    expect(t).toContain('Local: Seção 1 Introdução — Tabela 1');
+    expect(t).toContain('Local: Seção 1 Introdução: “Silva (2020)”');
+    expect(t).not.toMatch(/Local: .*(tab_|par_|equ_)/u);
+    // M7-T03: agrupado por família, na ordem da tela, com a numeração contínua.
+    const grupos = [...t.matchAll(/^== (.+) \((\d+)\) ==$/gmu)].map((m) => m[1]);
+    expect(grupos).toEqual(['Elementos pré-textuais', 'Citações e referências', 'Tabelas, quadros, ilustrações e equações']);
+    expect(t.match(/^\d+\. (ERRO|AVISO)/gmu)!.map((x) => Number(x.split('.')[0]))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    for (const p of r.problemas) expect(p.rotuloLocal.length, p.codigo).toBeGreaterThan(3);
     expect(t).toContain('Local: Obra: Livro fictício completo');
     expect(t.match(/^Sugestão:/gm)).toHaveLength(10);
     expect(t).toContain('Origem: RN-117');
@@ -157,8 +164,9 @@ describe('exportação pura do relatório de conformidade', () => {
   it('relatório identifica o local de um apêndice pela mesma letra derivada do documento', () => {
     const d = documentoCorretoConformidade();
     d.posTextuais = [...d.posTextuais!, { tipo: 'apendice', id: 'pos_conformidadeap1', titulo: 'Procedimento fictício', blocos: [] }];
-    const t = textoRelatorioConformidade(d, [{ id: 'nc_pos000001', codigo: 'EQUACAO_SEM_NUMERO', gravidade: 'aviso', origem: ['RN-106'], mensagem: 'Equação sem número.', sugestao: 'Ative a numeração.', local: { tipo: 'texto', secao: 'pos_conformidadeap1', no: 'equ_pos000001' } }]);
-    expect(t).toContain('Local: APÊNDICE A – Procedimento fictício; trecho equ_pos000001');
+    const t = textoRelatorioConformidade(d, [{ id: 'nc_pos000001', codigo: 'EQUACAO_SEM_NUMERO', familia: 'visual', rotuloLocal: '', gravidade: 'aviso', origem: ['RN-106'], mensagem: 'Equação sem número.', sugestao: 'Ative a numeração.', local: { tipo: 'texto', secao: 'pos_conformidadeap1', no: 'equ_pos000001' } }]);
+    expect(t).toContain('Local: APÊNDICE A – Procedimento fictício');
+    expect(t).not.toContain('equ_pos000001');
   });
 });
 

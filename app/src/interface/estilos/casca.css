@@ -445,6 +445,12 @@ button:disabled { opacity: 0.45; cursor: default; }
 .dialogo--citacao { width: min(640px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
 .dialogo--citacao .dialogo__corpo { grid-template-rows: none; overflow: auto; }
 .dialogo--citacao select.campo { max-width: 100%; }
+/* Verificador de conformidade (M7-T03): o corpo todo rola, com grupos por família. */
+.dialogo--conformidade { width: min(720px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--conformidade .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.conformidade__filtro { display: flex; flex-wrap: wrap; gap: var(--esp-3); border: 0; margin: 0; padding: 0; }
+.conformidade__grupo h3 { margin: var(--esp-2) 0; font-size: 1em; }
+.conformidade__item p { margin: var(--esp-1) 0; overflow-wrap: anywhere; }
 /* Texto de licenças: mantém as quebras, sem rolagem horizontal. */
 .terceiros { margin: 0; max-height: 40vh; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.85em; }
 .versoes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-2); }
