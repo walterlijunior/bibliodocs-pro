@@ -278,7 +278,7 @@ F-E6-01), que não bloqueia o empacotamento.
 |---|---|---|---|---|---|
 | E7-T00 ✔ | Plano da Etapa 7 | sessão principal | E6 | Plano | Revisão do plano |
 | E7-T01 ✔ | Pendências do pacote (M1-T14): NSIS 3.0.4.1 × CVE-2023-37378 avaliado e registrado; fuse do índice 8; cache das ferramentas; `CompanyName` | arquiteto-software | T00 | Cada item corrigido ou aceito com motivo | `npm run dist`; `tests/empacotamento.test.ts` |
-| E7-T02 | Roteiro DIST no Windows 11: instalação limpa por usuário sem administrador, abrir com dados isolados, fumaça de exportação no pacote, reinstalar por cima, desinstalar com o app aberto, desinstalação limpa (só ficam os dados do usuário), tamanhos contra o RNF-08 | engenheiro-qualidade | T01 | DIST-01 a 05 `PASSOU` ou limitação registrada | Roteiro com saída real |
+| E7-T02 ✔ (parcial) | Roteiro DIST no Windows 11: instalação limpa por usuário sem administrador, abrir com dados isolados, fumaça de exportação no pacote, reinstalar por cima, desinstalar com o app aberto, desinstalação limpa (só ficam os dados do usuário), tamanhos contra o RNF-08 | engenheiro-qualidade | T01 | DIST-01 a 05 `PASSOU` ou limitação registrada | Roteiro com saída real |
 | E7-T03 | Documentação: `app/README.md` para o usuário final (o conteúdo de desenvolvimento passa para `app/DESENVOLVIMENTO.md`) e `docs/INSTALACAO_APP.md` (instalar, primeiro uso, onde ficam os dados, desinstalar, SmartScreen) | sessão principal | T02 | Guias completos | Revisão |
 | E7-T04 | Revisão final de segurança e de dependências e licenças (`revisor-seguranca`), relatório `ETAPA7_DISTRIBUICAO.md` com as pendências para a próxima versão | sessão principal + revisor-seguranca | T01–T03 | Critério de conclusão da Etapa 7 | `npm run verificar:tudo` |
 
