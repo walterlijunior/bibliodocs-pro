@@ -215,6 +215,29 @@ Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passa
 ### M7 — Verificador de conformidade
 **Aceite:** RF-15 com documento de teste de 10 não conformidades plantadas.
 
+#### Tarefas do M7 (2026-11-08; decisões D-M7 na matriz, tomadas pela sessão principal por delegação do usuário)
+Comandos rodam em `app/`. Cada tarefa termina com `npm run verificar:tudo` passando e registro.
+- **Ponto de partida (feito no M6 pelo Codex e revisado):** `dominio/verificador/conformidade.ts` consolida pré-textuais,
+  bibliografia, elementos visuais e siglas (RN-046, 047, 050, 051, 056, 060, 063, 078, 096, 106, 181, 182, 241, 246,
+  251, 255, 269, 274, 297), com aplicabilidade pelo perfil (regra ausente, ambígua sem decisão, pendente de fonte ou
+  desativada vira diagnóstico, nunca acusação), janela "Verificar conformidade" com "Ir ao local" e relatório `.txt`.
+  O teste do RF-15 já planta 10 defeitos, mas só de quatro famílias.
+- **Base normativa das verificações novas:** coluna "Validação automática" da matriz, só regras `CONFIRMADA` ou com
+  decisão provisória autorizada. Texto: RN-043, RN-086, RN-109 (título digitado com número), RN-081/082 (chamada
+  escrita fora do padrão já coberta por CHAMADA_SEM_LIGACAO). Tabelas (IBGE): RN-247, 256, 257, 263, 270, 271, 279,
+  284, 287, 298, 299, e RN-310 provisória.
+- **Limite do marco:** só o que se verifica no modelo, sem layout. Formatação (fonte, margens, espaçamento) é gerada pelo
+  motor e conferida na regressão DOCX, não no verificador (D-M7-01). Sem dependência nova.
+
+| ID | Tarefa | Agente(s) | Depende de | Aceite | Verificação |
+|---|---|---|---|---|---|
+| M7-T00 ✔ | Plano do M7 e decisões D-M7-01 a 05 | sessão principal | M6 | Plano e matriz | Revisão do plano |
+| M7-T01 | Verificações do texto: título de seção secundária a quinária em caixa alta integral (RN-043), título com indicativo digitado (RN-109), supressão "(...)" ou "…" em citação (RN-086), seção sem texto e título vazio (D-M7-02) | especialista-documento | T00 | Cada código com teste positivo e negativo; controle correto sem falso positivo | `npm run verificar:tudo` |
+| M7-T02 | Verificações de tabela da Norma Tabular: título com sigla (RN-247), coluna indicadora (RN-256), unidade (RN-257), célula fora dos sinais (RN-263), fonte (RN-270, 271), série temporal (RN-279), classes abertas (RN-284), total divergente (RN-287), sinais ≥ dados (RN-298), "Outros" maior (RN-299), ponto final no título (RN-310, provisória) — todas aviso | especialista-elementos-visuais | T00 | Idem; corpus de tabelas do IBGE (Anexo B) sem falso positivo | `npm run verificar:tudo` |
+| M7-T03 | Tela: agrupamento por família, filtro erro/aviso, contagem, local legível ("Seção 2.1", "Tabela 3"), "Ir ao local" para pré-textual e obra, foco devolvido, relatório com as mesmas famílias | especialista-interface | T01, T02 | E2E: verificar, filtrar, ir ao local e exportar; axe sem violação | `npm run verificar:tudo` |
+| M7-T04 | Aceite do RF-15 ampliado: documento de 10 não conformidades de famílias diferentes (texto, tabela, pré-textual, bibliografia, siglas, visual) e documento correto de referência, no domínio e no E2E | sessão principal | T01–T03 | As 10 detectadas, nenhum falso positivo | `npm run verificar:tudo` |
+| M7-T05 | Fechamento: `REVISAO_M7.md` com revisão independente (normas: falso positivo e fonte de cada aviso; segurança: relatório e desempenho em 150 páginas), relatório do marco, matriz de testes | sessão principal | T01–T04 | Aceite do M7 demonstrado | `npm run verificar:tudo` |
+
 ## Regras de priorização
 1. Algo funcionando de ponta a ponta cedo (M1 + M3 parcial) vale mais que um módulo perfeito isolado.
 2. Exportação DOCX é a saída do produto: toda funcionalidade só está pronta quando sai certa no DOCX.
