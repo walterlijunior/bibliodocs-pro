@@ -34,7 +34,11 @@ module.exports = {
   ],
 
   // C-19: inventário de licenças (empacotamento/terceiros.cjs), ao lado das licenças do Electron.
-  extraFiles: [{ from: 'recursos-build/TERCEIROS.txt', to: 'TERCEIROS.txt' }],
+  // Licença do próprio aplicativo (GPL-3.0-or-later, decisão do usuário em 2026-11-08), ao lado do executável.
+  extraFiles: [
+    { from: 'recursos-build/TERCEIROS.txt', to: 'TERCEIROS.txt' },
+    { from: '../LICENSE', to: 'LICENSE.txt' },
+  ],
 
   // Usa o binário do Electron já instalado e conferido (SHA-256, M1-T02) em vez de baixar de novo.
   electronDist: 'node_modules/electron/dist',

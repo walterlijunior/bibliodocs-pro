@@ -40,3 +40,10 @@ Desktop.ini
 # Saída de build do validador OOXML (M3-T07)
 app/ferramentas/validar-ooxml/bin/
 app/ferramentas/validar-ooxml/obj/
+
+# Material de terceiros (Manual da UFT, norma do IBGE, modelos, referências de layout, sistema antigo): fica só na
+# máquina de quem desenvolve e nunca vai para o repositório público (decisão do usuário em 2026-11-08). Só os LEIA-ME,
+# que dizem o que colocar em cada pasta e onde obter, são versionados.
+materiais/**
+!materiais/**/
+!materiais/**/LEIA-ME.md

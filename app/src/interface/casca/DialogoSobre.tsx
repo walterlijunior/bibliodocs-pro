@@ -1,4 +1,7 @@
-/** Diálogo "Sobre" (M3-T11; RNF-15, C-19): versão e licenças dos componentes de terceiros, o mesmo texto de `TERCEIROS.txt`. */
+/**
+ * Diálogo "Sobre" (M3-T11; RNF-15, C-19): versão, licença do aplicativo (GPL-3.0-or-later) e licenças dos componentes de
+ * terceiros, o mesmo texto de `TERCEIROS.txt`.
+ */
 import { useEffect, useId, useRef } from 'react';
 import terceiros from '../../../recursos-build/TERCEIROS.txt?raw';
 import { version } from '../../../package.json';
@@ -29,6 +32,11 @@ export function DialogoSobre({ aoFechar }: { aoFechar: () => void }) {
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Sobre o BiblioDocs Pro</h2>
         <p>Versão {version}</p>
+        <p>
+          Software livre, sob a Licença Pública Geral GNU, versão 3 ou posterior (GPL-3.0-or-later): você pode usar, estudar,
+          modificar e redistribuir o programa nos termos da licença, que acompanha o aplicativo no arquivo LICENSE.txt. Sem
+          nenhuma garantia.
+        </p>
         <h3 id={`${base}-terceiros`}>Componentes de terceiros</h3>
         {/* Rolável por teclado: sem nada focável dentro, o foco precisa poder entrar na área. */}
         <pre className="terceiros lista-rolavel" tabIndex={0} aria-labelledby={`${base}-terceiros`}>

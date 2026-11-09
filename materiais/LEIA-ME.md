@@ -1,5 +1,12 @@
 # materiais/ — originais do projeto (somente leitura)
 
+> **Não versionado (desde 2026-11-08).** O projeto é código aberto (GPL-3.0-or-later) e público no GitHub; estes
+> materiais são de terceiros e não vão para o repositório. O `.gitignore` deixa de fora tudo daqui, menos os LEIA-ME.
+> Quem desenvolve obtém as cópias por conta própria: o Manual de Normalização da UFT no site da UFT, as *Normas de
+> apresentação tabular* na biblioteca do IBGE, e os modelos da UFT no site da Biblioteca da UFT. A captura de tela, o
+> estudo Capcom e o sistema antigo eram só referências da fase de análise e não são necessários para compilar nem
+> testar o aplicativo.
+
 Esta pasta guarda os materiais de referência **exatamente como foram fornecidos**.
 O Claude Code não edita, move nem apaga nada aqui (`Edit(/materiais/**)` está em *deny*
 em `.claude/settings.json`, e a regra 1 do `CLAUDE.md` reforça isso).

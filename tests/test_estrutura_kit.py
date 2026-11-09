@@ -13,7 +13,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 
 OBRIGATORIOS = [
-    "README.md", "CLAUDE.md", "PROMPT_EXECUCAO.md", "INSTRUCOES_INICIAIS.md", "CHANGELOG.md", ".gitignore",
+    "README.md", "KIT_CLAUDE_CODE.md", "CLAUDE.md", "PROMPT_EXECUCAO.md", "INSTRUCOES_INICIAIS.md", "CHANGELOG.md", ".gitignore",
     ".claude/settings.json",
     "docs/VISAO_DO_PRODUTO.md", "docs/ARQUITETURA_PRELIMINAR.md", "docs/REQUISITOS_FUNCIONAIS.md",
     "docs/REQUISITOS_NAO_FUNCIONAIS.md", "docs/PLANO_DE_IMPLEMENTACAO.md", "docs/MATRIZ_DE_RISCOS.md",
@@ -29,7 +29,7 @@ AGENTES = [
     "especialista-elementos-visuais", "especialista-interface", "engenheiro-qualidade", "revisor-seguranca",
 ]
 NUM_SKILLS = 15
-PREFIXOS = re.compile(r"^(docs|templates|scripts|tests|\.claude|materiais)/|^(README|CLAUDE|PROMPT_EXECUCAO|INSTRUCOES_INICIAIS|CHANGELOG)\.md$")
+PREFIXOS = re.compile(r"^(docs|templates|scripts|tests|\.claude|materiais)/|^(README|KIT_CLAUDE_CODE|CLAUDE|PROMPT_EXECUCAO|INSTRUCOES_INICIAIS|CHANGELOG)\.md$")
 SEGREDOS = [
     r"sk-ant-[A-Za-z0-9_-]{10,}", r"AKIA[0-9A-Z]{16}", r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
     r"ghp_[A-Za-z0-9]{30,}", r"xox[bp]-[A-Za-z0-9-]{10,}",
@@ -104,7 +104,7 @@ class TestEstruturaKit(unittest.TestCase):
 
     def test_05_referencias_cruzadas(self):
         futuros = {l.strip() for l in ler("tests/artefatos_futuros.txt").splitlines() if l.strip() and not l.startswith("#")}
-        fontes = [RAIZ / f for f in ("README.md", "CLAUDE.md", "PROMPT_EXECUCAO.md", "INSTRUCOES_INICIAIS.md")]
+        fontes = [RAIZ / f for f in ("KIT_CLAUDE_CODE.md", "README.md", "CLAUDE.md", "PROMPT_EXECUCAO.md", "INSTRUCOES_INICIAIS.md")]
         fontes += list((RAIZ / ".claude").rglob("*.md")) + list((RAIZ / "docs").rglob("*.md"))
         quebradas, conferidas = [], 0
         for f in fontes:
@@ -121,7 +121,7 @@ class TestEstruturaKit(unittest.TestCase):
         self.assertEqual(sorted(set(quebradas)), [])
 
     def test_06_documentacao_cita_agentes_e_skills(self):
-        readme, recursos = ler("README.md"), ler("docs/RECURSOS_CLAUDE_CODE.md")
+        readme, recursos = ler("KIT_CLAUDE_CODE.md"), ler("docs/RECURSOS_CLAUDE_CODE.md")
         nomes = AGENTES + [p.name for p in (RAIZ / ".claude/skills").iterdir() if p.is_dir()]
         ausentes = [n for n in nomes if n not in readme or n not in recursos]
         self.assertEqual(ausentes, [])
@@ -148,6 +148,9 @@ class TestEstruturaKit(unittest.TestCase):
         pares = re.findall(r"`(materiais/[^`]+\.(?:zip|pdf|md|doc|docx|png))`[^\r\n]*?`([0-9a-f]{64})`", inv)
         self.assertGreaterEqual(len(pares), 3)
         for rel, esperado in pares:
+            # Material de terceiros não vai para o repositório público (2026-11-08): ausente, só não é conferido.
+            if not (RAIZ / rel).exists():
+                continue
             real = hashlib.sha256((RAIZ / rel).read_bytes()).hexdigest()
             self.assertEqual(real, esperado, f"checksum diferente: {rel}")
 

@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Aplicativo desktop para elaborar e formatar trabalhos acadêmicos conforme o Manual de Normalização da UFT e as normas ABNT.",
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-or-later",
   "author": "BiblioDocs Pro",
   "main": "./out/principal/index.js",
   "engines": {

@@ -329,3 +329,18 @@ bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 
 - **Cache das ferramentas** validado só pela contagem: aceito para build local; build de distribuição com o cache
   limpo (anotado em `app/DESENVOLVIMENTO.md`).
 - **`CompanyName` "BiblioDocs Pro":** segue o nome provisório do produto (CLAUDE.md); muda junto com o nome.
+
+**Decisões do usuário (2026-11-08) — código aberto.** O projeto é código aberto, num repositório público no GitHub.
+- **Licença:** GNU GPL, versão 3 ou posterior (`GPL-3.0-or-later`): `LICENSE` na raiz, `"license"` no `package.json`,
+  `LICENSE.txt` ao lado do executável e aviso no diálogo "Sobre". As 16 dependências de produção são MIT, compatíveis.
+- **Publicação:** repositório público **novo, com o histórico reescrito sem `materiais/`** (material de terceiros:
+  Manual da UFT, norma do IBGE, modelos da UFT, tela do iTunes, estudo Capcom, sistema antigo). O repositório atual
+  continua privado. Daqui em diante `materiais/` fica fora do git (só os LEIA-ME); os testes do kit só conferem o
+  checksum do material presente.
+- **Assinatura (D-E7-01): SignPath Foundation**, gratuita para código aberto com licença aprovada pela OSI, com build no
+  GitHub Actions. O pedido de aprovação é do usuário. `.github/workflows/release.yml` monta o instalador no runner do
+  GitHub (sem o Controle Inteligente de Aplicativos) e só assina quando as variáveis da SignPath existirem; até lá,
+  gera rascunho de release sem assinatura, marcado como tal, com SHA-256. `ci.yml` roda `verificar` e o E2E a cada
+  push. Actions fixadas pelo hash do commit.
+- **Limite do fluxo assinado:** o desinstalador que o NSIS embute no instalador não passa pela SignPath. Avaliar na
+  configuração do projeto na SignPath (assinatura profunda) ou trocar o alvo depois.

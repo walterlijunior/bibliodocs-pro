@@ -1,0 +1,135 @@
+# Instalador do BiblioDocs Pro para Windows, a cada tag `v*` (ex.: v0.1.0). Monta no runner do GitHub, que não tem o
+# Controle Inteligente de Aplicativos que bloqueou o build na máquina de desenvolvimento (adendo do E7-T01, ADR-0003).
+#
+# Assinatura (D-E7-01: SignPath Foundation, gratuita para código aberto). Enquanto o projeto não for aprovado e as
+# variáveis abaixo não existirem, os passos de assinatura são pulados e sai um rascunho de release SEM assinatura,
+# marcado como tal. Depois da aprovação, configurar no repositório:
+#   - secret   SIGNPATH_API_TOKEN
+#   - variable SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG, SIGNPATH_SIGNING_POLICY_SLUG
+# Fluxo assinado: (1) assina o executável do app na pasta `win-unpacked`; (2) monta o instalador com essa pasta
+# (`--prepackaged`); (3) assina o instalador. O desinstalador gerado pelo NSIS dentro do instalador não passa pela
+# SignPath neste fluxo (limitação registrada em docs/relatorios/ETAPA7_DISTRIBUICAO.md).
+# [HIPÓTESE] Os nomes das entradas da action da SignPath seguem a documentação da v2; conferir ao configurar.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    outputs:
+      artefato: ${{ steps.envio.outputs.artifact-id }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      - name: Testes antes de empacotar
+        run: npm run verificar
+      - name: Pasta do aplicativo (win-unpacked), com fuses e ASAR
+        run: npm run dist:pasta
+      - id: envio
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-sem-assinatura
+          path: app/release/win-unpacked/
+          retention-days: 7
+
+  instalador:
+    needs: app
+    runs-on: windows-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      actions: read
+    env:
+      ASSINAR: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+
+      - name: Assinar o executável do app (SignPath)
+        if: env.ASSINAR == 'true'
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ needs.app.outputs.artefato }}
+          wait-for-completion: true
+          output-artifact-directory: app/release/app-assinado
+
+      - name: App sem assinatura (enquanto a SignPath não estiver configurada)
+        if: env.ASSINAR != 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: app-sem-assinatura
+          path: app/release/app-assinado
+
+      - name: Instalador NSIS a partir da pasta do app
+        run: npx electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never --prepackaged release/app-assinado
+
+      - id: envio-instalador
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: instalador
+          path: app/release/BiblioDocsPro-Instalador-*.exe
+          retention-days: 7
+
+      - name: Assinar o instalador (SignPath)
+        if: env.ASSINAR == 'true'
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: instalador
+          github-artifact-id: ${{ steps.envio-instalador.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: app/release/final
+
+      - name: Instalador sem assinatura (enquanto a SignPath não estiver configurada)
+        if: env.ASSINAR != 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release/final | Out-Null
+          Copy-Item release/BiblioDocsPro-Instalador-*.exe release/final/
+
+      - name: SHA-256 e rascunho de release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          Set-Location release/final
+          Get-ChildItem *.exe | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content -Encoding ascii SHA256SUMS.txt
+          $aviso = if ($env:ASSINAR -eq 'true') { 'Instalador assinado pela SignPath Foundation.' } else { 'ATENÇÃO: instalador SEM assinatura de código (versão de teste). O Windows pode bloqueá-lo; veja docs/INSTALACAO_APP.md.' }
+          gh release create $env:TAG --draft --title "BiblioDocs Pro $env:TAG" --notes "$aviso Confira o arquivo pelo SHA256SUMS.txt." (Get-ChildItem *.exe).FullName SHA256SUMS.txt

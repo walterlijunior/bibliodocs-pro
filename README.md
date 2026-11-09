@@ -1,151 +1,68 @@
-# Kit Acadêmico para Claude Code — BiblioDocs Pro
+# BiblioDocs Pro
 
-Ambiente pronto para desenvolver, com o **Claude Code**, um aplicativo desktop de elaboração e
-formatação de trabalhos acadêmicos conforme o **Manual de Normalização da UFT (2022)** e as normas
-ABNT aplicáveis (tabelas: Norma Tabular do IBGE), com layout inspirado no iTunes e um pequi no lugar da maçã.
-O kit não contém o aplicativo: contém tudo o que o Claude Code precisa para
-construí-lo por etapas — instruções permanentes, 8 agentes, 15 skills, plano mestre, documentação,
-scripts e os materiais originais disponíveis.
+Aplicativo livre para Windows que ajuda a escrever e formatar trabalhos acadêmicos conforme o **Manual de Normalização
+da Universidade Federal do Tocantins (UFT), 2.ª edição, 2022**, e as **Normas de Apresentação Tabular do IBGE**. Você
+escreve o conteúdo; o aplicativo cuida da formatação e entrega um `.docx` que continua editável no Word.
 
-> Guia passo a passo detalhado (com solução de problemas): **[INSTRUCOES_INICIAIS.md](INSTRUCOES_INICIAIS.md)**.
+Funciona sem internet, e os trabalhos ficam no seu computador.
 
----
+> **Estado:** versão 0.1.0, de teste. Ainda não há instalador publicado: o instalador para Windows vai ser assinado
+> pelo programa gratuito da SignPath Foundation para projetos de código aberto, que está sendo solicitado. Até lá, o
+> aplicativo pode ser executado a partir do código-fonte (ver "Rodar a partir do código").
 
-## Início rápido (Windows)
+## O que ele faz
 
-**Pré-requisitos:** VS Code; Claude Code instalado e uma conta Claude **Pro, Max, Team, Enterprise
-ou Console** (o plano gratuito não inclui Claude Code). Git for Windows é recomendado.
+- Seis tipos de trabalho (TCC, artigo como TCC, dissertação, tese, relatório técnico, projeto de pesquisa), com os
+  elementos e a ordem do Manual da UFT.
+- Pré-textuais, seções numeradas até o 5.º nível, alíneas, citação longa e notas de rodapé.
+- Citações autor-data ligadas a um cadastro de obras, com a lista de referências montada sozinha; importação de BibTeX e
+  RIS.
+- Tabelas e quadros (colar do Excel ou importar CSV), figuras, gráficos gerados das tabelas, equações e remissivas que
+  acompanham a numeração.
+- Siglas, símbolos, glossário, apêndices e anexos.
+- Verificador de conformidade com a regra de origem de cada aviso.
+- Exportação DOCX com margens, espaçamentos, paginação, sumário e listas.
 
-1. Clique com o botão direito em `KIT_ACADEMICO_CLAUDE_CODE.zip` → **Extrair Tudo...** → **Extrair**.
-2. No VS Code: **Arquivo → Abrir Pasta...** → selecione a pasta **`KIT_ACADEMICO_CLAUDE`**
-   (a que contém este `README.md` e o `CLAUDE.md` — não a pasta acima dela).
-3. Abra o terminal integrado: **Terminal → Novo Terminal** (atalho ``Ctrl+` ``).
-4. Digite `claude` e pressione Enter.
-5. Quando o Claude Code abrir, digite **`/iniciar-projeto`** e pressione Enter.
+Guia de uso: [`app/README.md`](app/README.md). Instalação: [`docs/INSTALACAO_APP.md`](docs/INSTALACAO_APP.md).
 
-### Exemplo real do terminal
+## Rodar a partir do código
 
-```text
-PS C:\Users\walter\Downloads\KIT_ACADEMICO_CLAUDE_CODE\KIT_ACADEMICO_CLAUDE> claude --version
-2.x.x (Claude Code)
+Requisitos: Windows 10 ou 11 (64 bits) e Node.js 24 com npm 11.
 
-PS C:\Users\walter\Downloads\KIT_ACADEMICO_CLAUDE_CODE\KIT_ACADEMICO_CLAUDE> powershell -ExecutionPolicy Bypass -File scripts\validar-kit.ps1
-[OK]    Arquivos obrigatorios presentes (30)
-[OK]    Agentes: 8 com frontmatter valido
-[OK]    Skills: 15 com SKILL.md valido
-...
-[AVISO] Ainda sem arquivos .doc/.docx em materiais/modelos_uft (material pendente do usuario)
-
-RESULTADO: 0 falha(s), 2 aviso(s)
-
-PS C:\Users\walter\Downloads\KIT_ACADEMICO_CLAUDE_CODE\KIT_ACADEMICO_CLAUDE> claude
+```powershell
+cd app
+npm ci
+npm run dev        # abre o aplicativo
+npm run verificar  # tipos, testes, auditoria de dependências
 ```
 
-Dentro do Claude Code:
+Os demais comandos (testes de ponta a ponta, conferência no Word e no LibreOffice, empacotamento) estão em
+[`app/DESENVOLVIMENTO.md`](app/DESENVOLVIMENTO.md).
 
-```text
-> /iniciar-projeto
-```
+## Normas e rastreabilidade
 
-Se o comando `/iniciar-projeto` não aparecer, cole esta instrução (funciona sempre):
+Cada regra de formatação aplicada tem um identificador (`RN-xxx`) e a fonte (documento e página) na
+[matriz de requisitos normativos](docs/MATRIZ_DE_REQUISITOS_NORMATIVOS.md). Regras sem fonte disponível no projeto (as
+NBR 6023 e 10520, por exemplo) ficam marcadas como pendentes ou como critério provisório, visível no verificador.
 
-```text
-Leia CLAUDE.md, docs/ESTADO_DO_PROJETO.md e PROMPT_EXECUCAO.md e execute a próxima etapa pendente do plano.
-```
+**Os documentos de referência não acompanham o repositório** (direitos de terceiros): o Manual de Normalização da UFT
+está no site da UFT, e as Normas de Apresentação Tabular, na biblioteca do IBGE. Quem desenvolve coloca as cópias em
+`materiais/` (ver [`materiais/LEIA-ME.md`](materiais/LEIA-ME.md)); a pasta é ignorada pelo git.
 
-O número de versão e o caminho acima são ilustrativos; o seu terminal mostrará os seus.
-A linha `validar-kit.ps1` é opcional (confere se o kit está íntegro).
+## Como foi feito
 
-### O que acontece na primeira execução
+O projeto foi desenvolvido por etapas com o Claude Code, a partir de um kit de instruções, agentes e skills descrito
+em [`KIT_CLAUDE_CODE.md`](KIT_CLAUDE_CODE.md). Plano, decisões (ADR), relatórios de cada marco e de revisão ficam em
+[`docs/`](docs/); o histórico de entregas, em [`CHANGELOG.md`](CHANGELOG.md).
 
-1. O Claude Code pergunta se você confia nos arquivos da pasta → responda **Yes / Sim**
-   (necessário para ele ler `CLAUDE.md`, agentes, skills e permissões do projeto).
-2. Se for o primeiro uso, ele abre o navegador para você entrar na sua conta.
-3. Com `/iniciar-projeto`, ele executa a **Etapa 1 — Inventário**: lista os materiais, confere
-   os checksums, pede autorização para `git init`, extrai o sistema original em `analise/`,
-   e informa quais materiais faltam (os modelos `.doc` da UFT e o `.docx` do estudo Capcom).
-4. Ele termina com um relatório e o próximo passo. A cada nova sessão, rode `/iniciar-projeto`
-   de novo: o estado fica salvo em `docs/ESTADO_DO_PROJETO.md`.
+## Licença
 
----
+Copyright © 2026 os autores do BiblioDocs Pro.
 
-## Estrutura do kit
+Este programa é software livre: você pode redistribuí-lo e modificá-lo nos termos da Licença Pública Geral GNU,
+versão 3 ou (a seu critério) qualquer versão posterior, publicada pela Free Software Foundation. É distribuído na
+esperança de ser útil, mas **sem nenhuma garantia**, nem mesmo a implícita de comercialização ou de adequação a um
+propósito específico. Texto completo em [`LICENSE`](LICENSE).
 
-```text
-KIT_ACADEMICO_CLAUDE/
-├── README.md                  ← este arquivo
-├── INSTRUCOES_INICIAIS.md     ← guia Windows passo a passo + problemas comuns
-├── CLAUDE.md                  ← regras permanentes lidas pelo Claude Code em toda sessão
-├── PROMPT_EXECUCAO.md         ← plano mestre em 7 etapas (Componente B)
-├── CHANGELOG.md
-├── .gitignore
-├── .claude/
-│   ├── settings.json          ← permissões do projeto (proteções; sem credenciais)
-│   ├── agents/                ← 8 agentes especializados
-│   └── skills/                ← 15 skills (2 delas são comandos: /iniciar-projeto, /status-projeto)
-├── docs/                      ← visão, requisitos, arquitetura, plano, riscos, testes, fontes,
-│   │                            inventário, recursos do Claude Code, estado do projeto
-│   ├── decisoes/              ← ADRs (registro de decisões)
-│   └── relatorios/            ← relatórios de etapa e de validação
-├── materiais/                 ← ORIGINAIS (somente leitura para o Claude)
-│   ├── sistema_original/      ← tcc-uft-sistema_10.zip (incluído)
-│   ├── normas/                ← Manual de Normalização UFT 2022 (incluído) + Norma Tabular do IBGE (você coloca)
-│   ├── modelos_uft/           ← coloque aqui os 6 modelos .doc da UFT (ver LEIA-ME)
-│   ├── referencias_visuais/   ← estudo Capcom (.docx) e guias do IFPR/FURB: exemplos de formatação
-│   └── referencias_layout/    ← captura do iTunes: referência de layout (pequi no lugar da maçã)
-├── analise/                   ← área de trabalho para extrações (criada vazia, ignorada pelo git)
-├── app/                       ← onde o aplicativo será criado (a partir da Etapa 4/5)
-├── scripts/                   ← verificação do ambiente e validação do kit (PowerShell)
-├── templates/                 ← modelos de relatório técnico, ADR e relatório de testes
-└── tests/                     ← teste automatizado da estrutura do kit (Python, opcional)
-```
-
-## Agentes
-
-| Agente | Domínio |
-|---|---|
-| `arquiteto-software` | Arquitetura, tecnologia, ADRs, integração entre módulos |
-| `especialista-normas` | Manual UFT / ABNT, matriz de requisitos normativos (somente documentação) |
-| `especialista-documento` | Modelo de documento, editor, importação/exportação DOCX |
-| `especialista-referencias` | Citações e referências bibliográficas |
-| `especialista-elementos-visuais` | Tabelas, quadros, figuras, gráficos, equações, legendas, listas |
-| `especialista-interface` | Interface desktop, UX "biblioteca", identidade pequi |
-| `engenheiro-qualidade` | Testes, regressão documental, validação |
-| `revisor-seguranca` | Segurança, desempenho, manutenção, dependências (somente leitura) |
-
-## Skills
-
-`auditoria-sistema-existente` · `rastreabilidade-normativa` · `decisao-arquitetural` ·
-`editor-academico` · `regras-formatacao` · `citacoes-referencias` · `tabelas-elementos-visuais` ·
-`sumario-listas-remissivas` · `importacao-exportacao-docx` · `regressao-documental` ·
-`interface-desktop` · `revisao-seguranca-qualidade` · `fechamento-de-tarefa` ·
-`iniciar-projeto` (comando) · `status-projeto` (comando)
-
-## Materiais originais
-
-| Material | Situação no kit |
-|---|---|
-| Sistema existente `tcc-uft-sistema_10.zip` | **Incluído** em `materiais/sistema_original/` |
-| Manual de Normalização UFT, 2ª ed. 2022 (era `content.pdf`) | **Incluído** em `materiais/normas/` |
-| 6 modelos institucionais UFT (`.doc`) | Não vêm no ZIP (os binários não estavam acessíveis na preparação); coloque-os em `materiais/modelos_uft/` |
-| Normas de apresentação tabular do IBGE (1993) | Não vem no ZIP; coloque em `materiais/normas/` — é a norma das tabelas, à qual o Manual UFT remete |
-| Guias de outras instituições (IFPR, FURB) | Opcionais; exemplos visuais em `materiais/referencias_visuais/` |
-| Captura do iTunes (referência de layout) | **Incluída** em `materiais/referencias_layout/` |
-| `12-estudo-capcom-jgaap-brasil-japao.docx` — exemplo de trabalho acadêmico formatado (o tema não importa ao app) | Extração de texto incluída; coloque o `.docx` original em `materiais/referencias_visuais/` |
-
-Detalhes, checksums e observações: `docs/INVENTARIO_DE_MATERIAIS.md`.
-O kit funciona mesmo sem os itens ausentes; as etapas que dependem deles ficam sinalizadas.
-
-## Segurança e privacidade
-
-- Nenhuma credencial, token ou configuração pessoal está no kit. A autenticação é feita por você,
-  na sua máquina, e fica fora da pasta.
-- `.claude/settings.json` só **restringe** (bloqueia edição de `materiais/` e leitura de `.env`;
-  pede confirmação para `git push`, exclusões e publicação). Não dá permissões amplas.
-- Nenhum plugin, hook ou servidor MCP externo é instalado. Ver `docs/RECURSOS_CLAUDE_CODE.md`.
-
-## Validação
-
-- `scripts\validar-kit.ps1` (PowerShell) e `tests/test_estrutura_kit.py` (Python) conferem
-  estrutura, formato de agentes/skills, referências cruzadas e ausência de segredos.
-- Resultado da validação feita na preparação: `docs/relatorios/RELATORIO_VALIDACAO_KIT.md`.
+Os componentes de terceiros usados pelo aplicativo têm as próprias licenças (todas MIT), listadas em
+[`app/recursos-build/TERCEIROS.txt`](app/recursos-build/TERCEIROS.txt) e no diálogo "Sobre".

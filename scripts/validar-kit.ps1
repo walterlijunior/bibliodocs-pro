@@ -43,7 +43,7 @@ function Ler-Frontmatter($caminho) {
 
 # 1. Arquivos obrigatorios ---------------------------------------------------
 $obrigatorios = @(
-  'README.md','CLAUDE.md','PROMPT_EXECUCAO.md','INSTRUCOES_INICIAIS.md','CHANGELOG.md','.gitignore',
+  'README.md','KIT_CLAUDE_CODE.md','CLAUDE.md','PROMPT_EXECUCAO.md','INSTRUCOES_INICIAIS.md','CHANGELOG.md','.gitignore',
   '.claude/settings.json',
   'docs/VISAO_DO_PRODUTO.md','docs/ARQUITETURA_PRELIMINAR.md','docs/REQUISITOS_FUNCIONAIS.md',
   'docs/REQUISITOS_NAO_FUNCIONAIS.md','docs/PLANO_DE_IMPLEMENTACAO.md','docs/MATRIZ_DE_RISCOS.md',
@@ -120,10 +120,10 @@ try {
 
 # 5. Referencias cruzadas -----------------------------------------------------
 $futuros = @((Ler 'tests/artefatos_futuros.txt') -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
-$fontes = @('README.md','CLAUDE.md','PROMPT_EXECUCAO.md','INSTRUCOES_INICIAIS.md') +
+$fontes = @('KIT_CLAUDE_CODE.md','README.md','CLAUDE.md','PROMPT_EXECUCAO.md','INSTRUCOES_INICIAIS.md') +
   @(Get-ChildItem -Force -LiteralPath (Join-Path $Raiz '.claude') -Recurse -Filter '*.md' -File | ForEach-Object { $_.FullName.Substring($Raiz.Length + 1) }) +
   @(Get-ChildItem -LiteralPath (Join-Path $Raiz 'docs') -Recurse -Filter '*.md' -File | ForEach-Object { $_.FullName.Substring($Raiz.Length + 1) })
-$prefixos = '^(docs|templates|scripts|tests|\.claude|materiais)/|^(README|CLAUDE|PROMPT_EXECUCAO|INSTRUCOES_INICIAIS|CHANGELOG)\.md$'
+$prefixos = '^(docs|templates|scripts|tests|\.claude|materiais)/|^(README|KIT_CLAUDE_CODE|CLAUDE|PROMPT_EXECUCAO|INSTRUCOES_INICIAIS|CHANGELOG)\.md$'
 $quebradas = @()
 $conferidas = 0
 foreach ($f in $fontes) {
@@ -141,10 +141,10 @@ if ($quebradas.Count -eq 0) { Ok "Referencias cruzadas: $conferidas conferidas, 
 else { $quebradas | Sort-Object -Unique | ForEach-Object { Falha "Referencia quebrada: $_" } }
 
 # 6. Agentes e skills citados no README e na documentacao --------------------
-$readme = Ler 'README.md'; $recursos = Ler 'docs/RECURSOS_CLAUDE_CODE.md'
+$readme = Ler 'KIT_CLAUDE_CODE.md'; $recursos = Ler 'docs/RECURSOS_CLAUDE_CODE.md'
 $ausentesDoc = @(($nomesAgentes + $nomesSkills) | Where-Object { -not $readme.Contains($_) -or -not $recursos.Contains($_) })
-if ($ausentesDoc.Count -eq 0) { Ok "README e RECURSOS_CLAUDE_CODE citam todos os agentes e skills" }
-else { $ausentesDoc | ForEach-Object { Falha "Nao citado no README ou em docs/RECURSOS_CLAUDE_CODE.md: $_" } }
+if ($ausentesDoc.Count -eq 0) { Ok "KIT_CLAUDE_CODE e RECURSOS_CLAUDE_CODE citam todos os agentes e skills" }
+else { $ausentesDoc | ForEach-Object { Falha "Nao citado no KIT_CLAUDE_CODE ou em docs/RECURSOS_CLAUDE_CODE.md: $_" } }
 
 # 7. Segredos -----------------------------------------------------------------
 $padroes = @('sk-ant-[A-Za-z0-9_-]{10,}','AKIA[0-9A-Z]{16}','-----BEGIN [A-Z ]*PRIVATE KEY-----','ghp_[A-Za-z0-9]{30,}','xox[bp]-[A-Za-z0-9-]{10,}','"?(api[_-]?key|token|password|senha)"?\s*[:=]\s*"[^"\s]{12,}"')
@@ -167,7 +167,8 @@ $linhasInv = [regex]::Matches($inv, '`(materiais/[^`]+\.(zip|pdf|md|doc|docx|png
 if ($linhasInv.Count -eq 0) { Aviso "Nenhum checksum encontrado no inventario" }
 foreach ($l in $linhasInv) {
   $rel = $l.Groups[1].Value; $esperado = $l.Groups[3].Value
-  if (-not (Existe $rel)) { Falha "Material listado com checksum, mas ausente: $rel"; continue }
+  # Material de terceiros nao vai para o repositorio publico (2026-11-08): ausente vira aviso, nao falha.
+  if (-not (Existe $rel)) { Aviso "Material listado com checksum, mas ausente (nao distribuido): $rel"; continue }
   $real = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $Raiz $rel)).Hash.ToLower()
   if ($real -eq $esperado) { Ok "Checksum confere: $rel" } else { Falha "Checksum diferente do inventario: $rel" }
 }

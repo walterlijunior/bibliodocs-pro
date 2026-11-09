@@ -5,6 +5,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Projeto
+- Código aberto sob a GNU GPL v3 ou posterior (`LICENSE`); o diálogo "Sobre" informa a licença e o instalador leva `LICENSE.txt`.
+- README da raiz apresenta o aplicativo; o guia do kit do Claude Code passou para `KIT_CLAUDE_CODE.md`.
+- Material de terceiros (`materiais/`) fora do controle de versão.
+- Integração contínua (`.github/workflows/ci.yml`) e instalador por tag (`release.yml`), com assinatura pela SignPath Foundation quando o projeto for aprovado.
+
 ### Corrigido
 - Etapa 7, E7-T04 (revisão final): o canal de exportação recusa gráficos que, somados, passem de 1 GiB.
 - Etapa 7, E7-T03: Verificar › Verificar conformidade e a tecla F7 abrem o verificador (o item do menu não fazia nada).
