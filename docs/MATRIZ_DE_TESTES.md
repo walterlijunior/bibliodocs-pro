@@ -251,3 +251,9 @@ Evidências e limites em `docs/relatorios/M6_RELATORIO_MARCO.md`.
 | M7-T03 | RF-15 | `e2e/conformidade.spec.ts`: resumo, grupo por família, filtro pendência/aviso, local legível, Ir ao local no texto (trecho selecionado) e no pré-textual, axe sem violação séria; `tests/conformidade.test.ts`: .txt agrupado, numeração contínua, sem id interno no local | APROVADO (2026-11-08) |
 | M7-T04 | RF-15 (aceite) | Dez não conformidades em seis famílias detectadas, controle correto sem nenhuma, no domínio e no Electron real; corrigir uma parte tira só os itens dela | APROVADO (2026-11-08) |
 | REV-M7 | Revisão do M7 (`REVISAO_M7.md`) | Testes novos dos achados: número extremo (R-M7-01), NEL e bidi no .txt (R-M7-02), corte em 80 caracteres (R-M7-03), período e classe "w a z" (N-M7-02), "mais de w a z" (N-M7-03), Tabela 7 do Anexo B (N-M7-04), subtotal e taxa (N-M7-05), linha separadora (N-M7-07), reticências do original (N-M7-08), sigla longa no título (N-M7-09), "Fontes:" (N-M7-01); `verificar:tudo` 2115/2115, externos 28/28, E2E 41/41 | APROVADO (2026-11-08) |
+
+## Etapa 6
+
+| ID | Requisito | Cenário | Status |
+|---|---|---|---|
+| E6-02 | RF-02, RF-05, RNF-05; DOC-01 a 08 | Exemplo completo de cada um dos seis tipos (`tests/corpus/exemplos.ts`): válido, sem não conformidade, DOCX com A4, margens, títulos 1 a 5 nomeados, paginação, sumário, listas, referências, sigla, rótulos, apêndice, anexo e glossário (`tests/exemplos-e6.test.ts`); validador OOXML, LibreOffice e Word (`tests/externos`, 46/46; páginas do sumário e das listas iguais às recalculadas pelo Word) | PASSOU (2026-11-08) |

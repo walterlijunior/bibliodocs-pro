@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { avisarPulo, estragar, gravarCorpus, primeiroExistente, RAIZ_APP, rodar, type Corpus } from './apoio';
+import { avisarPulo, estragar, gravarCorpus, primeiroExistente, RAIZ_APP, rodar, NOMES_CORPUS, type Corpus } from './apoio';
 
 const dotnet = primeiroExistente('C:\\Program Files\\dotnet\\dotnet.exe');
 if (!dotnet) avisarPulo('dotnet');
@@ -26,7 +26,7 @@ describe.skipIf(!dotnet)('validador OOXML', () => {
   });
   afterAll(() => corpus?.apagar());
 
-  it.each(['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa', 'documento-dificil'])('%s é válido', async (nome) => {
+  it.each(NOMES_CORPUS)('%s é válido', async (nome) => {
     const { codigo, json } = await validar(corpus.arquivos.find((a) => a.nome === nome)!.caminho);
     expect(json.erros ?? [], JSON.stringify(json.erros?.slice(0, 5))).toEqual([]);
     expect(codigo).toBe(0);

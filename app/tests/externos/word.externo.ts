@@ -3,7 +3,7 @@
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { avisarPulo, gravarCorpus, RAIZ_APP, rodar, type Corpus } from './apoio';
+import { avisarPulo, gravarCorpus, RAIZ_APP, rodar, NOMES_CORPUS, type Corpus } from './apoio';
 
 const POWERSHELL = 'powershell.exe';
 const temWord = process.platform === 'win32'
@@ -40,7 +40,7 @@ describe.skipIf(!temWord)('Microsoft Word', () => {
   };
   const limpo = (s: string | undefined) => (s ?? '').replace(/[\r\n]+$/, '');
 
-  it.each(['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa', 'documento-dificil'])('%s abre', async (nome) => {
+  it.each(NOMES_CORPUS)('%s abre', async (nome) => {
     const r = await abrir(nome);
     expect(r.erro).toBeUndefined();
     expect(r.abriu).toBe(true);

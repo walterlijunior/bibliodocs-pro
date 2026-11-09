@@ -1,9 +1,9 @@
 // M3-T07 (ADR-0006, camada 7; DOC-07, DOC-08): o LibreOffice abre e converte, e o sumário aponta a página certa.
-import { readFileSync } from 'node:fs';
+import { copyFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { avisarPulo, gravarCorpus, primeiroExistente, rodar, type Corpus } from './apoio';
+import { avisarPulo, gravarCorpus, primeiroExistente, rodar, NOMES_CORPUS, PASTA_EXEMPLOS, type Corpus } from './apoio';
 
 const soffice = primeiroExistente(process.env['SOFFICE'] ?? '', 'C:\\Program Files\\LibreOffice\\program\\soffice.exe');
 if (!soffice) avisarPulo('LibreOffice');
@@ -31,10 +31,11 @@ describe.skipIf(!soffice)('LibreOffice', () => {
     const r = await rodar(soffice!, ['--headless', '--norestore', `-env:UserInstallation=${perfil}`, '--convert-to', 'pdf', '--outdir', saida, ...corpus.arquivos.map((a) => a.caminho)], 280_000);
     if (r.codigo !== 0) throw new Error(`soffice falhou: ${r.codigo}`);
     for (const a of corpus.arquivos) paginas.set(a.nome, await paginasDoPdf(join(saida, `${a.nome}.pdf`)));
+    if (PASTA_EXEMPLOS) for (const a of corpus.arquivos) if (a.nome.startsWith('exemplo-')) copyFileSync(join(saida, `${a.nome}.pdf`), join(PASTA_EXEMPLOS, `${a.nome}.pdf`));
   });
   afterAll(() => corpus?.apagar());
 
-  it.each(['monografia', 'artigo-tcc', 'dissertacao', 'tese', 'relatorio-tecnico', 'projeto-pesquisa', 'documento-dificil'])('%s converte, com a capa numa só página', (nome) => {
+  it.each(NOMES_CORPUS)('%s converte, com a capa numa só página', (nome) => {
     const p = paginas.get(nome)!;
     expect(p.length).toBeGreaterThan(1);
     expect(p[0]).toContain('UNIVERSIDADE FEDERAL DO TOCANTINS');

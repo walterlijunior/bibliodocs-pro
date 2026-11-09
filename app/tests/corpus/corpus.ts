@@ -44,7 +44,7 @@ export function trabalhoDoTipo(tipo: TipoTrabalhoUft): Documento {
 }
 
 /** Obras fictícias para a lista REFERÊNCIAS e as chamadas (M4-T05): destaque, et al., In:, sufixo a/b, on-line, veículo. */
-const OBRAS_FICTICIAS: Obra[] = [
+export const OBRAS_FICTICIAS: Obra[] = [
   { id: 'o1', tipo: 'livro', autores: [{ tipo: 'pessoa', sobrenome: 'Exemplar Neto', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Estudo de ' }, { tipo: 'texto', texto: 'Caryocar brasiliense', marcas: ['italico'] }], subtitulo: [{ tipo: 'texto', texto: 'um caso fictício' }], edicao: 2, local: 'Palmas', editora: 'Editora Fictícia', ano: 2020, paginas: '120' },
   { id: 'o2', tipo: 'livro', autores: [{ tipo: 'pessoa', sobrenome: 'Exemplar Neto', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Outro estudo' }], local: 'Palmas', editora: 'Editora Fictícia', ano: 2020 },
   { id: 'o3', tipo: 'capitulo', autores: [{ tipo: 'pessoa', sobrenome: 'Capítulo', prenomes: 'Autoria' }], titulo: [{ tipo: 'texto', texto: 'Um capítulo de teste' }], noTodo: { autores: [{ tipo: 'pessoa', sobrenome: 'Organização', prenomes: 'Fictícia' }], funcao: 'org', titulo: [{ tipo: 'texto', texto: 'Coletânea de teste' }] }, local: 'Palmas', editora: 'Editora Fictícia', ano: 2019, paginas: '10-30' },
