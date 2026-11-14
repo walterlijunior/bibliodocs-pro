@@ -132,4 +132,4 @@ jobs:
           Set-Location release/final
           Get-ChildItem *.exe | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content -Encoding ascii SHA256SUMS.txt
           $aviso = if ($env:ASSINAR -eq 'true') { 'Instalador assinado pela SignPath Foundation.' } else { 'ATENÇÃO: instalador SEM assinatura de código (versão de teste). O Windows pode bloqueá-lo; veja docs/INSTALACAO_APP.md.' }
-          gh release create $env:TAG --draft --title "BiblioDocs Pro $env:TAG" --notes "$aviso Confira o arquivo pelo SHA256SUMS.txt." (Get-ChildItem *.exe).FullName SHA256SUMS.txt
+          gh release create $env:TAG --draft --title "BiblioDocs Pro $env:TAG" --notes "$aviso Confira o arquivo pelo SHA256SUMS.txt. O que o aplicativo faz, instalação e desinstalação: README.md e docs/INSTALACAO_APP.md. Code signing policy: https://github.com/walterlijunior/bibliodocs-pro#code-signing-policy-política-de-assinatura-de-código" (Get-ChildItem *.exe).FullName SHA256SUMS.txt

@@ -55,6 +55,42 @@ O projeto foi desenvolvido por etapas com o Claude Code, a partir de um kit de i
 em [`KIT_CLAUDE_CODE.md`](KIT_CLAUDE_CODE.md). Plano, decisões (ADR), relatórios de cada marco e de revisão ficam em
 [`docs/`](docs/); o histórico de entregas, em [`CHANGELOG.md`](CHANGELOG.md).
 
+## Code signing policy (política de assinatura de código)
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by
+[SignPath Foundation](https://signpath.org/).
+
+Assinatura de código gratuita fornecida pela [SignPath.io](https://about.signpath.io/), com certificado emitido pela
+[SignPath Foundation](https://signpath.org/). Só são assinados os arquivos gerados pelo GitHub Actions deste
+repositório ([`.github/workflows/release.yml`](.github/workflows/release.yml)) a partir do código-fonte publicado aqui.
+Cada assinatura é aprovada manualmente.
+
+Papéis da equipe (team roles):
+
+| Papel | Quem |
+|---|---|
+| Autores (committers), que alteram o código sem revisão adicional | [@walterlijunior](https://github.com/walterlijunior), único membro com escrita no repositório |
+| Revisores (reviewers), que revisam toda contribuição externa (pull requests) | [@walterlijunior](https://github.com/walterlijunior) |
+| Aprovadores (approvers), que aprovam cada pedido de assinatura | [@walterlijunior](https://github.com/walterlijunior) |
+
+Todos os membros usam autenticação de dois fatores no GitHub e na SignPath.
+
+### Privacy policy (privacidade)
+
+This program will not transfer any information to other networked systems unless specifically requested by the user
+or the person installing or operating it.
+
+O programa não transfere nenhuma informação para outros sistemas em rede, a menos que o usuário, ou quem o instala ou
+opera, peça isso expressamente. Ele funciona sem internet: os trabalhos, as preferências e os relatórios ficam no
+computador. O único acesso à rede é abrir no navegador um link em que o usuário clicou (só `https:`, de uma lista
+fixa).
+
+### Desinstalação
+
+O instalador traz um desinstalador: Configurações › Aplicativos › Aplicativos instalados › BiblioDocs Pro ›
+Desinstalar. Detalhes, inclusive o que fica no computador depois, em
+[`docs/INSTALACAO_APP.md`](docs/INSTALACAO_APP.md#desinstalar).
+
 ## Licença
 
 Copyright © 2026 os autores do BiblioDocs Pro.

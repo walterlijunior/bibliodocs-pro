@@ -10,6 +10,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - README da raiz apresenta o aplicativo; o guia do kit do Claude Code passou para `KIT_CLAUDE_CODE.md`.
 - Material de terceiros (`materiais/`) fora do controle de versão.
 - Integração contínua (`.github/workflows/ci.yml`) e instalador por tag (`release.yml`), com assinatura pela SignPath Foundation quando o projeto for aprovado.
+- README com a seção "Code signing policy" exigida pela SignPath Foundation (papéis da equipe, privacidade, desinstalação); as notas da release apontam para ela.
 
 ### Corrigido
 - Primeiro CI (2026-11-13): Enter no título da seção não divide mais o título; abre um parágrafo vazio logo depois dele. Antes, Enter no começo do título passava o texto todo para o corpo e deixava o título vazio.
