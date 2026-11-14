@@ -107,8 +107,10 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
   await expect.poll(() => x.app.evaluate(({ clipboard }) => clipboard.readText())).toContain('Como diz o autor Cagliari (2004, p. 12)');
 
   // Citação dentro da nota de rodapé: Ctrl+Shift+C no texto da nota insere na nota, e o foco volta para ela.
-  await editor.locator('p').nth(1).click();
-  await p.keyboard.press('End');
+  // Ctrl+End desfaz o Ctrl+A pelo teclado e põe o cursor no fim do segundo (e último) parágrafo. Um clique dentro da
+  // seleção inteira, seguido logo de teclas, às vezes chegava antes de o editor registrar a seleção nova (CI, 2026-11-13).
+  await p.keyboard.press('Control+End');
+  await expect.poll(() => p.evaluate(() => window.getSelection()?.isCollapsed)).toBe(true);
   await p.keyboard.press('Control+Alt+F');
   const textoNota = p.getByRole('textbox', { name: 'Texto da nota de rodapé' });
   await expect(textoNota).toBeFocused();
