@@ -269,6 +269,24 @@ export const alternarNumeroEquacao: Command = (estado, despachar) => {
   return true;
 };
 
+/**
+ * Enter no título da seção: parágrafo novo logo depois do título, com o cursor nele; o título nunca se divide. Sem isto,
+ * o Enter padrão no começo do título passava o texto todo para um parágrafo e deixava o título vazio (achado do
+ * primeiro CI, 2026-11-13). Com seleção dentro do título, o trecho selecionado sai antes, como em qualquer Enter.
+ */
+export const enterNoTitulo: Command = (estado, despachar) => {
+  const { $from, $to } = estado.selection;
+  if ($from.depth !== 1 || $from.parent.type !== tipos['titulo'] || !$to.sameParent($from)) return false;
+  if (despachar) {
+    const tr = estado.tr;
+    if (!estado.selection.empty) tr.deleteSelection();
+    const pos = tr.doc.child(0).nodeSize;
+    tr.insert(pos, T.paragrafo.create({ id: null }));
+    despachar(cursor(tr, pos + 1));
+  }
+  return true;
+};
+
 /** Enter no fim da equação: parágrafo novo depois dela (no meio, o Enter padrão divide a equação em duas). */
 export const enterNaEquacao: Command = (estado, despachar) => {
   const { selection } = estado;

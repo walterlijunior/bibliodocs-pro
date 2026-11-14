@@ -40,6 +40,16 @@ jobs:
         run: npm run verificar
       - name: Inventário de licenças de terceiros
         run: node empacotamento/terceiros.cjs --conferir
+      # O runner vem com tela de 1024×768: a janela mínima do app (1024×700) em 125% e 150% de escala não cabe, e o
+      # UI-01 precisa maximizar acima dela. 1920×1080 é a tela comum de quem usa o app.
+      - name: Tela de 1920×1080 para o E2E
+        shell: pwsh
+        run: |
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          Add-Type -AssemblyName System.Windows.Forms
+          $tela = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          "Tela: $($tela.Width)x$($tela.Height)"
+          if ($tela.Width -lt 1920) { throw 'A resolução não mudou.' }
       - name: Build e E2E no Electron real
         run: npm run test:e2e
       - name: Resultado do Playwright

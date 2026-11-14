@@ -13,7 +13,7 @@ import { redo, undo } from 'prosemirror-history';
 import type { MarkType, Node as NoPm } from 'prosemirror-model';
 import { NodeSelection, type Command, type EditorState } from 'prosemirror-state';
 import type { MarcaTexto } from '../../dominio/modelo';
-import { alternarAlineas, alternarCitacaoLonga, alternarEquacao, enterNaEquacao, enterNaLista, promoverSubalinea, recuarAlinea, voltarNoComeco } from './comandos-blocos';
+import { alternarAlineas, alternarCitacaoLonga, alternarEquacao, enterNaEquacao, enterNaLista, enterNoTitulo, promoverSubalinea, recuarAlinea, voltarNoComeco } from './comandos-blocos';
 import { esquemaEditor } from './esquema';
 
 const { nodes: tipos, marks: marcas } = esquemaEditor;
@@ -143,7 +143,7 @@ export const TECLAS_SECAO: Readonly<Record<string, Command>> = {
   'Shift-Mod-q': alternarCitacaoLonga,
   // M5-T07: equação (Alt+=, como "Inserir equação" no Word).
   'Alt-=': alternarEquacao,
-  Enter: chainCommands(enterNaLista, enterNaEquacao),
+  Enter: chainCommands(enterNoTitulo, enterNaLista, enterNaEquacao),
   Tab: recuarAlinea,
   'Shift-Tab': promoverSubalinea,
   Backspace: voltarNoComeco,

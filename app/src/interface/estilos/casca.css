@@ -247,6 +247,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   .zoom span, .atalho { display: none; }
   .conteudo { grid-template-columns: var(--largura-lateral) minmax(0, 1fr); }
   .detalhes { position: absolute; right: 0; top: 0; bottom: 0; box-shadow: -6px 0 18px var(--cor-sombra); }
+  /* O painel sobreposto cobre a direita do conteúdo: o botão do cabeçalho ("Novo trabalho") vai para a esquerda,
+     para não ficar por baixo dele (achado do primeiro CI, tela de 1024×768). */
+  .principal__cab { justify-content: flex-start; }
 }
 @media (forced-colors: active) {
   .aba[aria-selected="true"], .lateral button[aria-current="true"], .cartao[aria-selected="true"] { outline: 2px solid CanvasText; }

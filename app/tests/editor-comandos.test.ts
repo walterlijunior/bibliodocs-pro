@@ -157,6 +157,46 @@ describe('quebra de linha, desfazer e Enter (M2-T06)', () => {
   });
 });
 
+describe('Enter no título da seção (achado do primeiro CI)', () => {
+  // Título "Introdução" (texto de 1 a 11); um parágrafo "Texto." depois dele.
+  const comTitulo = (): ConteudoSecao => ({
+    titulo: [{ tipo: 'texto', texto: 'Introdução' }],
+    blocos: [{ tipo: 'paragrafo', id: 'par_paragrafo001', conteudo: [{ tipo: 'texto', texto: 'Texto.' }] }],
+  });
+  const enter = TECLAS_SECAO['Enter']!;
+
+  it.each([
+    ['no começo', 1],
+    ['no meio', 6],
+    ['no fim', 11],
+  ])('%s: o título fica inteiro e um parágrafo vazio entra logo depois, com o cursor nele', (_nome, pos) => {
+    let e = selecionar(criarEstadoSecao(comTitulo(), { gerarId }), pos);
+    e = executar(e, enter);
+    const secao = docParaSecao(e.doc);
+    expect(secao.titulo).toEqual([{ tipo: 'texto', texto: 'Introdução' }]);
+    expect(secao.blocos.map((b) => b.tipo)).toEqual(['paragrafo', 'paragrafo']);
+    expect(secao.blocos[0]!.id).toMatch(/^par_/);
+    expect(secao.blocos[0]!.id).not.toBe('par_paragrafo001');
+    expect(secao.blocos[1]!.id).toBe('par_paragrafo001');
+    expect(e.selection.empty).toBe(true);
+    expect(e.selection.$from.parent.type.name).toBe('paragrafo');
+    expect(e.selection.$from.index(0)).toBe(1);
+    valida(secao);
+  });
+
+  it('com trecho do título selecionado: o trecho sai e o resto do título fica', () => {
+    let e = selecionar(criarEstadoSecao(comTitulo(), { gerarId }), 1, 6);
+    e = executar(e, enter);
+    expect(docParaSecao(e.doc).titulo).toEqual([{ tipo: 'texto', texto: 'dução' }]);
+    expect(e.selection.$from.parent.type.name).toBe('paragrafo');
+  });
+
+  it('seleção do título até o texto: não é com ele (segue o Enter padrão)', () => {
+    const e = selecionar(criarEstadoSecao(comTitulo(), { gerarId }), 6, 15);
+    expect(enter(e)).toBe(false);
+  });
+});
+
 describe('colar sem formatação pelo menu (B5)', () => {
   it('o plugin de colagem do estado expõe o pedido', () => {
     const e = criarEstadoSecao(comNota(), { gerarId });

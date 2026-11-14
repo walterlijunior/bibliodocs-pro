@@ -12,6 +12,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Integração contínua (`.github/workflows/ci.yml`) e instalador por tag (`release.yml`), com assinatura pela SignPath Foundation quando o projeto for aprovado.
 
 ### Corrigido
+- Primeiro CI (2026-11-13): Enter no título da seção não divide mais o título; abre um parágrafo vazio logo depois dele. Antes, Enter no começo do título passava o texto todo para o corpo e deixava o título vazio.
+- Primeiro CI (2026-11-13): com a janela estreita (até 1100 px), o botão "Novo trabalho" da Biblioteca fica à esquerda e não some por baixo do painel de detalhes.
+- CI: o E2E roda numa tela de 1920×1080 (o runner vem com 1024×768, onde a janela mínima em 125% e 150% não cabe).
 - Etapa 7, E7-T04 (revisão final): o canal de exportação recusa gráficos que, somados, passem de 1 GiB.
 - Etapa 7, E7-T03: Verificar › Verificar conformidade e a tecla F7 abrem o verificador (o item do menu não fazia nada).
 
