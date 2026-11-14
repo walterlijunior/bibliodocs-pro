@@ -20,6 +20,7 @@ import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
 import { DialogoFigura } from './DialogoFigura';
 import { DialogoRemissiva } from './DialogoRemissiva';
+import { ListaVisuais, PainelElemento, PainelMencoes, type NovoElemento } from './GerenciadorElementos';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
 import { areaUtilDoPerfilMm } from '../../aplicacao';
@@ -37,7 +38,7 @@ import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
-import type { ElementoNaSessao, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
 export { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
@@ -49,12 +50,15 @@ const TITULOS_MODO: Readonly<Record<ModoTrabalho, string>> = {
   conformidade: 'Conformidade',
 };
 
-const ROTULOS_VISUAL: Readonly<Record<string, string>> = {
-  tabela: 'Tabelas e quadros',
-  ilustracao: 'Figuras',
-  grafico: 'Gráficos',
-  equacao: 'Equações',
-};
+/**
+ * Ação do gerenciador de elementos (Etapa 4) que acontece no editor, na aba Escrever, quando a seção dela estiver na
+ * tela: editar o elemento, ligar uma menção escrita, inserir remissiva ou criar um elemento no cursor.
+ */
+type AcaoNoEditor =
+  | { tipo: 'editar'; id: string; bloco: 'tabela' | 'ilustracao' | 'grafico' | 'equacao' | string }
+  | { tipo: 'ligar'; bloco: string; trecho: string }
+  | { tipo: 'remissiva'; alvo: string }
+  | { tipo: 'novo'; qual: NovoElemento };
 
 export interface PropsAreaEscrever {
   /** Aba do trabalho (F-E6-01); sem ela, Escrever. */
@@ -76,6 +80,8 @@ export interface PropsAreaEscrever {
     mover: (id: string, sentido: 'cima' | 'baixo') => boolean;
   };
   conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
+  /** Gerenciador de elementos (Etapa 4): menções escritas sem ligação e menções sem número. */
+  mencoes?: () => MencoesDoTexto;
   /** E7-T03: maior que 0 quando Verificar › Verificar conformidade (F7) pediu a janela; atendido, volta a 0. */
   pedidoConformidade?: number;
   aoAtenderPedidoConformidade?: () => void;
@@ -214,6 +220,9 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   }, [pedidoSigla, cadastrosAbertos, controleEditor]);
   // Elemento na tela no lugar do editor. Outra seção ativa (árvore, barra superior, desfazer) volta ao editor.
   const [elementoId, setElementoId] = useState<string | null>(null);
+  // Gerenciador (Etapa 4): o elemento visual escolhido na aba Elementos e a ação que espera o editor na aba Escrever.
+  const [visualId, setVisualId] = useState<string | null>(null);
+  const [acaoNoEditor, setAcaoNoEditor] = useState<{ secao: string; acao: AcaoNoEditor } | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
   // Obra na tela no lugar do editor: a do trabalho (pelo id) ou o rascunho de uma nova.
   const [obraAberta, setObraAberta] = useState<{ id: string } | { nova: Obra } | null>(null);
@@ -255,8 +264,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     if (pedidoFigura !== null) focarAoFecharFigura.current = true;
   }, [pedidoFigura, controleEditor]);
   // Janela da remissiva (M5-T08): `existente` é a remissiva selecionada; `null`, uma nova no cursor.
-  const [pedidoRemissiva, setPedidoRemissiva] = useState<{ existente: RemissivaNoEditor | null } | null>(null);
-  const pedirRemissiva = useCallback((existente: RemissivaNoEditor | null) => setPedidoRemissiva({ existente }), []);
+  const [pedidoRemissiva, setPedidoRemissiva] = useState<{ existente: RemissivaNoEditor | null; mencao: string | null } | null>(null);
+  const pedirRemissiva = useCallback((existente: RemissivaNoEditor | null, mencao?: string | null) => setPedidoRemissiva({ existente, mencao: mencao ?? null }), []);
   const focarAoFecharRemissiva = useRef(false);
   useEffect(() => {
     if (pedidoRemissiva === null && focarAoFecharRemissiva.current) {
@@ -334,6 +343,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       return;
     }
     setElementoId(null);
+    setVisualId(null);
     setObraAberta(null);
     setConferencia(null);
     setSugestaoPre(null);
@@ -409,6 +419,29 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     controleEditor.current.irPara(irAoTexto.no, irAoTexto.trecho);
     setIrAoTexto(null);
   }, [irAoTexto, ativaId, controleEditor]);
+  // Ação do gerenciador (Etapa 4), quando a seção dela está no editor (depois da limpeza das janelas ao trocar de seção).
+  useEffect(() => {
+    const c = controleEditor.current;
+    if (acaoNoEditor === null || modo !== 'escrever' || c === null || c.secaoId !== acaoNoEditor.secao) return;
+    const { acao } = acaoNoEditor;
+    setAcaoNoEditor(null);
+    if (acao.tipo === 'editar') {
+      c.irPara(acao.id);
+      if (acao.bloco === 'tabela') c.pedirTabela();
+      else if (acao.bloco === 'ilustracao') c.pedirFigura();
+      else if (acao.bloco === 'grafico') c.pedirGrafico();
+    } else if (acao.tipo === 'ligar') {
+      if (c.irPara(acao.bloco, acao.trecho)) c.pedirRemissiva();
+    } else if (acao.tipo === 'remissiva') {
+      c.focar();
+      if (!c.inserirRemissiva(acao.alvo)) setAvisosEditor(['O cursor não está no texto corrido: clique num parágrafo e insira a remissiva por Inserir › Remissiva….']);
+    } else {
+      c.focar();
+      if (acao.qual === 'tabela') c.pedirTabela(true);
+      else if (acao.qual === 'figura') c.pedirFigura(true);
+      else c.pedirGrafico(true);
+    }
+  }, [acaoNoEditor, modo, ativaId, controleEditor]);
   const obraDaLista = obraAberta !== null && 'id' in obraAberta ? (t?.obras.find((o) => o.obra.id === obraAberta.id)?.obra ?? null) : null;
   const comObra = obraAberta !== null && ('nova' in obraAberta || obraDaLista !== null);
   const comConferencia = conferencia !== null;
@@ -460,6 +493,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const ativa = e.ativa;
   const pre = t.preTextuais;
   const elementoAtivo = comObra || comConferencia ? null : (pre?.lista.find((x) => x.id === elementoId) ?? null);
+  const visualAtivo = modo === 'elementos' && elementoAtivo === null ? (t.elementos.find((x) => x.id === visualId && x.bloco !== undefined) ?? null) : null;
+  /** Leva à aba Escrever, na seção, e faz a ação do gerenciador quando o editor dela estiver na tela. */
+  const noEditor = (secao: string, acao: AcaoNoEditor) => {
+    setAcaoNoEditor({ secao, acao });
+    escolher(secao, null);
+    aoIrParaModo?.('escrever');
+  };
   const escolher = (id: string, foco: PedidoFoco['alvo'] | null) => {
     setElementoId(null);
     setObraAberta(null);
@@ -628,9 +668,22 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         {modo === 'elementos' && (
           <ListaVisuais
             elementos={t.elementos}
-            aoIr={(x) => {
-              setIrAoTexto({ tipo: 'texto', secao: x.secao, no: x.id, trecho: '' });
-              escolher(x.secao, null);
+            ativoId={visualAtivo?.id ?? null}
+            somenteLeitura={t.somenteLeitura}
+            aoEscolher={(x) => {
+              setElementoId(null);
+              setVisualId(x.id);
+            }}
+            aoMencoes={() => {
+              setElementoId(null);
+              setVisualId(null);
+            }}
+            aoNovo={(qual) => {
+              if (ativa === null) {
+                setAnuncioElemento('Abra ou crie uma seção na aba Escrever: o elemento entra no ponto do cursor dela.');
+                return;
+              }
+              setAcaoNoEditor({ secao: ativa.id, acao: { tipo: 'novo', qual } });
               aoIrParaModo?.('escrever');
             }}
           />
@@ -759,6 +812,38 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 }
               }}
             />
+          ) : visualAtivo !== null ? (
+            <PainelElemento
+              elemento={visualAtivo}
+              elementos={t.elementos}
+              somenteLeitura={t.somenteLeitura}
+              secaoDoCursor={ativa?.id ?? null}
+              lerMidia={p.midias.ler}
+              aoIrAoTexto={() => {
+                setIrAoTexto({ tipo: 'texto', secao: visualAtivo.secao, no: visualAtivo.id, trecho: '' });
+                escolher(visualAtivo.secao, null);
+                aoIrParaModo?.('escrever');
+              }}
+              aoEditar={() => noEditor(visualAtivo.secao, { tipo: 'editar', id: visualAtivo.id, bloco: visualAtivo.bloco!.tipo })}
+              aoRemissivaNoCursor={() => {
+                if (ativa === null) return;
+                setAcaoNoEditor({ secao: ativa.id, acao: { tipo: 'remissiva', alvo: visualAtivo.id } });
+                aoIrParaModo?.('escrever');
+              }}
+              aoVoltar={() => setVisualId(null)}
+            />
+          ) : modo === 'elementos' && p.mencoes ? (
+            <PainelMencoes
+              mencoes={p.mencoes()}
+              elementos={t.elementos}
+              somenteLeitura={t.somenteLeitura}
+              aoIr={(secao, no, trecho) => {
+                setIrAoTexto({ tipo: 'texto', secao, no, trecho });
+                escolher(secao, null);
+                aoIrParaModo?.('escrever');
+              }}
+              aoLigar={(secao, bloco, trecho) => noEditor(secao, { tipo: 'ligar', bloco, trecho })}
+            />
           ) : modo !== 'escrever' ? (
             <p className="dica" id="titulo-secao-ativa">
               {modo === 'elementos'
@@ -829,11 +914,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 <DialogoRemissiva
                   elementos={t.elementos}
                   alvoAtual={pedidoRemissiva.existente?.alvo ?? null}
-                  aoConfirmar={(alvo) => {
+                  textoAtual={pedidoRemissiva.existente?.texto ?? null}
+                  mencaoEscrita={pedidoRemissiva.mencao}
+                  aoConfirmar={(alvo, forma) => {
                     const x = pedidoRemissiva.existente;
                     setPedidoRemissiva(null);
-                    if (x === null) controleEditor.current?.inserirRemissiva(alvo);
-                    else controleEditor.current?.alterarRemissiva(x.id, alvo);
+                    if (x === null) controleEditor.current?.inserirRemissiva(alvo, { ...(forma.texto !== null ? { texto: forma.texto } : {}), substituir: pedidoRemissiva.mencao !== null });
+                    else controleEditor.current?.alterarRemissiva(x.id, alvo, forma.texto);
                   }}
                   aoFechar={() => setPedidoRemissiva(null)}
                 />
@@ -914,40 +1001,6 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       </>
       )}
     </>
-  );
-}
-
-/**
- * Tabelas, quadros, figuras, gráficos e equações numerados do trabalho, na ordem do documento (aba Elementos,
- * F-E6-01). Cada um leva ao ponto do texto onde está, na aba Escrever.
- */
-function ListaVisuais({ elementos, aoIr }: { elementos: readonly ElementoNaSessao[]; aoIr: (x: ElementoNaSessao) => void }) {
-  const grupos = Object.entries(ROTULOS_VISUAL)
-    .map(([tipo, nome]) => ({ tipo, nome, itens: elementos.filter((x) => x.tipo === tipo) }))
-    .filter((g) => g.itens.length > 0);
-  return (
-    <section className="elementos" aria-labelledby="titulo-visuais">
-      <h2 id="titulo-visuais">Tabelas, figuras e equações</h2>
-      {grupos.length === 0 ? (
-        <p className="dica">Nenhum ainda. Use o menu Inserir na aba Escrever.</p>
-      ) : (
-        grupos.map((g) => (
-          <div key={g.tipo}>
-            <h3 className="elementos__grupo">{g.nome}</h3>
-            <ul className="elementos__lista">
-              {g.itens.map((x) => (
-                <li key={x.id}>
-                  <button type="button" className="elementos__item" onClick={() => aoIr(x)} title="Ir ao texto, na aba Escrever">
-                    <span>{x.descricao}</span>
-                    {x.remissivas === 0 && x.tipo !== 'equacao' && <span className="elementos__marca">sem remissiva no texto</span>}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
-      )}
-    </section>
   );
 }
 

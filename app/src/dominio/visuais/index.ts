@@ -17,7 +17,7 @@ export {
 } from './imagem';
 export { celulasComColuna, ehDadoNumerico, proporcaoNumerica, textoDaCelula } from './dados-numericos';
 export { PALAVRA_DESIGNATIVA, prefixoFonte, rodapeDoElemento, rotuloElemento, temFonte, tituloComRotulo, type ParteRodape } from './rotulos';
-export { alvosDeRemissiva, remissivasDoCorpo, rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA, type AlvoRemissiva, type RemissivaNoTexto } from './remissivas';
+export { alvoPorRotulo, alvosDeRemissiva, mencoesEscritas, remissivasDoCorpo, rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA, type AlvoRemissiva, type MencaoEscrita, type RemissivaNoTexto } from './remissivas';
 export {
   CATEGORIAS_MAXIMAS,
   CORES_GRAFICO,

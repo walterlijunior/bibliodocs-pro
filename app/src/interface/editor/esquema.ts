@@ -226,8 +226,9 @@ const nos: Record<string, NodeSpec> = {
     group: 'inline',
     inline: true,
     atom: true,
-    attrs: { ...atributoId, alvo: { validate: 'string' } },
-    toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-remissiva', no), 'remissiva'],
+    // `texto`: menção sem número (Etapa 4), o texto do autor no lugar do rótulo.
+    attrs: { ...atributoId, alvo: { validate: 'string' }, texto: { default: null, validate: 'string|null' } },
+    toDOM: (no): DOMOutputSpec => ['span', atributosComId('bd-remissiva', no), typeof no.attrs['texto'] === 'string' ? no.attrs['texto'] : 'remissiva'],
   },
 
   sigla: {

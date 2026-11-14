@@ -110,6 +110,7 @@ export {
   type ResumoElemento,
   type ObraNaLista,
   type ElementoNaSessao,
+  type MencoesDoTexto,
   type ResultadoObra,
   MENSAGEM_OBRA_INVALIDA,
   soMidiasUsadas,
@@ -140,7 +141,7 @@ export {
   type RascunhoFigura,
   type ResultadoValidacaoFigura,
 } from './servicos/figuras';
-export { lerInfoImagem, RESOLUCAO_MINIMA_PPI, type InfoImagem } from '../dominio/visuais';
+export { alvoPorRotulo, lerInfoImagem, RESOLUCAO_MINIMA_PPI, type InfoImagem, type MencaoEscrita } from '../dominio/visuais';
 export {
   aplicarPlanilha,
   converterPlanilha,

@@ -165,7 +165,7 @@ function inlinesParaNos(conteudo: readonly Inline[]): NoPm[] {
       continue;
     }
     if (i.tipo === 'remissiva') {
-      nos.push(tipos['remissiva']!.create({ id: i.id, alvo: i.alvo }));
+      nos.push(tipos['remissiva']!.create({ id: i.id, alvo: i.alvo, texto: i.texto ?? null }));
       continue;
     }
     if (i.tipo === 'sigla') {
@@ -262,7 +262,10 @@ function nosParaInlines(pai: NoPm): Inline[] {
     if (no.isText) bruto.push(texto(no.text ?? '', marcasDe(no)));
     else if (no.type === tipos['quebraLinha']) bruto.push(texto('\n', marcasDe(no)));
     else if (no.type === tipos['nota']) bruto.push({ tipo: 'nota', id: idDe(no), conteudo: semNota(nosParaInlines(no)) });
-    else if (no.type === tipos['remissiva']) bruto.push({ tipo: 'remissiva', id: idDe(no), alvo: String(no.attrs['alvo']) });
+    else if (no.type === tipos['remissiva']) {
+      const livre = no.attrs['texto'];
+      bruto.push({ tipo: 'remissiva', id: idDe(no), alvo: String(no.attrs['alvo']), ...(typeof livre === 'string' ? { texto: livre } : {}) });
+    }
     else if (no.type === tipos['sigla']) bruto.push({ tipo: 'sigla', id: idDe(no), sigla: String(no.attrs['sigla']) });
     else if (no.type === tipos['chamadaCitacao']) bruto.push({ ...(JSON.parse(String(no.attrs['dados'])) as Omit<InlineCitacao, 'tipo' | 'id'>), tipo: 'citacao', id: idDe(no) });
   });

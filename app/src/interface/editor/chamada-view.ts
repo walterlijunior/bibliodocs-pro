@@ -118,7 +118,7 @@ export class ChamadaView implements NodeView {
 export function copiaComChamadas(registro: RegistroChamadas, remissivas?: RegistroRemissivas, siglas?: RegistroSiglas): Pick<EditorProps, 'clipboardSerializer' | 'clipboardTextSerializer'> {
   const base = DOMSerializer.fromSchema(esquemaEditor);
   const texto = (no: NoPm): string => registro.formatar(dadosDaChamada(no))?.texto ?? '';
-  const textoRemissiva = (no: NoPm): string => remissivas?.texto(String(no.attrs['alvo'])) ?? '';
+  const textoRemissiva = (no: NoPm): string => (typeof no.attrs['texto'] === 'string' ? no.attrs['texto'] : (remissivas?.texto(String(no.attrs['alvo'])) ?? ''));
   const textoSigla = (no: NoPm): string => siglas?.texto(String(no.attrs['sigla'])) ?? TEXTO_SIGLA_QUEBRADA;
   const serializador = new DOMSerializer(
     {

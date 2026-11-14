@@ -790,3 +790,15 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   campos de sempre (`instituicao`, `campus`, `curso`, `local`, `orientador`…): o trabalho abre e exporta igual em outro
   computador, sem o catálogo; id que o catálogo não tem é ignorado na tela.
 
+## Adendo da Etapa 4 da especificação de atualização (2026-11-14) — menção sem número
+
+- **Aditivo, sem subir `versaoFormato`.** `InlineRemissiva` ganha `texto?: string` (1 a `LIMITES_V1.textoMencao` = 200
+  caracteres, numa linha, não só espaços). Ausente, a remissiva mostra o rótulo, como antes; presente, é a menção sem
+  número (D-E4-01): o texto do autor sai no lugar do rótulo e continua ligado ao `alvo`. JSON Schema regenerado.
+- Escolhido em vez de um inline novo (`mencao`, previsto no plano): a menção sem número é uma remissiva com outra forma.
+  Assim, ela reaproveita a contagem por elemento, o aviso de remissiva quebrada da sessão, a pendência
+  `REMISSIVA_QUEBRADA` do verificador, os ids únicos e a cópia do editor sem código novo em cada um.
+- Arquivo com `texto` aberto por uma versão anterior do aplicativo é recusado na validação (o esquema é estrito); só
+  acontece se o autor usar a menção sem número.
+- **Editor:** o nó `remissiva` ganha o atributo `texto` (padrão `null`); a ida e volta modelo → editor → modelo conserva
+  o campo (teste em `tests/etapa4-gerenciador.test.ts`).

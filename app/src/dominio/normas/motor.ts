@@ -440,6 +440,8 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
         return [{ tipo: 'texto', texto: primeira && rnPrimeiraSigla !== null ? `${limpo(s.extenso)} (${limpo(s.sigla)})` : limpo(s.sigla), marcas: [] }];
       }
       if (i.tipo === 'remissiva') {
+        // Menção sem número (Etapa 4): o texto do autor, sempre (quebrada ou não; o verificador aponta a quebrada).
+        if (i.texto !== undefined) return [{ tipo: 'texto', texto: i.texto, marcas: [] }];
         const rotulo = rotulosRemissiva.get(i.alvo);
         // Quebrada: sai marcada, para o autor achar; quem avisa é o verificador (REMISSIVA_QUEBRADA), sem repetir aqui.
         if (rotulo !== undefined) return [{ tipo: 'texto', texto: rotulo, marcas: [] }];

@@ -10,7 +10,7 @@
  */
 import { conteudosDoBloco, secoesDaEntrada, textoPlano, type EntradaDeLeitura, type Id, type InlineRemissiva } from '../modelo';
 import { numerarElementos, numerarSecoes, rotuloEquacao, rotulosPosTextuais } from '../numeracao';
-import { rotuloElemento } from './rotulos';
+import { PALAVRA_DESIGNATIVA, rotuloElemento } from './rotulos';
 
 export interface AlvoRemissiva {
   id: Id;
@@ -86,3 +86,60 @@ export function rotulosDeRemissiva(corpo: EntradaDeLeitura): ReadonlyMap<Id, str
 
 /** Texto da remissiva quebrada, no editor e no arquivo exportado, para o autor achar (D-M5-43). */
 export const TEXTO_REMISSIVA_QUEBRADA = '[remissiva quebrada]';
+
+/**
+ * Menção escrita à mão (Etapa 4 da especificação de atualização): "Quadro 1", "tabela 2", "APÊNDICE A" digitados como
+ * texto, sem ligação com o elemento. Não muda com a numeração; o gerenciador de elementos a mostra para o autor ligar.
+ */
+export interface MencaoEscrita {
+  secao: Id;
+  bloco: Id;
+  /** O trecho como está no texto. */
+  trecho: string;
+  /** O elemento que hoje tem esse rótulo; `null` = nenhum (número que não existe). */
+  alvo: Id | null;
+}
+
+const PALAVRAS_MENCAO = [...new Set(Object.values(PALAVRA_DESIGNATIVA))];
+const sem = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('pt-BR');
+const RE_MENCAO = new RegExp(
+  String.raw`(?<![\p{L}\p{N}])(?:(${PALAVRAS_MENCAO.join('|')})\s+(\d{1,4})|(AP[ÊE]NDICE|ANEXO)\s+([A-Z]{1,3}))(?![\p{L}\p{N}])`,
+  'giu',
+);
+
+/**
+ * O alvo cujo rótulo corresponde ao texto ("quadro 2" → Quadro 2; "Apendice b" → APÊNDICE B), sem diferença de
+ * maiúsculas nem acentos. `null` = nenhum ou texto que não é rótulo.
+ */
+export function alvoPorRotulo(alvos: readonly AlvoRemissiva[], texto: string): AlvoRemissiva | null {
+  const chave = sem(texto.trim().replace(/\s+/g, ' '));
+  if (chave === '') return null;
+  return alvos.find((a) => a.tipo !== 'secao' && a.tipo !== 'equacao' && sem(a.rotulo) === chave) ?? null;
+}
+
+/** Menções escritas sem ligação no texto corrido, na ordem de leitura (o texto das notas não entra). */
+export function mencoesEscritas(entrada: EntradaDeLeitura, alvos: readonly AlvoRemissiva[] = alvosDeRemissiva(entrada)): MencaoEscrita[] {
+  const lista: MencaoEscrita[] = [];
+  for (const { secao } of numerarSecoes(secoesDaEntrada(entrada))) {
+    for (const bloco of secao.blocos) {
+      for (const conteudo of conteudosDoBloco(bloco)) {
+        // Trechos de texto seguidos formam uma corrida (as marcas não cortam "Quadro 1"); outro inline a interrompe.
+        let corrida = '';
+        const fechar = () => {
+          for (const m of corrida.matchAll(RE_MENCAO)) {
+            // "anexo a" em minúsculas é artigo, não rótulo: a letra do apêndice e do anexo tem de ser maiúscula.
+            if (m[3] !== undefined && m[4] !== m[4]!.toLocaleUpperCase('pt-BR')) continue;
+            lista.push({ secao: secao.id, bloco: bloco.id, trecho: m[0], alvo: alvoPorRotulo(alvos, m[0])?.id ?? null });
+          }
+          corrida = '';
+        };
+        for (const i of conteudo) {
+          if (i.tipo === 'texto') corrida += i.texto;
+          else fechar();
+        }
+        fechar();
+      }
+    }
+  }
+  return lista;
+}

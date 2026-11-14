@@ -127,7 +127,21 @@ export const esquemaInlineNota = z
   .meta({ id: 'InlineNota' });
 
 /** Remissiva a tabela, quadro, ilustração ou equação (M5-T08; RF-11). O alvo não é conferido na leitura (ADR-0005). */
-export const esquemaInlineRemissiva = z.strictObject({ tipo: z.literal('remissiva'), id, alvo: id }).meta({ id: 'InlineRemissiva' });
+export const esquemaInlineRemissiva = z
+  .strictObject({
+    tipo: z.literal('remissiva'),
+    id,
+    alvo: id,
+    /** Menção sem número (Etapa 4): texto do autor, numa linha só. */
+    texto: z
+      .string()
+      .min(1)
+      .max(LIMITES_V1.textoMencao)
+      .regex(/^[^\u0000-\u001F\uFFFE\uFFFF\p{Cs}]*$/u, { error: 'o texto da menção não aceita quebra de linha nem caractere de controle' })
+      .refine((s) => s.trim() !== '', { error: 'o texto da menção está vazio' })
+      .optional(),
+  })
+  .meta({ id: 'InlineRemissiva' });
 
 export const esquemaInline = z
   .discriminatedUnion('tipo', [esquemaInlineTexto, esquemaInlineNota, esquemaInlineCitacao, esquemaInlineRemissiva, esquemaInlineSigla])

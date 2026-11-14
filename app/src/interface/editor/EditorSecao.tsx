@@ -31,7 +31,7 @@ import type { AlinhamentoParagrafo, MarcaTexto, Sigla } from '../../dominio/mode
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { Icone, type NomeIcone } from '../Icones';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
-import { alterarRemissiva, inserirRemissiva, podeInserirRemissiva, remissivaSelecionada, type RemissivaNoEditor } from './remissivas';
+import { alterarRemissiva, inserirRemissiva, mencaoEscritaSelecionada, podeInserirRemissiva, remissivaSelecionada, type OpcoesRemissiva, type RemissivaNoEditor } from './remissivas';
 import { RegistroRemissivas, RemissivaView } from './remissiva-view';
 import { alterarSigla, inserirSigla, ligarSiglasEscritas, podeInserirSigla, siglaSelecionada, siglasEscritasNoDoc, type SiglaEscrita, type SiglaNoEditor } from './siglas';
 import { RegistroSiglas, SiglaView } from './sigla-view';
@@ -117,21 +117,24 @@ export interface ControleEditor {
   alterarCitacao(id: string, dados: DadosCitacao): boolean;
   retirarCitacao(id: string): boolean;
   /** Pede a janela da tabela: a selecionada, ou uma nova no cursor (M5-T04). */
-  pedirTabela(): boolean;
+  /** `nova`: sempre uma nova, mesmo com uma tabela selecionada (entra depois dela). */
+  pedirTabela(nova?: boolean): boolean;
   inserirTabela(dados: DadosTabela): boolean;
   alterarTabela(id: string, dados: DadosTabela): boolean;
   /** Pede a janela da figura: a selecionada, ou uma nova no cursor (M5-T06). */
-  pedirFigura(): boolean;
+  pedirFigura(nova?: boolean): boolean;
   inserirFigura(dados: DadosFigura): boolean;
   alterarFigura(id: string, dados: DadosFigura): boolean;
   /** Pede a janela do gráfico: o selecionado, ou um novo no cursor (M5-T09). */
-  pedirGrafico(): boolean;
+  pedirGrafico(nova?: boolean): boolean;
   inserirGrafico(dados: CamposGrafico): boolean;
   alterarGrafico(id: string, dados: CamposGrafico): boolean;
   /** Pede a janela da remissiva: a selecionada, ou uma nova no cursor (M5-T08). */
   pedirRemissiva(): boolean;
-  inserirRemissiva(alvo: string): boolean;
-  alterarRemissiva(id: string, alvo: string): boolean;
+  /** `opcoes.substituir`: troca a menção escrita selecionada pela remissiva (Etapa 4); `opcoes.texto`: menção sem número. */
+  inserirRemissiva(alvo: string, opcoes?: OpcoesRemissiva): boolean;
+  /** `texto`: `undefined` mantém a forma; `null`, rótulo; texto, menção sem número (Etapa 4). */
+  alterarRemissiva(id: string, alvo: string, texto?: string | null): boolean;
   /** Liga ou desliga a equação nos parágrafos da seleção (M5-T07). */
   alternarEquacao(): boolean;
   pedirSigla(): boolean;
@@ -227,7 +230,7 @@ export interface PropsEditorSecao {
   /** Texto de cada alvo de remissiva ("Tabela 3"), pela numeração atual do documento (M5-T08). */
   rotulosRemissiva: ReadonlyMap<string, string>;
   /** Abre a janela da remissiva: `existente` é a remissiva a alterar; `null`, uma nova no cursor (M5-T08). */
-  aoPedirRemissiva: (existente: RemissivaNoEditor | null) => void;
+  aoPedirRemissiva: (existente: RemissivaNoEditor | null, mencaoEscrita?: string | null) => void;
   /** Tabelas do trabalho, pelo id, para desenhar os gráficos gerados (M5-T09). */
   tabelasDoTrabalho: ReadonlyMap<string, BlocoTabela>;
   /** Abre a janela do gráfico: `existente` é o gráfico a alterar; `null`, um novo no cursor (M5-T09). */
@@ -363,21 +366,24 @@ export function EditorSecao(p: PropsEditorSecao) {
     };
     const notas = new Set<NotaView>();
     // Janela da tabela (M5-T04): a selecionada, ou uma nova no cursor.
-    const pedirTabela = (): boolean => {
+    // `nova` (gerenciador de elementos, Etapa 4): sempre um novo, depois do selecionado, se houver.
+    const pedirTabela = (nova = false): boolean => {
       if (somenteLeitura) return false;
-      refProps.current.aoPedirTabela(tabelaSelecionada(view.state));
+      refProps.current.aoPedirTabela(nova ? null : tabelaSelecionada(view.state));
       return true;
     };
     // Janela da figura (M5-T06).
-    const pedirFigura = (): boolean => {
+    // `nova` (gerenciador de elementos, Etapa 4): sempre um novo, depois do selecionado, se houver.
+    const pedirFigura = (nova = false): boolean => {
       if (somenteLeitura) return false;
-      refProps.current.aoPedirFigura(figuraSelecionada(view.state));
+      refProps.current.aoPedirFigura(nova ? null : figuraSelecionada(view.state));
       return true;
     };
     // Janela do gráfico (M5-T09).
-    const pedirGrafico = (): boolean => {
+    // `nova` (gerenciador de elementos, Etapa 4): sempre um novo, depois do selecionado, se houver.
+    const pedirGrafico = (nova = false): boolean => {
       if (somenteLeitura) return false;
-      refProps.current.aoPedirGrafico(graficoSelecionado(view.state));
+      refProps.current.aoPedirGrafico(nova ? null : graficoSelecionado(view.state));
       return true;
     };
     // Janela da remissiva (M5-T08): a selecionada, ou uma nova no cursor (só no texto corrido).
@@ -385,7 +391,8 @@ export function EditorSecao(p: PropsEditorSecao) {
       if (somenteLeitura) return false;
       const existente = remissivaSelecionada(view.state);
       if (existente === null && !podeInserirRemissiva(view.state)) return false;
-      refProps.current.aoPedirRemissiva(existente);
+      // Etapa 4: menção já escrita e selecionada ("Quadro 1"), para ligar ao elemento.
+      refProps.current.aoPedirRemissiva(existente, existente === null ? mencaoEscritaSelecionada(view.state) : null);
       return true;
     };
     // Ctrl+Shift+C (o atalho do menu Inserir › Citação…), e Enter com a chamada selecionada: a janela da citação.
@@ -573,8 +580,8 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirGrafico: (dados) => executar(inserirGrafico(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       alterarGrafico: (id, dados) => executar(alterarGrafico(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirRemissiva,
-      inserirRemissiva: (alvo) => executar(inserirRemissiva(alvo)),
-      alterarRemissiva: (id, alvo) => executar(alterarRemissiva(id, alvo)),
+      inserirRemissiva: (alvo, opcoes) => executar(inserirRemissiva(alvo, opcoes)),
+      alterarRemissiva: (id, alvo, texto) => executar(alterarRemissiva(id, alvo, texto)),
       pedirSigla,
       inserirSigla: (id) => passoSigla(inserirSigla(id)),
       alterarSigla: (id, sigla) => passoSigla(alterarSigla(id, sigla)),

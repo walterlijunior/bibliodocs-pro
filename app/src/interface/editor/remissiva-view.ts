@@ -63,17 +63,24 @@ export class RemissivaView implements NodeView {
   desenhar(): void {
     const alvo = String(this.#no.attrs['alvo']);
     const rotulo = this.#registro.rotulo(alvo);
-    this.dom.textContent = rotulo ?? TEXTO_QUEBRADA;
+    const livre = typeof this.#no.attrs['texto'] === 'string' ? (this.#no.attrs['texto'] as string) : null;
+    // Menção sem número (Etapa 4): o texto do autor, mesmo quebrada (o aviso diz que perdeu o elemento).
+    this.dom.textContent = livre ?? rotulo ?? TEXTO_QUEBRADA;
     this.dom.classList.toggle('bd-remissiva--quebrada', rotulo === null);
+    this.dom.classList.toggle('bd-remissiva--sem-numero', livre !== null);
     const aviso = 'O elemento citado foi excluído ou a equação ficou sem número. Clique duas vezes para escolher outro.';
-    this.dom.setAttribute('aria-label', rotulo === null ? `Remissiva quebrada. ${aviso}` : `Remissiva: ${rotulo}`);
+    let nome: string;
+    if (livre !== null) nome = rotulo === null ? `Menção sem número quebrada: ${livre}. ${aviso}` : `Menção sem número a ${rotulo}: ${livre}`;
+    else nome = rotulo === null ? `Remissiva quebrada. ${aviso}` : `Remissiva: ${rotulo}`;
+    this.dom.setAttribute('aria-label', nome);
     if (rotulo === null) this.dom.title = aviso;
+    else if (livre !== null) this.dom.title = `Menção sem número ligada a ${rotulo}`;
     else this.dom.removeAttribute('title');
   }
 
   update(no: NoPm): boolean {
     if (no.type !== this.#no.type) return false;
-    const mudou = no.attrs['alvo'] !== this.#no.attrs['alvo'];
+    const mudou = no.attrs['alvo'] !== this.#no.attrs['alvo'] || no.attrs['texto'] !== this.#no.attrs['texto'];
     this.#no = no;
     if (mudou) this.desenhar();
     return true;

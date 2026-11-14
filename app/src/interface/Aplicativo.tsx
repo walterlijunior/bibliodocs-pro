@@ -761,6 +761,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   renomear: (id, titulo) => sessao.renomearPosTextual(id, titulo),
                   mover: (id, sentido) => sessao.moverPosTextual(id, sentido),
                 }}
+                mencoes={() => sessao.mencoesDoTexto()}
                 pedidoConformidade={pedidoConformidade}
                 aoAtenderPedidoConformidade={atenderPedidoConformidade}
                 conformidade={{

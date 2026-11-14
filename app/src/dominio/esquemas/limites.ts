@@ -17,6 +17,8 @@ export const LIMITES_V1 = {
   profundidadeJson: 2 * 64 + 16,
   /** Caracteres (unidades UTF-16) de um trecho de texto. */
   textoInline: 100_000,
+  /** Texto da menção sem número (Etapa 4 da especificação de atualização). */
+  textoMencao: 200,
   /** Trechos (`Inline`) num título, parágrafo ou metadado. */
   inlinesPorConteudo: 10_000,
   blocosPorSecao: 10_000,

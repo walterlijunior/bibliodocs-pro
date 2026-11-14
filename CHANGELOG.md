@@ -14,6 +14,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Instalador sem assinatura de código (decisão de 2026-11-14): o README troca a "Code signing policy" pela seção "Instalador sem assinatura"; o guia de instalação explica o SmartScreen, o Controle Inteligente de Aplicativos e a conferência pelo SHA-256; as notas da release avisam e apontam para as instruções.
 
 ### Adicionado
+- Etapa 4 da especificação de atualização (2026-11-14): **gerenciador de elementos** na aba Elementos. Cada tabela, quadro, figura, gráfico e equação mostra a prévia (a grade, a imagem, a tabela de origem do gráfico ou a equação), o rótulo, o título, a fonte, a nota e quantas remissivas o citam; dali se vai ao texto, se edita título, legenda e fonte, se insere a remissiva no ponto do cursor da aba Escrever e se cria tabela, quadro, figura ou gráfico novo no cursor.
+- Etapa 4: **menção sem número.** Na janela da remissiva, "Sem número, com o meu texto" escreve, por exemplo, "o quadro a seguir" ligado ao quadro: o texto fica como o autor escreveu, a ligação conta no gerenciador e o aviso de remissiva quebrada vale também para ela (D-E4-01).
+- Etapa 4: **ligar menção escrita.** Selecionar "Quadro 1" já digitado e abrir a remissiva (botão Remissiva ou Inserir › Remissiva…) mostra "Ligar menção" com o quadro de mesmo rótulo escolhido e troca o trecho pela remissiva, que passa a acompanhar a numeração. Em "Menções no texto", o gerenciador lista os rótulos digitados sem ligação, com "Ir ao texto" e "Ligar…", e as menções sem número já ligadas (D-E4-02, D-E4-03).
 - Etapa 3 da especificação de atualização (2026-11-14): **catálogo acadêmico.** Instituições, câmpus ou polos, cursos ou programas, disciplinas e docentes, com a UFT pré-carregada das páginas oficiais (5 câmpus, 46 cursos presenciais de graduação, com fonte e data) e a estrutura para USP, UnB e UFRGS. O usuário acrescenta e corrige em "Catálogo acadêmico…"; o que ele muda fica em `%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`.
 - Etapa 3: **dados institucionais** na capa e na folha de rosto por seletores dependentes (a instituição filtra os câmpus, o câmpus os cursos, o curso as disciplinas e os docentes). Textos no modelo do Manual (Fig. 3 e 5), natureza proposta, orientador do catálogo; trocar uma escolha tira o que deixou de valer e não toca nos dados do autor. O "Novo trabalho" aceita instituição, câmpus e curso, e o curso limita os tipos de trabalho ao nível dele.
 - Etapa 3: **brasão na capa** (RN-118) a partir do logotipo cadastrado no catálogo, com a altura dos modelos da UFT (3,10 cm); **ficha catalográfica por arquivo de texto**, sem recriar o trabalho, com a página reservada enquanto ela não chega.
@@ -25,6 +28,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - F-E6-01: Trabalho › Dados do trabalho… e Elementos pré-textuais…, Inserir › Sigla…, Verificar › Ir para a próxima não conformidade (F8), Ajuda › Guia rápido (F1) e Atalhos de teclado passaram a funcionar. Todo item de menu tem ação.
 
 ### Alterado
+- Etapa 4 (2026-11-14): "Ir ao texto" de uma tabela, figura ou gráfico (aba Conformidade, conferência, gerenciador) deixa o elemento selecionado, e Enter abre a janela dele.
 - Etapa 2 (2026-11-14): os botões ⏪ e ⏩ da barra superior, que lembravam um player de vídeo, viraram setas "Seção anterior" e "Próxima seção" com o nome escrito; o botão "Pré-visualizar", que não tinha função, saiu. A barra de formatação foi organizada em grupos com ícones de editor (alinhamentos, recuo, listas).
 
 ### Corrigido

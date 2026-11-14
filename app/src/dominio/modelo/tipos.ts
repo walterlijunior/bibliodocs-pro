@@ -81,6 +81,11 @@ export interface InlineRemissiva {
   tipo: 'remissiva';
   id: Id;
   alvo: Id;
+  /**
+   * Menção sem número (Etapa 4 da especificação de atualização): o texto do autor ("o quadro a seguir") no lugar do
+   * rótulo. A ligação com o elemento continua (contagem, aviso de quebrada); o texto nunca muda com a numeração.
+   */
+  texto?: string;
 }
 
 /** Sigla ligada ao cadastro: o texto exibido é derivado; primeira ocorrência por extenso (M6-T02, RN-046/047). */

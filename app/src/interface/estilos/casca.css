@@ -370,6 +370,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 /* Remissiva (M5-T08): o rótulo do elemento ("Tabela 3"), com o número da numeração atual; quebrada, sublinhada. */
 .bd-remissiva { background: var(--cor-superficie); border-radius: var(--raio); padding: 0 2px; cursor: pointer; }
 .bd-remissiva--quebrada { color: var(--cor-erro); text-decoration: underline wavy var(--cor-erro); }
+.bd-remissiva--sem-numero { border-bottom: 1px dashed currentColor; }
 .bd-remissiva.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
 .remissiva__lista { max-height: 50vh; }
 /* Tabela e quadro no texto (M5-T04): só conteúdo; traços e corpo 10 são do documento, na Pré-visualização. */
@@ -612,3 +613,16 @@ ol.bd-lista { list-style: decimal; }
 .importar-ficha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin: 0 0 var(--esp-3); }
 .importar-ficha .dica:empty { display: none; }
 .importar-ficha__confirmar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); flex-basis: 100%; }
+
+/* Gerenciador de elementos (Etapa 4 da especificação de atualização). */
+.gerenciador { display: grid; gap: var(--esp-3); align-content: start; padding: var(--esp-2) 0; }
+.gerenciador h2 { margin: 0; font-size: var(--tam-titulo, 1.25rem); }
+.gerenciador__novos { display: flex; flex-wrap: wrap; gap: var(--esp-1); }
+.gerenciador__previa { max-width: 100%; overflow-x: auto; }
+.gerenciador__tabela { border-collapse: collapse; font-size: var(--tam-peq); }
+.gerenciador__tabela th, .gerenciador__tabela td { border: 1px solid var(--cor-borda); padding: 2px var(--esp-1); text-align: left; vertical-align: top; }
+.gerenciador__tabela th { font-weight: 600; background: var(--cor-superficie); }
+.gerenciador__imagem { max-width: min(100%, 480px); max-height: 320px; object-fit: contain; border: 1px solid var(--cor-borda); }
+.gerenciador__equacao { font-family: var(--fonte-mono, monospace); }
+.gerenciador__mencao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2); padding: var(--esp-1) 0; }
+.gerenciador__mencao > span { flex: 1 1 16rem; }

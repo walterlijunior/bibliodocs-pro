@@ -177,7 +177,8 @@ export function selecaoParaIr(doc: NoPm, id: string, trecho?: string): Selection
   const { no, pos } = achado as { no: NoPm; pos: number };
   const $pos = doc.resolve(pos);
   if ($pos.parent.type.name === 'nota') return NodeSelection.create(doc, $pos.before());
-  if (no.isInline) return NodeSelection.create(doc, pos);
+  // Inline e bloco atômico (tabela, figura, gráfico): o nó selecionado, para Enter abrir a janela dele.
+  if (no.isInline || no.isAtom) return NodeSelection.create(doc, pos);
   let selecao: Selection | null = null;
   const procurar = (bloco: NoPm, inicio: number): void => {
     const { texto, posicao } = textoComPosicoes(bloco, inicio);

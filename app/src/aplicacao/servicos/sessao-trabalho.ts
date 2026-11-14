@@ -66,7 +66,7 @@ import {
 } from '../../dominio/modelo';
 import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
 import { LIMITES_V1, midiasDoDocumento, validarDocumentoV1 } from '../../dominio/esquemas';
-import { alvosDeRemissiva, lerInfoImagem, type AlvoRemissiva, type InfoImagem } from '../../dominio/visuais';
+import { alvosDeRemissiva, lerInfoImagem, mencoesEscritas, remissivasDoCorpo, type AlvoRemissiva, type InfoImagem, type MencaoEscrita, type RemissivaNoTexto } from '../../dominio/visuais';
 import { letraPosTextual, numerarSecoes } from '../../dominio/numeracao';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
 import type { ApiRecuperacao } from '../portas/recuperacao';
@@ -168,8 +168,18 @@ export interface ObraNaLista {
  */
 export interface ElementoNaSessao extends AlvoRemissiva {
   remissivas: number;
+  /** Quantas dessas remissivas são menções sem número ("o quadro a seguir", Etapa 4). */
+  semNumero: number;
+  /** O bloco (tabela, quadro, ilustração, gráfico ou equação), para a prévia do gerenciador; ausente em seção e apêndice. */
+  bloco?: Bloco;
   /** A tabela (espécie `tabela`), para o gráfico gerado ler os dados (M5-T09). Muda de objeto quando a tabela muda. */
   tabela?: BlocoTabela;
+}
+
+/** Menções do texto para o gerenciador de elementos (Etapa 4). */
+export interface MencoesDoTexto {
+  escritas: readonly MencaoEscrita[];
+  semNumero: readonly RemissivaNoTexto[];
 }
 
 /** Resultado de incluir, alterar ou excluir obra. */
@@ -494,7 +504,7 @@ export class SessaoTrabalho {
   // ---------- alvos de remissiva (M5-T08) ----------
 
   /** Remissivas por alvo de cada lista de blocos: a seção que não mudou guarda o mesmo array e não é relida. */
-  readonly #remissivasDosBlocos = new WeakMap<readonly Bloco[], ReadonlyMap<Id, number>>();
+  readonly #remissivasDosBlocos = new WeakMap<readonly Bloco[], ReadonlyMap<Id, readonly [number, number]>>();
   #cacheElementos: { corpo: readonly Secao[]; pos: Documento['posTextuais']; chave: string; resultado: readonly ElementoNaSessao[] } | null = null;
   /** A última lista entregue à tela; `null` logo depois de abrir um trabalho. */
   #elementosEmitidos: readonly ElementoNaSessao[] | null = null;
@@ -512,11 +522,16 @@ export class SessaoTrabalho {
     return r;
   }
 
-  #contarRemissivas(blocos: readonly Bloco[]): ReadonlyMap<Id, number> {
+  /** Por alvo: [remissivas, das quais menções sem número]. */
+  #contarRemissivas(blocos: readonly Bloco[]): ReadonlyMap<Id, readonly [number, number]> {
     let m = this.#remissivasDosBlocos.get(blocos);
     if (m) return m;
-    const contagem = new Map<Id, number>();
-    for (const b of blocos) for (const c of conteudosDoBloco(b)) for (const i of c) if (i.tipo === 'remissiva') contagem.set(i.alvo, (contagem.get(i.alvo) ?? 0) + 1);
+    const contagem = new Map<Id, readonly [number, number]>();
+    for (const b of blocos) for (const c of conteudosDoBloco(b)) for (const i of c) {
+      if (i.tipo !== 'remissiva') continue;
+      const [n, livres] = contagem.get(i.alvo) ?? [0, 0];
+      contagem.set(i.alvo, [n + 1, livres + (i.texto !== undefined ? 1 : 0)]);
+    }
     m = contagem;
     this.#remissivasDosBlocos.set(blocos, m);
     return m;
@@ -530,16 +545,20 @@ export class SessaoTrabalho {
     const c = this.#cacheElementos;
     if (c !== null && c.corpo === doc.corpo && c.pos === doc.posTextuais) return c.resultado;
     const leitura = secoesDeLeitura(doc);
-    const total = new Map<Id, number>();
-    for (const { secao } of numerarSecoes(leitura)) for (const [alvo, n] of this.#contarRemissivas(secao.blocos)) total.set(alvo, (total.get(alvo) ?? 0) + n);
-    const tabelas = new Map<Id, BlocoTabela>();
-    for (const { secao } of numerarSecoes(leitura)) for (const b of secao.blocos) if (b.tipo === 'tabela' && b.especie === 'tabela') tabelas.set(b.id, b);
+    const total = new Map<Id, [number, number]>();
+    for (const { secao } of numerarSecoes(leitura)) for (const [alvo, [n, livres]] of this.#contarRemissivas(secao.blocos)) {
+      const t = total.get(alvo) ?? [0, 0];
+      total.set(alvo, [t[0] + n, t[1] + livres]);
+    }
+    const blocos = new Map<Id, Bloco>();
+    for (const { secao } of numerarSecoes(leitura)) for (const b of secao.blocos) if (b.tipo === 'tabela' || b.tipo === 'ilustracao' || b.tipo === 'grafico' || b.tipo === 'equacao') blocos.set(b.id, b);
     const lista = alvosDeRemissiva(doc).map((a): ElementoNaSessao => {
-      const t = tabelas.get(a.id);
-      return { ...a, remissivas: total.get(a.id) ?? 0, ...(t ? { tabela: t } : {}) };
+      const b = blocos.get(a.id);
+      const [n, livres] = total.get(a.id) ?? [0, 0];
+      return { ...a, remissivas: n, semNumero: livres, ...(b ? { bloco: b } : {}), ...(b?.tipo === 'tabela' && b.especie === 'tabela' ? { tabela: b } : {}) };
     });
-    // A tabela entra na chave pela revisão do objeto (mudou o conteúdo, mudou o objeto): o gráfico redesenha.
-    const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas, e.tabela ? this.#revisaoDoBloco(e.tabela) : 0]));
+    // O bloco entra na chave pela revisão do objeto (mudou o conteúdo, mudou o objeto): o gráfico e a prévia redesenham.
+    const chave = JSON.stringify(lista.map((e) => [e.id, e.secao, e.rotulo, e.descricao, e.remissivas, e.semNumero, e.bloco ? this.#revisaoDoBloco(e.bloco) : 0]));
     const resultado = c !== null && c.chave === chave ? c.resultado : lista;
     this.#cacheElementos = { corpo: doc.corpo, pos: doc.posTextuais, chave, resultado };
     return resultado;
@@ -974,6 +993,17 @@ export class SessaoTrabalho {
   verificarBibliografia(): readonly ProblemaBibliografia[] {
     const a = this.#aberto;
     return a === null ? [] : verificarBibliografiaDoDocumento(a.pacote.documento);
+  }
+
+  /**
+   * Gerenciador de elementos (Etapa 4): menções escritas à mão ("Quadro 1" digitado, sem ligação) e menções sem número
+   * ("o quadro a seguir", ligadas), na ordem de leitura.
+   */
+  mencoesDoTexto(): MencoesDoTexto {
+    const a = this.#aberto;
+    if (!a) return { escritas: [], semNumero: [] };
+    const doc = a.pacote.documento;
+    return { escritas: mencoesEscritas(doc), semNumero: remissivasDoCorpo(doc).filter((r) => r.remissiva.texto !== undefined) };
   }
 
   verificarConformidade(): RelatorioConformidade {

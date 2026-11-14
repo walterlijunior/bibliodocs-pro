@@ -21,7 +21,9 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
   inseridas no texto e a lista de REFERÊNCIAS montada e ordenada sozinha; importação de BibTeX e RIS.
 - **Tabelas, quadros, figuras, gráficos e equações:** numeração automática, título, fonte e notas; colar do Excel ou do
   LibreOffice e importar CSV; gráfico gerado da tabela; aviso de imagem com resolução baixa.
-- **Remissivas** ("ver a Tabela 3", "seção 2.1") que acompanham a numeração.
+- **Remissivas** ("ver a Tabela 3", "seção 2.1") que acompanham a numeração, menções sem número ("o quadro a seguir")
+  ligadas ao elemento e, na aba **Elementos**, o gerenciador de tabelas, quadros, figuras, gráficos e equações, com
+  prévia, fonte, contagem de remissivas e os rótulos digitados à mão que ainda não estão ligados.
 - **Siglas, símbolos e glossário:** a primeira ocorrência da sigla sai por extenso, e as listas são geradas.
 - **Apêndices e anexos** com conteúdo próprio.
 - **Verificador de conformidade** (F7): lista o que falta ou foge do Manual e da Norma Tabular, com a regra de origem
