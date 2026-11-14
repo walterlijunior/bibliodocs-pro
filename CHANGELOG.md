@@ -11,6 +11,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Material de terceiros (`materiais/`) fora do controle de versão.
 - Integração contínua (`.github/workflows/ci.yml`) e instalador por tag (`release.yml`), com assinatura pela SignPath Foundation quando o projeto for aprovado.
 - README com a seção "Code signing policy" exigida pela SignPath Foundation (papéis da equipe, privacidade, desinstalação); as notas da release apontam para ela.
+- Instalador sem assinatura de código (decisão de 2026-11-14): o README troca a "Code signing policy" pela seção "Instalador sem assinatura"; o guia de instalação explica o SmartScreen, o Controle Inteligente de Aplicativos e a conferência pelo SHA-256; as notas da release avisam e apontam para as instruções.
 
 ### Adicionado
 - F-E6-01 (2026-11-14): as abas **Elementos** (pré-textuais, pós-textuais, lista de tabelas, quadros, figuras, gráficos e equações, e os cadastros de siglas, símbolos e glossário), **Referências** (obras, importação e conferência) e **Conformidade** (relatório na própria página, com "Ir ao local" levando à aba certa) mostram as funções do trabalho aberto.

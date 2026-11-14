@@ -74,6 +74,8 @@ igual no pacote e no "Sobre"; licenças do Electron e do Chromium no pacote; com
    - (iii) sem assinatura: nesta máquina, o instalador não é montado e o app empacotado pode ser bloqueado; o uso
      continuaria pelo modo de desenvolvimento (`npm run dev`), que roda o Electron assinado.
    A assinatura é o único caminho para instalar e distribuir sem desligar a proteção do Windows.
+   **Decidida em 2026-11-14 pelo usuário: (iii) sem assinatura**, com o aviso e as instruções ao usuário (README,
+   seção "Instalador sem assinatura"; `docs/INSTALACAO_APP.md`; notas da release). Ver a revisão no ADR-0003.
 2. **DOC-08 / M3-T12** (Etapa 6): conferência manual de um DOCX no Word.
 3. ~~**F-E6-01** (Etapa 6): abas e coleções sem tela própria, e itens de menu ainda sem ação~~ — corrigido em
    2026-11-14 (ver `ETAPA6_VALIDACAO.md`).

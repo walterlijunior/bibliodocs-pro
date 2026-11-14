@@ -17,7 +17,7 @@
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
 | 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔, T12 AGUARDANDO USUÁRIO; M4: T00–T10 ✔ — **M4 CONCLUÍDO**; M5: T00–T10 ✔ — **M5 CONCLUÍDO**; M6: T00–T07 ✔ — **M6 CONCLUÍDO**; M7: T00–T05 ✔ — **M7 CONCLUÍDO**) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
 | 6. Testes e validação | AGUARDANDO USUÁRIO (E6-T00–T05 ✔; F-E6-01 corrigido em 2026-11-14; falta a conferência manual do DOC-08) | `docs/relatorios/ETAPA6_VALIDACAO.md` |
-| 7. Estabilização | AGUARDANDO USUÁRIO (E7-T00–T04 ✔; instalador e app empacotado bloqueados pelo Controle Inteligente de Aplicativos sem assinatura; D-E7-01) | `docs/relatorios/ETAPA7_DISTRIBUICAO.md` |
+| 7. Estabilização | AGUARDANDO USUÁRIO (E7-T00–T04 ✔; D-E7-01 decidida em 2026-11-14: sem assinatura, com aviso e instruções; falta a publicação da `v0.1.0`, que pede autorização) | `docs/relatorios/ETAPA7_DISTRIBUICAO.md` |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
@@ -29,6 +29,10 @@ Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍD
    próxima varredura); F7 continua abrindo a janela na aba Escrever (a aba Conformidade mostra o mesmo relatório na
    página); "Dados do trabalho…" abre a folha de rosto (ou a capa). Testes: `tests/abas-colecoes.test.ts`,
    `e2e/abas-colecoes.spec.ts`. Falta só a conferência do usuário no app.
+   **Assinatura (2026-11-14):** o usuário decidiu ficar sem assinatura ("vai ficar sem assinatura, creio que basta
+   avisar isso ao usuário e dar instruções a ele"). README com a seção "Instalador sem assinatura" no lugar da
+   "Code signing policy"; `docs/INSTALACAO_APP.md` com SmartScreen, Controle Inteligente e SHA-256; notas da release
+   no `release.yml`; revisão no ADR-0003. Próximo: publicar a `v0.1.0` (push da tag; pede autorização).
 1. **Pendente do usuário para fechar o M3 (M3-T12):**
    - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos (o espaço entre títulos seguidos, N-M3-07, já foi medido no Word por automação e não dobra).
 2. Pendente do usuário: arquivo do brasão da UFT (RN-118).
@@ -259,8 +263,9 @@ O usuário escreveu: "deixo essas decisões para você".
 - Empacotamento (M1-T14):
   - Configuração em `app/electron-builder.config.cjs` (não há YAML); ganchos em `app/empacotamento/`; decisões e
     medidas no adendo do M1-T14 no ADR-0003. `npm run dist` (instalador), `dist:pasta`, `dist:fumaca`.
-  - **Nunca distribuir** o instalador sem assinatura (R34: o Controle Inteligente de Aplicativos ativo nesta máquina
-    bloqueou o `.exe` do `dist:fumaca`). Não contornar o bloqueio.
+  - O instalador sai **sem assinatura** (decisão do usuário, 2026-11-14): distribuído só pelas Releases do GitHub,
+    com SHA-256 e as instruções de `docs/INSTALACAO_APP.md`. Nesta máquina o Controle Inteligente de Aplicativos
+    bloqueia o pacote (R34): o build é feito no runner do GitHub. Não contornar o bloqueio aqui.
   - O app empacotado recusa toda chave de linha de comando antes de `--`, exceto `--updated`
     (`src/principal/seguranca/argumentos.ts`). Chave nova necessária no pacote → lista de permissão + teste. A
     associação `.bdp` (futura) deve registrar `"...exe" -- "%1"` e tratar o argv de `second-instance` do mesmo jeito.
@@ -428,7 +433,6 @@ O usuário escreveu: "deixo essas decisões para você".
 
 ## Decisões aguardando o usuário
 - (M5) Margens da seção em paisagem: sem RN no Manual; decisão editorial.
-- (Etapa 7) Assinatura de código: certificado OV, MSIX na Microsoft Store ou sem assinatura.
 - (Etapa 5, antes de implementar a regra) 4 ambiguidades remanescentes (RN-025 decidida em C-A6): RN-033
   (linha em branco após subtítulo), RN-073 (numeração nos pós-textuais), RN-085 (pontuação final da citação),
   RN-108 (alinhamento da equação).

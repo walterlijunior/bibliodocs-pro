@@ -6,7 +6,8 @@ conteúdo; o aplicativo cuida da formatação e entrega um arquivo do Word (`.do
 
 Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado para fora.
 
-> Versão 0.1.0, de teste. O instalador ainda não tem assinatura digital: veja `docs/INSTALACAO_APP.md`.
+> Versão 0.1.0, de teste. O instalador não tem assinatura digital: o Windows pode avisar ou bloquear ao instalar.
+> Veja `docs/INSTALACAO_APP.md` antes de instalar.
 
 ## O que ele faz
 

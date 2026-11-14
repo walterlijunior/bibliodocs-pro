@@ -19,17 +19,29 @@ faz, veja `app/README.md`; para gerar o instalador a partir do código, `app/DES
 
 ### Aviso do Windows (instalador sem assinatura)
 
-Nesta versão o instalador **não tem assinatura digital** (decisão pendente D-E7-01). Por isso o Windows pode avisar:
+O instalador **não tem assinatura digital** (decisão do autor, 2026-11-14: os programas gratuitos de assinatura para
+código aberto pedem um projeto já usado e conhecido). Antes de instalar, **confira o arquivo**: baixe só das Releases
+do repositório e compare o SHA-256 com o `SHA256SUMS.txt` publicado junto:
 
-- **SmartScreen** ("O Windows protegeu o computador"): só continue se o arquivo veio de uma fonte em que você confia,
-  em "Mais informações" › "Executar assim mesmo".
-- **Controle Inteligente de Aplicativos** do Windows 11 (mensagem de bloqueio por política de Controle de Aplicativo): ele decide pela
-  reputação do arquivo e **não oferece "executar assim mesmo"**. Não desligue essa proteção para instalar o
-  BiblioDocs Pro: depois de desligada, ela só volta reinstalando o Windows. A solução é a versão assinada.
+```powershell
+Get-FileHash .\BiblioDocsPro-Instalador-<versão>.exe
+```
 
-Por isso, **não distribua** o instalador desta versão a outras pessoas. Quando houver distribuição, publique junto do
-link o SHA-256 do instalador (`Get-FileHash BiblioDocsPro-Instalador-<versão>.exe`), para quem baixar conferir que o
-arquivo é o original (R-E7-02).
+O Windows pode reagir de dois jeitos:
+
+1. **SmartScreen** ("O Windows protegeu o computador"): clique em **Mais informações** › **Executar assim mesmo**.
+   Depois da primeira vez, o aviso não volta para esse arquivo.
+2. **Controle Inteligente de Aplicativos** (Windows 11; mensagem de que um aplicativo foi bloqueado por política de
+   Controle de Aplicativo): ele decide pela reputação do arquivo e **não oferece "executar assim mesmo"**. Para ver se
+   está ligado: Segurança do Windows › Controle de aplicativos e navegador › Configurações do Controle Inteligente de
+   Aplicativos. Se estiver **Ativado**, há duas saídas:
+   - **Rodar a partir do código-fonte** (ver "Rodar a partir do código" no `README.md`): precisa do Node.js, mas não
+     mexe na proteção do Windows.
+   - **Desativar o Controle Inteligente de Aplicativos**, na mesma tela. Atenção: em muitas versões do Windows 11, depois
+     de desativado ele **só volta reinstalando o Windows**. Os outros recursos da Segurança do Windows (antivírus,
+     SmartScreen) continuam ligados. Decida com calma; se o computador é da instituição, pergunte ao suporte.
+
+   Se estiver **Desativado** ou em **Avaliação**, só o aviso do SmartScreen pode aparecer.
 
 ## Primeiro uso
 

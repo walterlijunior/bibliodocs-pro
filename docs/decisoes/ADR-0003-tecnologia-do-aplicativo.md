@@ -342,5 +342,12 @@ bloqueado na máquina do usuário. Isso pesa na decisão de assinatura da Etapa 
   GitHub (sem o Controle Inteligente de Aplicativos) e só assina quando as variáveis da SignPath existirem; até lá,
   gera rascunho de release sem assinatura, marcado como tal, com SHA-256. `ci.yml` roda `verificar` e o E2E a cada
   push. Actions fixadas pelo hash do commit.
+- **Revisão de 2026-11-14 (decisão do usuário):** o projeto **fica sem assinatura**. Motivo dado pelo usuário: a
+  SignPath Foundation pede um projeto já usado (com usuários ou forks), e este é novo; certificado pago está fora. O
+  instalador é distribuído pelas Releases do GitHub com SHA-256, o aviso nas notas da release e no README (seção
+  "Instalador sem assinatura") e as instruções em `docs/INSTALACAO_APP.md`: SmartScreen ("Mais informações" ›
+  "Executar assim mesmo") e, com o Controle Inteligente de Aplicativos ativado, rodar a partir do código ou desativá-lo
+  sabendo que pode não voltar sem reinstalar o Windows. A seção "Code signing policy" saiu do README. Os passos da
+  SignPath no `release.yml` continuam, inativos sem as variáveis, para um pedido futuro.
 - **Limite do fluxo assinado:** o desinstalador que o NSIS embute no instalador não passa pela SignPath. Avaliar na
   configuração do projeto na SignPath (assinatura profunda) ou trocar o alvo depois.

@@ -6,9 +6,9 @@ escreve o conteúdo; o aplicativo cuida da formatação e entrega um `.docx` que
 
 Funciona sem internet, e os trabalhos ficam no seu computador.
 
-> **Estado:** versão 0.1.0, de teste. Ainda não há instalador publicado: o instalador para Windows vai ser assinado
-> pelo programa gratuito da SignPath Foundation para projetos de código aberto, que está sendo solicitado. Até lá, o
-> aplicativo pode ser executado a partir do código-fonte (ver "Rodar a partir do código").
+> **Estado:** versão 0.1.0, de teste. O instalador para Windows **não tem assinatura digital**, e o Windows pode
+> avisar ou bloquear ao instalar: veja [Instalador sem assinatura](#instalador-sem-assinatura) antes de baixar. O
+> aplicativo também pode ser executado a partir do código-fonte (ver "Rodar a partir do código").
 
 ## O que ele faz
 
@@ -55,37 +55,30 @@ O projeto foi desenvolvido por etapas com o Claude Code, a partir de um kit de i
 em [`KIT_CLAUDE_CODE.md`](KIT_CLAUDE_CODE.md). Plano, decisões (ADR), relatórios de cada marco e de revisão ficam em
 [`docs/`](docs/); o histórico de entregas, em [`CHANGELOG.md`](CHANGELOG.md).
 
-## Code signing policy (política de assinatura de código)
+## Instalador sem assinatura
 
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by
-[SignPath Foundation](https://signpath.org/).
+O instalador **não é assinado** com certificado de assinatura de código. Os programas gratuitos de assinatura para
+código aberto pedem um projeto já usado e conhecido, e este é novo; certificado pago não está nos planos. Isso não muda
+o que o programa faz, só a forma como o Windows o recebe:
 
-Assinatura de código gratuita fornecida pela [SignPath.io](https://about.signpath.io/), com certificado emitido pela
-[SignPath Foundation](https://signpath.org/). Só são assinados os arquivos gerados pelo GitHub Actions deste
-repositório ([`.github/workflows/release.yml`](.github/workflows/release.yml)) a partir do código-fonte publicado aqui.
-Cada assinatura é aprovada manualmente.
+- **"O Windows protegeu o computador" (SmartScreen):** clique em **Mais informações** › **Executar assim mesmo**.
+- **Bloqueio pelo "Controle Inteligente de Aplicativos"** (só no Windows 11, quando essa proteção está ativada): o
+  Windows não oferece "executar assim mesmo". As saídas estão em
+  [`docs/INSTALACAO_APP.md`](docs/INSTALACAO_APP.md#aviso-do-windows-instalador-sem-assinatura).
 
-Papéis da equipe (team roles):
+Baixe só das [Releases deste repositório](https://github.com/walterlijunior/bibliodocs-pro/releases) e confira o
+arquivo pelo `SHA256SUMS.txt` publicado junto (no PowerShell: `Get-FileHash .\BiblioDocsPro-Instalador-<versão>.exe`).
+O instalador é montado pelo GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)) a partir
+do código publicado aqui, e o código pode ser conferido por qualquer pessoa.
 
-| Papel | Quem |
-|---|---|
-| Autores (committers), que alteram o código sem revisão adicional | [@walterlijunior](https://github.com/walterlijunior), único membro com escrita no repositório |
-| Revisores (reviewers), que revisam toda contribuição externa (pull requests) | [@walterlijunior](https://github.com/walterlijunior) |
-| Aprovadores (approvers), que aprovam cada pedido de assinatura | [@walterlijunior](https://github.com/walterlijunior) |
-
-Todos os membros usam autenticação de dois fatores no GitHub e na SignPath.
-
-### Privacy policy (privacidade)
-
-This program will not transfer any information to other networked systems unless specifically requested by the user
-or the person installing or operating it.
+## Privacidade
 
 O programa não transfere nenhuma informação para outros sistemas em rede, a menos que o usuário, ou quem o instala ou
 opera, peça isso expressamente. Ele funciona sem internet: os trabalhos, as preferências e os relatórios ficam no
 computador. O único acesso à rede é abrir no navegador um link em que o usuário clicou (só `https:`, de uma lista
 fixa).
 
-### Desinstalação
+## Desinstalação
 
 O instalador traz um desinstalador: Configurações › Aplicativos › Aplicativos instalados › BiblioDocs Pro ›
 Desinstalar. Detalhes, inclusive o que fica no computador depois, em

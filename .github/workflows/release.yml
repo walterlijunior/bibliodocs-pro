@@ -1,9 +1,10 @@
 # Instalador do BiblioDocs Pro para Windows, a cada tag `v*` (ex.: v0.1.0). Monta no runner do GitHub, que não tem o
 # Controle Inteligente de Aplicativos que bloqueou o build na máquina de desenvolvimento (adendo do E7-T01, ADR-0003).
 #
-# Assinatura (D-E7-01: SignPath Foundation, gratuita para código aberto). Enquanto o projeto não for aprovado e as
-# variáveis abaixo não existirem, os passos de assinatura são pulados e sai um rascunho de release SEM assinatura,
-# marcado como tal. Depois da aprovação, configurar no repositório:
+# Assinatura (D-E7-01, revista em 2026-11-14): o projeto sai SEM assinatura, com o aviso e as instruções nas notas da
+# release. Sem as variáveis abaixo, os passos de assinatura são pulados e sai um rascunho de release sem assinatura,
+# marcado como tal. Os passos ficam prontos para o dia em que o projeto for aceito na SignPath Foundation; aí,
+# configurar no repositório:
 #   - secret   SIGNPATH_API_TOKEN
 #   - variable SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG, SIGNPATH_SIGNING_POLICY_SLUG
 # Fluxo assinado: (1) assina o executável do app na pasta `win-unpacked`; (2) monta o instalador com essa pasta
@@ -131,5 +132,5 @@ jobs:
         run: |
           Set-Location release/final
           Get-ChildItem *.exe | ForEach-Object { "$((Get-FileHash $_ -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content -Encoding ascii SHA256SUMS.txt
-          $aviso = if ($env:ASSINAR -eq 'true') { 'Instalador assinado pela SignPath Foundation.' } else { 'ATENÇÃO: instalador SEM assinatura de código (versão de teste). O Windows pode bloqueá-lo; veja docs/INSTALACAO_APP.md.' }
-          gh release create $env:TAG --draft --title "BiblioDocs Pro $env:TAG" --notes "$aviso Confira o arquivo pelo SHA256SUMS.txt. O que o aplicativo faz, instalação e desinstalação: README.md e docs/INSTALACAO_APP.md. Code signing policy: https://github.com/walterlijunior/bibliodocs-pro#code-signing-policy-política-de-assinatura-de-código" (Get-ChildItem *.exe).FullName SHA256SUMS.txt
+          $aviso = if ($env:ASSINAR -eq 'true') { 'Instalador assinado pela SignPath Foundation.' } else { 'ATENÇÃO: instalador SEM assinatura de código. O Windows pode avisar (SmartScreen: Mais informações › Executar assim mesmo) ou bloquear (Controle Inteligente de Aplicativos); veja docs/INSTALACAO_APP.md.' }
+          gh release create $env:TAG --draft --title "BiblioDocs Pro $env:TAG" --notes "$aviso Confira o arquivo pelo SHA256SUMS.txt. O que o aplicativo faz, instalação e desinstalação: README.md e docs/INSTALACAO_APP.md. Por que não há assinatura e o que fazer se o Windows bloquear: https://github.com/walterlijunior/bibliodocs-pro#instalador-sem-assinatura" (Get-ChildItem *.exe).FullName SHA256SUMS.txt
