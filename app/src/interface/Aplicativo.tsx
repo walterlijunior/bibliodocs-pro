@@ -64,6 +64,18 @@ const ABAS_DO_TRABALHO: ReadonlySet<IdAba> = new Set(['escrever', 'elementos', '
 
 const mesmoLocal = (a: Local, b: Local): boolean => a.aba === b.aba && a.colecao === b.colecao && mesmoFiltro(a.filtro, b.filtro);
 
+/** Chave do zoom do editor no armazenamento local (Etapa 2): conveniência deste computador, não do trabalho. */
+const CHAVE_ZOOM = 'bibliodocs.zoomEditor';
+
+function lerZoom(): number {
+  try {
+    const n = Number(localStorage.getItem(CHAVE_ZOOM));
+    return Number.isInteger(n) && n >= 50 && n <= 200 && n % 10 === 0 ? n : 100;
+  } catch {
+    return 100;
+  }
+}
+
 export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const bib = useBiblioteca(api);
   const { recarregar, escolherPasta, mostrarMensagem } = bib;
@@ -86,6 +98,17 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const atenderPedidoConformidade = useCallback(() => setPedidoConformidade(0), []);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
+  // Etapa 2: zoom do texto do editor (50% a 200%), lembrado neste computador; o arquivo exportado não muda.
+  const [zoom, setZoom] = useState(lerZoom);
+  useEffect(() => {
+    // CSSOM (`setProperty`), não atributo `style`: a CSP do app não aceita estilo em linha.
+    document.documentElement.style.setProperty('--zoom-editor', String(zoom / 100));
+    try {
+      localStorage.setItem(CHAVE_ZOOM, String(zoom));
+    } catch {
+      /* armazenamento indisponível: o zoom vale só nesta sessão */
+    }
+  }, [zoom]);
   const [selecionado, setSelecionado] = useState<IdentificadorItem | null>(null);
   const [ofertas, setOfertas] = useState<readonly OfertaRecuperacao[]>([]);
   // Objeto novo a cada pedido, para focar de novo o mesmo cartão (ex.: ao fechar o painel).
@@ -603,6 +626,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   }, [selecionado]);
 
   const naBiblioteca = local.aba === 'biblioteca' && local.colecao === 'trabalhos';
+  const escrevendo = local.aba === 'escrever';
 
   return (
     <>
@@ -656,6 +680,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           podeProxima={estrutura.podeProxima}
           aoSecaoAnterior={() => comando('secaoAnterior')}
           aoProximaSecao={() => comando('proximaSecao')}
+          zoom={zoom}
+          podeZoom={escrevendo && trabalho !== null}
+          aoZoom={setZoom}
         />
         <BarraMenus aoComando={comando} desativados={desativados} />
         <Navegacao
@@ -668,14 +695,17 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           aba={local.aba}
           aoEscolherAba={(aba) => ir({ aba })}
         />
-        <div className="conteudo">
-          <BarraLateral
-            contagens={contagens}
-            filtro={local.filtro}
-            aoFiltrar={(filtro) => ir({ filtro, aba: 'biblioteca' })}
-            nomePasta={bib.estado.fase === 'pronta' ? bib.estado.pasta.nome : null}
-          />
-          <main className="principal" id={ID_PAINEL} role="tabpanel" aria-labelledby={idDaAba(local.aba)} tabIndex={-1}>
+        {/* Etapa 2: na aba Escrever, a lateral da Biblioteca sai e o texto ganha a largura dela. */}
+        <div className={escrevendo ? 'conteudo conteudo--escrever' : 'conteudo'}>
+          {!escrevendo && (
+            <BarraLateral
+              contagens={contagens}
+              filtro={local.filtro}
+              aoFiltrar={(filtro) => ir({ filtro, aba: 'biblioteca' })}
+              nomePasta={bib.estado.fase === 'pronta' ? bib.estado.pasta.nome : null}
+            />
+          )}
+          <main className={escrevendo && trabalho !== null ? 'principal principal--escrever' : 'principal'} id={ID_PAINEL} role="tabpanel" aria-labelledby={idDaAba(local.aba)} tabIndex={-1}>
             {naBiblioteca ? (
               <AreaBiblioteca
                 estado={bib.estado}

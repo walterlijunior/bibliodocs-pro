@@ -767,3 +767,18 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
 - **Marcadores no DOCX:** `_Lista_n` nas legendas e `_Pos_A1`/`_Pos_N1` nas identificações de apêndice e anexo, sempre
   curtos (o Word aceita até 40 caracteres, só letras, algarismos e "_"; revisão: o id do elemento não serve).
 
+## Adendo da Etapa 2 da especificação de atualização (2026-11-14) — alinhamento, recuo e listas
+
+- **Aditivo, sem subir `versaoFormato`.** Arquivos anteriores abrem iguais; o documento só muda quando o autor usa os
+  recursos novos.
+- **Parágrafo:** `alinhamento?: 'esquerda' | 'centralizado' | 'direita' | 'justificado'` e `semRecuo?: true`. Ausentes,
+  vale o perfil (RN-003). Forma única: a interface nunca grava o alinhamento do perfil por escrito (escolhê-lo apaga o
+  campo), para o trabalho acompanhar uma troca de perfil.
+- **Lista:** bloco novo `{ tipo: 'lista', id, numerada?: true, itens: Inline[][] }`, de 1 a `itensPorLista` itens, um
+  nível só. Número e marcador são derivados, nunca gravados. Diferente das alíneas (RN-023), que continuam o bloco
+  normativo; a forma da lista no DOCX é provisória (D-E2-03).
+- **Editor:** o nó `paragrafo` ganha os atributos `alinhamento` e `semRecuo`, mostrados por classe (`bd-alinhar-*`,
+  `bd-sem-recuo`), nunca por `style`; nós `lista` e `itemLista`. A ida e volta modelo → editor → modelo conserva tudo
+  (teste de fixtures e de seções aleatórias).
+- **DOCX:** estilo `itemLista` e duas numerações (`marcadores`, `numerada`) entram em todo arquivo, como as alíneas; os
+  instantâneos de regressão mudaram só por acréscimo.

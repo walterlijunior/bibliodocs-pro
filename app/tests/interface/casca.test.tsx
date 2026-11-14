@@ -73,10 +73,15 @@ describe('casca: as quatro faixas (UI-01 parcial)', () => {
     expect(html).toMatch(/type="search"[^>]*aria-keyshortcuts="Control\+F"/);
   });
 
-  it('botões aprovados: seção anterior, pré-visualizar, próxima e zoom, desativados sem trabalho aberto', () => {
-    for (const r of ['Seção anterior', 'Pré-visualizar trabalho', 'Próxima seção', 'Zoom da página']) {
-      expect(html).toMatch(new RegExp(`aria-label="${r}"[^>]*disabled=""`));
+  // Etapa 2 da especificação de atualização: setas de seção com o nome escrito (sem símbolos de reprodução), sem o
+  // "Pré-visualizar" que não tinha função, e o zoom do texto do editor.
+  it('seção anterior, próxima seção e zoom do texto, desativados sem trabalho aberto; sem pré-visualizar', () => {
+    for (const r of ['Seção anterior', 'Próxima seção']) {
+      expect(html).toMatch(new RegExp(`<button class="btn-nav-secao"[^>]*disabled=""[^>]*>(?:(?!</button>).)*${r}</span></button>`));
     }
+    expect(html).toMatch(/aria-label="Zoom do texto"[^>]*disabled=""/);
+    expect(html).not.toContain('Pré-visualizar');
+    expect(html).not.toMatch(/#i-(anterior|proxima|preview)"/);
   });
 
   it('barra de menus com os 7 menus; só o primeiro entra no Tab', () => {

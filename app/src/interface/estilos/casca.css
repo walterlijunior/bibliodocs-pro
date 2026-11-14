@@ -255,9 +255,9 @@ button:disabled { opacity: 0.45; cursor: default; }
   .aba[aria-selected="true"], .lateral button[aria-current="true"], .cartao[aria-selected="true"] { outline: 2px solid CanvasText; }
 }
 
-/* ---------- Aba Escrever: lista de seções e editor (M2-T06) ----------
-   Aparência neutra (decisão da preparação do M2): a forma final do texto (fonte, recuos, espaçamento do perfil) aparece
-   na Pré-visualização do M3, não aqui. */
+/* ---------- Aba Escrever: lista de seções e editor (M2-T06; Etapa 2) ----------
+   Etapa 2: o parágrafo aparece com o alinhamento e o recuo do perfil (justificado, 1,25 cm) e com os que o autor
+   escolher; fonte, corpo e entrelinha continuam neutros na tela (a forma completa sai no DOCX). */
 .formulario--compacto { margin-bottom: var(--esp-3); }
 .escrever { display: grid; grid-template-columns: minmax(180px, var(--largura-lateral)) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
 .escrever__secoes { display: grid; gap: var(--esp-2); }
@@ -485,3 +485,98 @@ button:disabled { opacity: 0.45; cursor: default; }
 .ajuda__atalhos div { display: grid; grid-template-columns: minmax(10em, auto) 1fr; gap: var(--esp-3); }
 .ajuda__atalhos dd { margin: 0; }
 .ajuda kbd { font: inherit; font-size: var(--tam-peq); padding: 0 4px; border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }
+
+/* ---------- Etapa 2: área de escrita, barra de formatação e ajuda contextual ---------- */
+/* Barra superior: setas de seção com o nome escrito (no lugar dos símbolos de reprodução). */
+.btn-nav-secao {
+  display: inline-flex; align-items: center; gap: var(--esp-1); height: var(--lado-botao-icone); padding: 0 var(--esp-2);
+  background: transparent; border: 1px solid transparent; border-radius: var(--raio); color: var(--cor-texto-barras);
+  cursor: pointer; font: inherit; font-size: var(--tam-peq); white-space: nowrap;
+}
+.btn-nav-secao:hover:not(:disabled) { border-color: var(--cor-borda-controle); }
+.btn-nav-secao:disabled { opacity: 0.45; cursor: default; }
+.btn-nav-secao svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.zoom__valor { min-width: 3.5em; font-variant-numeric: tabular-nums; }
+.zoom input:disabled + .zoom__valor { opacity: 0.45; }
+
+/* Na aba Escrever a lateral da Biblioteca sai: o texto fica com a largura toda. */
+.conteudo--escrever { grid-template-columns: minmax(0, 1fr) auto; }
+/* O cabeçalho e o título ficam no alto; a estrutura e o texto rolam cada um no seu painel, como no Word. */
+.principal--escrever { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.principal--escrever > .escrever { flex: 1 1 auto; min-height: 0; align-items: stretch; }
+.principal--escrever .escrever__coluna,
+.principal--escrever .escrever__texto { min-height: 0; overflow: auto; padding-bottom: var(--esp-4); }
+.principal--escrever .escrever__coluna { align-content: start; padding-right: var(--esp-2); }
+.escrever--sem-estrutura { grid-template-columns: minmax(0, 1fr); }
+.escrever__coluna[hidden] { display: none; }
+.btn-com-icone { display: inline-flex; align-items: center; gap: var(--esp-1); }
+.btn-com-icone svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+
+/* Título do trabalho numa linha só (a dica foi para a ajuda). */
+.formulario--linha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2); max-width: none; }
+.formulario--linha .campo { flex: 1 1 20em; max-width: var(--largura-formulario); }
+.formulario--linha .formulario__dados { margin: 0; }
+
+/* Barra de formatação: fica no alto do painel do texto ao rolar; grupos separados por um filete. */
+.principal--escrever .barra-formatacao {
+  position: sticky; top: 0; z-index: 2; background: var(--cor-fundo); padding: var(--esp-2) 0; border-bottom: 1px solid var(--cor-borda);
+}
+.barra-formatacao { row-gap: var(--esp-2); }
+.barra-formatacao__grupo { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1); padding-right: var(--esp-2); margin-right: var(--esp-1); border-right: 1px solid var(--cor-borda); }
+.barra-formatacao__grupo:last-child { border-right: 0; }
+.btn-icone-formato { display: inline-grid; place-items: center; min-width: 34px; }
+.btn-icone-formato svg, .btn-formato.btn-com-icone svg { width: 18px; height: 18px; fill: currentColor; }
+
+/* Texto no editor: largura de leitura confortável, centrada, com o zoom da barra superior. */
+.bd-editor { font-size: calc(1rem * var(--zoom-editor, 1)); }
+.principal--escrever .editor-secao__texto { max-width: calc(52rem * var(--zoom-editor, 1)); margin-inline: auto; }
+.principal--escrever .bd-editor { min-height: max(240px, calc(100dvh - 430px)); padding: var(--esp-4) var(--esp-5); }
+/* Parágrafo do perfil (RN-003): justificado, recuo de 1,25 cm na primeira linha; as escolhas do autor por cima. */
+.bd-paragrafo { text-align: justify; text-indent: calc(1.25cm * var(--zoom-editor, 1)); }
+.bd-paragrafo.bd-sem-recuo { text-indent: 0; }
+.bd-paragrafo.bd-alinhar-esquerda { text-align: left; }
+.bd-paragrafo.bd-alinhar-centralizado { text-align: center; }
+.bd-paragrafo.bd-alinhar-direita { text-align: right; }
+.bd-paragrafo.bd-alinhar-justificado { text-align: justify; }
+.bd-lista { margin: 0 0 var(--esp-2); padding-left: var(--esp-5); }
+ul.bd-lista { list-style: disc; }
+ol.bd-lista { list-style: decimal; }
+.bd-item-lista { margin: 0 0 var(--esp-1); text-align: justify; }
+
+/* Ajuda contextual: botão "?" e balão. */
+.titulo-com-ajuda { display: flex; align-items: center; gap: var(--esp-1); }
+.titulo-com-ajuda h2 { margin: 0; }
+.ajuda-ctx { position: relative; display: inline-flex; align-items: center; }
+.ajuda-ctx__botao {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--cor-borda-controle); background: var(--cor-fundo); color: var(--cor-texto-sec);
+  font: inherit; font-size: var(--tam-peq); font-weight: 700; line-height: 1; cursor: help;
+}
+.ajuda-ctx__botao:hover, .ajuda-ctx__botao[aria-expanded="true"] { color: var(--cor-texto); border-color: var(--cor-foco); }
+.ajuda-ctx__botao:focus-visible { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }
+.ajuda-ctx__balao {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; display: grid; gap: var(--esp-1);
+  width: max-content; max-width: min(24rem, 80vw); padding: var(--esp-2) var(--esp-3);
+  background: var(--cor-superficie); color: var(--cor-texto); border: 1px solid var(--cor-borda-controle);
+  border-radius: var(--raio); box-shadow: 0 6px 18px var(--cor-sombra); font-size: var(--tam-peq); font-weight: 400;
+  line-height: 1.45; text-align: left; white-space: normal;
+}
+.ajuda-ctx__balao[hidden] { display: none; }
+.ajuda-ctx--direita .ajuda-ctx__balao { left: auto; right: 0; }
+.ajuda-ctx__titulo { font-weight: 600; }
+.ajuda-ctx__texto { display: block; }
+
+/* Janela até 1366 px: os botões com ícone ficam só com o ícone (o nome segue no leitor de tela e no "title"). */
+@media (max-width: 1366px) {
+  .barra-formatacao .btn-rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .barra-formatacao .btn-com-icone { min-width: 34px; justify-content: center; }
+}
+@media (max-width: 1100px) {
+  .conteudo--escrever { grid-template-columns: minmax(0, 1fr); }
+  /* Janela estreita: as setas ficam só com o ícone; o nome continua para o leitor de tela. */
+  .btn-nav-secao__texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .zoom__valor { display: none; }
+}
+@media (forced-colors: active) {
+  .btn-formato[aria-pressed="true"] { outline: 2px solid CanvasText; }
+}

@@ -168,7 +168,8 @@ test('FUN-11: elementos pré-textuais — campos, pendências, retirar com Ctrl+
   await p.getByRole('button', { name: 'Retirar do trabalho' }).click();
   await expect(elementos.getByRole('status')).toHaveText('Resumo retirado. Ctrl+Z desfaz.');
   await expect(elementos.getByRole('list', { name: 'Pendências do trabalho' })).toContainText('Resumo: elemento obrigatório ausente.');
-  await expect(elementos.getByRole('button').first()).toBeFocused();
+  // O foco vai ao primeiro elemento da lista (o "?" de ajuda, ao lado do título do painel, vem antes dele; Etapa 2).
+  await expect(elementos.locator('.elementos__item').first()).toBeFocused();
   await p.keyboard.press('Control+Z');
   await expect(elementos.getByRole('list', { name: 'Pendências do trabalho' })).toHaveCount(0);
   await item(/^Resumo( |$)(?!em)/).click();

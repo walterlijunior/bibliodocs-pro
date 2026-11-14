@@ -22,6 +22,8 @@ export const LIMITES_V1 = {
   blocosPorSecao: 10_000,
   /** Alíneas numa lista e subalíneas numa alínea (M2-T04). */
   itensPorAlineas: 1_000,
+  /** Itens de uma lista com marcadores ou numerada (Etapa 2). */
+  itensPorLista: 1_000,
   subalineasPorAlinea: 1_000,
   /** Mesmo valor que as operações de `dominio/modelo` respeitam (M2-T03). */
   secoesPorNivel: MAXIMO_SECOES_POR_NIVEL,

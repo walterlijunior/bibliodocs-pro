@@ -12,6 +12,8 @@ export type {
   AlinhamentoColuna,
   Bloco,
   BlocoAlineas,
+  BlocoLista,
+  AlinhamentoParagrafo,
   BlocoCitacaoLonga,
   BlocoEquacao,
   BlocoGrafico,

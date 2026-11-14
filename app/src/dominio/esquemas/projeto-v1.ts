@@ -234,7 +234,21 @@ export const esquemaBlocoGrafico = z
   .meta({ id: 'BlocoGrafico' });
 
 export const esquemaBloco = z.discriminatedUnion('tipo', [
-  z.strictObject({ tipo: z.literal('paragrafo'), id, conteudo: conteudoInline }),
+  // Etapa 2: alinhamento e recuo escolhidos pelo autor (aditivos; ausentes = os do perfil).
+  z.strictObject({
+    tipo: z.literal('paragrafo'),
+    id,
+    conteudo: conteudoInline,
+    alinhamento: z.enum(['esquerda', 'centralizado', 'direita', 'justificado']).optional(),
+    semRecuo: z.literal(true).optional(),
+  }),
+  // Etapa 2: lista com marcadores ou numerada (aditiva).
+  z.strictObject({
+    tipo: z.literal('lista'),
+    id,
+    numerada: z.literal(true).optional(),
+    itens: z.array(conteudoInline).min(1, { error: 'a lista precisa de pelo menos um item' }).max(LIMITES_V1.itensPorLista),
+  }),
   z.strictObject({
     tipo: z.literal('alineas'),
     id,

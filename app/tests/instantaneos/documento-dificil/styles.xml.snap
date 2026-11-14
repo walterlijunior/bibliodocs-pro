@@ -478,6 +478,21 @@
 <w:szCs w:val="24"/>
 </w:rPr>
 </w:style>
+<w:style w:styleId="itemLista" w:type="paragraph">
+<w:name w:val="Item de lista"/>
+<w:basedOn w:val="Normal"/>
+<w:qFormat/>
+<w:pPr>
+<w:spacing w:line="360" w:lineRule="auto"/>
+<w:ind w:hanging="425" w:left="1134"/>
+<w:jc w:val="both"/>
+</w:pPr>
+<w:rPr>
+<w:rFonts w:ascii="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman"/>
+<w:sz w:val="24"/>
+<w:szCs w:val="24"/>
+</w:rPr>
+</w:style>
 <w:style w:styleId="subalinea" w:type="paragraph">
 <w:name w:val="Subalínea"/>
 <w:basedOn w:val="Normal"/>

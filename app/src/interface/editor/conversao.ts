@@ -14,6 +14,7 @@
  */
 import { Fragment, Slice, type Mark, type Node as NoPm } from 'prosemirror-model';
 import type {
+  AlinhamentoParagrafo,
   Bloco,
   Inline,
   InlineDeNota,
@@ -105,8 +106,17 @@ function normalizarItem(item: ItemAlinea): ItemAlinea {
 export function normalizarBloco(bloco: Bloco): Bloco {
   switch (bloco.tipo) {
     case 'paragrafo':
+      return {
+        tipo: 'paragrafo',
+        id: bloco.id,
+        conteudo: normalizarConteudo(bloco.conteudo),
+        ...(bloco.alinhamento !== undefined ? { alinhamento: bloco.alinhamento } : {}),
+        ...(bloco.semRecuo === true ? { semRecuo: true as const } : {}),
+      };
     case 'citacaoLonga':
       return { tipo: bloco.tipo, id: bloco.id, conteudo: normalizarConteudo(bloco.conteudo) };
+    case 'lista':
+      return { tipo: 'lista', id: bloco.id, ...(bloco.numerada === true ? { numerada: true as const } : {}), itens: bloco.itens.map((i) => normalizarConteudo(i)) };
     case 'alineas':
       return { tipo: 'alineas', id: bloco.id, itens: bloco.itens.map(normalizarItem) };
     case 'quebraPagina':
@@ -175,8 +185,17 @@ function inlinesParaNos(conteudo: readonly Inline[]): NoPm[] {
 export function blocoParaNo(bloco: Bloco): NoPm {
   switch (bloco.tipo) {
     case 'paragrafo':
+      return tipos['paragrafo']!.create(
+        { id: bloco.id, alinhamento: bloco.alinhamento ?? null, semRecuo: bloco.semRecuo === true },
+        inlinesParaNos(bloco.conteudo),
+      );
     case 'citacaoLonga':
       return tipos[bloco.tipo]!.create({ id: bloco.id }, inlinesParaNos(bloco.conteudo));
+    case 'lista':
+      return tipos['lista']!.create(
+        { id: bloco.id, numerada: bloco.numerada === true },
+        bloco.itens.map((i) => tipos['itemLista']!.create(null, inlinesParaNos(i))),
+      );
     case 'quebraPagina':
       return tipos['quebraPagina']!.create({ id: bloco.id });
     case 'equacao':
@@ -263,10 +282,26 @@ export function noParaBloco(no: NoPm): Bloco {
   if (memo) return memo;
   let bloco: Bloco;
   switch (no.type.name) {
-    case 'paragrafo':
-    case 'citacaoLonga':
-      bloco = { tipo: no.type.name, id: idDe(no), conteudo: nosParaInlines(no) };
+    case 'paragrafo': {
+      const alinhamento: unknown = no.attrs['alinhamento'];
+      bloco = {
+        tipo: 'paragrafo',
+        id: idDe(no),
+        conteudo: nosParaInlines(no),
+        ...(typeof alinhamento === 'string' ? { alinhamento: alinhamento as AlinhamentoParagrafo } : {}),
+        ...(no.attrs['semRecuo'] === true ? { semRecuo: true as const } : {}),
+      };
       break;
+    }
+    case 'citacaoLonga':
+      bloco = { tipo: 'citacaoLonga', id: idDe(no), conteudo: nosParaInlines(no) };
+      break;
+    case 'lista': {
+      const itens: Inline[][] = [];
+      no.forEach((item) => itens.push(nosParaInlines(item)));
+      bloco = { tipo: 'lista', id: idDe(no), ...(no.attrs['numerada'] === true ? { numerada: true as const } : {}), itens };
+      break;
+    }
     case 'quebraPagina':
       bloco = { tipo: 'quebraPagina', id: idDe(no) };
       break;

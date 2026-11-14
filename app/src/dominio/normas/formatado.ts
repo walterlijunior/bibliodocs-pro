@@ -53,6 +53,8 @@ export interface ItemDeLista {
   rotulo: string | null;
   /** Posição na lista, a partir de 0, para o exportador conferir o rótulo com a numeração do Word. */
   posicao: number;
+  /** Lista com marcadores ou numerada (Etapa 2); ausente = alíneas. */
+  especie?: 'marcadores' | 'numerada';
 }
 
 export interface EntradaSumario {
@@ -73,6 +75,10 @@ export type BlocoFormatado =
       /** Indicativo da seção ("1.1"), já resolvido (RN-039). */
       indicativo?: string;
       lista?: ItemDeLista;
+      /** Alinhamento escolhido pelo autor neste parágrafo, por cima do estilo (Etapa 2). */
+      alinhamento?: 'esquerda' | 'centralizado' | 'direita' | 'justificado';
+      /** Sem o recuo de primeira linha do estilo, por escolha do autor (Etapa 2). */
+      semRecuoPrimeiraLinha?: true;
       /** Marcador para o sumário apontar a página. */
       ancora?: string;
       /** Começa em página nova; o estilo não diz porque depende do elemento (RN-148, RN-151, RN-171). */
@@ -163,6 +169,7 @@ export interface AvisoFormatacao {
     | 'NOTA_VAZIA'
     | 'CITACAO_VAZIA'
     | 'ALINEA_VAZIA'
+    | 'ITEM_LISTA_VAZIO'
     | 'SECAO_ALEM_DO_LIMITE'
     | 'BRASAO_AUSENTE'
     | 'FICHA_VAZIA'
@@ -217,8 +224,11 @@ export interface DocumentoFormatado {
   pagina: PaginaResolvida;
   /** Numeração contínua e filete curto (RN-102, RN-104). */
   notas: { numeracao: string; fileteTw: number | null; origem: readonly string[] };
-  /** Sinal da subalínea (RN-026, D-M3-10); `null` sem a regra ou sem o parâmetro. */
-  listas: { marcadorSubalinea: string | null };
+  /**
+   * `marcadorSubalinea`: sinal da subalínea (RN-026, D-M3-10); `null` sem a regra ou sem o parâmetro.
+   * `marcadorLista`: marcador da lista com marcadores (Etapa 2, D-E2-03, provisório).
+   */
+  listas: { marcadorSubalinea: string | null; marcadorLista: string };
   secoes: readonly SecaoFormatada[];
   /** Regras do perfil que não foram aplicadas por falta de decisão ou de fonte. */
   regrasAguardando: readonly string[];

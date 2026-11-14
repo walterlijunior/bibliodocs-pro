@@ -163,6 +163,30 @@
 </w:pPr>
 </w:lvl>
 </w:abstractNum>
+<w:abstractNum w15:restartNumberingAfterBreak="0" w:abstractNumId="4">
+<w:multiLevelType w:val="hybridMultilevel"/>
+<w:lvl w:ilvl="0" w:tentative="1">
+<w:start w:val="1"/>
+<w:numFmt w:val="bullet"/>
+<w:lvlText w:val="•"/>
+<w:lvlJc w:val="left"/>
+<w:pPr>
+<w:ind w:hanging="425" w:left="1134"/>
+</w:pPr>
+</w:lvl>
+</w:abstractNum>
+<w:abstractNum w15:restartNumberingAfterBreak="0" w:abstractNumId="5">
+<w:multiLevelType w:val="hybridMultilevel"/>
+<w:lvl w:ilvl="0" w:tentative="1">
+<w:start w:val="1"/>
+<w:numFmt w:val="decimal"/>
+<w:lvlText w:val="%1."/>
+<w:lvlJc w:val="left"/>
+<w:pPr>
+<w:ind w:hanging="425" w:left="1134"/>
+</w:pPr>
+</w:lvl>
+</w:abstractNum>
 <w:num w:numId="1">
 <w:abstractNumId w:val="1"/>
 <w:lvlOverride w:ilvl="0">

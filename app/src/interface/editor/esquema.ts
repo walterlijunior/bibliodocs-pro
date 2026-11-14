@@ -17,7 +17,10 @@
  * Sem `prosemirror-view` aqui: o esquema roda em Node nos testes.
  */
 import { Schema, type DOMOutputSpec, type MarkSpec, type Node as NoPm, type NodeSpec } from 'prosemirror-model';
-import type { MarcaTexto } from '../../dominio/modelo';
+import type { AlinhamentoParagrafo, MarcaTexto } from '../../dominio/modelo';
+
+/** Alinhamentos do parágrafo (Etapa 2), os mesmos de `AlinhamentoParagrafo`. */
+export const ALINHAMENTOS: readonly AlinhamentoParagrafo[] = ['esquerda', 'centralizado', 'direita', 'justificado'];
 
 /** Ordem canônica das marcas (a mesma da união `MarcaTexto`). */
 export const ORDEM_MARCAS: readonly MarcaTexto[] = ['italico', 'negrito', 'sobrescrito', 'subscrito'];
@@ -59,12 +62,54 @@ const nos: Record<string, NodeSpec> = {
     toDOM: (): DOMOutputSpec => ['h2', { class: 'bd-titulo' }, 0],
   },
 
+  /**
+   * Parágrafo. Etapa 2: `alinhamento` (`null` = o do perfil) e `semRecuo` escolhidos pelo autor, na tela por classe
+   * (`bd-alinhar-<valor>`, `bd-sem-recuo`), nunca por `style`.
+   */
   paragrafo: {
     group: 'bloco',
     content: 'inline*',
-    attrs: atributoId,
-    parseDOM: [{ tag: 'p', getAttrs: idDoElemento }],
-    toDOM: (no): DOMOutputSpec => ['p', atributosComId('bd-paragrafo', no), 0],
+    attrs: {
+      ...atributoId,
+      alinhamento: { default: null, validate: (v: unknown) => v === null || (typeof v === 'string' && (ALINHAMENTOS as readonly string[]).includes(v)) },
+      semRecuo: { default: false, validate: 'boolean' },
+    },
+    parseDOM: [
+      {
+        tag: 'p',
+        getAttrs: (el) => {
+          const classe = el.getAttribute('class') ?? '';
+          const alinhamento = ALINHAMENTOS.find((a) => classe.split(/\s+/).includes(`bd-alinhar-${a}`)) ?? null;
+          return { ...idDoElemento(el), alinhamento, semRecuo: classe.split(/\s+/).includes('bd-sem-recuo') };
+        },
+      },
+    ],
+    toDOM: (no): DOMOutputSpec => {
+      const a: unknown = no.attrs['alinhamento'];
+      const classes = ['bd-paragrafo', ...(typeof a === 'string' ? [`bd-alinhar-${a}`] : []), ...(no.attrs['semRecuo'] === true ? ['bd-sem-recuo'] : [])];
+      return ['p', atributosComId(classes.join(' '), no), 0];
+    },
+  },
+
+  /**
+   * Lista com marcadores ou numerada (Etapa 2): itens de um nível, sem id cada um. O número e o marcador vêm do CSS na
+   * tela e do motor no DOCX, nunca do documento.
+   */
+  lista: {
+    group: 'bloco',
+    content: 'itemLista+',
+    attrs: { ...atributoId, numerada: { default: false, validate: 'boolean' } },
+    parseDOM: [
+      { tag: 'ul.bd-lista', priority: 60, getAttrs: (el) => ({ ...idDoElemento(el), numerada: false }) },
+      { tag: 'ol.bd-lista', priority: 60, getAttrs: (el) => ({ ...idDoElemento(el), numerada: true }) },
+    ],
+    toDOM: (no): DOMOutputSpec => [no.attrs['numerada'] === true ? 'ol' : 'ul', atributosComId('bd-lista', no), 0],
+  },
+  itemLista: {
+    content: 'inline*',
+    defining: true,
+    parseDOM: [{ tag: 'li.bd-item-lista', priority: 60 }],
+    toDOM: (): DOMOutputSpec => ['li', { class: 'bd-item-lista' }, 0],
   },
 
   /** Lista de alíneas: pelo menos uma (RN-028). O rótulo "a)" vem de `rotuloAlinea`, nunca do documento. */
@@ -229,6 +274,7 @@ export const esquemaEditor = new Schema({ nodes: nos, marks: marcas, topNode: 's
 export const PREFIXO_ID: Readonly<Record<string, string>> = {
   paragrafo: 'par',
   alineas: 'aln',
+  lista: 'lst',
   citacaoLonga: 'cit',
   quebraPagina: 'qbr',
   tabela: 'tab',

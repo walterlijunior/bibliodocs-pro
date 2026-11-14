@@ -41,6 +41,7 @@ describe('EDT — limites de quantidade do v1 no editor (A1)', () => {
       blocosPorSecao: LIMITES_V1.blocosPorSecao,
       itensPorAlineas: LIMITES_V1.itensPorAlineas,
       subalineasPorAlinea: LIMITES_V1.subalineasPorAlinea,
+      itensPorLista: LIMITES_V1.itensPorLista,
     });
   });
 
@@ -50,6 +51,7 @@ describe('EDT — limites de quantidade do v1 no editor (A1)', () => {
       ['trechos na nota', (n) => ({ titulo: [], blocos: [par('par_lim0000001', [{ tipo: 'nota', id: 'nta_lim0000001', conteudo: alternados(n) as never }])] }), LIMITES_V1.inlinesPorConteudo],
       ['blocos', (n) => ({ titulo: [], blocos: Array.from({ length: n }, (_, i) => ({ tipo: 'quebraPagina', id: `qbr_lim${String(i).padStart(6, '0')}` })) }), LIMITES_V1.blocosPorSecao],
       ['alíneas', (n) => ({ titulo: [], blocos: [{ tipo: 'alineas', id: 'aln_lim0000001', itens: Array.from({ length: n }, () => ({ conteudo: [] })) }] }), LIMITES_V1.itensPorAlineas],
+      ['itens de lista', (n) => ({ titulo: [], blocos: [{ tipo: 'lista', id: 'lst_lim0000001', itens: Array.from({ length: n }, () => []) }] }), LIMITES_V1.itensPorLista],
       ['subalíneas', (n) => ({ titulo: [], blocos: [{ tipo: 'alineas', id: 'aln_lim0000001', itens: [{ conteudo: [], subalineas: Array.from({ length: n }, () => []) }] }] }), LIMITES_V1.subalineasPorAlinea],
       ['trechos do título', (n) => ({ titulo: alternados(n) as never, blocos: [] }), LIMITES_V1.inlinesPorConteudo],
     ];

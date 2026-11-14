@@ -26,14 +26,14 @@ const T = {
   sub: tipos['subalinea']!,
 };
 
-interface BlocoTopo {
+export interface BlocoTopo {
   no: NoPm;
   pos: number;
   indice: number;
 }
 
 /** Blocos de primeiro nível tocados pela seleção. `null` se ela toca o título. */
-function blocosDaSelecao(estado: EditorState): BlocoTopo[] | null {
+export function blocosDaSelecao(estado: EditorState): BlocoTopo[] | null {
   const { $from, $to } = estado.selection;
   const inicio = $from.index(0);
   const fim = $to.index(0);
@@ -47,7 +47,7 @@ function blocosDaSelecao(estado: EditorState): BlocoTopo[] | null {
   return blocos;
 }
 
-const cursor = (tr: Transaction, pos: number): Transaction => tr.setSelection(TextSelection.create(tr.doc, pos)).scrollIntoView();
+export const cursor = (tr: Transaction, pos: number): Transaction => tr.setSelection(TextSelection.create(tr.doc, pos)).scrollIntoView();
 
 /** Lugar do cursor dentro da lista: a lista, o item e, se houver, a subalínea. `null` fora da lista. */
 function naLista(estado: EditorState) {

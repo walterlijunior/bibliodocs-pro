@@ -1,6 +1,7 @@
 /** Elementos pós-textuais (M6-T05). A aplicação entrega a ordem e os rótulos; o conteúdo usa o editor da seção. */
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import type { ElementoPosTextual } from '../../dominio/modelo';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 
 type Tipo = ElementoPosTextual['tipo'];
 const NOMES: Readonly<Record<Tipo, string>> = {
@@ -44,7 +45,13 @@ export function PosTextuais(p: PropsPosTextuais) {
         }
       }}
     >
-      <h2 id={`${base}-titulo`}>Elementos pós-textuais</h2>
+      <div className="titulo-com-ajuda">
+        <h2 id={`${base}-titulo`}>Elementos pós-textuais</h2>
+        <AjudaContextual titulo="Elementos pós-textuais">
+          <TextoAjuda>Os elementos que vêm depois do texto: referências (montadas a partir das citações), glossário, apêndices, anexos e índice.</TextoAjuda>
+          <TextoAjuda>Para acrescentar um, escolha o tipo abaixo da lista. Apêndices e anexos abrem no editor, como uma seção, e recebem a letra pela posição.</TextoAjuda>
+        </AjudaContextual>
+      </div>
       {p.elementos.length === 0 ? <p className="dica">Nenhum elemento pós-textual incluído.</p> : (
         <ul className="elementos__lista">
           {p.elementos.map((e) => {

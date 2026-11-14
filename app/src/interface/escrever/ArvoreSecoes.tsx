@@ -7,6 +7,7 @@
 // seguem a ordem única de desfazer. Com o mouse: clicar escolhe; arrastar e soltar põe antes ou depois de outra seção.
 import { useRef, useState, type DragEvent, type KeyboardEvent, type RefObject } from 'react';
 import type { AcaoSecao, ResumoSecao } from '../../aplicacao';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { temModificador } from '../casca/teclado';
 import type { SentidoHistorico } from '../editor/EditorSecao';
 import { destinoTeclaArvore, ladoDoSoltar } from './secoes';
@@ -124,7 +125,13 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
 
   return (
     <nav className="escrever__secoes" aria-labelledby="titulo-lista-secoes" onKeyDown={teclaNaLista}>
-      <h2 id="titulo-lista-secoes">Seções</h2>
+      <div className="titulo-com-ajuda">
+        <h2 id="titulo-lista-secoes">Seções</h2>
+        <AjudaContextual titulo="Seções">
+          <TextoAjuda>As seções formam o texto do trabalho, com a numeração progressiva do Manual da UFT (1, 1.1, 1.1.1…).</TextoAjuda>
+          <TextoAjuda>Clique numa seção para escrever nela. Os botões abaixo da lista acrescentam seções e mudam a posição e o nível de cada uma; a numeração se refaz sozinha.</TextoAjuda>
+        </AjudaContextual>
+      </div>
       {secoes.length === 0 ? (
         <p className="dica">Este trabalho ainda não tem seções.</p>
       ) : (

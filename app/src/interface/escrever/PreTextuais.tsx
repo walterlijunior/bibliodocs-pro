@@ -4,6 +4,7 @@
 import { useEffect, useId, useState, type KeyboardEvent } from 'react';
 import { palavrasChaveDoTexto, type AlteracaoDados, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
 import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanca, Metadados, PessoaTitulada } from '../../dominio/modelo';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { Icone } from '../Icones';
 
 export const ROTULOS_ELEMENTO: Readonly<Record<ElementoPreTextualId, string>> = {
@@ -55,7 +56,13 @@ export function ListaElementos(p: PropsListaElementos) {
   };
   return (
     <nav className="elementos" aria-labelledby={`${base}-titulo`} onKeyDown={aoTeclar}>
-      <h2 id={`${base}-titulo`}>Elementos pré-textuais</h2>
+      <div className="titulo-com-ajuda">
+        <h2 id={`${base}-titulo`}>Elementos pré-textuais</h2>
+        <AjudaContextual titulo="Elementos pré-textuais">
+          <TextoAjuda>Os elementos que vêm antes do texto, na ordem do Manual da UFT: capa, folha de rosto, resumo, sumário e outros.</TextoAjuda>
+          <TextoAjuda>Clique num elemento para preencher os dados dele; as pendências mostram o que ainda falta. Os opcionais, como dedicatória e epígrafe, são escolhidos abaixo da lista.</TextoAjuda>
+        </AjudaContextual>
+      </div>
       <ul className="elementos__lista">
         {p.elementos.map((e) => (
           <li key={e.id}>

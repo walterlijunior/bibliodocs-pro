@@ -16,6 +16,7 @@ export const LIMITES_EDITOR = {
   blocosPorSecao: 10_000,
   itensPorAlineas: 1_000,
   subalineasPorAlinea: 1_000,
+  itensPorLista: 1_000,
 } as const;
 
 export const chaveLimites = new PluginKey('limites');
@@ -36,6 +37,7 @@ export function excedeLimites(doc: NoPm): boolean {
   doc.descendants((no) => {
     if (excede) return false;
     if (no.type.name === 'alineas' && no.childCount > LIMITES_EDITOR.itensPorAlineas) excede = true;
+    else if (no.type.name === 'lista' && no.childCount > LIMITES_EDITOR.itensPorLista) excede = true;
     else if (no.type.name === 'alinea' && no.childCount - 1 > LIMITES_EDITOR.subalineasPorAlinea) excede = true;
     else if (no.inlineContent && trechos(no) > LIMITES_EDITOR.inlinesPorConteudo) excede = true;
     // Desce também nos blocos de texto, para chegar ao conteúdo das notas.

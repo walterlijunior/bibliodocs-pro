@@ -56,6 +56,8 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
 | Ctrl+Alt+F | Nota de rodapé |
 | Alt+= | Equação |
 | Ctrl+Shift+L / Ctrl+Shift+Q | Alíneas / Citação longa |
+| Ctrl+L / Ctrl+Shift+E / Ctrl+R / Ctrl+J | Alinhar o parágrafo à esquerda / centralizar / à direita / justificar |
+| Ctrl+Shift+8 / Ctrl+Shift+7 | Lista com marcadores / lista numerada |
 | Ctrl+PageUp / Ctrl+PageDown | Seção anterior / próxima |
 | F5 | Atualizar a biblioteca |
 | F7 | Verificar conformidade |

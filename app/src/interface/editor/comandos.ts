@@ -14,6 +14,7 @@ import type { MarkType, Node as NoPm } from 'prosemirror-model';
 import { NodeSelection, type Command, type EditorState } from 'prosemirror-state';
 import type { MarcaTexto } from '../../dominio/modelo';
 import { alternarAlineas, alternarCitacaoLonga, alternarEquacao, enterNaEquacao, enterNaLista, enterNoTitulo, promoverSubalinea, recuarAlinea, voltarNoComeco } from './comandos-blocos';
+import { ALINHAMENTO_PADRAO, alternarLista, definirAlinhamento, enterNaListaSimples, enterNoParagrafo, voltarNoComecoDaLista } from './comandos-paragrafo';
 import { esquemaEditor } from './esquema';
 
 const { nodes: tipos, marks: marcas } = esquemaEditor;
@@ -143,10 +144,17 @@ export const TECLAS_SECAO: Readonly<Record<string, Command>> = {
   'Shift-Mod-q': alternarCitacaoLonga,
   // M5-T07: equação (Alt+=, como "Inserir equação" no Word).
   'Alt-=': alternarEquacao,
-  Enter: chainCommands(enterNoTitulo, enterNaLista, enterNaEquacao),
+  // Etapa 2: alinhamento do parágrafo (como no Word; Ctrl+E é Exportar, então centralizar é Ctrl+Shift+E) e listas.
+  'Mod-l': definirAlinhamento('esquerda', ALINHAMENTO_PADRAO),
+  'Shift-Mod-e': definirAlinhamento('centralizado', ALINHAMENTO_PADRAO),
+  'Mod-r': definirAlinhamento('direita', ALINHAMENTO_PADRAO),
+  'Mod-j': definirAlinhamento('justificado', ALINHAMENTO_PADRAO),
+  'Shift-Mod-8': alternarLista(false),
+  'Shift-Mod-7': alternarLista(true),
+  Enter: chainCommands(enterNoTitulo, enterNaLista, enterNaListaSimples, enterNaEquacao, enterNoParagrafo),
   Tab: recuarAlinea,
   'Shift-Tab': promoverSubalinea,
-  Backspace: voltarNoComeco,
+  Backspace: chainCommands(voltarNoComeco, voltarNoComecoDaLista),
 };
 
 /** `baseKeymap` com a quebra de linha no Shift+Enter antes do comportamento padrão. */

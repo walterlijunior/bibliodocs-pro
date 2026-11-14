@@ -71,6 +71,8 @@ function conteudosComCaminho(b: Bloco): { conteudo: readonly Inline[]; caminho: 
     case 'paragrafo':
     case 'citacaoLonga':
       return [{ conteudo: b.conteudo, caminho: ['conteudo'] }];
+    case 'lista':
+      return b.itens.map((conteudo, i) => ({ conteudo, caminho: ['itens', i] }));
     case 'alineas':
       return b.itens.flatMap((item, i) => [
         { conteudo: item.conteudo, caminho: ['itens', i, 'conteudo'] },

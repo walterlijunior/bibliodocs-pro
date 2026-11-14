@@ -120,10 +120,37 @@ export type InlineDeNota = InlineTexto | InlineCitacao | InlineSigla;
 /** Trecho de título de seção e de metadado: sem nota de rodapé no M2 (alargar junto com o esquema `conteudoTitulo`). */
 export type InlineDeTitulo = InlineTexto;
 
+/**
+ * Alinhamento escolhido pelo autor para um parágrafo (Etapa 2 da especificação de atualização). Os nomes são os do
+ * perfil (`PropriedadesPerfil.alinhamento`).
+ */
+export type AlinhamentoParagrafo = 'esquerda' | 'centralizado' | 'direita' | 'justificado';
+
 export interface BlocoParagrafo {
   tipo: 'paragrafo';
   id: Id;
   conteudo: Inline[];
+  /**
+   * Alinhamento escolhido pelo autor só para este parágrafo. Ausente: o do perfil (RN-003, justificado no perfil UFT).
+   * Forma única: o valor nunca repete o padrão do perfil por escrito, porque o perfil pode mudar.
+   */
+  alinhamento?: AlinhamentoParagrafo;
+  /** Sem o recuo de primeira linha do perfil (RN-003) só neste parágrafo. Ausente: com o recuo. */
+  semRecuo?: true;
+}
+
+/**
+ * Lista com marcadores ou numerada "1.", "2." (Etapa 2 da especificação de atualização). Diferente das alíneas (RN-023),
+ * que são a forma normativa de enumerar assuntos dentro da seção: o Manual não trata desta lista, e a forma dela no DOCX
+ * é provisória (D-E2-03). O número é derivado da posição, nunca gravado.
+ */
+export interface BlocoLista {
+  tipo: 'lista';
+  id: Id;
+  /** Lista numerada; ausente = com marcadores. */
+  numerada?: true;
+  /** Pelo menos um item; um só nível. */
+  itens: Inline[][];
 }
 
 /** Quebra de página explícita; o verificador avisa quando a regra não a permite. */
@@ -279,7 +306,7 @@ export interface BlocoGrafico {
   nota?: InlineDeTitulo[];
 }
 
-export type Bloco = BlocoParagrafo | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina | BlocoTabela | BlocoIlustracao | BlocoEquacao | BlocoGrafico;
+export type Bloco = BlocoParagrafo | BlocoLista | BlocoAlineas | BlocoCitacaoLonga | BlocoQuebraPagina | BlocoTabela | BlocoIlustracao | BlocoEquacao | BlocoGrafico;
 
 /** Seção do corpo. O nível é derivado da profundidade na árvore, nunca armazenado. */
 export interface Secao {

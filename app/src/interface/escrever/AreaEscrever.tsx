@@ -14,6 +14,7 @@ import type { ElementoPreTextualId, Obra, Secao } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
 import { EditorSecao, type ControleEditor } from '../editor/EditorSecao';
 import { Icone, Pequi } from '../Icones';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { ArvoreSecoes } from './ArvoreSecoes';
 import { ConferenciaBibliografia } from './ConferenciaBibliografia';
 import { DialogoCitacao } from './DialogoCitacao';
@@ -137,11 +138,36 @@ export interface PropsAreaEscrever {
   };
 }
 
+const DICA_SALVAR = 'As alterações são salvas sozinhas 30 segundos depois da última edição, ao trocar de trabalho e ao fechar. Ctrl+S salva na hora.';
+const ID_PAINEL_ESTRUTURA = 'painel-estrutura';
+/** Painel da estrutura oculto (Etapa 2): conveniência deste computador. */
+const CHAVE_ESTRUTURA = 'bibliodocs.estruturaOculta';
+
+function lerEstruturaOculta(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_ESTRUTURA) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function AreaEscrever(p: PropsAreaEscrever) {
   const t = p.estado.trabalho;
   const e = p.estrutura;
   const [avisosEditor, setAvisosEditor] = useState<readonly string[]>([]);
   const [cadastrosAbertos, setCadastrosAbertos] = useState(false);
+  // Etapa 2: painel da estrutura (elementos, seções, obras) recolhível na aba Escrever, lembrado neste computador.
+  const [estruturaOculta, setEstruturaOculta] = useState(lerEstruturaOculta);
+  const alternarEstrutura = () =>
+    setEstruturaOculta((o) => {
+      try {
+        localStorage.setItem(CHAVE_ESTRUTURA, o ? '0' : '1');
+      } catch {
+        /* armazenamento indisponível: vale só nesta sessão */
+      }
+      return !o;
+    });
+  const semEstrutura = (p.modo ?? 'escrever') === 'escrever' && estruturaOculta;
   const [relatorioConformidade, setRelatorioConformidade] = useState<RelatorioConformidade | null>(null);
   const { pedidoConformidade = 0, aoAtenderPedidoConformidade } = p;
   const verificarConformidade = p.conformidade?.verificar;
@@ -444,6 +470,19 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       <div className="principal__cab">
         <h1>{TITULOS_MODO[modo]}</h1>
         <div className="acoes">
+          {modo === 'escrever' && (
+            <button
+              type="button"
+              className="btn-secundario btn-com-icone"
+              aria-expanded={!estruturaOculta}
+              aria-controls={ID_PAINEL_ESTRUTURA}
+              title="Mostra ou oculta a lista de elementos, seções e obras ao lado do texto"
+              onClick={alternarEstrutura}
+            >
+              <Icone nome="estrutura" />
+              {estruturaOculta ? 'Mostrar estrutura' : 'Ocultar estrutura'}
+            </button>
+          )}
           {p.conformidade && modo === 'escrever' && <button type="button" className="btn-secundario" onClick={() => setRelatorioConformidade(p.conformidade!.verificar())}>Verificar conformidade</button>}
           {p.aoAtualizarCadastros && (modo === 'escrever' || modo === 'elementos') && <button type="button" className="btn-secundario" onClick={() => setCadastrosAbertos(true)}>Siglas, símbolos e glossário…</button>}
           {t.podeSalvar && (
@@ -486,7 +525,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         )
       ) : (
       <>
-      {modo === 'escrever' && <form className="formulario formulario--compacto" onSubmit={(ev) => ev.preventDefault()} aria-label="Dados do trabalho">
+      {modo === 'escrever' && <form className="formulario formulario--compacto formulario--linha" onSubmit={(ev) => ev.preventDefault()} aria-label="Dados do trabalho">
         <label htmlFor={ID_CAMPO_TITULO}>Título do trabalho</label>
         <input
           id={ID_CAMPO_TITULO}
@@ -499,10 +538,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           spellCheck={false}
           onChange={(ev) => p.aoAlterarTitulo(ev.target.value)}
         />
-        <p className="dica" id="dica-titulo">
-          {t.somenteLeitura
-            ? 'Somente leitura: este trabalho foi gravado por uma versão mais nova do BiblioDocs Pro.'
-            : 'As alterações são salvas sozinhas 30 segundos depois da última edição, ao trocar de trabalho e ao fechar. Ctrl+S salva na hora.'}
+        <AjudaContextual titulo="Título e salvamento">
+          <TextoAjuda>O título vai para a capa, a folha de rosto e o visor no alto da janela.</TextoAjuda>
+          <TextoAjuda>{DICA_SALVAR}</TextoAjuda>
+        </AjudaContextual>
+        {/* A dica continua descrevendo o campo para leitores de tela; na tela, ela está na ajuda (Etapa 2). */}
+        <p className={t.somenteLeitura ? 'dica' : 'dica sr-only'} id="dica-titulo">
+          {t.somenteLeitura ? 'Somente leitura: este trabalho foi gravado por uma versão mais nova do BiblioDocs Pro.' : DICA_SALVAR}
         </p>
         <dl className="formulario__dados">
           <dt>Arquivo</dt>
@@ -512,8 +554,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         </dl>
       </form>}
 
-      <div className="escrever" ref={refEscrever}>
-        <div className="escrever__coluna">
+      <div className={semEstrutura ? 'escrever escrever--sem-estrutura' : 'escrever'} ref={refEscrever}>
+        <div className="escrever__coluna" id={ID_PAINEL_ESTRUTURA} hidden={semEstrutura}>
         {pre !== null && modo !== 'referencias' && (
           <ListaElementos
             elementos={pre.resumos}

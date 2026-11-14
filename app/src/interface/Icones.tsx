@@ -2,9 +2,18 @@
 // Os símbolos ficam num único <svg> oculto e são reaproveitados por <use href="#...">.
 
 export const NOMES_ICONES = [
-  'anterior',
-  'proxima',
-  'preview',
+  // Etapa 2: setas de seção no lugar dos símbolos de reprodução (⏪ ⏩), que lembravam um player de vídeo.
+  'secaoAnterior',
+  'secaoSeguinte',
+  'estrutura',
+  'novoParagrafo',
+  'alinharEsquerda',
+  'centralizar',
+  'alinharDireita',
+  'justificar',
+  'recuo',
+  'marcadores',
+  'numerada',
   'lista',
   'grade',
   'busca',
@@ -24,9 +33,17 @@ export type NomeIcone = (typeof NOMES_ICONES)[number];
 
 /** Desenho de cada ícone num quadro 24×24. */
 const DESENHOS: Readonly<Record<NomeIcone, readonly string[]>> = {
-  anterior: ['M11 5v14L2 12zM21 5v14l-9-7z'],
-  proxima: ['M13 5v14l9-7zM3 5v14l9-7z'],
-  preview: ['M6 2h9l5 5v15H6zM14 3v5h5'],
+  secaoAnterior: ['M12 3l7 7-1.4 1.4-4.6-4.6V21h-2V6.8l-4.6 4.6L5 10z'],
+  secaoSeguinte: ['M12 21l-7-7 1.4-1.4 4.6 4.6V3h2v14.2l4.6-4.6L19 14z'],
+  estrutura: ['M3 4h18v16H3zm2 2v12h5V6zm7 0v12h7V6zM6 8h3v1.5H6zM6 11h3v1.5H6zM6 14h3v1.5H6z'],
+  novoParagrafo: ['M10 4h10v2h-2v14h-2V6h-2v14h-2v-7.1A4.5 4.5 0 0110 4z'],
+  alinharEsquerda: ['M3 4h18v2H3zM3 9h12v2H3zM3 14h18v2H3zM3 19h12v2H3z'],
+  centralizar: ['M3 4h18v2H3zM6 9h12v2H6zM3 14h18v2H3zM6 19h12v2H6z'],
+  alinharDireita: ['M3 4h18v2H3zM9 9h12v2H9zM3 14h18v2H3zM9 19h12v2H9z'],
+  justificar: ['M3 4h18v2H3zM3 9h18v2H3zM3 14h18v2H3zM3 19h18v2H3z'],
+  recuo: ['M10 4h11v2H10zM3 9h18v2H3zM3 14h18v2H3zM3 19h18v2H3zM3 2.5l4.5 2.5L3 7.5z'],
+  marcadores: ['M4.5 4.5a2 2 0 110 4 2 2 0 010-4zM4.5 10a2 2 0 110 4 2 2 0 010-4zM4.5 15.5a2 2 0 110 4 2 2 0 010-4zM9 5.5h12v2H9zM9 11h12v2H9zM9 16.5h12v2H9z'],
+  numerada: ['M3 4h2.5v5H4V5.5H3zM2.8 10.5h3.4v1.4l-1.7 1.7h1.7V15H2.8v-1.3l1.8-1.8H2.8zM2.8 16.5h3.4V21H2.8v-1.2h2v-.6h-1V18h1v-.4h-2zM9 5.5h12v2H9zM9 11h12v2H9zM9 16.5h12v2H9z'],
   lista: ['M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z'],
   grade: ['M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'],
   busca: ['M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z'],
@@ -76,7 +93,6 @@ export function SimbolosSvg() {
             {DESENHOS[nome].map((d) => (
               <path key={d} d={d} />
             ))}
-            {nome === 'preview' && <path d="M9 12h8v1.6H9zM9 15h8v1.6H9zM9 18h5v1.6H9z" fill="var(--cor-barras)" />}
           </symbol>
         ))}
       </defs>

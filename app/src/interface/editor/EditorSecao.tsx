@@ -27,7 +27,9 @@ import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-stat
 import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { ChamadaEscrita, DadosCitacao, DadosFigura, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
-import type { MarcaTexto, Sigla } from '../../dominio/modelo';
+import type { AlinhamentoParagrafo, MarcaTexto, Sigla } from '../../dominio/modelo';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
+import { Icone, type NomeIcone } from '../Icones';
 import { ChamadaView, copiaComChamadas, RegistroChamadas } from './chamada-view';
 import { alterarRemissiva, inserirRemissiva, podeInserirRemissiva, remissivaSelecionada, type RemissivaNoEditor } from './remissivas';
 import { RegistroRemissivas, RemissivaView } from './remissiva-view';
@@ -50,6 +52,17 @@ import {
 import { colarSemFormatacaoNaProxima } from './colagem';
 import { alternarAlineas, alternarCitacaoLonga, alternarEquacao, alternarNumeroEquacao, equacaoNumerada, estaEmAlineas, estaEmCitacao, estaEmEquacao } from './comandos-blocos';
 import { alternarMarca, desfazer, inserirNota, marcaAtiva, META_ABRIR_NOTA, podeInserirNota, refazer } from './comandos';
+import {
+  ALINHAMENTO_PADRAO,
+  alinhamentoDaSelecao,
+  alternarLista,
+  alternarRecuo,
+  definirAlinhamento,
+  listaDaSelecao,
+  novoParagrafo,
+  semRecuoNaSelecao,
+  temParagrafoNaSelecao,
+} from './comandos-paragrafo';
 import { docParaSecao, type ConteudoSecao } from './conversao';
 import { criarEstadoSecao } from './estado';
 import { MENSAGENS_AVISO, type AvisoColagem } from './html-colado';
@@ -241,9 +254,15 @@ interface Barra {
   podeSigla: boolean;
   desfazer: boolean;
   refazer: boolean;
+  /** Etapa 2: alinhamento comum dos parágrafos da seleção (`null`: sem parágrafo ou misturado). */
+  alinhamento: AlinhamentoParagrafo | null;
+  podeParagrafo: boolean;
+  semRecuo: boolean;
+  lista: 'marcadores' | 'numerada' | null;
+  podeLista: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, podeSigla: false, desfazer: false, refazer: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, podeSigla: false, desfazer: false, refazer: false, alinhamento: null, podeParagrafo: false, semRecuo: false, lista: null, podeLista: false };
 const SIGLAS_VAZIAS: readonly Sigla[] = [];
 
 function barraDe(estado: EditorState): Barra {
@@ -265,8 +284,21 @@ function barraDe(estado: EditorState): Barra {
     podeSigla: siglaSelecionada(estado) !== null || podeInserirSigla(estado),
     desfazer: undoDepth(estado) > 0,
     refazer: redoDepth(estado) > 0,
+    alinhamento: alinhamentoDaSelecao(estado, ALINHAMENTO_PADRAO),
+    podeParagrafo: temParagrafoNaSelecao(estado),
+    semRecuo: semRecuoNaSelecao(estado),
+    lista: listaDaSelecao(estado),
+    podeLista: alternarLista(false)(estado) || alternarLista(true)(estado),
   };
 }
+
+/** Botões de alinhamento (Etapa 2), na ordem do Word. */
+const BOTOES_ALINHAMENTO: readonly { valor: AlinhamentoParagrafo; rotulo: string; icone: NomeIcone; atalho: string; aria: string }[] = [
+  { valor: 'esquerda', rotulo: 'Alinhar à esquerda', icone: 'alinharEsquerda', atalho: 'Ctrl+L', aria: 'Control+L' },
+  { valor: 'centralizado', rotulo: 'Centralizar', icone: 'centralizar', atalho: 'Ctrl+Shift+E', aria: 'Control+Shift+E' },
+  { valor: 'direita', rotulo: 'Alinhar à direita', icone: 'alinharDireita', atalho: 'Ctrl+R', aria: 'Control+R' },
+  { valor: 'justificado', rotulo: 'Justificar', icone: 'justificar', atalho: 'Ctrl+J', aria: 'Control+J' },
+];
 
 const mesmaBarra = (a: Barra, b: Barra): boolean => (Object.keys(a) as (keyof Barra)[]).every((k) => a[k] === b[k]);
 
@@ -612,133 +644,239 @@ export function EditorSecao(p: PropsEditorSecao) {
     <div className="editor-secao">
       {!somenteLeitura && (
         <div className="barra-formatacao" role="toolbar" aria-label="Formatação do texto">
-          {BOTOES_MARCA.map((b) => (
+          <div className="barra-formatacao__grupo" role="group" aria-label="Texto">
+            {BOTOES_MARCA.map((b) => (
+              <button
+                key={b.marca}
+                type="button"
+                className={`btn-formato btn-formato--${b.marca}`}
+                aria-pressed={barra[b.marca]}
+                aria-keyshortcuts={b.aria}
+                title={`${b.rotulo} (${b.atalho})`}
+                aria-label={b.nome ?? b.rotulo} // O nome contém o texto visível (WCAG 2.5.3; axe, M2-T11)
+                // Não tira o foco do editor (a seleção continua onde estava).
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => aplicar(b.marca)}
+              >
+                {b.texto}
+              </button>
+            ))}
+            <AjudaContextual titulo="Texto">
+              <TextoAjuda>Destaques do texto: itálico para termos estrangeiros e títulos de obras, negrito com moderação, sobrescrito e subscrito para unidades e fórmulas (m², H₂O).</TextoAjuda>
+              <TextoAjuda>Selecione o trecho e clique no botão, ou use o atalho mostrado ao passar o mouse.</TextoAjuda>
+            </AjudaContextual>
+          </div>
+
+          <div className="barra-formatacao__grupo" role="group" aria-label="Parágrafo">
             <button
-              key={b.marca}
               type="button"
-              className={`btn-formato btn-formato--${b.marca}`}
-              aria-pressed={barra[b.marca]}
-              aria-keyshortcuts={b.aria}
-              title={`${b.rotulo} (${b.atalho})`}
-              aria-label={b.nome ?? b.rotulo} // O nome contém o texto visível (WCAG 2.5.3; axe, M2-T11)
-              // Não tira o foco do editor (a seleção continua onde estava).
+              className="btn-formato btn-com-icone"
+              title="Novo parágrafo logo depois do bloco do cursor (também depois de tabela ou figura)"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => aplicar(b.marca)}
+              onClick={() => aplicarBloco(novoParagrafo)}
             >
-              {b.texto}
+              <Icone nome="novoParagrafo" />
+              <span className="btn-rotulo">Novo parágrafo</span>
             </button>
-          ))}
-          <span className="barra-formatacao__separador" aria-hidden="true" />
-          <button type="button" className="btn-formato" disabled={!barra.podeSigla || !p.aoPedirSigla} onMouseDown={(ev) => ev.preventDefault()} onClick={() => controle.current?.pedirSigla()}>
-            Sigla
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.nota}
-            aria-keyshortcuts="Control+Alt+F"
-            title="Nota de rodapé (Ctrl+Alt+F)"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.inserirNota()}
-          >
-            Nota de rodapé
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.podeAlineas}
-            aria-pressed={barra.alineas}
-            aria-keyshortcuts="Control+Shift+L"
-            title="Alíneas (Ctrl+Shift+L). Na alínea, Tab cria subalínea e Shift+Tab volta"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => aplicarBloco(alternarAlineas)}
-          >
-            Alíneas
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.podeCitacao}
-            aria-pressed={barra.citacao}
-            aria-keyshortcuts="Control+Shift+Q"
-            title="Citação longa (Ctrl+Shift+Q)"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => aplicarBloco(alternarCitacaoLonga)}
-          >
-            Citação longa
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.podeEquacao}
-            aria-pressed={barra.equacao}
-            aria-keyshortcuts="Alt+="
-            title="Equação (Alt+=): o parágrafo vira equação destacada, numerada à direita"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => aplicarBloco(alternarEquacao)}
-          >
-            Equação
-          </button>
-          {barra.equacao && (
+            {BOTOES_ALINHAMENTO.map((b) => (
+              <button
+                key={b.valor}
+                type="button"
+                className="btn-formato btn-icone-formato"
+                aria-label={b.rotulo}
+                aria-pressed={barra.alinhamento === b.valor}
+                aria-keyshortcuts={b.aria}
+                title={`${b.rotulo} (${b.atalho})${b.valor === ALINHAMENTO_PADRAO ? ', o padrão do perfil' : ''}`}
+                disabled={!barra.podeParagrafo}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => aplicarBloco(definirAlinhamento(b.valor, ALINHAMENTO_PADRAO))}
+              >
+                <Icone nome={b.icone} />
+              </button>
+            ))}
+            <button
+              type="button"
+              className="btn-formato btn-com-icone"
+              aria-pressed={barra.podeParagrafo && !barra.semRecuo}
+              title="Recuo de 1,25 cm na primeira linha (padrão do perfil). Clique para tirar ou repor"
+              disabled={!barra.podeParagrafo}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarRecuo)}
+            >
+              <Icone nome="recuo" />
+              <span className="btn-rotulo">Recuo da primeira linha</span>
+            </button>
+            <AjudaContextual titulo="Parágrafo">
+              <TextoAjuda>Pelo Manual da UFT, o parágrafo é justificado e tem recuo de 1,25 cm na primeira linha. Esse é o padrão: não precisa aplicar.</TextoAjuda>
+              <TextoAjuda>Use os botões só onde precisar de outra forma, como um trecho centralizado ou um parágrafo sem recuo. Clique no parágrafo (ou selecione vários) e escolha; clicar de novo volta ao padrão.</TextoAjuda>
+              <TextoAjuda>Enter cria um parágrafo novo com a mesma forma. “Novo parágrafo” abre um logo depois do bloco do cursor, útil depois de uma tabela ou figura.</TextoAjuda>
+            </AjudaContextual>
+          </div>
+
+          <div className="barra-formatacao__grupo" role="group" aria-label="Listas">
+            <button
+              type="button"
+              className="btn-formato btn-com-icone"
+              aria-pressed={barra.lista === 'marcadores'}
+              aria-keyshortcuts="Control+Shift+8"
+              title="Lista com marcadores (Ctrl+Shift+8)"
+              disabled={!barra.podeLista}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarLista(false))}
+            >
+              <Icone nome="marcadores" />
+              <span className="btn-rotulo">Lista com marcadores</span>
+            </button>
+            <button
+              type="button"
+              className="btn-formato btn-com-icone"
+              aria-pressed={barra.lista === 'numerada'}
+              aria-keyshortcuts="Control+Shift+7"
+              title="Lista numerada (Ctrl+Shift+7)"
+              disabled={!barra.podeLista}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarLista(true))}
+            >
+              <Icone nome="numerada" />
+              <span className="btn-rotulo">Lista numerada</span>
+            </button>
             <button
               type="button"
               className="btn-formato"
-              aria-pressed={barra.numerada}
-              title="Número da equação: (1), (2)… à direita, contado no documento todo"
+              disabled={!barra.podeAlineas}
+              aria-pressed={barra.alineas}
+              aria-keyshortcuts="Control+Shift+L"
+              title="Alíneas a), b), c) do Manual (Ctrl+Shift+L). Na alínea, Tab cria subalínea e Shift+Tab volta"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => aplicarBloco(alternarNumeroEquacao)}
+              onClick={() => aplicarBloco(alternarAlineas)}
             >
-              Numerar (n)
+              Alíneas
             </button>
-          )}
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.podeCitar}
-            aria-keyshortcuts="Control+Shift+C"
-            title="Citação: escolher a obra citada (Ctrl+Shift+C)"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.pedirCitacao()}
-          >
-            Citação
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            disabled={!barra.podeRemissiva}
-            title="Remissiva: citar no texto uma tabela, quadro, figura ou equação (“Tabela 3”), com o número sempre em dia"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.pedirRemissiva()}
-          >
-            Remissiva
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            title="Tabela ou quadro: inserir no cursor, ou alterar a selecionada"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.pedirTabela()}
-          >
-            Tabela
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            title="Figura: inserir imagem no cursor, ou alterar a selecionada"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.pedirFigura()}
-          >
-            Figura
-          </button>
-          <button
-            type="button"
-            className="btn-formato"
-            title="Gráfico: gerar de uma tabela do trabalho, no cursor, ou alterar o selecionado"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => controle.current?.pedirGrafico()}
-          >
-            Gráfico
-          </button>
+            <AjudaContextual titulo="Listas">
+              <TextoAjuda>Alíneas, com a), b), c), são a forma do Manual da UFT para dividir um assunto dentro da seção, com subalíneas por travessão.</TextoAjuda>
+              <TextoAjuda>Listas com marcadores e numeradas servem a enumerações mais livres. O Manual não trata delas, e a forma delas no arquivo exportado é provisória.</TextoAjuda>
+              <TextoAjuda>Selecione os parágrafos e clique no tipo de lista. Enter num item vazio sai da lista; clicar de novo no mesmo tipo desfaz.</TextoAjuda>
+            </AjudaContextual>
+          </div>
+
+          <div className="barra-formatacao__grupo" role="group" aria-label="Citações e notas">
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.podeCitar}
+              aria-keyshortcuts="Control+Shift+C"
+              title="Citação: escolher a obra citada (Ctrl+Shift+C)"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.pedirCitacao()}
+            >
+              Citação
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.podeCitacao}
+              aria-pressed={barra.citacao}
+              aria-keyshortcuts="Control+Shift+Q"
+              title="Citação longa (Ctrl+Shift+Q)"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarCitacaoLonga)}
+            >
+              Citação longa
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.nota}
+              aria-keyshortcuts="Control+Alt+F"
+              title="Nota de rodapé (Ctrl+Alt+F)"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.inserirNota()}
+            >
+              Nota de rodapé
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.podeSigla || !p.aoPedirSigla}
+              title="Sigla ligada ao cadastro: a primeira ocorrência sai por extenso"
+              onMouseDown={(ev) => ev.preventDefault()}
+              onClick={() => controle.current?.pedirSigla()}
+            >
+              Sigla
+            </button>
+            <AjudaContextual titulo="Citações e notas">
+              <TextoAjuda>“Citação” insere a chamada (AUTOR, ano) ligada a uma obra cadastrada; a lista de referências se monta sozinha.</TextoAjuda>
+              <TextoAjuda>“Citação longa” destaca a citação direta com mais de três linhas (recuo de 4 cm, letra menor). “Nota de rodapé” cria a nota no ponto do cursor. “Sigla” liga a sigla ao cadastro, para a primeira ocorrência sair por extenso.</TextoAjuda>
+            </AjudaContextual>
+          </div>
+
+          <div className="barra-formatacao__grupo" role="group" aria-label="Elementos">
+            <button
+              type="button"
+              className="btn-formato"
+              title="Tabela ou quadro: inserir no cursor, ou alterar a selecionada"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.pedirTabela()}
+            >
+              Tabela
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              title="Figura: inserir imagem no cursor, ou alterar a selecionada"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.pedirFigura()}
+            >
+              Figura
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              title="Gráfico: gerar de uma tabela do trabalho, no cursor, ou alterar o selecionado"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.pedirGrafico()}
+            >
+              Gráfico
+            </button>
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.podeEquacao}
+              aria-pressed={barra.equacao}
+              aria-keyshortcuts="Alt+="
+              title="Equação (Alt+=): o parágrafo vira equação destacada, numerada à direita"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => aplicarBloco(alternarEquacao)}
+            >
+              Equação
+            </button>
+            {barra.equacao && (
+              <button
+                type="button"
+                className="btn-formato"
+                aria-pressed={barra.numerada}
+                title="Número da equação: (1), (2)… à direita, contado no documento todo"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => aplicarBloco(alternarNumeroEquacao)}
+              >
+                Numerar (n)
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn-formato"
+              disabled={!barra.podeRemissiva}
+              title="Remissiva: citar no texto uma tabela, quadro, figura ou equação (“Tabela 3”), com o número sempre em dia"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => controle.current?.pedirRemissiva()}
+            >
+              Remissiva
+            </button>
+            <AjudaContextual titulo="Elementos" aDireita>
+              <TextoAjuda>Tabelas, quadros, figuras, gráficos e equações entram no ponto do cursor e são numerados sozinhos.</TextoAjuda>
+              <TextoAjuda>A “Remissiva” escreve no texto a menção ao elemento (“Tabela 3”), e o número acompanha quando a ordem muda. Para alterar um elemento, selecione-o no texto e clique de novo no botão dele.</TextoAjuda>
+            </AjudaContextual>
+          </div>
         </div>
       )}
       {sugestao.length > 0 && !somenteLeitura && (

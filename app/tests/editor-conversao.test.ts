@@ -134,9 +134,12 @@ function secaoAleatoria(semente: number): Secao {
   const inlines = (max: number): Inline[] =>
     Array.from({ length: r() % max }, (): Inline => (r() % 6 === 0 ? { tipo: 'nota', id: id('nta'), conteudo: textos(4) } : trecho()));
   const bloco = (): Bloco => {
-    switch (r() % 5) {
+    switch (r() % 6) {
       case 0:
         return { tipo: 'quebraPagina', id: id('qbr') };
+      // Etapa 2: lista com marcadores ou numerada.
+      case 3:
+        return { tipo: 'lista', id: id('lst'), ...(r() % 2 ? { numerada: true as const } : {}), itens: Array.from({ length: 1 + (r() % 3) }, () => inlines(4)) };
       case 1:
         return { tipo: 'citacaoLonga', id: id('cit'), conteudo: inlines(5) };
       case 2:
@@ -148,8 +151,11 @@ function secaoAleatoria(semente: number): Secao {
             return subs.length > 0 ? { conteudo: inlines(4), subalineas: subs } : { conteudo: inlines(4) };
           }),
         };
-      default:
-        return { tipo: 'paragrafo', id: id('par'), conteudo: inlines(8) };
+      default: {
+        // Etapa 2: alinhamento e recuo escolhidos pelo autor, às vezes.
+        const alinhamento = (['esquerda', 'centralizado', 'direita', 'justificado', undefined] as const)[r() % 5];
+        return { tipo: 'paragrafo', id: id('par'), conteudo: inlines(8), ...(alinhamento ? { alinhamento } : {}), ...(r() % 4 === 0 ? { semRecuo: true as const } : {}) };
+      }
     }
   };
   return { id: id('sec'), titulo: textos(4), blocos: Array.from({ length: r() % 7 }, bloco), subsecoes: [] };

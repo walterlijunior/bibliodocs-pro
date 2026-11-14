@@ -155,6 +155,7 @@ function estilos(f: DocumentoFormatado) {
 function numeracoes(f: DocumentoFormatado) {
   const a = buscar(f, 'alinea')?.propriedades ?? {};
   const s = buscar(f, 'subalinea')?.propriedades ?? {};
+  const l = buscar(f, 'itemLista')?.propriedades ?? {};
   return {
     config: [
       {
@@ -175,6 +176,15 @@ function numeracoes(f: DocumentoFormatado) {
           { level: 0, format: LevelFormat.LOWER_LETTER, text: '%1)', alignment: AlignmentType.LEFT, style: { paragraph: recuo(a) } },
           { level: 1, format: LevelFormat.BULLET, text: f.listas.marcadorSubalinea ?? '', alignment: AlignmentType.LEFT, style: { paragraph: recuo(s) } },
         ],
+      },
+      // Etapa 2 (D-E2-03, provisório): listas com marcadores e numeradas, com o recuo do estilo `itemLista`.
+      {
+        reference: 'marcadores',
+        levels: [{ level: 0, format: LevelFormat.BULLET, text: f.listas.marcadorLista, alignment: AlignmentType.LEFT, style: { paragraph: recuo(l) } }],
+      },
+      {
+        reference: 'numerada',
+        levels: [{ level: 0, format: LevelFormat.DECIMAL, text: '%1.', alignment: AlignmentType.LEFT, style: { paragraph: recuo(l) } }],
       },
     ],
   };
@@ -347,9 +357,13 @@ function converterBloco(b: BlocoFormatado, f: DocumentoFormatado, notas: Notas, 
         new Paragraph({
           style: b.estilo,
           ...(literal ? { numbering: false as const } : {}),
-          ...(b.lista && b.lista.rotulo !== null ? { numbering: { reference: 'alineas', level: b.lista.nivel, instance: b.lista.lista } } : {}),
+          ...(b.lista && b.lista.rotulo !== null ? { numbering: { reference: b.lista.especie ?? 'alineas', level: b.lista.nivel, instance: b.lista.lista } } : {}),
           ...(b.novaPagina ? { pageBreakBefore: true } : {}),
-          ...(b.recuoEsquerdaTw !== undefined ? { indent: { left: b.recuoEsquerdaTw } } : {}),
+          ...(b.alinhamento !== undefined ? { alignment: ALINHAMENTO[b.alinhamento] } : {}),
+          // Etapa 2: sem o recuo de primeira linha do estilo, por escolha do autor (`w:firstLine="0"` por cima do estilo).
+          ...(b.recuoEsquerdaTw !== undefined || b.semRecuoPrimeiraLinha
+            ? { indent: { ...(b.recuoEsquerdaTw !== undefined ? { left: b.recuoEsquerdaTw } : {}), ...(b.semRecuoPrimeiraLinha ? { firstLine: 0 } : {}) } }
+            : {}),
           ...(b.tabulacaoDireitaTw !== undefined ? { tabStops: [{ type: TabStopType.RIGHT, position: b.tabulacaoDireitaTw }] } : {}),
           ...(b.tabulacaoEsquerdaTw !== undefined ? { tabStops: [{ type: TabStopType.LEFT, position: b.tabulacaoEsquerdaTw }] } : {}),
           ...(b.antesTw !== undefined || b.depoisTw !== undefined

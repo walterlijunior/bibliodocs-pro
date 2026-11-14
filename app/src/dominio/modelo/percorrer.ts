@@ -10,6 +10,8 @@ export function conteudosDoBloco(bloco: Bloco): readonly (readonly Inline[])[] {
     case 'paragrafo':
     case 'citacaoLonga':
       return [bloco.conteudo];
+    case 'lista':
+      return bloco.itens;
     case 'alineas':
       return bloco.itens.flatMap((item) => [item.conteudo, ...(item.subalineas ?? [])]);
     case 'quebraPagina':

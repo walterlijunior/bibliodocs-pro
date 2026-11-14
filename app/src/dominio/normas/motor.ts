@@ -84,6 +84,9 @@ const titulo = (n: 1 | 2 | 3 | 4 | 5, ordem: string): DefinicaoEstilo => ({
   parametros: espacoTitulos,
 });
 
+/** Marcador da lista com marcadores (Etapa 2, D-E2-03, provisório). */
+export const MARCADOR_LISTA = '•';
+
 /** Do que o perfil fala, só o que vira estilo. O catálogo é fechado: um `id` novo é decisão de código, não de dados. */
 const ESTILOS: readonly DefinicaoEstilo[] = [
   { id: 'corpo', nome: 'Corpo do texto', alvos: ['documento', 'corpo.paragrafo'] },
@@ -108,6 +111,14 @@ const ESTILOS: readonly DefinicaoEstilo[] = [
   {
     id: 'alinea',
     nome: 'Alínea',
+    alvos: ['documento', 'corpo.paragrafo', 'alinea'],
+    semHerdar: ['recuoPrimeiraLinhaTw'],
+    parametros: recuoLista('recuoAlineaCm', 'deslocamentoAlineaCm'),
+  },
+  // Etapa 2 (D-E2-03, provisório): o Manual não trata da lista com marcadores ou numerada; ela usa o recuo da alínea.
+  {
+    id: 'itemLista',
+    nome: 'Item de lista',
     alvos: ['documento', 'corpo.paragrafo', 'alinea'],
     semHerdar: ['recuoPrimeiraLinhaTw'],
     parametros: recuoLista('recuoAlineaCm', 'deslocamentoAlineaCm'),
@@ -340,6 +351,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const rnNotas = perfil.regras.filter((r) => r.alvo === 'nota.numeracao' && regras.includes(r)).map((r) => r.id);
   let proximaNota = 0;
   let proximaLista = 0;
+  let avisoLista = false;
 
   // Citações e referências (M4-T05). A lista sai das obras citadas, inclusive as do apud (RN-078), ou de todas as obras
   // se o autor pediu; sufixos a, b e chamadas vêm da mesma lista, para nunca divergirem.
@@ -452,7 +464,34 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const converterBloco = (b: Bloco): BlocoFormatado[] => {
     switch (b.tipo) {
       case 'paragrafo':
-        return [{ tipo: 'paragrafo', estilo: 'corpo', trechos: trechos(b.conteudo), origem: [] }];
+        return [
+          {
+            tipo: 'paragrafo',
+            estilo: 'corpo',
+            trechos: trechos(b.conteudo),
+            ...(b.alinhamento !== undefined ? { alinhamento: b.alinhamento } : {}),
+            ...(b.semRecuo ? { semRecuoPrimeiraLinha: true as const } : {}),
+            origem: [],
+          },
+        ];
+      case 'lista': {
+        const lista = proximaLista++;
+        const especie = b.numerada ? ('numerada' as const) : ('marcadores' as const);
+        if (!avisoLista) {
+          avisoLista = true;
+          avisos.push({ codigo: 'FORMA_SEM_FONTE', id: b.id, mensagem: 'A forma das listas com marcadores e numeradas é provisória: o Manual da UFT só trata das alíneas (D-E2-03).' });
+        }
+        return b.itens.map((item, posicao): BlocoFormatado => {
+          if (textoVazio(item)) avisos.push({ codigo: 'ITEM_LISTA_VAZIO', id: b.id, mensagem: 'Item de lista sem texto.' });
+          return {
+            tipo: 'paragrafo',
+            estilo: 'itemLista',
+            trechos: trechos(item),
+            lista: { lista, nivel: 0, rotulo: especie === 'numerada' ? `${posicao + 1}.` : MARCADOR_LISTA, posicao, especie },
+            origem: [],
+          };
+        });
+      }
       case 'citacaoLonga':
         if (textoVazio(b.conteudo)) avisos.push({ codigo: 'CITACAO_VAZIA', id: b.id, mensagem: 'Citação longa sem texto.' });
         emCitacaoLonga = true;
@@ -626,7 +665,7 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
       fileteTw: rnNotasFilete.length > 0 && typeof filete === 'number' ? cmParaTw(filete) : null,
       origem: [...rnNotas, ...rnNotasFilete],
     },
-    listas: { marcadorSubalinea },
+    listas: { marcadorSubalinea, marcadorLista: MARCADOR_LISTA },
     secoes,
     regrasAguardando,
     avisos,
