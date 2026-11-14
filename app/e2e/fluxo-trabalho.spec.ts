@@ -147,7 +147,7 @@ test('FUN-11: elementos pré-textuais — campos, pendências, retirar com Ctrl+
   await expect(pendenciasCapa).toContainText('Capa: falta a autoria. (RN-117)');
   await p.getByLabel('Autoria').fill('Ana Souza');
   await expect(pendenciasCapa).not.toContainText('falta a autoria');
-  await p.getByLabel('Instituição').fill('Universidade Federal do Tocantins');
+  await p.getByLabel('Instituição', { exact: true }).fill('Universidade Federal do Tocantins');
 
   // O dado da capa é o mesmo da folha de rosto.
   await item(/^Folha de rosto/).click();

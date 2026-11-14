@@ -41,7 +41,7 @@ export function BarraSuperior(p: PropsBarraSuperior) {
           <Icone nome="secaoSeguinte" />
           <span className="btn-nav-secao__texto">Próxima seção</span>
         </button>
-        <label className="zoom" title="Tamanho do texto no editor (não muda o arquivo exportado)">
+        <label className="zoom" title={`Tamanho do texto no editor: ${p.zoom}% (não muda o arquivo exportado)`}>
           <span>Zoom</span>
           <input
             type="range"
@@ -54,7 +54,6 @@ export function BarraSuperior(p: PropsBarraSuperior) {
             disabled={!p.podeZoom}
             onChange={(e) => p.aoZoom(Number(e.target.value))}
           />
-          <span className="zoom__valor" aria-hidden="true">{p.zoom}%</span>
         </label>
       </div>
 

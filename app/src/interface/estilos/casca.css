@@ -496,8 +496,6 @@ button:disabled { opacity: 0.45; cursor: default; }
 .btn-nav-secao:hover:not(:disabled) { border-color: var(--cor-borda-controle); }
 .btn-nav-secao:disabled { opacity: 0.45; cursor: default; }
 .btn-nav-secao svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
-.zoom__valor { min-width: 3.5em; font-variant-numeric: tabular-nums; }
-.zoom input:disabled + .zoom__valor { opacity: 0.45; }
 
 /* Na aba Escrever a lateral da Biblioteca sai: o texto fica com a largura toda. */
 .conteudo--escrever { grid-template-columns: minmax(0, 1fr) auto; }
@@ -571,12 +569,40 @@ ol.bd-lista { list-style: decimal; }
   .barra-formatacao .btn-rotulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .barra-formatacao .btn-com-icone { min-width: 34px; justify-content: center; }
 }
+/* Até 1500 px a coluna da esquerda da barra superior não cabe as setas com o nome e o zoom: as setas ficam só com o
+   ícone; o nome continua para o leitor de tela e na dica (title). */
+@media (max-width: 1500px) {
+  .btn-nav-secao__texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 @media (max-width: 1100px) {
   .conteudo--escrever { grid-template-columns: minmax(0, 1fr); }
-  /* Janela estreita: as setas ficam só com o ícone; o nome continua para o leitor de tela. */
-  .btn-nav-secao__texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .zoom__valor { display: none; }
 }
 @media (forced-colors: active) {
   .btn-formato[aria-pressed="true"] { outline: 2px solid CanvasText; }
 }
+
+/* ---------- Etapa 3: catálogo acadêmico (dados institucionais, janela do catálogo, novo trabalho) ---------- */
+.seletor-institucional, .novo-trabalho__instituicao, .catalogo__lista {
+  border: 1px solid var(--cor-borda); border-radius: var(--raio); padding: var(--esp-2) var(--esp-3); margin: 0 0 var(--esp-3); min-width: 0;
+}
+.seletor-institucional legend { display: inline-flex; align-items: center; gap: var(--esp-1); font-weight: 600; }
+.seletor-institucional__grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--esp-2) var(--esp-3); }
+.campo-catalogo { display: grid; gap: 2px; min-width: 0; }
+.campo-catalogo select.campo, .campo-catalogo input.campo { width: 100%; max-width: 100%; }
+.campo-catalogo--curto { max-width: 12rem; }
+.seletor-institucional .dica, .novo-trabalho__instituicao .dica { margin: var(--esp-2) 0 0; }
+.seletor-institucional .dica:empty { display: none; }
+.seletor-institucional > .btn-secundario { margin-top: var(--esp-2); }
+.dialogo--catalogo { width: min(760px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--catalogo .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.catalogo__nivel { display: grid; gap: 2px; }
+.catalogo__linha { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: end; }
+.catalogo__linha > .campo-catalogo:not(.campo-catalogo--curto) { flex: 1 1 14rem; }
+.catalogo__linha > select.campo { flex: 1 1 14rem; }
+.catalogo__registro { display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-3); align-items: end; padding: var(--esp-2) 0 var(--esp-2) var(--esp-3); border-left: 3px solid var(--cor-borda); }
+.catalogo__registro > .campo-catalogo:not(.campo-catalogo--curto) { flex: 1 1 16rem; }
+.catalogo__registro > .dica, .catalogo__registro > .catalogo__lista { flex-basis: 100%; }
+.catalogo__lista ul { margin: 0 0 var(--esp-2); padding-left: var(--esp-4); }
+.dialogo .tipos-trabalho { min-height: 0; }
+/* "Novo trabalho" com a instituição (Etapa 3): cinco linhas, só a lista de tipos rola. */
+.dialogo__corpo:has(> .novo-trabalho__instituicao) { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }

@@ -26,7 +26,7 @@ import { graficosParaExportar } from './editor/pintar-grafico';
 import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
-import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
+import { DialogoNovoTrabalho, type InstitucionalNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { DialogoSobre } from './casca/DialogoSobre';
 import { DialogoAjuda, type TipoAjuda } from './casca/DialogoAjuda';
 import { AreaColecao } from './biblioteca/AreaColecao';
@@ -48,6 +48,7 @@ import { AreaEscrever, ID_CAMPO_TITULO, type ModoTrabalho } from './escrever/Are
 import { useEstrutura } from './escrever/useEstrutura';
 import { useSessao } from './escrever/useSessao';
 import { SimbolosSvg } from './Icones';
+import { ProvedorCatalogo } from './catalogo/ContextoCatalogo';
 
 /** Lugar da interface guardado no histórico de Voltar/Avançar. */
 interface Local {
@@ -339,12 +340,17 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   }, []);
 
   const criar = useCallback(
-    (tipo: TipoTrabalhoUft) =>
+    (tipo: TipoTrabalhoUft, institucional: InstitucionalNovoTrabalho | null = null) =>
       exclusivo(async () => {
         if (!(await liberarAtual())) return;
         const r = await criarNaBiblioteca(tipo);
         if (r === null) return;
         sessao.abrir(r.projeto);
+        // Etapa 3: o trabalho nasce com os dados institucionais escolhidos no diálogo, já gravados no arquivo.
+        if (institucional !== null) {
+          sessao.aplicarCatalogo(institucional.dados, institucional.vinculo);
+          void sessao.salvar();
+        }
         setBusca('');
         setSelecionado(r.id);
         setSaidaPedida(false);
@@ -629,17 +635,17 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const escrevendo = local.aba === 'escrever';
 
   return (
-    <>
+    <ProvedorCatalogo api={api.catalogo}>
       <SimbolosSvg />
       {escolhendoTipo && (
         <DialogoNovoTrabalho
           inicial={ultimoTipo}
           ocupado={bib.ocupado}
           aoCancelar={() => setEscolhendoTipo(false)}
-          aoCriar={(tipo) => {
+          aoCriar={(tipo, institucional) => {
             setEscolhendoTipo(false);
             setUltimoTipo(tipo);
-            void criar(tipo);
+            void criar(tipo, institucional);
           }}
         />
       )}
@@ -779,6 +785,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoIrParaBiblioteca={() => ir({ aba: 'biblioteca', colecao: 'trabalhos' })}
                 elementos={{
                   alterarDados: (a) => sessao.alterarDados(a),
+                  aplicarCatalogo: (d, v, o) => sessao.aplicarCatalogo(d, v, o),
                   alterarSubtitulo: (texto) => sessao.alterarSubtitulo(texto),
                   alterar: (id, campos) => sessao.alterarElemento(id, campos),
                   incluir: (tipo) => sessao.incluirElemento(tipo),
@@ -837,6 +844,6 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           )}
         </div>
       </div>
-    </>
+    </ProvedorCatalogo>
   );
 }

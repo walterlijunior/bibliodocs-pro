@@ -2,8 +2,9 @@
 // formulário do elemento escolhido, com as pendências dele. Texto simples nos campos: negrito e itálico ficam para quando
 // o resumo e os agradecimentos usarem o editor de seção. Texto sempre como texto (nunca HTML).
 import { useEffect, useId, useState, type KeyboardEvent } from 'react';
-import { palavrasChaveDoTexto, type AlteracaoDados, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
-import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanca, Metadados, PessoaTitulada } from '../../dominio/modelo';
+import { palavrasChaveDoTexto, type AlteracaoDados, type DadosDoCatalogo, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
+import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanca, Metadados, PessoaTitulada, TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
+import { SeletorInstitucional } from '../catalogo/SeletorInstitucional';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { Icone } from '../Icones';
 
@@ -142,6 +143,9 @@ export interface PropsFormularioElemento {
   pendencias: readonly PendenciaPreTextual[];
   somenteLeitura: boolean;
   aoAlterarDados: (a: AlteracaoDados) => void;
+  /** Etapa 3: tipo do trabalho (para a natureza proposta) e aplicação da escolha no catálogo. */
+  tipoTrabalho?: TipoTrabalhoId;
+  aoAplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: { substituirNatureza?: boolean }) => void;
   aoAlterarSubtitulo: (texto: string) => void;
   aoAlterarElemento: (id: string, campos: CamposElemento) => void;
   aoRetirar: (id: string) => void;
@@ -176,6 +180,15 @@ export function FormularioElemento(p: PropsFormularioElemento) {
       </div>
       {p.sugerido && <p className="dica">{SUGESTAO}</p>}
 
+      {(e.tipo === 'capa' || e.tipo === 'folhaRosto') && p.aoAplicarCatalogo && (
+        <SeletorInstitucional
+          vinculo={p.dados.vinculo}
+          natureza={p.dados.natureza}
+          tipoTrabalho={p.tipoTrabalho ?? 'generico'}
+          somenteLeitura={so}
+          aoAplicar={p.aoAplicarCatalogo}
+        />
+      )}
       {e.tipo === 'capa' && (
         <>
           {dado('instituicao', 'Instituição')}
