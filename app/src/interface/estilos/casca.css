@@ -606,3 +606,9 @@ ol.bd-lista { list-style: decimal; }
 .dialogo .tipos-trabalho { min-height: 0; }
 /* "Novo trabalho" com a instituição (Etapa 3): cinco linhas, só a lista de tipos rola. */
 .dialogo__corpo:has(> .novo-trabalho__instituicao) { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+.catalogo__logotipo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); flex-basis: 100%; }
+.catalogo__logotipo img { max-height: 64px; max-width: 160px; border: 1px solid var(--cor-borda); background: var(--cor-fundo); }
+.catalogo__rotulo { flex-basis: 100%; }
+.importar-ficha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin: 0 0 var(--esp-3); }
+.importar-ficha .dica:empty { display: none; }
+.importar-ficha__confirmar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); flex-basis: 100%; }

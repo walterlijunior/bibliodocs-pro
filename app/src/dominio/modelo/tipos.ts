@@ -417,6 +417,11 @@ export interface Metadados {
   bolsista?: true;
   /** Etapa 3: de onde vieram os dados institucionais no catálogo; ausente quando foram digitados à mão. */
   vinculo?: VinculoInstitucional;
+  /**
+   * Etapa 3: logotipo da instituição (o brasão da capa, RN-118), copiado do catálogo para as mídias do trabalho: sha256
+   * da imagem PNG ou JPEG guardada no arquivo.
+   */
+  logotipo?: string;
 }
 
 /**

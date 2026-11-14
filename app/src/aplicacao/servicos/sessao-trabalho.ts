@@ -76,7 +76,7 @@ import { verificarBibliografiaDoDocumento } from './citacoes';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
 import { validarObra } from './obras';
-import { aplicarCampos, aplicarDados, aplicarDadosDoCatalogo, comElemento, limparTexto, type AlteracaoDados, type CamposElemento, type DadosDoCatalogo } from './pre-textuais';
+import { aplicarCampos, aplicarDados, aplicarDadosDoCatalogo, comElemento, limparTexto, type AlteracaoDados, type CamposElemento, type DadosDoCatalogo, type OpcoesAplicarCatalogo } from './pre-textuais';
 import {
   CODIGO_MIDIA_AUSENTE,
   type ApiProjetos,
@@ -775,11 +775,18 @@ export class SessaoTrabalho {
    * Etapa 3: dados institucionais escolhidos no catálogo, de uma vez (`aplicarDadosDoCatalogo`). `vinculo` `null` desfaz
    * o vínculo e mantém os textos.
    */
-  aplicarCatalogo(dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes: { substituirNatureza?: boolean } = {}): void {
+  aplicarCatalogo(
+    dados: DadosDoCatalogo,
+    vinculo: VinculoInstitucional | null,
+    opcoes: OpcoesAplicarCatalogo = {},
+  ): void {
     const a = this.#aberto;
     if (a?.modo !== 'edicao') return;
+    // O logotipo vai para as mídias do trabalho; imagem que não é PNG/JPEG legível fica de fora (a capa avisa).
+    let logotipo: string | null | undefined = opcoes.logotipo === null ? null : undefined;
+    if (opcoes.logotipo) logotipo = this.incluirMidia(opcoes.logotipo.bytes, opcoes.logotipo.sha256).ok ? opcoes.logotipo.sha256 : null;
     const atual = a.pacote.documento.metadados;
-    const novos = aplicarDadosDoCatalogo(atual, dados, vinculo, opcoes);
+    const novos = aplicarDadosDoCatalogo(atual, dados, vinculo, { ...(opcoes.substituirNatureza ? { substituirNatureza: true } : {}), ...(logotipo !== undefined ? { logotipo } : {}) });
     if (JSON.stringify(novos) !== JSON.stringify(atual)) this.#trocarMetadados(a, novos);
   }
 

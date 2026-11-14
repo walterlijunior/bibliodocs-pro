@@ -95,6 +95,13 @@ export function aplicarDados(m: Metadados, a: AlteracaoDados): Metadados {
   return copia[a.campo] === m[a.campo] ? m : copia;
 }
 
+/** Opções ao aplicar a escolha do catálogo (Etapa 3): substituir a natureza do autor e o logotipo da instituição. */
+export interface OpcoesAplicarCatalogo {
+  substituirNatureza?: boolean;
+  /** Imagem do logotipo para as mídias do trabalho; `null` tira o logotipo; ausente deixa como está. */
+  logotipo?: { sha256: string; bytes: Uint8Array } | null;
+}
+
 /** Dados institucionais vindos do catálogo (Etapa 3; `dadosInstitucionais` do domínio). */
 export interface DadosDoCatalogo {
   instituicao?: string;
@@ -120,9 +127,12 @@ export function aplicarDadosDoCatalogo(
   m: Metadados,
   dados: DadosDoCatalogo,
   vinculo: VinculoInstitucional | null,
-  opcoes: { substituirNatureza?: boolean } = {},
+  opcoes: { substituirNatureza?: boolean; logotipo?: string | null } = {},
 ): Metadados {
   const copia: Metadados = { ...m };
+  // Etapa 3: logotipo da instituição (sha256 nas mídias do trabalho); `null` tira, ausente deixa como está.
+  if (typeof opcoes.logotipo === 'string') copia.logotipo = opcoes.logotipo;
+  else if (opcoes.logotipo === null) delete copia.logotipo;
   if (vinculo === null) {
     delete copia.vinculo;
     return copia;

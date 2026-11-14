@@ -73,8 +73,11 @@ export interface Instituicao {
   sigla: string;
   /** Perfis de formatação da instituição (ids de `perfis/`). Vazio: ainda sem perfil próprio no aplicativo. */
   perfis: string[];
-  /** Logotipo para os trabalhos acadêmicos (o brasão da capa, RN-118): sha256 do arquivo guardado pelo aplicativo. */
-  logotipo?: { sha256: string; tipo: 'image/png' | 'image/jpeg' };
+  /**
+   * Logotipo para os trabalhos acadêmicos (o brasão da capa, RN-118), guardado no próprio catálogo (base64) e copiado
+   * para as mídias do trabalho quando a instituição é escolhida.
+   */
+  logotipo?: { sha256: string; tipo: 'image/png' | 'image/jpeg'; dados: string };
   campi: Campus[];
   origem: OrigemRegistro;
   fonte?: FonteRegistro;

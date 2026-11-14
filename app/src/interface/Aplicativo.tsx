@@ -348,7 +348,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         sessao.abrir(r.projeto);
         // Etapa 3: o trabalho nasce com os dados institucionais escolhidos no diálogo, já gravados no arquivo.
         if (institucional !== null) {
-          sessao.aplicarCatalogo(institucional.dados, institucional.vinculo);
+          sessao.aplicarCatalogo(institucional.dados, institucional.vinculo, institucional.logotipo ? { logotipo: institucional.logotipo } : {});
           void sessao.salvar();
         }
         setBusca('');

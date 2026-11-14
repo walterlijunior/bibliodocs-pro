@@ -48,7 +48,14 @@ const instituicao = z.strictObject({
   nome: texto,
   sigla: z.string().trim().min(1).max(20),
   perfis: z.array(z.string().regex(/^[a-z0-9-]{1,60}$/)).max(20),
-  logotipo: z.strictObject({ sha256: z.string().regex(/^[0-9a-f]{64}$/), tipo: z.enum(['image/png', 'image/jpeg']) }).optional(),
+  logotipo: z
+    .strictObject({
+      sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      tipo: z.enum(['image/png', 'image/jpeg']),
+      // Base64 da imagem, até 2 MB.
+      dados: z.string().max(2_800_000).regex(/^[A-Za-z0-9+/]+={0,2}$/),
+    })
+    .optional(),
   campi: z.array(campus).max(LIMITES_CATALOGO.campi),
   origem,
   fonte: fonte.optional(),

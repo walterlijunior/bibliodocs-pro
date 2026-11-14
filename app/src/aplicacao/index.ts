@@ -207,6 +207,7 @@ export {
   aplicarDados,
   aplicarDadosDoCatalogo,
   type DadosDoCatalogo,
+  type OpcoesAplicarCatalogo,
   limparTexto,
   palavrasChaveDoTexto,
   type AlteracaoDados,

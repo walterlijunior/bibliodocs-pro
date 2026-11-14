@@ -11,3 +11,6 @@
   (`%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`) e não altera este arquivo.
 - **USP, UnB e UFRGS:** só o nome e a sigla, sem perfil de formatação nem fonte confirmada; a tela mostra "sem fonte
   confirmada".
+- **Logotipo:** nenhum vem com o aplicativo (identidade visual da instituição; o arquivo oficial do brasão da UFT é
+  pendência do usuário, PF-02). Quem usa cadastra o logotipo em "Catálogo acadêmico…"; ele fica guardado no catálogo
+  do computador e é copiado para o trabalho ao escolher a instituição.

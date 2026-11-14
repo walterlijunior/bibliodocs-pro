@@ -23,7 +23,7 @@ export {
   pendenciasPreTextuais,
   type PendenciaPreTextual,
 } from './pendencias-pre-textuais';
-export { areaUtilMm, formatar, type AjustesProjeto, type DocumentoParaFormatar } from './motor';
+export { ALTURA_BRASAO_CM, areaUtilMm, formatar, type AjustesProjeto, type DocumentoParaFormatar } from './motor';
 export type {
   AvisoFormatacao,
   BlocoFormatado,

@@ -7,7 +7,7 @@
 // janela da citação, pedida pelo editor. M4-T08: a conferência da bibliografia, no lugar do editor, com "Ir ao texto" e
 // "Abrir obra". M4-T09: importar BibTeX ou RIS, com a janela que mostra o que entra. Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
-import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type DadosDoCatalogo, type EstadoSessao, type ResultadoMidia, type ResultadoObra } from '../../aplicacao';
+import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type DadosDoCatalogo, type OpcoesAplicarCatalogo, type EstadoSessao, type ResultadoMidia, type ResultadoObra } from '../../aplicacao';
 import type { ChamadaNoEditor } from '../editor/citacoes';
 import type { FiguraNoEditor, TabelaNoEditor } from '../editor/tabelas';
 import type { ElementoPreTextualId, Obra, Secao, TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
@@ -113,7 +113,7 @@ export interface PropsAreaEscrever {
   elementos: {
     alterarDados: (a: AlteracaoDados) => void;
     /** Etapa 3: dados institucionais escolhidos no catálogo, de uma vez. */
-    aplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: { substituirNatureza?: boolean }) => void;
+    aplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: OpcoesAplicarCatalogo) => void;
     alterarSubtitulo: (texto: string) => void;
     alterar: (id: string, campos: CamposElemento) => void;
     incluir: (tipo: ElementoPreTextualId) => string | null;

@@ -11,7 +11,7 @@ import { blocosCapa, blocosFolhaRosto, blocosPosTextuais, blocosPreTextual } fro
 import { listasDeElementos } from './motor-listas';
 import { blocosGlossario, blocosListaSiglas, blocosListaSimbolos } from './motor-catalogos';
 import { blocosEquacao, blocosGrafico, blocosIlustracao, blocosTabela, contextoVisuais } from './motor-visuais';
-import { rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA } from '../visuais';
+import { lerInfoImagem, rotulosDeRemissiva, TEXTO_REMISSIVA_QUEBRADA } from '../visuais';
 import type {
   AvisoFormatacao,
   BlocoFormatado,
@@ -86,6 +86,28 @@ const titulo = (n: 1 | 2 | 3 | 4 | 5, ordem: string): DefinicaoEstilo => ({
 
 /** Marcador da lista com marcadores (Etapa 2, D-E2-03, provisório). */
 export const MARCADOR_LISTA = '•';
+
+/**
+ * Altura do brasão na capa (Etapa 3, D-E3-05): o Manual pede o brasão centralizado no topo (RN-118, p. 31) sem dar
+ * medida; os modelos oficiais da UFT de 2022 (TCC, artigo, dissertação, tese, relatório e projeto) trazem o brasão com
+ * 2,83 × 3,10 cm [VERIFICADO: `wp:extent` da primeira imagem dos seis modelos, em analise/modelos_docx]. A largura segue
+ * a proporção da imagem escolhida, até a largura da área útil.
+ */
+export const ALTURA_BRASAO_CM = 3.1;
+
+function blocoBrasao(m: Metadados, imagens: ReadonlyMap<string, Uint8Array> | undefined, larguraUtilTw: number): BlocoFormatado | null {
+  if (!m.logotipo) return null;
+  const dados = imagens?.get(m.logotipo);
+  const info = dados ? lerInfoImagem(dados) : null;
+  if (!dados || !info) return null;
+  let alturaTw = cmParaTw(ALTURA_BRASAO_CM);
+  let larguraTw = Math.round((alturaTw * info.larguraPx) / info.alturaPx);
+  if (larguraUtilTw > 0 && larguraTw > larguraUtilTw) {
+    alturaTw = Math.round((alturaTw * larguraUtilTw) / larguraTw);
+    larguraTw = larguraUtilTw;
+  }
+  return { tipo: 'imagem', estilo: 'capaInstituicao', dados, formato: info.tipo === 'image/png' ? 'png' : 'jpg', larguraTw, alturaTw, descricao: `Brasão: ${m.instituicao ?? 'instituição'}`, origem: ['RN-118'] };
+}
 
 /** Do que o perfil fala, só o que vira estilo. O catálogo é fechado: um `id` novo é decisão de código, não de dados. */
 const ESTILOS: readonly DefinicaoEstilo[] = [
@@ -603,10 +625,25 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const secoes: SecaoFormatada[] = [];
   const capa = tem('capa');
   if (capa) {
-    // RN-118: o brasão é identidade visual da instituição; o arquivo ainda não existe no projeto.
-    avisos.push({ codigo: 'BRASAO_AUSENTE', id: capa.id, mensagem: 'A capa saiu sem o brasão da UFT: o aplicativo ainda não tem o arquivo.' });
+    // RN-118: o brasão (logotipo da instituição) vem do catálogo acadêmico, copiado para as mídias do trabalho (Etapa 3).
+    const brasao = blocoBrasao(m, doc.imagens, pagina.larguraTw - pagina.margemEsquerdaTw - pagina.margemDireitaTw);
+    if (brasao === null) {
+      avisos.push({
+        codigo: 'BRASAO_AUSENTE',
+        id: capa.id,
+        mensagem: m.logotipo
+          ? 'A capa saiu sem o brasão: a imagem do logotipo não pôde ser lida (RN-118).'
+          : 'A capa saiu sem o brasão: escolha a instituição no catálogo acadêmico com o logotipo cadastrado (RN-118).',
+      });
+    }
     const rn = temProcedimento(regras, 'distribuirCapa');
-    secoes.push({ papel: 'capa', exibirNumero: false, ...(rn !== null ? { alinhamentoVertical: 'distribuido' as const } : {}), blocos: blocosCapa(m), origem: ['RN-067', ...(rn !== null ? [rn] : [])] });
+    secoes.push({
+      papel: 'capa',
+      exibirNumero: false,
+      ...(rn !== null ? { alinhamentoVertical: 'distribuido' as const } : {}),
+      blocos: [...(brasao ? [brasao] : []), ...blocosCapa(m)],
+      origem: ['RN-067', ...(rn !== null ? [rn] : [])],
+    });
   }
   if (tem('folhaRosto')) {
     // RN-314 (D-M3-11): só o desenho da Fig. 5 indica a distribuição; provisória, como a da capa.

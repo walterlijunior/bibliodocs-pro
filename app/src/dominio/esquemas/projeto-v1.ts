@@ -420,6 +420,8 @@ export const esquemaDocumentoV1 = z.strictObject({
         coorientador: idCatalogo.optional(),
       })
       .optional(),
+    // Etapa 3: sha256 do logotipo da instituição nas mídias do trabalho (RN-118).
+    logotipo: z.string().regex(/^[0-9a-f]{64}$/).optional(),
   }),
   preTextuais: z.array(esquemaElementoPreTextual).min(1).max(LIMITES_V1.elementosPreTextuais).optional(),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),

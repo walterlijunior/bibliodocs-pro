@@ -2,9 +2,10 @@
 // formulário do elemento escolhido, com as pendências dele. Texto simples nos campos: negrito e itálico ficam para quando
 // o resumo e os agradecimentos usarem o editor de seção. Texto sempre como texto (nunca HTML).
 import { useEffect, useId, useState, type KeyboardEvent } from 'react';
-import { palavrasChaveDoTexto, type AlteracaoDados, type DadosDoCatalogo, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
+import { palavrasChaveDoTexto, type AlteracaoDados, type DadosDoCatalogo, type OpcoesAplicarCatalogo, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
 import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanca, Metadados, PessoaTitulada, TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
 import { SeletorInstitucional } from '../catalogo/SeletorInstitucional';
+import { ImportarFicha } from './ImportarFicha';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { Icone } from '../Icones';
 
@@ -145,7 +146,7 @@ export interface PropsFormularioElemento {
   aoAlterarDados: (a: AlteracaoDados) => void;
   /** Etapa 3: tipo do trabalho (para a natureza proposta) e aplicação da escolha no catálogo. */
   tipoTrabalho?: TipoTrabalhoId;
-  aoAplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: { substituirNatureza?: boolean }) => void;
+  aoAplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: OpcoesAplicarCatalogo) => void;
   aoAlterarSubtitulo: (texto: string) => void;
   aoAlterarElemento: (id: string, campos: CamposElemento) => void;
   aoRetirar: (id: string) => void;
@@ -216,7 +217,16 @@ export function FormularioElemento(p: PropsFormularioElemento) {
           </label>
         </>
       )}
-      {e.tipo === 'fichaCatalografica' && texto('Texto da ficha', 'A ficha é gerada no sistema da UFT: sistemas.uft.edu.br/ficha/. Cole aqui o texto gerado.', 10)}
+      {e.tipo === 'fichaCatalografica' && (
+        <>
+          {texto(
+            'Texto da ficha',
+            'A ficha é gerada no sistema da biblioteca da UFT (suap.uft.edu.br/ficha_catalografica, o antigo sistemas.uft.edu.br/ficha). Cole aqui o texto gerado ou importe um arquivo de texto. Enquanto a ficha não chega, a página dela fica reservada no arquivo exportado.',
+            10,
+          )}
+          {!so && <ImportarFicha textoAtual={(e as { texto?: string }).texto ?? ''} aoImportar={(t) => p.aoAlterarElemento(e.id, { texto: t })} />}
+        </>
+      )}
       {e.tipo === 'errata' && texto('Texto da errata', 'Referência do trabalho e correções.')}
       {e.tipo === 'dedicatoria' && texto('Texto da dedicatória', 'Texto curto; aparece sem título.', 3)}
       {e.tipo === 'agradecimentos' && texto('Texto dos agradecimentos')}

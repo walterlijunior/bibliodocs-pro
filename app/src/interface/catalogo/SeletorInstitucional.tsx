@@ -19,20 +19,21 @@ import {
   revisarSelecao,
   type CampoSelecao,
   type Catalogo,
-  type DadosDoCatalogo,
+  type DadosDoCatalogo, type OpcoesAplicarCatalogo,
   type SelecaoCatalogo,
 } from '../../aplicacao';
 import type { TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { useCatalogo } from './ContextoCatalogo';
 import { DialogoCatalogo } from './DialogoCatalogo';
+import { logotipoParaAplicar } from './logotipo';
 
 export interface PropsSeletorInstitucional {
   vinculo: VinculoInstitucional | undefined;
   natureza: string | undefined;
   tipoTrabalho: TipoTrabalhoId;
   somenteLeitura: boolean;
-  aoAplicar: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: { substituirNatureza?: boolean }) => void;
+  aoAplicar: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: OpcoesAplicarCatalogo) => void;
 }
 
 const NOMES_CAMPO: Readonly<Record<CampoSelecao, string>> = {
@@ -78,7 +79,9 @@ export function SeletorInstitucional(p: PropsSeletorInstitucional) {
     if (valor === '') delete pedida[campo];
     const { selecao: nova, descartados } = revisarSelecao(catalogo, pedida);
     setAnuncio(descartados.length > 0 ? `Saiu da escolha ${descartados.map((k) => NOMES_CAMPO[k]).join(', ')}, que não pertence ao que foi escolhido acima.` : null);
-    p.aoAplicar(dadosInstitucionais(catalogo, nova, p.tipoTrabalho), vinculoDe(nova));
+    // O logotipo acompanha a instituição; "Digitar à mão" (sem vínculo) deixa o que estiver no trabalho.
+    const v = vinculoDe(nova);
+    p.aoAplicar(dadosInstitucionais(catalogo, nova, p.tipoTrabalho), v, v === null ? {} : { logotipo: logotipoParaAplicar(instituicaoDe(catalogo, nova.instituicao)) });
   };
 
   const lista = (campo: CampoSelecao, rotulo: string, opcoes: readonly { id: string; nome: string }[], vazio: string, desativado: boolean) => (

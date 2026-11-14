@@ -22,6 +22,7 @@ import {
 } from '../../aplicacao';
 import { aoFecharDialogo } from '../casca/dialogo';
 import { useCatalogo } from './ContextoCatalogo';
+import { LogotipoInstituicao } from './LogotipoInstituicao';
 import { origemDaEscolha } from './SeletorInstitucional';
 
 export interface PropsDialogoCatalogo {
@@ -179,6 +180,13 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
             <p className="dica">
               {origemDaEscolha(cat, { instituicao: inst.id })} {inst.perfis.length === 0 ? 'Sem perfil de formatação próprio: os trabalhos usam o perfil UFT 2022.' : ''}
             </p>
+            <LogotipoInstituicao
+              instituicao={inst}
+              aoMudar={(logotipo) => {
+                const { logotipo: _antigo, ...sem } = inst;
+                salvarInst(logotipo ? { ...sem, logotipo } : sem);
+              }}
+            />
             <button type="button" className="btn-secundario" onClick={() => retirar(inst.id, 'instituicao')}>
               Retirar instituição
             </button>

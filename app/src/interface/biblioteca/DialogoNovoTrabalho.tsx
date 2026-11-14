@@ -8,6 +8,7 @@ import {
   cursoDe,
   cursosDisponiveis,
   dadosInstitucionais,
+  instituicaoDe,
   revisarSelecao,
   tiposDeTrabalhoDoNivel,
   type DadosDoCatalogo,
@@ -16,12 +17,14 @@ import {
 import { aoFecharDialogo } from '../casca/dialogo';
 import type { TipoTrabalhoUft, VinculoInstitucional } from '../../dominio/modelo';
 import { useCatalogo } from '../catalogo/ContextoCatalogo';
+import { logotipoParaAplicar } from '../catalogo/logotipo';
 import { ROTULOS_TIPO, TIPOS_NOVO_TRABALHO } from './selecao';
 
 /** Etapa 3: dados institucionais escolhidos no diálogo, para o trabalho nascer com eles. */
 export interface InstitucionalNovoTrabalho {
   dados: DadosDoCatalogo;
   vinculo: VinculoInstitucional;
+  logotipo: { sha256: string; bytes: Uint8Array } | null;
 }
 
 const NIVEIS = { graduacao: 'graduação', especializacao: 'especialização', mestrado: 'mestrado', doutorado: 'doutorado' } as const;
@@ -101,7 +104,9 @@ export function DialogoNovoTrabalho(p: PropsDialogoNovoTrabalho) {
           e.preventDefault();
           p.aoCriar(
             tipoValido,
-            sel.instituicao === undefined ? null : { dados: dadosInstitucionais(catalogo, sel, tipoValido), vinculo: { ...sel } as VinculoInstitucional },
+            sel.instituicao === undefined
+              ? null
+              : { dados: dadosInstitucionais(catalogo, sel, tipoValido), vinculo: { ...sel } as VinculoInstitucional, logotipo: logotipoParaAplicar(instituicaoDe(catalogo, sel.instituicao)) },
           );
         }}
       >

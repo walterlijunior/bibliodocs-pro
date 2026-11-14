@@ -238,8 +238,10 @@ export function validarDocumentoV1(json: unknown): ResultadoValidacao<Documento>
  * Mídias de que o documento precisa (M5-T01): o sha256 de cada ilustração, com o caminho, em ordem de leitura. O
  * contêiner confere contra as mídias do pacote; o documento sozinho não sabe quais existem.
  */
-export function midiasDoDocumento(doc: DocumentoDeLeitura): { sha256: string; caminho: string }[] {
+export function midiasDoDocumento(doc: DocumentoDeLeitura & { metadados?: { logotipo?: string } }): { sha256: string; caminho: string }[] {
   const saida: { sha256: string; caminho: string }[] = [];
+  // Etapa 3: o logotipo da instituição na capa (RN-118).
+  if (doc.metadados?.logotipo) saida.push({ sha256: doc.metadados.logotipo, caminho: 'documento.metadados.logotipo' });
   for (const p of percorrerDocumento(doc)) {
     if (p.tipo === 'bloco' && p.bloco.tipo === 'ilustracao') saida.push({ sha256: p.bloco.midia, caminho: formatarCaminho('documento', [...p.caminho, 'midia']) });
   }
