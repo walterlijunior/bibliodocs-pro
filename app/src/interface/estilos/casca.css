@@ -626,3 +626,9 @@ ol.bd-lista { list-style: decimal; }
 .gerenciador__equacao { font-family: var(--fonte-mono, monospace); }
 .gerenciador__mencao { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2); padding: var(--esp-1) 0; }
 .gerenciador__mencao > span { flex: 1 1 16rem; }
+
+/* Fontes e histórico (Etapa 5 da especificação de atualização). */
+.obra__acesso { display: grid; gap: var(--esp-1); }
+.obra__acesso h3 { margin: 0; font-size: var(--tam-base); }
+.obra__link { overflow-wrap: anywhere; }
+.historico__lista { max-height: 50vh; }

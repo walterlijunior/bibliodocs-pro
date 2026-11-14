@@ -17,6 +17,11 @@ export interface PropsDialogoCitacao {
   obras: readonly ObraNaLista[];
   /** Citação a alterar; `null` = nova. */
   inicial: DadosCitacao | null;
+  /**
+   * Etapa 5: citação escrita à mão e selecionada no texto ("Segundo Silva (2007)"); a janela a liga à obra e o trecho é
+   * trocado pela chamada. `dados` vem preenchido quando uma obra só produz aquele texto.
+   */
+  escrita?: { texto: string; dados: DadosCitacao | null } | null;
   formatar: FormatadorDeChamadas;
   aoConfirmar: (dados: DadosCitacao) => void;
   aoRetirar: () => void;
@@ -40,8 +45,13 @@ export function DialogoCitacao(p: PropsDialogoCitacao) {
   const ref = useRef<HTMLDialogElement>(null);
   const base = useId();
   const nova = p.inicial === null;
+  const escrita = nova ? (p.escrita ?? null) : null;
   const primeira = p.obras[0]?.obra.id ?? '';
-  const [rascunho, setRascunho] = useState<DadosCitacao>(() => p.inicial ?? { forma: 'parentetica', obras: [{ obra: primeira }] });
+  // Na citação escrita sem obra reconhecida, a forma vem do texto: "Silva (2007)" é narrativa.
+  const [rascunho, setRascunho] = useState<DadosCitacao>(
+    () => p.inicial ?? escrita?.dados ?? { forma: escrita !== null && !escrita.texto.startsWith('(') ? 'narrativa' : 'parentetica', obras: [{ obra: primeira }] },
+  );
+  const titulo = escrita !== null ? 'Ligar citação escrita' : nova ? 'Inserir citação' : 'Alterar citação';
 
   useEffect(() => {
     const d = ref.current;
@@ -82,7 +92,14 @@ export function DialogoCitacao(p: PropsDialogoCitacao) {
           if (validacao.ok) p.aoConfirmar(validacao.dados);
         }}
       >
-        <h2 id={`${base}-titulo`}>{nova ? 'Inserir citação' : 'Alterar citação'}</h2>
+        <h2 id={`${base}-titulo`}>{titulo}</h2>
+        {escrita !== null && !semObras && (
+          <p className="dialogo__nota" role="status">
+            {escrita.dados !== null
+              ? `“${escrita.texto}” será trocado pela chamada ligada à obra abaixo. Confira a obra antes de ligar.`
+              : `Nenhuma obra cadastrada produz exatamente “${escrita.texto}” (ou mais de uma produz). Escolha a obra certa: o trecho será trocado pela chamada ligada.`}
+          </p>
+        )}
         {semObras ? (
           <>
             <p>Nenhuma obra cadastrada. Cadastre a obra na Bibliografia antes de citá-la.</p>
@@ -192,7 +209,7 @@ export function DialogoCitacao(p: PropsDialogoCitacao) {
 
             <div className="dialogo__acoes">
               <button type="submit" className="btn-principal" disabled={!validacao.ok}>
-                {nova ? 'Inserir citação' : 'Alterar citação'}
+                {escrita !== null ? 'Ligar citação' : nova ? 'Inserir citação' : 'Alterar citação'}
               </button>
               {!nova && (
                 <button type="button" className="btn-secundario" onClick={p.aoRetirar}>

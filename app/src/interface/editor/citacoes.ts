@@ -46,12 +46,46 @@ export function chamadaSelecionada(estado: EditorState): ChamadaNoEditor | null 
 /** Lugar que aceita citação: parágrafo, alínea, citação longa. Não o título da seção. */
 export const podeInserirCitacao = (estado: EditorState): boolean => estado.selection.$to.parent.type.contentMatch.matchType(tipoChamada) !== null;
 
-export function inserirCitacao(dados: DadosCitacao): Command {
+/** Citação escrita à mão e selecionada (Etapa 5): o trecho e, se uma obra só a produz, os dados da chamada. */
+export interface CitacaoEscrita {
+  texto: string;
+  dados: DadosCitacao | null;
+}
+
+/** Limite do trecho selecionado para ligar como citação. */
+const LIMITE_CITACAO_ESCRITA = 300;
+/** Parece chamada: termina em ")" com um ano de quatro algarismos dentro, "(SILVA, 2007, p. 3)" ou "Silva (2007a)". */
+const PARECE_CHAMADA = /\([^()]*\b\d{4}[a-z]?\b[^()]*\)$/u;
+
+/**
+ * Etapa 5: a seleção é uma chamada escrita ("(SILVA, 2007)", "Silva (2007)")? Só texto, num bloco que aceita citação e
+ * com cara de chamada; `dados` vem do reconhecedor quando ele acha uma obra só para o trecho inteiro. `null` = a
+ * seleção não é chamada (a citação entra no fim dela, como antes).
+ */
+export function citacaoEscritaSelecionada(estado: EditorState, reconhecer: (texto: string) => readonly { inicio: number; fim: number; dados: DadosCitacao }[]): CitacaoEscrita | null {
+  const s = estado.selection;
+  if (!(s instanceof TextSelection) || s.empty || !s.$from.sameParent(s.$to) || !podeInserirCitacao(estado)) return null;
+  let soTexto = true;
+  estado.doc.nodesBetween(s.from, s.to, (no) => {
+    if (no.isInline && !no.isText) soTexto = false;
+  });
+  const texto = estado.doc.textBetween(s.from, s.to).trim();
+  if (!soTexto || texto.length > LIMITE_CITACAO_ESCRITA || !PARECE_CHAMADA.test(texto)) return null;
+  const achadas = reconhecer(texto);
+  const inteira = achadas.length === 1 && achadas[0]!.inicio === 0 && achadas[0]!.fim === texto.length ? achadas[0]!.dados : null;
+  return { texto, dados: inteira };
+}
+
+/** `substituir` (Etapa 5): troca a citação escrita selecionada pela chamada ligada; sem ele, entra no fim da seleção. */
+export function inserirCitacao(dados: DadosCitacao, substituir = false): Command {
   return (estado, despachar) => {
     if (!podeInserirCitacao(estado)) return false;
+    const trocar = substituir && !estado.selection.empty && estado.selection.$from.sameParent(estado.selection.$to);
     if (despachar) {
-      const pos = estado.selection.to;
-      const tr = estado.tr.insert(pos, tipoChamada.create({ id: null, dados: JSON.stringify(dados) }));
+      const { from, to } = estado.selection;
+      const no = tipoChamada.create({ id: null, dados: JSON.stringify(dados) });
+      const tr = trocar ? estado.tr.replaceWith(from, to, no) : estado.tr.insert(to, no);
+      const pos = trocar ? from : to;
       tr.setSelection(TextSelection.create(tr.doc, pos + 1));
       despachar(closeHistory(tr).scrollIntoView());
     }

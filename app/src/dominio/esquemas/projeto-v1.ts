@@ -397,6 +397,8 @@ export const esquemaObra = z
     tituloOriginal: campoCurto.optional(),
     suplemento: campoCurto.optional(),
     anoVeiculo: campoCurto.optional(),
+    /** Etapa 5: o PDF da obra no computador: só o caminho, o arquivo fica fora do `.bdp` e não entra na referência. */
+    arquivoLocal: campoCurto.regex(/\.pdf$/i, { error: 'arquivo inválido: escolha um PDF' }).optional(),
   })
   .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
   .meta({ id: 'Obra' });

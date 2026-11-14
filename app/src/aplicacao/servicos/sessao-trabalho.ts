@@ -73,6 +73,7 @@ import type { ApiRecuperacao } from '../portas/recuperacao';
 import { formatarReferencia, ordenarReferencias, textoDaReferencia } from '../../dominio/bibliografia';
 import { HistoricoEdicao, type CadastrosDocumento, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
 import { verificarBibliografiaDoDocumento } from './citacoes';
+import { descreverCitacao, mudancasDeCitacao, PontosDoHistorico, rotuloCurtoObra, type PontoHistorico } from './historico-trabalho';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
 import { validarObra } from './obras';
@@ -404,6 +405,8 @@ export class SessaoTrabalho {
   #secoes: readonly ResumoSecao[] = [];
   /** Ordem única de desfazer do trabalho aberto (texto e estrutura); esvazia a cada `geracao`. */
   readonly #historico = new HistoricoEdicao();
+  /** Etapa 5: estados inteiros do documento a que o autor pode voltar (texto, citações e obras juntos). */
+  readonly #pontos = new PontosDoHistorico();
 
   constructor(dep: DependenciasSessao) {
     this.#dep = dep;
@@ -679,6 +682,8 @@ export class SessaoTrabalho {
     };
     this.#aberto = a;
     this.#novaGeracao(projeto.pacote.documento.corpo);
+    this.#pontos.limpar();
+    this.#pontos.registrar('Trabalho aberto', projeto.pacote.documento, this.#dep.agora());
     this.#salvamento = { tipo: 'salvo', em: null };
     this.#avisos = [...avisos];
     this.#textoSemDestino = opcoes.textoSemDestino ?? MENSAGEM_SEM_DESTINO;
@@ -722,6 +727,7 @@ export class SessaoTrabalho {
     // Fechar sem salvar: o que estava escrito fica 7 dias nas versões descartadas.
     if (a?.modo === 'edicao' && a.copiaRecuperacao !== null) this.#dep.fecharSemArquivo?.(a.copiaRecuperacao, false).catch(() => {});
     this.#aberto = null;
+    this.#pontos.limpar();
     this.#caminhos = new Map();
     this.#secoes = [];
     this.#historico.limpar();
@@ -1030,6 +1036,7 @@ export class SessaoTrabalho {
     while (this.#idEmUso(a, id)) id = gerar();
     const r = validarObra({ ...rascunho, id });
     if (!r.ok) return { ok: false, mensagem: MENSAGEM_OBRA_INVALIDA };
+    this.#pontos.registrar(`Antes de incluir a obra ${rotuloCurtoObra(r.obra)}`, a.pacote.documento, this.#dep.agora());
     this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'retirar', id } });
     this.#trocarObras(a, [...lista, r.obra]);
     return { ok: true, id };
@@ -1059,6 +1066,7 @@ export class SessaoTrabalho {
     }
     if (novas.length === 0) return { ok: false, mensagem: 'Nenhuma das obras escolhidas pode ser gravada.' };
     const ids = novas.map((o) => o.id);
+    this.#pontos.registrar(`Antes de importar ${novas.length === 1 ? '1 obra' : `${novas.length} obras`}`, a.pacote.documento, this.#dep.agora());
     this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'retirarVarias', ids } });
     this.#trocarObras(a, [...lista, ...novas]);
     return { ok: true, ids, recusadas: rascunhos.length - novas.length };
@@ -1088,6 +1096,7 @@ export class SessaoTrabalho {
     if (n > 0) {
       return { ok: false, mensagem: `Esta obra é citada ${n === 1 ? 'uma vez' : `${n} vezes`} no texto. Retire as citações antes de excluí-la.` };
     }
+    this.#pontos.registrar(`Antes de excluir a obra ${rotuloCurtoObra(lista[posicao])}`, a.pacote.documento, this.#dep.agora());
     this.#historico.registrar({ tipo: 'obra', inverso: { acao: 'incluir', obra: lista[posicao]!, posicao } });
     this.#trocarObras(a, lista.filter((_, j) => j !== posicao));
     return { ok: true, id };
@@ -1186,6 +1195,7 @@ export class SessaoTrabalho {
       const titulo = limparTexto(textoDoTitulo(conteudo.titulo), LIMITES_V1.campoCurto);
       const { titulo: _titulo, blocos: _blocos, ...resto } = pos;
       const novo = { ...resto, ...(titulo ? { titulo } : {}), ...(conteudo.blocos.length ? { blocos: conteudo.blocos } : {}) };
+      this.#pontoSeCitacoesMudarem(a, pos.blocos ?? [], conteudo.blocos);
       a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, posTextuais: a.pacote.documento.posTextuais!.map((p) => p.id === id ? novo : p) } };
       this.#marcarAlteracao(); this.#emitir(); return;
     }
@@ -1195,6 +1205,7 @@ export class SessaoTrabalho {
     if (caminho === undefined || atual === undefined) return;
     if (atual.titulo === conteudo.titulo && atual.blocos === conteudo.blocos) return;
     const nova: Secao = { ...atual, titulo: conteudo.titulo, blocos: conteudo.blocos };
+    this.#pontoSeCitacoesMudarem(a, atual.blocos, conteudo.blocos);
     a.pacote = { ...a.pacote, documento: { ...a.pacote.documento, corpo: trocarSecao(corpo, caminho, nova) } };
     let emitir = this.#marcarAlteracao();
     // Elemento novo, excluído, renumerado ou remissiva incluída: a tela precisa da lista nova (M5-T08).
@@ -1205,6 +1216,45 @@ export class SessaoTrabalho {
       emitir = true;
     }
     if (emitir) this.#emitir();
+  }
+
+  /** Etapa 5: citação inserida ou retirada no texto: o estado de antes vira ponto do histórico. */
+  #pontoSeCitacoesMudarem(a: Extract<Aberto, { modo: 'edicao' }>, antes: readonly Bloco[], depois: readonly Bloco[]): void {
+    const { inseridas, retiradas } = mudancasDeCitacao(antes, depois);
+    if (inseridas.length === 0 && retiradas.length === 0) return;
+    const obras = a.pacote.documento.obras ?? [];
+    const partes = [
+      ...retiradas.map((c) => `retirar ${descreverCitacao(c, obras)}`),
+      ...inseridas.map((c) => `inserir ${descreverCitacao(c, obras)}`),
+    ];
+    const texto = partes.length > 2 ? `${partes.slice(0, 2).join(' e ')} e mais ${partes.length - 2}` : partes.join(' e ');
+    this.#pontos.registrar(`Antes de ${texto}`, a.pacote.documento, this.#dep.agora());
+  }
+
+  // ---------- histórico do trabalho (Etapa 5) ----------
+
+  /** Pontos do histórico, do mais novo ao mais antigo. */
+  pontosDoHistorico(): PontoHistorico[] {
+    return this.#aberto?.modo === 'edicao' ? this.#pontos.listar() : [];
+  }
+
+  /**
+   * Volta ao estado do ponto: texto, citações, obras e lista de referências juntos. O estado atual vira um ponto antes
+   * (dá para voltar atrás). Os editores recomeçam (nova `geracao`) e o desfazer recomeça vazio; a mudança fica pendente
+   * de salvar, como qualquer outra.
+   */
+  restaurarPonto(id: number): boolean {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return false;
+    const documento = this.#pontos.documento(id);
+    if (documento === null || documento === a.pacote.documento) return false;
+    this.#pontos.registrar('Antes de restaurar um estado anterior', a.pacote.documento, this.#dep.agora());
+    a.pacote = { ...a.pacote, documento };
+    this.#novaGeracao(documento.corpo);
+    this.#marcarAlteracao();
+    this.#avisar({ nivel: 'info', texto: 'Estado anterior restaurado: texto, citações e referências. O estado de antes ficou no histórico do trabalho.', acoes: [] });
+    this.#emitir();
+    return true;
   }
 
   // ---------- estrutura das seções e desfazer (M2-T07) ----------
@@ -1237,6 +1287,10 @@ export class SessaoTrabalho {
       abaixo: () => moverParaBaixo(corpo, id),
       excluir: () => removerSecao(corpo, id),
     };
+    if (acao === 'excluir') {
+      const titulo = this.#secoes.find((s) => s.id === id);
+      this.#pontos.registrar(`Antes de excluir a seção ${titulo ? `${titulo.indicativo} ${titulo.titulo}`.trim() : ''}`.trim(), a.pacote.documento, this.#dep.agora());
+    }
     return this.#aplicarEstrutura(a, operacoes[acao](), acao === 'excluir' ? null : id);
   }
 
@@ -1521,6 +1575,7 @@ export class SessaoTrabalho {
     a.pacote = { ...a.pacote, manifesto: gravado.manifesto };
     a.nomeArquivo = nomeArquivo;
     this.#revisaoSalva = revisao;
+    this.#pontos.registrar('Salvo', gravado.documento, this.#dep.agora());
     this.#salvamento = this.#revisao === revisao ? { tipo: 'salvo', em: this.#dep.agora() } : { tipo: 'naoSalvo' };
     // Avisos do `.bak` não bloqueiam "Salvo" (ADR-0004; pendência do M1-T06).
     // O aviso do instantâneo também sai: o conteúdo está no arquivo.

@@ -21,13 +21,14 @@ import type {
   ResultadoRecuperar,
   VersaoDescartada,
 } from '../aplicacao';
-import { areaUtilDoPerfilMm } from '../aplicacao';
+import { areaUtilDoPerfilMm, type PontoHistorico } from '../aplicacao';
 import { graficosParaExportar } from './editor/pintar-grafico';
 import type { TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho, type InstitucionalNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { DialogoSobre } from './casca/DialogoSobre';
+import { DialogoHistorico } from './casca/DialogoHistorico';
 import { DialogoAjuda, type TipoAjuda } from './casca/DialogoAjuda';
 import { AreaColecao } from './biblioteca/AreaColecao';
 import { DialogoExportar, FONTES_EXPORTACAO, type EstadoExportacao } from './escrever/DialogoExportar';
@@ -87,6 +88,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
   const [sobreAberto, setSobreAberto] = useState(false);
+  // Etapa 5: Trabalho › Histórico do trabalho…; os pontos são lidos ao abrir a janela.
+  const [pontosHistorico, setPontosHistorico] = useState<readonly PontoHistorico[] | null>(null);
   // F-E6-01: Ajuda › Guia rápido (F1) e Atalhos de teclado; Trabalho › Dados do trabalho… e Elementos pré-textuais…;
   // Verificar › Ir para a próxima não conformidade (F8).
   const [ajuda, setAjuda] = useState<TipoAjuda | null>(null);
@@ -564,6 +567,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           if (!ABAS_DO_TRABALHO.has(local.aba)) irParaEscrever();
           setPedidoProximaNC((n) => n + 1);
           return;
+        case 'historicoTrabalho':
+          setPontosHistorico(sessao.pontosDoHistorico());
+          return;
         case 'verificarConformidade':
           irParaEscrever();
           setPedidoConformidade((n) => n + 1);
@@ -608,7 +614,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
-      if (escolhendoTipo || descartadas !== undefined || exportacao !== null || sobreAberto || ajuda !== null) return;
+      if (escolhendoTipo || descartadas !== undefined || exportacao !== null || sobreAberto || ajuda !== null || pontosHistorico !== null) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -623,7 +629,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [ajuda, comando, descartadas, desativados, escolhendoTipo, exportacao, sobreAberto]);
+  }, [ajuda, comando, descartadas, desativados, escolhendoTipo, exportacao, sobreAberto, pontosHistorico]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -650,6 +656,16 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         />
       )}
       {sobreAberto && <DialogoSobre aoFechar={() => setSobreAberto(false)} />}
+      {pontosHistorico !== null && (
+        <DialogoHistorico
+          pontos={pontosHistorico}
+          aoFechar={() => setPontosHistorico(null)}
+          aoRestaurar={(id) => {
+            setPontosHistorico(null);
+            sessao.restaurarPonto(id);
+          }}
+        />
+      )}
       {ajuda !== null && <DialogoAjuda tipo={ajuda} aoFechar={() => setAjuda(null)} />}
       {exportacao !== null && (
         <DialogoExportar
@@ -798,6 +814,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   excluir: (id) => sessao.excluirObra(id),
                   verificar: () => sessao.verificarBibliografia(),
                   importar: (obras) => sessao.importarObras(obras),
+                  citacoes: (id) => sessao.citacoesDaObra(id),
+                  pdf: { escolher: async () => (await window.bibliodocs.fontes.escolherPdf())?.caminho ?? null, abrir: (caminho) => window.bibliodocs.fontes.abrirPdf(caminho) },
                 }}
                 lerSecao={(id) => sessao.secao(id)}
                 aoAlterarSecao={(id, conteudo) => {

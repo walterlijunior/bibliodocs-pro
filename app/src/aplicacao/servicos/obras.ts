@@ -137,6 +137,9 @@ export function prepararObra(o: Obra): Obra {
   if (noTodo) saida['noTodo'] = noTodo;
   const evento = tem('evento') ? eventoLimpo(o.evento) : undefined;
   if (evento) saida['evento'] = evento;
+  // Etapa 5: o PDF no computador vale para todo tipo (não sai na referência).
+  const arquivo = curto(o.arquivoLocal ?? '');
+  if (arquivo !== '') saida['arquivoLocal'] = arquivo;
   return saida as unknown as Obra;
 }
 

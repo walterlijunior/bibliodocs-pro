@@ -5,6 +5,7 @@
  */
 import { CANAIS_BIBLIOTECA, type ApiBiblioteca } from '../aplicacao/portas/biblioteca';
 import { CANAIS_CATALOGO, type ApiCatalogo } from '../aplicacao/portas/catalogo';
+import { CANAIS_FONTES, type ApiFontes } from '../aplicacao/portas/fontes';
 import { CANAIS_EDICAO, type ApiEdicao } from '../aplicacao/portas/edicao';
 import { CANAIS_EXPORTACAO, type ApiExportacao } from '../aplicacao/portas/exportacao';
 import { CANAIS_PROJETOS, type ApiBiblioDocs } from '../aplicacao/portas/projetos';
@@ -70,6 +71,10 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     ler: () => invocar(CANAIS_CATALOGO.ler) as ReturnType<ApiCatalogo['ler']>,
     gravar: (usuario) => invocar(CANAIS_CATALOGO.gravar, usuario) as ReturnType<ApiCatalogo['gravar']>,
   };
+  const fontes: ApiFontes = {
+    escolherPdf: () => invocar(CANAIS_FONTES.escolherPdf) as ReturnType<ApiFontes['escolherPdf']>,
+    abrirPdf: (caminho) => invocar(CANAIS_FONTES.abrirPdf, caminho) as ReturnType<ApiFontes['abrirPdf']>,
+  };
   return Object.freeze({
     projetos: Object.freeze(projetos),
     biblioteca: Object.freeze(biblioteca),
@@ -77,5 +82,6 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     edicao: Object.freeze(edicao),
     exportacao: Object.freeze(exportacao),
     catalogo: Object.freeze(catalogo),
+    fontes: Object.freeze(fontes),
   });
 }

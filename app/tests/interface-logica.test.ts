@@ -291,11 +291,11 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
 
   it('comandos desativados conforme o trabalho aberto', () => {
     const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
-    expect(lista(null)).toEqual(['dadosTrabalho', 'elementosPreTextuais', 'estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'proximaNaoConformidade', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior', 'verificarConformidade']);
+    expect(lista(null)).toEqual(['dadosTrabalho', 'elementosPreTextuais', 'estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'historicoTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'proximaNaoConformidade', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior', 'verificarConformidade']);
     expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
     // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
     expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);
-    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'salvar', 'salvarComo']);
+    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'historicoTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'salvar', 'salvarComo']);
   });
 
   it('F-E6-01: todo item de menu tem ação', () => {

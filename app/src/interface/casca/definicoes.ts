@@ -50,6 +50,8 @@ export type ComandoMenu =
   | 'inserirSigla'
   | 'proximaNaoConformidade'
   | 'guiaRapido'
+  // Etapa 5: Trabalho › Histórico do trabalho… (voltar a um estado anterior).
+  | 'historicoTrabalho'
   | 'atalhosTeclado';
 
 export interface ItemMenu {
@@ -107,6 +109,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Dados do trabalho…', comando: 'dadosTrabalho' },
       { rotulo: 'Elementos pré-textuais…', comando: 'elementosPreTextuais' },
       { rotulo: 'Estrutura de seções…', comando: 'estruturaSecoes' },
+      { rotulo: 'Histórico do trabalho…', comando: 'historicoTrabalho' },
     ],
   },
   {
@@ -161,6 +164,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('elementosPreTextuais');
   }
   if (trabalho === null || trabalho.somenteLeitura) {
+    d.add('historicoTrabalho');
     d.add('inserirNota');
     d.add('inserirCitacao');
     d.add('inserirTabela');

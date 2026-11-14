@@ -19,6 +19,7 @@ import type { ApiExportacao } from './exportacao';
 import type { ApiBiblioteca } from './biblioteca';
 import type { ApiRecuperacao } from './recuperacao';
 import type { ApiCatalogo } from './catalogo';
+import type { ApiFontes } from './fontes';
 
 /** Nomes dos canais. O preload só invoca estes; o principal só registra estes. */
 export const CANAIS_PROJETOS = {
@@ -147,4 +148,6 @@ export interface ApiBiblioDocs {
   readonly exportacao: ApiExportacao;
   /** Etapa 3: catálogo acadêmico do usuário. */
   readonly catalogo: ApiCatalogo;
+  /** Etapa 5: o PDF da obra no computador. */
+  readonly fontes: ApiFontes;
 }

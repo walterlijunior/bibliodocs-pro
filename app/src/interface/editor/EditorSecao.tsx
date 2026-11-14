@@ -40,7 +40,9 @@ import {
   chamadaSelecionada,
   blocosMudados,
   chamadasEscritasNoDoc,
+  citacaoEscritaSelecionada,
   inserirCitacao,
+  type CitacaoEscrita,
   ligarChamadasEscritas,
   podeInserirCitacao,
   retirarCitacao,
@@ -113,7 +115,8 @@ export interface ControleEditor {
   focarCitacao(): void;
   /** Leva ao nó com o `id` (bloco, nota ou chamada) e seleciona o `trecho`, se achado (M4-T08). `false` = não está aqui. */
   irPara(id: string, trecho?: string): boolean;
-  inserirCitacao(dados: DadosCitacao): boolean;
+  /** `substituir` (Etapa 5): troca a citação escrita selecionada pela chamada ligada. */
+  inserirCitacao(dados: DadosCitacao, substituir?: boolean): boolean;
   alterarCitacao(id: string, dados: DadosCitacao): boolean;
   retirarCitacao(id: string): boolean;
   /** Pede a janela da tabela: a selecionada, ou uma nova no cursor (M5-T04). */
@@ -220,7 +223,7 @@ export interface PropsEditorSecao {
   /** Chamadas escritas à mão que correspondem a obras cadastradas (sugestão ao colar). */
   reconhecerChamadas: (texto: string) => readonly ChamadaEscrita[];
   /** Abre a janela da citação: `existente` é a chamada a alterar; `null`, uma nova no cursor. */
-  aoPedirCitacao: (existente: ChamadaNoEditor | null) => void;
+  aoPedirCitacao: (existente: ChamadaNoEditor | null, escrita?: CitacaoEscrita | null) => void;
   /** Abre a janela da tabela: `existente` é a tabela a alterar; `null`, uma nova no cursor (M5-T04). */
   aoPedirTabela: (existente: TabelaNoEditor | null) => void;
   /** Abre a janela da figura: `existente` é a figura a alterar; `null`, uma nova no cursor (M5-T06). */
@@ -358,7 +361,10 @@ export function EditorSecao(p: PropsEditorSecao) {
     let alvoSigla: AlvoCitacao | null = null;
     const pedirNoAlvo = (existente: ChamadaNoEditor | null, destino: AlvoCitacao) => {
       alvo = destino;
-      refProps.current.aoPedirCitacao(existente);
+      // Etapa 5: citação escrita à mão e selecionada, para ligar à obra.
+      const estadoDestino = destino.estado();
+      const escrita = existente === null && estadoDestino !== null ? citacaoEscritaSelecionada(estadoDestino, refProps.current.reconhecerChamadas) : null;
+      refProps.current.aoPedirCitacao(existente, escrita);
     };
     const pedirSiglaNoAlvo = (existente: SiglaNoEditor | null, destino: AlvoCitacao) => {
       alvoSigla = destino;
@@ -568,7 +574,7 @@ export function EditorSecao(p: PropsEditorSecao) {
         view.focus();
         return true;
       },
-      inserirCitacao: (dados) => passoProprio(inserirCitacao(dados)),
+      inserirCitacao: (dados, substituir) => passoProprio(inserirCitacao(dados, substituir)),
       alterarCitacao: (id, dados) => passoProprio(alterarCitacao(id, dados)),
       retirarCitacao: (id) => passoProprio(retirarCitacao(id)),
       pedirTabela,

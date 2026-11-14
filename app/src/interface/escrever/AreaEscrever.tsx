@@ -8,7 +8,7 @@
 // "Abrir obra". M4-T09: importar BibTeX ou RIS, com a janela que mostra o que entra. Texto sempre como texto (nunca HTML).
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { formatadorDeChamadas, LIMITE_BYTES_IMPORTACAO, prepararImportacao, reconhecedorDeChamadas, type ItemImportacao, type PreviaImportacao, type LocalProblema, type ProblemaBibliografia, type AcaoAviso, type AlteracaoDados, type AvisoSessao, type CamposElemento, type ConteudoDaSecao, type DadosDoCatalogo, type OpcoesAplicarCatalogo, type EstadoSessao, type ResultadoMidia, type ResultadoObra } from '../../aplicacao';
-import type { ChamadaNoEditor } from '../editor/citacoes';
+import type { ChamadaNoEditor, CitacaoEscrita } from '../editor/citacoes';
 import type { FiguraNoEditor, TabelaNoEditor } from '../editor/tabelas';
 import type { ElementoPreTextualId, Obra, Secao, TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
 import { rotuloTipo } from '../biblioteca/selecao';
@@ -134,6 +134,10 @@ export interface PropsAreaEscrever {
     verificar: () => readonly ProblemaBibliografia[];
     /** Importação (M4-T09): inclui as obras num passo só do desfazer. */
     importar: (obras: readonly Obra[]) => { ok: true; ids: string[]; recusadas: number } | { ok: false; mensagem: string };
+    /** Etapa 5: quantas citações do texto apontam para a obra. */
+    citacoes?: (id: string) => number;
+    /** Etapa 5: PDF da obra no computador. */
+    pdf?: { escolher: () => Promise<string | null>; abrir: (caminho: string) => Promise<{ ok: true } | { ok: false; mensagem: string }> };
   };
   /** O formulário de um elemento está no lugar do editor: o menu Inserir › Nota de rodapé fica desativado. */
   aoMudarFormulario?: (aberto: boolean) => void;
@@ -229,8 +233,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [anuncioObra, setAnuncioObra] = useState<string | null>(null);
   const [contadorNova, setContadorNova] = useState(0);
   // Janela da citação (M4-T07): `existente` é a chamada selecionada no editor; `null`, uma nova no cursor.
-  const [pedidoCitacao, setPedidoCitacao] = useState<{ existente: ChamadaNoEditor | null } | null>(null);
-  const pedirCitacao = useCallback((existente: ChamadaNoEditor | null) => setPedidoCitacao({ existente }), []);
+  const [pedidoCitacao, setPedidoCitacao] = useState<{ existente: ChamadaNoEditor | null; escrita: CitacaoEscrita | null } | null>(null);
+  const pedirCitacao = useCallback((existente: ChamadaNoEditor | null, escrita?: CitacaoEscrita | null) => setPedidoCitacao({ existente, escrita: escrita ?? null }), []);
   // Janela fechada (inserir, alterar, retirar ou cancelar): o foco volta pelo editor, que repõe a seleção dele (o
   // `focus()` do elemento deixaria o cursor fora do lugar). Roda depois da limpeza da janela.
   const focarAoFecharCitacao = useRef(false);
@@ -788,6 +792,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 return r;
               }}
               aoCancelar={() => setObraAberta(null)}
+              {...(p.obras.pdf ? { pdf: p.obras.pdf } : {})}
+              {...(p.obras.citacoes && obraDaLista ? { citacoes: p.obras.citacoes(obraDaLista.id) } : {})}
             />
           ) : elementoAtivo !== null && pre !== null ? (
             <FormularioElemento
@@ -961,11 +967,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 <DialogoCitacao
                   obras={t.obras}
                   inicial={pedidoCitacao.existente?.dados ?? null}
+                  escrita={pedidoCitacao.escrita}
                   formatar={formatarChamada}
                   aoConfirmar={(dados) => {
                     const c = pedidoCitacao.existente;
                     setPedidoCitacao(null);
-                    if (c === null) controleEditor.current?.inserirCitacao(dados);
+                    if (c === null) controleEditor.current?.inserirCitacao(dados, pedidoCitacao.escrita !== null);
                     else controleEditor.current?.alterarCitacao(c.id, dados);
                   }}
                   aoRetirar={() => {

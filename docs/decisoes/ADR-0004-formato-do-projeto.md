@@ -802,3 +802,14 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   acontece se o autor usar a menção sem número.
 - **Editor:** o nó `remissiva` ganha o atributo `texto` (padrão `null`); a ida e volta modelo → editor → modelo conserva
   o campo (teste em `tests/etapa4-gerenciador.test.ts`).
+
+## Adendo da Etapa 5 da especificação de atualização (2026-11-14) — PDF da obra
+
+- **Aditivo, sem subir `versaoFormato`.** `Obra` ganha `arquivoLocal?: string` (até `campoCurto`, terminado em `.pdf`),
+  em todo tipo de obra. Só o caminho: o PDF fica onde está e não vai para o pacote; a referência não muda. JSON Schema
+  regenerado.
+- **Canais novos** `bibliodocs:fontes:escolherPdf` (janela do sistema, só `.pdf`) e `bibliodocs:fontes:abrirPdf`. O
+  caminho vem do documento, que pode vir de outra pessoa: o principal só repassa ao leitor do sistema (`shell.openPath`)
+  um caminho absoluto, local (não UNC), sem caractere de controle, até 2.000 caracteres, com extensão `.pdf` e que é um
+  arquivo comum. O conteúdo nunca é lido pelo aplicativo. Os links da obra continuam fora do `shell.openExternal` (C-6).
+- **Histórico do trabalho** (D-E5-04) não muda o formato: os pontos ficam na memória da sessão.

@@ -168,13 +168,21 @@ export interface PropsFormularioObra {
   aoAlterar: (obra: Obra) => ResultadoObra;
   aoExcluir: (id: string) => ResultadoObra;
   aoCancelar: () => void;
+  /** Etapa 5: PDF da obra no computador (escolher e abrir pelo principal). Sem ele, a seção do PDF não aparece. */
+  pdf?: { escolher: () => Promise<string | null>; abrir: (caminho: string) => Promise<{ ok: true } | { ok: false; mensagem: string }> };
+  /** Quantas citações do texto apontam para a obra. */
+  citacoes?: number;
 }
+
+/** Nome do arquivo no fim do caminho (Windows ou não). */
+const nomeDoArquivo = (caminho: string): string => caminho.split(/[\\/]/).at(-1) ?? caminho;
 
 export function FormularioObra(p: PropsFormularioObra) {
   const base = useId();
   const so = p.somenteLeitura;
   const [rascunho, setRascunho] = useState<Obra>(p.obra);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [avisoAcesso, setAvisoAcesso] = useState<string | null>(null);
   const previa = previaDaObra(rascunho);
   const campos = new Set<CampoObra>(CAMPOS_DO_TIPO[rascunho.tipo] ?? []);
   const tem = (c: CampoObra) => campos.has(c);
@@ -301,6 +309,66 @@ export function FormularioObra(p: PropsFormularioObra) {
           Livro em formato e-book
         </label>
       )}
+
+      <section className="obra__acesso" aria-labelledby={`${base}-acesso`}>
+        <h3 id={`${base}-acesso`}>Link e PDF da obra</h3>
+        <p className="dica">O link é o “Endereço eletrônico” acima. O PDF fica no seu computador e não sai na referência.</p>
+        {rascunho.url && (
+          <div className="acoes">
+            <span className="obra__link">{rascunho.url}</span>
+            <button
+              type="button"
+              className="btn-secundario"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(rascunho.url ?? '')
+                  .then(() => setAvisoAcesso('Endereço copiado. Cole no navegador para abrir.'))
+                  .catch(() => setAvisoAcesso('Não foi possível copiar. Selecione o endereço e copie com Ctrl+C.'));
+              }}
+            >
+              Copiar endereço
+            </button>
+          </div>
+        )}
+        {p.pdf && (
+          <div className="acoes">
+            <span className="obra__link">{rascunho.arquivoLocal ? `PDF: ${nomeDoArquivo(rascunho.arquivoLocal)}` : 'Nenhum PDF associado.'}</span>
+            {!so && (
+              <button
+                type="button"
+                className="btn-secundario"
+                onClick={() => {
+                  void p.pdf!.escolher().then((caminho) => {
+                    if (caminho !== null) mudar({ ...rascunho, arquivoLocal: caminho });
+                  });
+                }}
+              >
+                {rascunho.arquivoLocal ? 'Trocar PDF…' : 'Associar PDF…'}
+              </button>
+            )}
+            {rascunho.arquivoLocal && (
+              <button type="button" className="btn-secundario" title={rascunho.arquivoLocal} onClick={() => void p.pdf!.abrir(rascunho.arquivoLocal!).then((r) => setAvisoAcesso(r.ok ? null : r.mensagem))}>
+                Abrir PDF
+              </button>
+            )}
+            {rascunho.arquivoLocal && !so && (
+              <button type="button" className="btn-secundario" onClick={() => mudar({ ...rascunho, arquivoLocal: undefined })}>
+                Retirar PDF
+              </button>
+            )}
+          </div>
+        )}
+        {p.citacoes !== undefined && !p.nova && (
+          <p className="dica">
+            {p.citacoes === 0
+              ? 'Nenhuma citação no texto: a obra fica guardada aqui, mas não sai na lista de referências.'
+              : `${p.citacoes === 1 ? '1 citação' : `${p.citacoes} citações`} no texto: a obra sai na lista de referências.`}
+          </p>
+        )}
+        <p className="dica" role="status">
+          {avisoAcesso}
+        </p>
+      </section>
 
       <section className="obra__previa" aria-labelledby={`${base}-previa`}>
         <h3 id={`${base}-previa`}>Como sai na lista de referências</h3>

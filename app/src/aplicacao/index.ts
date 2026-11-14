@@ -65,6 +65,8 @@ export {
   type ResultadoRecuperar,
   type TipoOferta,
 } from './portas/recuperacao';
+export { LIMITE_PONTOS_HISTORICO, mudancasDeCitacao, PontosDoHistorico, resumoBibliografico, type PontoHistorico } from './servicos/historico-trabalho';
+export { CANAIS_FONTES, type ApiFontes, type CanalFontes, type ResultadoAbrirPdf, type ResultadoEscolherPdf } from './portas/fontes';
 export { CANAIS_CATALOGO, type ApiCatalogo, type CanalCatalogo, type CatalogoUsuario, type ResultadoGravarCatalogo, type ResultadoLerCatalogo } from './portas/catalogo';
 export { CANAIS_EXPORTACAO, type ApiExportacao, type CanalExportacao, type OpcoesExportacao, type ResultadoExportar } from './portas/exportacao';
 export { ACOES_EDICAO, CANAIS_EDICAO, type AcaoEdicao, type ApiEdicao, type CanalEdicao } from './portas/edicao';

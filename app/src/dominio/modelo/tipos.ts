@@ -526,6 +526,11 @@ export interface Obra {
   suplemento?: string;
   /** Ano do veículo oficial: "138" sai "ano 138" (exemplo da Lei 9.979, p. 60; M4-T06). */
   anoVeiculo?: string;
+  /**
+   * PDF da obra no computador (Etapa 5): o caminho do arquivo, que fica onde está (o PDF não é copiado para o `.bdp`). Não sai na
+   * referência; em outro computador o caminho pode não existir.
+   */
+  arquivoLocal?: string;
 }
 
 export interface Documento {

@@ -4,6 +4,7 @@
  * implementação real.
  */
 import { randomBytes } from 'node:crypto';
+import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
@@ -17,6 +18,7 @@ import { exportarIsolado } from './exportador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresExportacao, gravarExportacao } from './manipuladores-exportacao';
 import { criarManipuladoresCatalogo } from './manipuladores-catalogo';
+import { criarManipuladoresFontes } from './manipuladores-fontes';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -225,8 +227,28 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   // Etapa 3: catálogo acadêmico do usuário, num arquivo fixo da pasta de dados local.
   const catalogo = criarManipuladoresCatalogo({ origem, conteudosPermitidos, arquivo: join(dadosLocais, 'catalogo.json') });
 
+  // Etapa 5: o PDF da obra no computador (escolher e abrir no leitor do sistema).
+  const fontes = criarManipuladoresFontes({
+    origem,
+    conteudosPermitidos,
+    escolher: async (id) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showOpenDialog(janela, {
+        title: 'Escolher o PDF da obra',
+        defaultPath: app.getPath('documents'),
+        filters: [{ name: 'PDF', extensions: ['pdf'] }],
+        properties: ['openFile'],
+      });
+      return r.canceled ? null : (r.filePaths[0] ?? null);
+    },
+    ehArquivo: async (caminho) => (await stat(caminho)).isFile(),
+    abrir: (caminho) => shell.openPath(caminho),
+  });
+
   const todos = [
     ...Object.entries(catalogo),
+    ...Object.entries(fontes),
     ...Object.entries(exportacao),
     ...Object.entries(manipuladores),
     ...Object.entries(biblioteca.manipuladores),
