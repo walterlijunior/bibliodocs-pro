@@ -6,6 +6,7 @@
 import { CANAIS_BIBLIOTECA, type ApiBiblioteca } from '../aplicacao/portas/biblioteca';
 import { CANAIS_CATALOGO, type ApiCatalogo } from '../aplicacao/portas/catalogo';
 import { CANAIS_FONTES, type ApiFontes } from '../aplicacao/portas/fontes';
+import { CANAIS_IA, type ApiIa } from '../aplicacao/portas/ia';
 import { CANAIS_EDICAO, type ApiEdicao } from '../aplicacao/portas/edicao';
 import { CANAIS_EXPORTACAO, type ApiExportacao } from '../aplicacao/portas/exportacao';
 import { CANAIS_PROJETOS, type ApiBiblioDocs } from '../aplicacao/portas/projetos';
@@ -75,6 +76,15 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     escolherPdf: () => invocar(CANAIS_FONTES.escolherPdf) as ReturnType<ApiFontes['escolherPdf']>,
     abrirPdf: (caminho) => invocar(CANAIS_FONTES.abrirPdf, caminho) as ReturnType<ApiFontes['abrirPdf']>,
   };
+  const ia: ApiIa = {
+    lerConfig: () => invocar(CANAIS_IA.lerConfig) as ReturnType<ApiIa['lerConfig']>,
+    gravarConfig: (config, chave) => invocar(CANAIS_IA.gravarConfig, config, chave ?? null) as ReturnType<ApiIa['gravarConfig']>,
+    apagarChave: () => invocar(CANAIS_IA.apagarChave) as ReturnType<ApiIa['apagarChave']>,
+    enviar: (pedido) => invocar(CANAIS_IA.enviar, pedido) as ReturnType<ApiIa['enviar']>,
+    lerRetomada: (id) => invocar(CANAIS_IA.lerRetomada, id) as ReturnType<ApiIa['lerRetomada']>,
+    gravarRetomada: (ponto) => invocar(CANAIS_IA.gravarRetomada, ponto) as ReturnType<ApiIa['gravarRetomada']>,
+    descartarRetomada: (id) => invocar(CANAIS_IA.descartarRetomada, id) as ReturnType<ApiIa['descartarRetomada']>,
+  };
   return Object.freeze({
     projetos: Object.freeze(projetos),
     biblioteca: Object.freeze(biblioteca),
@@ -83,5 +93,6 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     exportacao: Object.freeze(exportacao),
     catalogo: Object.freeze(catalogo),
     fontes: Object.freeze(fontes),
+    ia: Object.freeze(ia),
   });
 }

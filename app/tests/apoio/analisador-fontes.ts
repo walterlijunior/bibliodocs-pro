@@ -637,6 +637,8 @@ export function varrerHtml(arquivos: readonly ArquivoFonte[]): Violacao[] {
 
 /** Pasta onde a rede será permitida (após o M7; ainda não existe). */
 export const PASTA_REDE_PERMITIDA = 'src/integracoes/revisao-texto/';
+/** Adendo da Etapa 8 ao ADR-0005 (regra 8): o cliente do serviço de IA configurado pelo autor. */
+export const PASTA_REDE_IA = 'src/integracoes/ia/';
 
 /** Módulos de rede cuja importação é proibida fora de PASTA_REDE_PERMITIDA. */
 export const MODULOS_REDE = new Set([
@@ -657,7 +659,7 @@ export const PADROES_REDE: readonly PadraoProibido[] = [
 ];
 
 export function varrerRede(arquivos: readonly ArquivoFonte[]): Violacao[] {
-  const ignorar = (arquivo: string): boolean => arquivo.startsWith(PASTA_REDE_PERMITIDA);
+  const ignorar = (arquivo: string): boolean => arquivo.startsWith(PASTA_REDE_PERMITIDA) || arquivo.startsWith(PASTA_REDE_IA);
   const saida = varrer(arquivos, PADROES_REDE, 'ADR-0005 regra 8', ignorar);
   for (const { arquivo, conteudo } of arquivos) {
     if (ignorar(arquivo)) continue;
@@ -666,10 +668,10 @@ export function varrerRede(arquivos: readonly ArquivoFonte[]): Violacao[] {
       const d = classificarDestino(arquivo, imp);
       const nome = d.tipo === 'node' || d.tipo === 'pacote' ? d.nome : null;
       if (nome !== null && MODULOS_REDE.has(nome)) {
-        saida.push({ arquivo, linha: imp.linha, importacao: `'${imp.especificador}'`, regra: 'ADR-0005 regra 8', motivo: `módulo de rede fora de ${PASTA_REDE_PERMITIDA}` });
+        saida.push({ arquivo, linha: imp.linha, importacao: `'${imp.especificador}'`, regra: 'ADR-0005 regra 8', motivo: `módulo de rede fora de ${PASTA_REDE_PERMITIDA} e ${PASTA_REDE_IA}` });
       }
       if (d.tipo === 'electron' && imp.nomes.includes('net')) {
-        saida.push({ arquivo, linha: imp.linha, importacao: `'${imp.especificador}'`, regra: 'ADR-0005 regra 8', motivo: `net do electron fora de ${PASTA_REDE_PERMITIDA}` });
+        saida.push({ arquivo, linha: imp.linha, importacao: `'${imp.especificador}'`, regra: 'ADR-0005 regra 8', motivo: `net do electron fora de ${PASTA_REDE_PERMITIDA} e ${PASTA_REDE_IA}` });
       }
     }
   }

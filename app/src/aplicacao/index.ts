@@ -69,6 +69,42 @@ export { ASPECTOS, aspectosComPerfilPadrao, aspectosDoModelo, compararComExporta
 export { LIMITE_BYTES_MODELO } from '../importacao';
 export { atualizarIncorporado, dataBr, documentoDoCronograma, FONTE_PADRAO_REGISTRO, incorporacaoAtual, incorporar, linhaNova, NATUREZAS, ordenarPorData, quadroDoRegistro, registroPadrao, retirarIncorporado, TITULO_APENDICE_REGISTRO, TITULO_PADRAO_REGISTRO, type DestinoRegistro } from './servicos/registro';
 export { LIMITE_PONTOS_HISTORICO, mudancasDeCitacao, PontosDoHistorico, resumoBibliografico, type PontoHistorico } from './servicos/historico-trabalho';
+export {
+  atualizarEtapa,
+  dadosComSugestao,
+  estimarPedido,
+  estimarTokens,
+  etapasPendentes,
+  lerSugestaoModelo,
+  lerSugestaoTabela,
+  limiteProximo,
+  novoPonto,
+  pedidoInterpretarModelo,
+  pedidoRevisarTabela,
+  somarUso,
+  tarefaTerminada,
+  TITULOS_OPERACAO,
+  type SugestaoModelo,
+  type SugestaoTabela,
+} from './servicos/ia';
+export {
+  CANAIS_IA,
+  PROVEDORES,
+  type ApiIa,
+  type CanalIa,
+  type ConfigIA,
+  type EstadoConfigIA,
+  type EtapaRetomada,
+  type IdProvedor,
+  type LimitesInformados,
+  type MensagemIA,
+  type OperacaoIA,
+  type PedidoIA,
+  type PontoRetomada,
+  type ResultadoGravarIA,
+  type ResultadoIA,
+  type UsoInformado,
+} from './portas/ia';
 export { CANAIS_FONTES, type ApiFontes, type CanalFontes, type ResultadoAbrirPdf, type ResultadoEscolherPdf } from './portas/fontes';
 export { CANAIS_CATALOGO, type ApiCatalogo, type CanalCatalogo, type CatalogoUsuario, type ResultadoGravarCatalogo, type ResultadoLerCatalogo } from './portas/catalogo';
 export { CANAIS_EXPORTACAO, type ApiExportacao, type CanalExportacao, type OpcoesExportacao, type ResultadoExportar } from './portas/exportacao';

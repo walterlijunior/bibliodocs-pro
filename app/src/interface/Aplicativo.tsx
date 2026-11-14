@@ -23,7 +23,7 @@ import type {
 } from '../aplicacao';
 import { areaUtilDoPerfilMm, type PontoHistorico } from '../aplicacao';
 import { graficosParaExportar } from './editor/pintar-grafico';
-import type { TipoTrabalhoUft } from '../dominio/modelo';
+import type { RegrasModelo, TipoTrabalhoUft } from '../dominio/modelo';
 import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho, type InstitucionalNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
@@ -106,6 +106,35 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // Etapa 7: Trabalho › Modelo de evento (DOCX)…
   const [pedidoModelo, setPedidoModelo] = useState(0);
   const atenderPedidoModelo = useCallback(() => setPedidoModelo(0), []);
+  // Etapa 8: Trabalho › Assistente de IA… e o aviso de tarefa interrompida (ponto de retomada do trabalho aberto).
+  const [pedidoIa, setPedidoIa] = useState(0);
+  const atenderPedidoIa = useCallback(() => setPedidoIa(0), []);
+  const [versaoRetomada, setVersaoRetomada] = useState(0);
+  const [avisoRetomadaIa, setAvisoRetomadaIa] = useState<string | null>(null);
+  const idDoTrabalho = sessaoEstado.trabalho ? (sessao.pacote?.documento.id ?? null) : null;
+  useEffect(() => {
+    let vivo = true;
+    if (idDoTrabalho === null || !api.ia) {
+      setAvisoRetomadaIa(null);
+      return;
+    }
+    void api.ia
+      .lerRetomada(idDoTrabalho)
+      .then((pt) => {
+        if (!vivo) return;
+        const pendentes = pt?.etapas.filter((e) => e.estado === 'pendente').length ?? 0;
+        const semDecisao = pt?.etapas.filter((e) => e.estado === 'concluida').length ?? 0;
+        setAvisoRetomadaIa(
+          pt && (pendentes > 0 || semDecisao > 0)
+            ? `Tarefa de IA guardada neste trabalho: ${pt.titulo} (${pt.etapas.length - pendentes} de ${pt.etapas.length} etapas concluídas${pendentes > 0 ? `, ${pendentes} pendentes` : ''}). Retome de onde parou.`
+            : null,
+        );
+      })
+      .catch(() => vivo && setAvisoRetomadaIa(null));
+    return () => {
+      vivo = false;
+    };
+  }, [api, idDoTrabalho, sessaoEstado.trabalho?.geracao, versaoRetomada]);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   // Etapa 2: zoom do texto do editor (50% a 200%), lembrado neste computador; o arquivo exportado não muda.
@@ -574,6 +603,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           if (!ABAS_DO_TRABALHO.has(local.aba)) irParaEscrever();
           setPedidoProximaNC((n) => n + 1);
           return;
+        case 'assistenteIa':
+          ir({ aba: 'elementos' });
+          setPedidoIa((n) => n + 1);
+          return;
         case 'modeloEvento':
           ir({ aba: 'elementos' });
           setPedidoModelo((n) => n + 1);
@@ -809,6 +842,22 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   criarSecoes: () => sessao.criarSecoesDoModelo(),
                   secoesQueFaltam: () => sessao.secoesQueFaltamDoModelo(),
                 }}
+                {...(api.ia && sessao.pacote
+                  ? {
+                      ia: {
+                        api: api.ia,
+                        idTrabalho: sessao.pacote.documento.id,
+                        aplicarModelo: (regras: Partial<RegrasModelo>) => {
+                          const m = sessao.pacote?.documento.modelo;
+                          return m ? sessao.aplicarModelo({ ...m, regras: { ...m.regras, ...regras } }) : { ok: false as const, mensagem: 'O trabalho não tem modelo de evento aplicado.' };
+                        },
+                        aoMudarRetomada: () => setVersaoRetomada((n) => n + 1),
+                      },
+                    }
+                  : {})}
+                avisoRetomadaIa={avisoRetomadaIa}
+                pedidoIa={pedidoIa}
+                aoAtenderPedidoIa={atenderPedidoIa}
                 pedidoModelo={pedidoModelo}
                 aoAtenderPedidoModelo={atenderPedidoModelo}
                 pedidoRegistro={pedidoRegistro}

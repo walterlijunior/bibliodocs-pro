@@ -305,7 +305,7 @@ describe('preload (C-10)', () => {
     expect(chamadas.map((c) => c[0])).toEqual([CANAIS_PROJETOS.abrir, CANAIS_PROJETOS.salvar, CANAIS_PROJETOS.salvarComo, CANAIS_PROJETOS.fechar]);
     expect(chamadas.map((c) => c.length)).toEqual([1, 3, 2, 2]);
     expect(Object.isFrozen(api) && Object.isFrozen(api.projetos)).toBe(true);
-    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao', 'exportacao', 'catalogo', 'fontes']);
+    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao', 'exportacao', 'catalogo', 'fontes', 'ia']);
   });
 
   it('fontes (Etapa 5): `escolherPdf` e `abrirPdf` usam só os seus canais', async () => {

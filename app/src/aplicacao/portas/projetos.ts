@@ -20,6 +20,7 @@ import type { ApiBiblioteca } from './biblioteca';
 import type { ApiRecuperacao } from './recuperacao';
 import type { ApiCatalogo } from './catalogo';
 import type { ApiFontes } from './fontes';
+import type { ApiIa } from './ia';
 
 /** Nomes dos canais. O preload só invoca estes; o principal só registra estes. */
 export const CANAIS_PROJETOS = {
@@ -150,4 +151,6 @@ export interface ApiBiblioDocs {
   readonly catalogo: ApiCatalogo;
   /** Etapa 5: o PDF da obra no computador. */
   readonly fontes: ApiFontes;
+  /** Etapa 8: serviço de IA configurado pelo autor. */
+  readonly ia: ApiIa;
 }

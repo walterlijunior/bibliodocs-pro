@@ -23,6 +23,7 @@ import { DialogoRemissiva } from './DialogoRemissiva';
 import { ListaVisuais, PainelElemento, PainelMencoes, type NovoElemento } from './GerenciadorElementos';
 import { PainelRegistro } from './PainelRegistro';
 import { PainelModelo } from './PainelModelo';
+import { PainelIA } from '../ia/PainelIA';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
 import { areaUtilDoPerfilMm } from '../../aplicacao';
@@ -40,8 +41,8 @@ import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
-import type { DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
-import type { ModeloEvento, RegistroAtividades } from '../../dominio/modelo';
+import type { ApiIa, DadosTabela, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { ModeloEvento, RegistroAtividades, RegrasModelo } from '../../dominio/modelo';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
 export { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
@@ -61,7 +62,9 @@ type AcaoNoEditor =
   | { tipo: 'editar'; id: string; bloco: 'tabela' | 'ilustracao' | 'grafico' | 'equacao' | string }
   | { tipo: 'ligar'; bloco: string; trecho: string }
   | { tipo: 'remissiva'; alvo: string }
-  | { tipo: 'novo'; qual: NovoElemento };
+  | { tipo: 'novo'; qual: NovoElemento }
+  /** Etapa 8: sugestão da IA aceita pelo autor (título, fonte ou nota; as células são as mesmas). */
+  | { tipo: 'sugestaoTabela'; id: string; dados: DadosTabela };
 
 export interface PropsAreaEscrever {
   /** Aba do trabalho (F-E6-01); sem ela, Escrever. */
@@ -99,6 +102,18 @@ export interface PropsAreaEscrever {
     criarSecoes: () => number;
     secoesQueFaltam: () => string[];
   };
+  /** Etapa 8: assistente de IA. */
+  ia?: {
+    api: ApiIa;
+    idTrabalho: string;
+    aplicarModelo: (regras: Partial<RegrasModelo>) => ResultadoObra;
+    aoMudarRetomada: () => void;
+  };
+  /** Tarefa de IA interrompida neste trabalho (texto do aviso), com o botão que abre o assistente. */
+  avisoRetomadaIa?: string | null;
+  /** Trabalho › Assistente de IA…: maior que 0 quando pedido. */
+  pedidoIa?: number;
+  aoAtenderPedidoIa?: () => void;
   /** Trabalho › Modelo de evento (DOCX)…: maior que 0 quando pedido. */
   pedidoModelo?: number;
   aoAtenderPedidoModelo?: () => void;
@@ -253,6 +268,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [registroAberto, setRegistroAberto] = useState(false);
   // Etapa 7: o modelo de evento no lugar do editor (aba Elementos).
   const [modeloAberto, setModeloAberto] = useState(false);
+  // Etapa 8: o assistente de IA no lugar do editor (aba Elementos).
+  const [iaAberto, setIaAberto] = useState(false);
+  const abrirPainel = (qual: 'registro' | 'modelo' | 'ia' | null) => {
+    setRegistroAberto(qual === 'registro');
+    setModeloAberto(qual === 'modelo');
+    setIaAberto(qual === 'ia');
+  };
   const [acaoNoEditor, setAcaoNoEditor] = useState<{ secao: string; acao: AcaoNoEditor } | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
   // Obra na tela no lugar do editor: a do trabalho (pelo id) ou o rascunho de uma nova.
@@ -377,10 +399,21 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setVisualId(null);
     setRegistroAberto(false);
     setModeloAberto(false);
+    setIaAberto(false);
     setObraAberta(null);
     setConferencia(null);
     setSugestaoPre(null);
   }, [modo]);
+  const { pedidoIa = 0, aoAtenderPedidoIa } = p;
+  useEffect(() => {
+    if (pedidoIa === 0 || modo !== 'elementos') return;
+    aoAtenderPedidoIa?.();
+    setElementoId(null);
+    setVisualId(null);
+    setRegistroAberto(false);
+    setModeloAberto(false);
+    setIaAberto(true);
+  }, [pedidoIa, aoAtenderPedidoIa, modo]);
   const { pedidoModelo = 0, aoAtenderPedidoModelo } = p;
   useEffect(() => {
     if (pedidoModelo === 0 || modo !== 'elementos') return;
@@ -481,6 +514,9 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       if (acao.bloco === 'tabela') c.pedirTabela();
       else if (acao.bloco === 'ilustracao') c.pedirFigura();
       else if (acao.bloco === 'grafico') c.pedirGrafico();
+    } else if (acao.tipo === 'sugestaoTabela') {
+      if (c.irPara(acao.id) && c.alterarTabela(acao.id, acao.dados)) setAvisosEditor(['Sugestão da IA aplicada à tabela. Ctrl+Z desfaz.']);
+      else setAvisosEditor(['A tabela não está mais neste lugar: a sugestão não foi aplicada.']);
     } else if (acao.tipo === 'ligar') {
       if (c.irPara(acao.bloco, acao.trecho)) c.pedirRemissiva();
     } else if (acao.tipo === 'remissiva') {
@@ -599,6 +635,34 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           <AvisoComAcoes key={a.texto} aviso={a} rotuloDescartar={p.rotuloDescartar} aoAcao={p.aoAcao} />
         ))}
       </ul>
+      {p.avisoRetomadaIa && (
+        <ul className="avisos" aria-label="Tarefa de IA interrompida">
+          <li className="aviso aviso--info">
+            <span className="aviso__texto" role="status">
+              {p.avisoRetomadaIa}
+            </span>
+            <span className="aviso__acoes">
+              <button
+                type="button"
+                className="btn-secundario"
+                onClick={() => {
+                  if (modo === 'elementos') {
+                    setElementoId(null);
+                    setVisualId(null);
+                    abrirPainel('ia');
+                  } else {
+                    manterAoTrocar.current = true;
+                    abrirPainel('ia');
+                    aoIrParaModo?.('elementos');
+                  }
+                }}
+              >
+                Abrir o assistente de IA
+              </button>
+            </span>
+          </li>
+        </ul>
+      )}
       <p className="dica" role="status" hidden={anuncioNC === null}>
         {anuncioNC}
       </p>
@@ -783,6 +847,24 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             </button>
           </section>
         )}
+        {modo === 'elementos' && p.ia && (
+          <section className="elementos" aria-labelledby="titulo-assistente-ia">
+            <h2 id="titulo-assistente-ia">Inteligência artificial</h2>
+            <button
+              type="button"
+              className="elementos__item"
+              aria-current={iaAberto ? 'true' : undefined}
+              onClick={() => {
+                setElementoId(null);
+                setVisualId(null);
+                abrirPainel('ia');
+              }}
+            >
+              <span>Assistente de IA</span>
+              {p.avisoRetomadaIa && <span className="elementos__marca elementos__marca--pendente">tarefa interrompida</span>}
+            </button>
+          </section>
+        )}
         {modo !== 'elementos' && <ListaObras
           obras={t.obras}
           ativaId={obraDaLista?.id ?? null}
@@ -908,6 +990,20 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                   refEscrever.current?.querySelector<HTMLElement>('.elementos__item')?.focus();
                 }
               }}
+            />
+          ) : iaAberto && modo === 'elementos' && p.ia && elementoAtivo === null ? (
+            <PainelIA
+              api={p.ia.api}
+              trabalho={{ id: p.ia.idTrabalho, nome: t.titulo || t.nomeArquivo }}
+              tabelas={t.elementos.flatMap((x) => (x.tipo === 'tabela' && x.bloco?.tipo === 'tabela' ? [{ id: x.id, rotulo: x.rotulo, descricao: x.descricao, bloco: x.bloco as BlocoTabela }] : []))}
+              modelo={t.modelo}
+              somenteLeitura={t.somenteLeitura}
+              aoAplicarTabela={(id, dados) => {
+                const el = t.elementos.find((x) => x.id === id);
+                if (el) noEditor(el.secao, { tipo: 'sugestaoTabela', id, dados });
+              }}
+              aoAplicarModelo={p.ia.aplicarModelo}
+              aoMudarRetomada={p.ia.aoMudarRetomada}
             />
           ) : modeloAberto && modo === 'elementos' && p.modeloEvento && elementoAtivo === null ? (
             <PainelModelo

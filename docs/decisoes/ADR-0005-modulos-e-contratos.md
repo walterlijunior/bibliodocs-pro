@@ -417,3 +417,18 @@ Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no i
   do usuário, em `%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`, e valida o que recebe; a mesclagem com os dados
   iniciais é feita no renderer.
 
+## Adendo da Etapa 8 da especificação de atualização (2026-11-14) — rede para o serviço de IA
+
+- **Decisão do usuário (2026-11-14):** integrar o ChatGPT, mas de forma que sirva para a IA que cada usuário usa. A
+  integração fala o formato de chat da OpenAI (`POST <url>/chat/completions`), aceito por OpenAI, Google Gemini,
+  Anthropic, OpenRouter e Ollama, além de um endereço informado pelo autor. Autenticação: a chave de API oficial do
+  serviço, no cabeçalho `Authorization: Bearer`.
+- **Regra 8 alargada:** além de `integracoes/revisao-texto/`, a rede é permitida em `integracoes/ia/` (o analisador
+  de fronteiras confere). Só o processo principal envia, com o `fetch` do Node, fora da sessão do navegador; o
+  renderer continua sem rede (CSP e filtro C-8 intactos). Destino: só o endereço configurado, `https:` ou `http:` no
+  próprio computador, sem credenciais na URL.
+- **Consentimento:** IA desativada por padrão; cada tarefa mostra o conteúdo exato e espera "Autorizar e enviar".
+- **Segredo:** a chave é cifrada com `safeStorage` (DPAPI) em `ia-config.json`; sem cifra disponível, não é gravada;
+  nunca volta ao renderer nem vai para log.
+- **Canais novos** `bibliodocs:ia:*` (configuração, envio, pontos de retomada), com esquema zod para cada argumento;
+  pontos de retomada em `ia-retomada.json`, gravados por cópia temporária e troca.

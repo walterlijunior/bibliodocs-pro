@@ -30,6 +30,9 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
   avulsa em DOCX e incorporação num apêndice.
 - **Modelos de congressos e eventos**: importe o DOCX oficial do evento e o trabalho passa a sair com a formatação dele
   (Trabalho › Modelo de evento (DOCX)…).
+- **Assistente de IA (opcional)** com o ChatGPT ou outro serviço compatível: revisa títulos e fontes de tabelas e
+  quadros e interpreta instruções de modelos de eventos. Desativado por padrão; nada sai do computador sem a sua
+  autorização, e a chave de API fica cifrada pelo Windows (Trabalho › Assistente de IA…).
 - **Siglas, símbolos e glossário:** a primeira ocorrência da sigla sai por extenso, e as listas são geradas.
 - **Apêndices e anexos** com conteúdo próprio.
 - **Verificador de conformidade** (F7): lista o que falta ou foge do Manual e da Norma Tabular, com a regra de origem

@@ -650,3 +650,10 @@ ol.bd-lista { list-style: decimal; }
 .modelo-evento__valor { display: inline-flex; gap: var(--esp-1); align-items: center; }
 .modelo-evento__valor .campo { width: 7rem; }
 .modelo-evento__instrucoes { margin: 0; padding-left: 1.25em; display: grid; gap: var(--esp-1); }
+
+/* Assistente de IA (Etapa 8 da especificação de atualização). */
+.assistente-ia__consumo progress { width: min(100%, 24rem); vertical-align: middle; }
+.assistente-ia__sugestao { display: grid; gap: var(--esp-1); padding: var(--esp-2) 0; border-bottom: 1px solid var(--cor-borda); }
+.assistente-ia__conteudo { max-height: 50vh; overflow: auto; border: 1px solid var(--cor-borda); padding: var(--esp-2); }
+.assistente-ia__mensagem { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--tam-peq); margin: 0 0 var(--esp-2); }
+.dialogo--largo { width: min(56rem, calc(100vw - 2rem)); }

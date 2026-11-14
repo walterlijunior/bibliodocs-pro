@@ -6,7 +6,8 @@
 import { randomBytes } from 'node:crypto';
 import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, safeStorage, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
+import { buscarNode } from '../../integracoes';
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
 import { CANAIS_BIBLIOTECA, CANAIS_CATALOGO, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
 import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
@@ -19,6 +20,7 @@ import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresExportacao, gravarExportacao } from './manipuladores-exportacao';
 import { criarManipuladoresCatalogo } from './manipuladores-catalogo';
 import { criarManipuladoresFontes } from './manipuladores-fontes';
+import { criarManipuladoresIa } from './manipuladores-ia';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -246,7 +248,22 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     abrir: (caminho) => shell.openPath(caminho),
   });
 
+  // Etapa 8: serviço de IA configurado pelo autor; a chave é cifrada pelo sistema (DPAPI no Windows).
+  const ia = criarManipuladoresIa({
+    origem,
+    conteudosPermitidos,
+    arquivoConfig: join(dadosLocais, 'ia-config.json'),
+    arquivoRetomada: join(dadosLocais, 'ia-retomada.json'),
+    cifra: {
+      disponivel: () => safeStorage.isEncryptionAvailable(),
+      cifrar: (texto) => safeStorage.encryptString(texto),
+      decifrar: (bytes) => safeStorage.decryptString(Buffer.from(bytes)),
+    },
+    buscar: buscarNode,
+  });
+
   const todos = [
+    ...Object.entries(ia),
     ...Object.entries(catalogo),
     ...Object.entries(fontes),
     ...Object.entries(exportacao),

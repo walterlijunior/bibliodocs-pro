@@ -56,6 +56,8 @@ export type ComandoMenu =
   | 'registroAtividades'
   // Etapa 7: Trabalho › Modelo de evento (DOCX)… (aba Elementos).
   | 'modeloEvento'
+  // Etapa 8: Trabalho › Assistente de IA… (aba Elementos).
+  | 'assistenteIa'
   | 'atalhosTeclado';
 
 export interface ItemMenu {
@@ -114,6 +116,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Elementos pré-textuais…', comando: 'elementosPreTextuais' },
       { rotulo: 'Estrutura de seções…', comando: 'estruturaSecoes' },
       { rotulo: 'Modelo de evento (DOCX)…', comando: 'modeloEvento' },
+      { rotulo: 'Assistente de IA…', comando: 'assistenteIa' },
       { rotulo: 'Registro de atividades…', comando: 'registroAtividades' },
       { rotulo: 'Histórico do trabalho…', comando: 'historicoTrabalho' },
     ],
@@ -170,6 +173,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('elementosPreTextuais');
     d.add('registroAtividades');
     d.add('modeloEvento');
+    d.add('assistenteIa');
   }
   if (trabalho === null || trabalho.somenteLeitura) {
     d.add('historicoTrabalho');
