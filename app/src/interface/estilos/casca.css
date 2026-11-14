@@ -644,3 +644,9 @@ ol.bd-lista { list-style: decimal; }
 .registro__tabela .campo { width: 100%; min-width: 8rem; }
 .registro__saida { display: grid; gap: var(--esp-2); }
 .registro__saida h3 { margin: 0; font-size: var(--tam-base); }
+
+/* Modelo de evento (Etapa 7 da especificação de atualização). */
+.modelo-evento__tabela td, .modelo-evento__tabela th { padding: var(--esp-1); }
+.modelo-evento__valor { display: inline-flex; gap: var(--esp-1); align-items: center; }
+.modelo-evento__valor .campo { width: 7rem; }
+.modelo-evento__instrucoes { margin: 0; padding-left: 1.25em; display: grid; gap: var(--esp-1); }

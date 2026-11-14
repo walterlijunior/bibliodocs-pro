@@ -407,6 +407,34 @@ export const esquemaSigla = z.strictObject({ id, sigla: campoCurto, extenso: cam
 export const esquemaSimbolo = z.strictObject({ id, simbolo: campoCurto, significado: campoCurto }).meta({ id: 'Simbolo' });
 export const esquemaTermoGlossario = z.strictObject({ id, termo: campoCurto, definicao: campoCurto }).meta({ id: 'TermoGlossario' });
 
+/** Etapa 7: aspectos de formatação de um modelo de evento (medidas em faixas plausíveis). */
+const alinhamentoModelo = z.enum(['esquerda', 'direita', 'centralizado', 'justificado']);
+const estiloTituloModelo = z.strictObject({
+  corpoPt: z.number().min(6).max(72).optional(),
+  negrito: z.boolean().optional(),
+  italico: z.boolean().optional(),
+  maiusculas: z.boolean().optional(),
+  alinhamento: alinhamentoModelo.optional(),
+  quebraPagina: z.boolean().optional(),
+});
+const margemCm = z.number().min(0).max(10);
+const esquemaRegrasModelo = z.strictObject({
+  larguraMm: z.number().min(50).max(1000).optional(),
+  alturaMm: z.number().min(50).max(1000).optional(),
+  margemSuperiorCm: margemCm.optional(),
+  margemInferiorCm: margemCm.optional(),
+  margemEsquerdaCm: margemCm.optional(),
+  margemDireitaCm: margemCm.optional(),
+  fonte: z.string().min(1).max(64).regex(/^[\p{L}\p{N} ._-]+$/u, { error: 'nome de fonte inválido' }).optional(),
+  corpoPt: z.number().min(6).max(72).optional(),
+  entrelinha: z.enum(['simples', '1,5', 'duplo']).optional(),
+  alinhamento: alinhamentoModelo.optional(),
+  recuoPrimeiraLinhaCm: z.number().min(0).max(10).optional(),
+  titulo1: estiloTituloModelo.optional(),
+  titulo2: estiloTituloModelo.optional(),
+  titulo3: estiloTituloModelo.optional(),
+});
+
 export const esquemaDocumentoV1 = z.strictObject({
   id,
   tipoTrabalho: esquemaTipoTrabalho,
@@ -471,6 +499,17 @@ export const esquemaDocumentoV1 = z.strictObject({
           if (c.tipo === 'data' && v !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(v)) ctx.addIssue({ code: 'custom', path: ['linhas', i, 'valores', j], message: 'data inválida: use AAAA-MM-DD' });
         });
       });
+    })
+    .optional(),
+  modelo: z
+    .strictObject({
+      nome: campoCurto.min(1),
+      importadoEm: z.iso.datetime(),
+      reconhecidas: esquemaRegrasModelo,
+      regras: esquemaRegrasModelo,
+      instrucoes: z.array(campoCurto).max(LIMITES_V1.instrucoesModelo).optional(),
+      secoes: z.array(z.strictObject({ nivel: z.int().min(1).max(3), titulo: campoCurto.min(1) })).max(LIMITES_V1.secoesModelo).optional(),
+      avisos: z.array(campoCurto).max(LIMITES_V1.instrucoesModelo).optional(),
     })
     .optional(),
 });

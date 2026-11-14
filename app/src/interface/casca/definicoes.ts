@@ -54,6 +54,8 @@ export type ComandoMenu =
   | 'historicoTrabalho'
   // Etapa 6: Trabalho › Registro de atividades… (aba Elementos).
   | 'registroAtividades'
+  // Etapa 7: Trabalho › Modelo de evento (DOCX)… (aba Elementos).
+  | 'modeloEvento'
   | 'atalhosTeclado';
 
 export interface ItemMenu {
@@ -111,6 +113,7 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Dados do trabalho…', comando: 'dadosTrabalho' },
       { rotulo: 'Elementos pré-textuais…', comando: 'elementosPreTextuais' },
       { rotulo: 'Estrutura de seções…', comando: 'estruturaSecoes' },
+      { rotulo: 'Modelo de evento (DOCX)…', comando: 'modeloEvento' },
       { rotulo: 'Registro de atividades…', comando: 'registroAtividades' },
       { rotulo: 'Histórico do trabalho…', comando: 'historicoTrabalho' },
     ],
@@ -166,6 +169,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('dadosTrabalho');
     d.add('elementosPreTextuais');
     d.add('registroAtividades');
+    d.add('modeloEvento');
   }
   if (trabalho === null || trabalho.somenteLeitura) {
     d.add('historicoTrabalho');

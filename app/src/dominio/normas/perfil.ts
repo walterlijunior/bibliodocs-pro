@@ -74,7 +74,8 @@ export interface PropriedadesFormatacao {
   margemEsquerdaCm?: number;
   margemDireitaCm?: number;
   corpoPt?: number;
-  entrelinha?: 'simples' | '1,5';
+  /** `duplo` só vem de modelo de evento (Etapa 7); o Manual da UFT usa simples e 1,5. */
+  entrelinha?: 'simples' | '1,5' | 'duplo';
   alinhamento?: 'esquerda' | 'direita' | 'centralizado' | 'justificado';
   recuoPrimeiraLinhaCm?: number;
   recuoEsquerdaCm?: number;

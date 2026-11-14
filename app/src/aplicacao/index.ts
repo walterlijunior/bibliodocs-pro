@@ -65,6 +65,8 @@ export {
   type ResultadoRecuperar,
   type TipoOferta,
 } from './portas/recuperacao';
+export { ASPECTOS, aspectosComPerfilPadrao, aspectosDoModelo, compararComExportado, conferirExportado, type DiferencaExportado, lerModeloDocx, modeloDoArquivo, secoesQueFaltam, textoDoValor, valoresDoPerfil, type ChaveAspecto, type LinhaAspecto, type SituacaoAspecto } from './servicos/modelo-evento';
+export { LIMITE_BYTES_MODELO } from '../importacao';
 export { atualizarIncorporado, dataBr, documentoDoCronograma, FONTE_PADRAO_REGISTRO, incorporacaoAtual, incorporar, linhaNova, NATUREZAS, ordenarPorData, quadroDoRegistro, registroPadrao, retirarIncorporado, TITULO_APENDICE_REGISTRO, TITULO_PADRAO_REGISTRO, type DestinoRegistro } from './servicos/registro';
 export { LIMITE_PONTOS_HISTORICO, mudancasDeCitacao, PontosDoHistorico, resumoBibliografico, type PontoHistorico } from './servicos/historico-trabalho';
 export { CANAIS_FONTES, type ApiFontes, type CanalFontes, type ResultadoAbrirPdf, type ResultadoEscolherPdf } from './portas/fontes';

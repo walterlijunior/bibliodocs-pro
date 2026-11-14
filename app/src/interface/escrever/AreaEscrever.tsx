@@ -22,6 +22,7 @@ import { DialogoFigura } from './DialogoFigura';
 import { DialogoRemissiva } from './DialogoRemissiva';
 import { ListaVisuais, PainelElemento, PainelMencoes, type NovoElemento } from './GerenciadorElementos';
 import { PainelRegistro } from './PainelRegistro';
+import { PainelModelo } from './PainelModelo';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
 import { areaUtilDoPerfilMm } from '../../aplicacao';
@@ -40,7 +41,7 @@ import { DialogoSigla } from './DialogoSigla';
 import { Conformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
 import type { DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
-import type { RegistroAtividades } from '../../dominio/modelo';
+import type { ModeloEvento, RegistroAtividades } from '../../dominio/modelo';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
 export { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
@@ -92,6 +93,15 @@ export interface PropsAreaEscrever {
     retirar: () => ResultadoObra;
     exportar: () => Promise<ResultadoExportar>;
   };
+  /** Etapa 7: modelo de congresso ou evento importado de DOCX. */
+  modeloEvento?: {
+    aplicar: (m: ModeloEvento | null) => ResultadoObra;
+    criarSecoes: () => number;
+    secoesQueFaltam: () => string[];
+  };
+  /** Trabalho › Modelo de evento (DOCX)…: maior que 0 quando pedido. */
+  pedidoModelo?: number;
+  aoAtenderPedidoModelo?: () => void;
   /** Trabalho › Registro de atividades…: maior que 0 quando pedido (quem pediu já escolheu a aba Elementos). */
   pedidoRegistro?: number;
   aoAtenderPedidoRegistro?: () => void;
@@ -241,6 +251,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [visualId, setVisualId] = useState<string | null>(null);
   // Etapa 6: o registro de atividades no lugar do editor (aba Elementos).
   const [registroAberto, setRegistroAberto] = useState(false);
+  // Etapa 7: o modelo de evento no lugar do editor (aba Elementos).
+  const [modeloAberto, setModeloAberto] = useState(false);
   const [acaoNoEditor, setAcaoNoEditor] = useState<{ secao: string; acao: AcaoNoEditor } | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
   // Obra na tela no lugar do editor: a do trabalho (pelo id) ou o rascunho de uma nova.
@@ -364,16 +376,27 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setElementoId(null);
     setVisualId(null);
     setRegistroAberto(false);
+    setModeloAberto(false);
     setObraAberta(null);
     setConferencia(null);
     setSugestaoPre(null);
   }, [modo]);
+  const { pedidoModelo = 0, aoAtenderPedidoModelo } = p;
+  useEffect(() => {
+    if (pedidoModelo === 0 || modo !== 'elementos') return;
+    aoAtenderPedidoModelo?.();
+    setElementoId(null);
+    setVisualId(null);
+    setRegistroAberto(false);
+    setModeloAberto(true);
+  }, [pedidoModelo, aoAtenderPedidoModelo, modo]);
   const { pedidoRegistro = 0, aoAtenderPedidoRegistro } = p;
   useEffect(() => {
     if (pedidoRegistro === 0 || modo !== 'elementos') return;
     aoAtenderPedidoRegistro?.();
     setElementoId(null);
     setVisualId(null);
+    setModeloAberto(false);
     setRegistroAberto(true);
   }, [pedidoRegistro, aoAtenderPedidoRegistro, modo]);
   const preLista = t?.preTextuais?.lista;
@@ -701,11 +724,13 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoEscolher={(x) => {
               setElementoId(null);
               setRegistroAberto(false);
+              setModeloAberto(false);
               setVisualId(x.id);
             }}
             aoMencoes={() => {
               setElementoId(null);
               setRegistroAberto(false);
+              setModeloAberto(false);
               setVisualId(null);
             }}
             aoNovo={(qual) => {
@@ -728,6 +753,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               onClick={() => {
                 setElementoId(null);
                 setVisualId(null);
+                setModeloAberto(false);
                 setRegistroAberto(true);
               }}
             >
@@ -735,6 +761,25 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               <span className="elementos__marca">
                 {t.registro ? `${t.registro.linhas.length === 1 ? '1 linha' : `${t.registro.linhas.length} linhas`}${t.registroIncorporado ? `, no ${t.registroIncorporado.rotulo}` : ', fora do trabalho'}` : 'não iniciado'}
               </span>
+            </button>
+          </section>
+        )}
+        {modo === 'elementos' && p.modeloEvento && (
+          <section className="elementos" aria-labelledby="titulo-modelo-evento">
+            <h2 id="titulo-modelo-evento">Formatação</h2>
+            <button
+              type="button"
+              className="elementos__item"
+              aria-current={modeloAberto ? 'true' : undefined}
+              onClick={() => {
+                setElementoId(null);
+                setVisualId(null);
+                setRegistroAberto(false);
+                setModeloAberto(true);
+              }}
+            >
+              <span>Modelo de evento (DOCX)</span>
+              <span className="elementos__marca">{t.modelo ? `“${t.modelo.nome}”` : 'Manual da UFT'}</span>
             </button>
           </section>
         )}
@@ -864,6 +909,14 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 }
               }}
             />
+          ) : modeloAberto && modo === 'elementos' && p.modeloEvento && elementoAtivo === null ? (
+            <PainelModelo
+              modelo={t.modelo}
+              somenteLeitura={t.somenteLeitura}
+              secoesQueFaltam={p.modeloEvento.secoesQueFaltam()}
+              aoAplicar={p.modeloEvento.aplicar}
+              aoCriarSecoes={p.modeloEvento.criarSecoes}
+            />
           ) : registroAberto && modo === 'elementos' && p.registro && elementoAtivo === null ? (
             <PainelRegistro
               registro={t.registro}
@@ -964,7 +1017,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 <DialogoGrafico
                   elementos={t.elementos}
                   inicial={pedidoGrafico.existente?.dados ?? null}
-                  areaUtilMm={areaUtilDoPerfilMm()}
+                  areaUtilMm={areaUtilDoPerfilMm(t.modelo)}
                   aoConfirmar={(dados) => {
                     const x = pedidoGrafico.existente;
                     setPedidoGrafico(null);

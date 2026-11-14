@@ -7,8 +7,8 @@
  * - `validarFigura`: só sai a ilustração que o formato v1 aceita.
  */
 import { LIMITES_V1, validarIlustracaoV1 } from '../../dominio/esquemas';
-import { ESPECIES_ILUSTRACAO, type BlocoIlustracao, type EspecieIlustracao, type InlineDeTitulo } from '../../dominio/modelo';
-import { areaUtilMm } from '../../dominio/normas';
+import { ESPECIES_ILUSTRACAO, type ModeloEvento, type BlocoIlustracao, type EspecieIlustracao, type InlineDeTitulo } from '../../dominio/modelo';
+import { areaUtilMm, perfilComModelo } from '../../dominio/normas';
 import { avisoDeResolucao } from '../../dominio/verificador';
 import { larguraImpressaMm, PALAVRA_DESIGNATIVA, resolucaoEfetivaPpi, type InfoImagem } from '../../dominio/visuais';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
@@ -101,5 +101,6 @@ export function validarFigura(r: RascunhoFigura): ResultadoValidacaoFigura {
 }
 
 /** Largura da área útil do perfil padrão, em mm (largura máxima da figura e do gráfico gerado, M5-T09). */
-export const areaUtilDoPerfilMm = (): number => areaUtilMm(PERFIL_UFT_2022);
+/** Largura útil da página; com modelo de evento (Etapa 7), a das margens dele. */
+export const areaUtilDoPerfilMm = (modelo?: ModeloEvento): number => areaUtilMm(perfilComModelo(PERFIL_UFT_2022, modelo));
 

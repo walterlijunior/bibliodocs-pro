@@ -103,6 +103,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // Etapa 6: Trabalho › Registro de atividades…
   const [pedidoRegistro, setPedidoRegistro] = useState(0);
   const atenderPedidoRegistro = useCallback(() => setPedidoRegistro(0), []);
+  // Etapa 7: Trabalho › Modelo de evento (DOCX)…
+  const [pedidoModelo, setPedidoModelo] = useState(0);
+  const atenderPedidoModelo = useCallback(() => setPedidoModelo(0), []);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   // Etapa 2: zoom do texto do editor (50% a 200%), lembrado neste computador; o arquivo exportado não muda.
@@ -269,7 +272,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     setExportacao({ etapa: 'exportando' });
     try {
       // Os gráficos gerados de tabela são desenhados aqui, no canvas, e vão prontos (M5-T09).
-      const graficos = await graficosParaExportar(pacote.documento, areaUtilDoPerfilMm(), fonteExportacao);
+      // Etapa 7: com modelo de evento, os gráficos usam a fonte dele.
+      const graficos = await graficosParaExportar(pacote.documento, areaUtilDoPerfilMm(pacote.documento.modelo), pacote.documento.modelo?.regras.fonte ?? fonteExportacao);
       const r = await api.exportacao.docx(pacote, { fonte: fonteExportacao, ...(Object.keys(graficos).length > 0 ? { graficos } : {}) });
       if (r.ok) setExportacao({ etapa: 'concluido', nomeArquivo: r.nomeArquivo, avisos: r.avisos });
       else if (r.motivo === 'CANCELADO') setExportacao({ etapa: 'escolher' });
@@ -570,6 +574,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           if (!ABAS_DO_TRABALHO.has(local.aba)) irParaEscrever();
           setPedidoProximaNC((n) => n + 1);
           return;
+        case 'modeloEvento':
+          ir({ aba: 'elementos' });
+          setPedidoModelo((n) => n + 1);
+          return;
         case 'registroAtividades':
           ir({ aba: 'elementos' });
           setPedidoRegistro((n) => n + 1);
@@ -678,6 +686,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         <DialogoExportar
           estado={exportacao}
           fonte={fonteExportacao}
+          modelo={sessaoEstado.trabalho?.modelo ? { nome: sessaoEstado.trabalho.modelo.nome, ...(sessaoEstado.trabalho.modelo.regras.fonte ? { fonte: sessaoEstado.trabalho.modelo.regras.fonte } : {}) } : undefined}
           aoEscolherFonte={setFonteExportacao}
           aoExportar={() => void exportarDocx()}
           aoFechar={() => setExportacao(null)}
@@ -795,6 +804,13 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                     return pacote ? window.bibliodocs.exportacao.docx(pacote, {}) : Promise.resolve({ ok: false as const, motivo: 'ERRO' as const, mensagem: 'Não há registro para exportar.' });
                   },
                 }}
+                modeloEvento={{
+                  aplicar: (m) => sessao.aplicarModelo(m),
+                  criarSecoes: () => sessao.criarSecoesDoModelo(),
+                  secoesQueFaltam: () => sessao.secoesQueFaltamDoModelo(),
+                }}
+                pedidoModelo={pedidoModelo}
+                aoAtenderPedidoModelo={atenderPedidoModelo}
                 pedidoRegistro={pedidoRegistro}
                 aoAtenderPedidoRegistro={atenderPedidoRegistro}
                 pedidoConformidade={pedidoConformidade}

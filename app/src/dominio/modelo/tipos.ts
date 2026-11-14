@@ -552,6 +552,53 @@ export interface Documento {
   glossario?: TermoGlossario[];
   /** Registro de atividades e cronograma (Etapa 6): fora do manuscrito, salvo quando incorporado num apêndice. */
   registro?: RegistroAtividades;
+  /** Modelo de evento importado de um DOCX (Etapa 7): ajusta a formatação do perfil; o texto não muda. */
+  modelo?: ModeloEvento;
+}
+
+/** Estilo de título lido do modelo ou corrigido pelo autor. */
+export interface EstiloTituloModelo {
+  corpoPt?: number;
+  negrito?: boolean;
+  italico?: boolean;
+  maiusculas?: boolean;
+  alinhamento?: 'esquerda' | 'direita' | 'centralizado' | 'justificado';
+  /** Começa em página nova. */
+  quebraPagina?: boolean;
+}
+
+/** Aspectos de formatação de um modelo de evento. Ausente = vale o perfil (Manual da UFT). */
+export interface RegrasModelo {
+  larguraMm?: number;
+  alturaMm?: number;
+  margemSuperiorCm?: number;
+  margemInferiorCm?: number;
+  margemEsquerdaCm?: number;
+  margemDireitaCm?: number;
+  fonte?: string;
+  corpoPt?: number;
+  entrelinha?: 'simples' | '1,5' | 'duplo';
+  alinhamento?: 'esquerda' | 'direita' | 'centralizado' | 'justificado';
+  recuoPrimeiraLinhaCm?: number;
+  titulo1?: EstiloTituloModelo;
+  titulo2?: EstiloTituloModelo;
+  titulo3?: EstiloTituloModelo;
+}
+
+/**
+ * Modelo de congresso ou evento (Etapa 7 da especificação de atualização), lido de um DOCX oficial. `reconhecidas` é o
+ * que o arquivo trazia; `regras` é o que vale no trabalho (o reconhecido, corrigido pelo autor). Instruções escritas
+ * no modelo e as seções dele ficam para o autor conferir; `avisos` diz o que a exportação não reproduz.
+ */
+export interface ModeloEvento {
+  nome: string;
+  /** ISO 8601. */
+  importadoEm: string;
+  reconhecidas: RegrasModelo;
+  regras: RegrasModelo;
+  instrucoes?: string[];
+  secoes?: { nivel: number; titulo: string }[];
+  avisos?: string[];
 }
 
 /** Coluna do registro: `data` (AAAA-MM-DD), `natureza` (atividade ou reunião com o orientador) ou texto livre. */

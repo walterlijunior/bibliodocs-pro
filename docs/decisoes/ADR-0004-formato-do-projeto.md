@@ -822,3 +822,14 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
 - O motor ignora `registro`: fora do manuscrito por padrão. Incorporar copia o quadro (bloco `tabela`, espécie `quadro`)
   para um apêndice; `incorporadoEm { apendice, bloco, apendiceCriado? }` só vale se o bloco ainda está lá (o Ctrl+Z dos
   pós-textuais pode tirá-lo).
+
+## Adendo da Etapa 7 da especificação de atualização (2026-11-14) — modelo de evento
+
+- **Aditivo, sem subir `versaoFormato`.** `Documento.modelo?: { nome, importadoEm, reconhecidas, regras, instrucoes?,
+  secoes?, avisos? }`. `reconhecidas` é o que o DOCX trazia (para comparar o exportado com o original); `regras` é o que
+  vale (o reconhecido, corrigido pelo autor). Medidas em faixas plausíveis, fonte só com letras, números, espaço, ponto,
+  sublinhado e hífen. O DOCX do modelo não é guardado. JSON Schema regenerado.
+- O perfil do arquivo continua o da UFT: `perfilComModelo` (domínio) acrescenta regras `MOD-*` na exportação, na
+  conformidade e na área útil dos gráficos. O perfil ganhou a entrelinha `duplo` (480), usada só por modelo.
+- O DOCX é lido no renderer, sem gravar nada: ZIP com teto de 20 MB e de 15 MB por parte descomprimida, só
+  `document.xml`, `styles.xml` e `theme1.xml` são abertos; o XML é lido por expressões regulares, sem avaliar nada.

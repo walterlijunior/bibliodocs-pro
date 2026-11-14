@@ -15,7 +15,7 @@ const propriedades = z.strictObject({
   margemEsquerdaCm: medida.optional(),
   margemDireitaCm: medida.optional(),
   corpoPt: medida.optional(),
-  entrelinha: z.enum(['simples', '1,5']).optional(),
+  entrelinha: z.enum(['simples', '1,5', 'duplo']).optional(),
   alinhamento: z.enum(['esquerda', 'direita', 'centralizado', 'justificado']).optional(),
   recuoPrimeiraLinhaCm: medida.optional(),
   recuoEsquerdaCm: medida.optional(),

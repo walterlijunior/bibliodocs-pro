@@ -40,7 +40,7 @@ type Saida = { [K in Chave]?: PropriedadesEstilo[K] };
 function traduzir(p: PropriedadesFormatacao): Saida {
   const s: Saida = {};
   if (p.corpoPt !== undefined) s.corpoMeioPt = Math.round(p.corpoPt * 2);
-  if (p.entrelinha !== undefined) s.linha = p.entrelinha === 'simples' ? 240 : 360;
+  if (p.entrelinha !== undefined) s.linha = p.entrelinha === 'simples' ? 240 : p.entrelinha === 'duplo' ? 480 : 360;
   if (p.alinhamento !== undefined) s.alinhamento = p.alinhamento;
   if (p.recuoPrimeiraLinhaCm !== undefined) s.recuoPrimeiraLinhaTw = cmParaTw(p.recuoPrimeiraLinhaCm);
   if (p.recuoEsquerdaCm !== undefined) s.recuoEsquerdaTw = cmParaTw(p.recuoEsquerdaCm);

@@ -52,6 +52,7 @@ import {
   type Documento,
   type ElementoPosTextual,
   type RegistroAtividades,
+  type ModeloEvento,
   type ElementoPosTextualId,
   type ElementoPreTextual,
   type ElementoPreTextualId,
@@ -65,7 +66,8 @@ import {
   type TipoTrabalhoId,
   type VinculoInstitucional,
 } from '../../dominio/modelo';
-import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
+import { pendenciasPreTextuais, perfilComModelo, type PendenciaPreTextual } from '../../dominio/normas';
+import { secoesQueFaltam } from './modelo-evento';
 import { LIMITES_V1, midiasDoDocumento, validarDocumentoV1 } from '../../dominio/esquemas';
 import { alvosDeRemissiva, lerInfoImagem, mencoesEscritas, remissivasDoCorpo, type AlvoRemissiva, type InfoImagem, type MencaoEscrita, type RemissivaNoTexto } from '../../dominio/visuais';
 import { letraPosTextual, numerarSecoes } from '../../dominio/numeracao';
@@ -219,6 +221,8 @@ export interface TrabalhoDaSessao {
   /** Etapa 6: registro de atividades e onde ele está incorporado (rótulo do apêndice), se estiver. */
   registro?: RegistroAtividades;
   registroIncorporado?: { apendice: Id; rotulo: string } | null;
+  /** Etapa 7: modelo de evento aplicado ao trabalho. */
+  modelo?: ModeloEvento;
 }
 
 export interface EstadoSessao {
@@ -465,6 +469,7 @@ export class SessaoTrabalho {
               elementos: this.#publicarElementos(a.pacote.documento),
               ...(a.pacote.documento.registro ? { registro: a.pacote.documento.registro } : {}),
               registroIncorporado: this.#registroIncorporado(a.pacote.documento),
+              ...(a.pacote.documento.modelo ? { modelo: a.pacote.documento.modelo } : {}),
             },
       avisos: this.#avisos,
     };
@@ -1022,7 +1027,7 @@ export class SessaoTrabalho {
   verificarConformidade(): RelatorioConformidade {
     const a = this.#aberto;
     if (!a) return { problemas: [], diagnosticos: [] };
-    return avaliarConformidade(a.pacote.documento, PERFIL_UFT_2022, { imagens: new Map(a.pacote.midias.map((m) => [m.sha256, m.bytes])) });
+    return avaliarConformidade(a.pacote.documento, perfilComModelo(PERFIL_UFT_2022, a.pacote.documento.modelo), { imagens: new Map(a.pacote.midias.map((m) => [m.sha256, m.bytes])) });
   }
 
   /** Quantas chamadas do texto apontam para a obra, como citada ou como fonte do apud. */
@@ -1239,6 +1244,52 @@ export class SessaoTrabalho {
   }
 
   // ---------- histórico do trabalho (Etapa 5) ----------
+
+  // ---------- modelo de evento (Etapa 7) ----------
+
+  /**
+   * Aplica o modelo de evento (ou volta ao perfil, com `null`). Só a formatação muda: texto, citações e elementos ficam
+   * como estão. O estado de antes vai para o histórico do trabalho.
+   */
+  aplicarModelo(modelo: ModeloEvento | null): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const { modelo: anterior, ...resto } = a.pacote.documento;
+    const candidato: Documento = { ...resto, ...(modelo ? { modelo } : {}) };
+    if (!validarDocumentoV1(candidato).ok) return { ok: false, mensagem: 'O modelo não foi aplicado: confira as medidas e a fonte.' };
+    const descricao = modelo === null ? 'Antes de voltar ao perfil da UFT' : anterior && anterior.nome !== modelo.nome ? `Antes de trocar o modelo “${anterior.nome}”` : `Antes de aplicar o modelo “${modelo.nome}”`;
+    if (modelo === null || !anterior || anterior.nome !== modelo.nome) this.#pontos.registrar(descricao, a.pacote.documento, this.#dep.agora());
+    a.pacote = { ...a.pacote, documento: candidato };
+    this.#marcarAlteracao();
+    this.#emitir();
+    return { ok: true, id: candidato.id };
+  }
+
+  /** Seções de nível 1 do modelo que o trabalho ainda não tem. */
+  secoesQueFaltamDoModelo(): string[] {
+    const a = this.#aberto;
+    const modelo = a?.pacote.documento.modelo;
+    return a && modelo ? secoesQueFaltam(modelo, a.pacote.documento.corpo) : [];
+  }
+
+  /** Cria, no fim do texto, as seções de nível 1 do modelo que o trabalho não tem (vazias). Quantas criou. */
+  criarSecoesDoModelo(): number {
+    const a = this.#aberto;
+    const gerar = this.#dep.gerarIdSecao;
+    const modelo = a?.modo === 'edicao' ? a.pacote.documento.modelo : undefined;
+    if (a?.modo !== 'edicao' || !modelo || !gerar) return 0;
+    const titulos = secoesQueFaltam(modelo, a.pacote.documento.corpo);
+    const vagas = LIMITES_V1.secoesPorNivel - a.pacote.documento.corpo.length;
+    const novas: Secao[] = titulos.slice(0, Math.max(0, vagas)).map((titulo) => {
+      let id = gerar();
+      while (this.#idEmUso(a, id)) id = gerar();
+      return { id, titulo: [{ tipo: 'texto', texto: titulo }], blocos: [], subsecoes: [] };
+    });
+    if (novas.length === 0) return 0;
+    this.#pontos.registrar(`Antes de criar ${novas.length === 1 ? '1 seção' : `${novas.length} seções`} do modelo`, a.pacote.documento, this.#dep.agora());
+    this.#trocarCorpo(a, [...a.pacote.documento.corpo, ...novas]);
+    return novas.length;
+  }
 
   // ---------- registro de atividades e cronograma (Etapa 6) ----------
 

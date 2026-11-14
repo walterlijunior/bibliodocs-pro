@@ -17,6 +17,8 @@ export interface PropsDialogoExportar {
   estado: EstadoExportacao;
   fonte: string;
   aoEscolherFonte: (fonte: string) => void;
+  /** Etapa 7: com modelo de evento aplicado, a fonte é a dele e não se escolhe aqui. */
+  modelo?: { nome: string; fonte?: string } | undefined;
   aoExportar: () => void;
   aoFechar: () => void;
 }
@@ -31,7 +33,7 @@ export function DialogoExportar(p: PropsDialogoExportar) {
     const anterior = document.activeElement;
     if (d && !d.open) {
       d.showModal();
-      d.querySelector<HTMLInputElement>('input:checked')?.focus();
+      (d.querySelector<HTMLInputElement>('input:checked') ?? d.querySelector<HTMLButtonElement>('.btn-principal'))?.focus();
     }
     return () => {
       d?.close();
@@ -55,7 +57,12 @@ export function DialogoExportar(p: PropsDialogoExportar) {
     >
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Exportar DOCX</h2>
-        {(estado.etapa === 'escolher' || estado.etapa === 'erro') && (
+        {(estado.etapa === 'escolher' || estado.etapa === 'erro') && p.modelo && (
+          <p>
+            Formatação do modelo “{p.modelo.nome}”{p.modelo.fonte ? `, fonte ${p.modelo.fonte}` : ''}. Para mudar, use Trabalho › Modelo de evento (DOCX)….
+          </p>
+        )}
+        {(estado.etapa === 'escolher' || estado.etapa === 'erro') && !p.modelo && (
           <fieldset className="tipos-trabalho">
             <legend>Fonte</legend>
             {FONTES_EXPORTACAO.map((f) => (

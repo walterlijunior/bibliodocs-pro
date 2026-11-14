@@ -22,6 +22,9 @@ export const LIMITES_V1 = {
   /** Registro de atividades (Etapa 6). */
   colunasRegistro: 10,
   linhasRegistro: 1_000,
+  /** Modelo de evento (Etapa 7). */
+  instrucoesModelo: 60,
+  secoesModelo: 100,
   /** Trechos (`Inline`) num título, parágrafo ou metadado. */
   inlinesPorConteudo: 10_000,
   blocosPorSecao: 10_000,

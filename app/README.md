@@ -28,6 +28,8 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
   (Trabalho › Histórico do trabalho…) para voltar texto, citações e referências a um estado anterior.
 - **Registro de atividades e cronograma** (Trabalho › Registro de atividades…), separado do texto, com exportação
   avulsa em DOCX e incorporação num apêndice.
+- **Modelos de congressos e eventos**: importe o DOCX oficial do evento e o trabalho passa a sair com a formatação dele
+  (Trabalho › Modelo de evento (DOCX)…).
 - **Siglas, símbolos e glossário:** a primeira ocorrência da sigla sai por extenso, e as listas são geradas.
 - **Apêndices e anexos** com conteúdo próprio.
 - **Verificador de conformidade** (F7): lista o que falta ou foge do Manual e da Norma Tabular, com a regra de origem
