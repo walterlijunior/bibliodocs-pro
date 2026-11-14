@@ -28,6 +28,8 @@ import { AreaBiblioteca } from './biblioteca/AreaBiblioteca';
 import { BarraLateral } from './biblioteca/BarraLateral';
 import { DialogoNovoTrabalho } from './biblioteca/DialogoNovoTrabalho';
 import { DialogoSobre } from './casca/DialogoSobre';
+import { DialogoAjuda, type TipoAjuda } from './casca/DialogoAjuda';
+import { AreaColecao } from './biblioteca/AreaColecao';
 import { DialogoExportar, FONTES_EXPORTACAO, type EstadoExportacao } from './escrever/DialogoExportar';
 import { DialogoVersoes, type OrigemVersoes } from './biblioteca/DialogoVersoes';
 import { PainelDetalhes } from './biblioteca/PainelDetalhes';
@@ -36,13 +38,13 @@ import { aplicarFiltro, buscar, contar, FILTRO_TODOS, mesmoFiltro, tituloDaLista
 import { FALHA_INESPERADA, useBiblioteca } from './biblioteca/useBiblioteca';
 import { BarraMenus } from './casca/BarraMenus';
 import { BarraSuperior } from './casca/BarraSuperior';
-import { ABAS, COLECOES, comandosDesativados, type ComandoMenu, type IdAba, type IdColecao } from './casca/definicoes';
+import { comandosDesativados, type ComandoMenu, type IdAba, type IdColecao } from './casca/definicoes';
 import { ID_PAINEL, idDaAba, Navegacao } from './casca/Navegacao';
 import { acaoDoAtalho, avancar, iniciarHistorico, navegar, voltar } from './casca/teclado';
 import { visorDoTrabalho } from './casca/visor';
 import type { ControleEditor } from './editor/EditorSecao';
 import { avisoSomenteLeitura, avisosDaAbertura, mensagemVersaoFutura } from './escrever/aberturas';
-import { AreaEscrever, ID_CAMPO_TITULO } from './escrever/AreaEscrever';
+import { AreaEscrever, ID_CAMPO_TITULO, type ModoTrabalho } from './escrever/AreaEscrever';
 import { useEstrutura } from './escrever/useEstrutura';
 import { useSessao } from './escrever/useSessao';
 import { SimbolosSvg } from './Icones';
@@ -57,6 +59,9 @@ interface Local {
 /** O comando do menu Editar não chegou ao principal (o atalho do teclado não depende dele). */
 export const MENSAGEM_FALHA_EDICAO = 'O comando de edição não pôde ser executado. Tente o atalho do teclado (Ctrl+C, Ctrl+V…).';
 
+/** Abas que mostram o trabalho aberto (F-E6-01). */
+const ABAS_DO_TRABALHO: ReadonlySet<IdAba> = new Set(['escrever', 'elementos', 'referencias', 'conformidade']);
+
 const mesmoLocal = (a: Local, b: Local): boolean => a.aba === b.aba && a.colecao === b.colecao && mesmoFiltro(a.filtro, b.filtro);
 
 export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
@@ -69,6 +74,13 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
   const [sobreAberto, setSobreAberto] = useState(false);
+  // F-E6-01: Ajuda › Guia rápido (F1) e Atalhos de teclado; Trabalho › Dados do trabalho… e Elementos pré-textuais…;
+  // Verificar › Ir para a próxima não conformidade (F8).
+  const [ajuda, setAjuda] = useState<TipoAjuda | null>(null);
+  const [pedidoElementos, setPedidoElementos] = useState<{ alvo: 'dados' | 'lista' } | null>(null);
+  const atenderPedidoElementos = useCallback(() => setPedidoElementos(null), []);
+  const [pedidoProximaNC, setPedidoProximaNC] = useState(0);
+  const atenderPedidoProximaNC = useCallback(() => setPedidoProximaNC(0), []);
   // E7-T03: cada pedido do menu (F7) abre a janela do verificador na aba Escrever.
   const [pedidoConformidade, setPedidoConformidade] = useState(0);
   const atenderPedidoConformidade = useCallback(() => setPedidoConformidade(0), []);
@@ -504,6 +516,25 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'sobre':
           setSobreAberto(true);
           return;
+        case 'guiaRapido':
+          setAjuda('guia');
+          return;
+        case 'atalhosTeclado':
+          setAjuda('atalhos');
+          return;
+        case 'dadosTrabalho':
+        case 'elementosPreTextuais':
+          ir({ aba: 'elementos' });
+          setPedidoElementos({ alvo: c === 'dadosTrabalho' ? 'dados' : 'lista' });
+          return;
+        case 'inserirSigla':
+          refEditor.current?.pedirSigla();
+          return;
+        case 'proximaNaoConformidade':
+          // Fora das abas do trabalho, a próxima não conformidade é procurada a partir da aba Escrever.
+          if (!ABAS_DO_TRABALHO.has(local.aba)) irParaEscrever();
+          setPedidoProximaNC((n) => n + 1);
+          return;
         case 'verificarConformidade':
           irParaEscrever();
           setPedidoConformidade((n) => n + 1);
@@ -525,7 +556,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           return;
       }
     },
-    [abrirPorDialogo, acaoDoAviso, editar, escolherPasta, pedirNovoTrabalho, fecharTrabalho, focarBusca, irParaEscrever, irParaSecao, pedirFoco, recarregar, sessao],
+    [abrirPorDialogo, acaoDoAviso, editar, escolherPasta, pedirNovoTrabalho, fecharTrabalho, focarBusca, ir, irParaEscrever, irParaSecao, local.aba, pedirFoco, recarregar, sessao],
   );
 
   // Inserir › Nota de rodapé só com o editor na tela (revisão do M2-T06, B3: fora da aba o comando se perdia).
@@ -539,6 +570,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       d.add('inserirEquacao');
       d.add('inserirRemissiva');
       d.add('inserirGrafico');
+      d.add('inserirSigla');
     }
     return d;
   }, [trabalho, local.aba, comFormulario]);
@@ -547,7 +579,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       // Com o diálogo aberto, o resto da janela fica inerte: nenhum atalho global age por trás dele.
-      if (escolhendoTipo || descartadas !== undefined || exportacao !== null || sobreAberto) return;
+      if (escolhendoTipo || descartadas !== undefined || exportacao !== null || sobreAberto || ajuda !== null) return;
       if (e.key === 'F5' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         comando('atualizarBiblioteca');
@@ -562,7 +594,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
-  }, [comando, descartadas, desativados, escolhendoTipo, exportacao, sobreAberto]);
+  }, [ajuda, comando, descartadas, desativados, escolhendoTipo, exportacao, sobreAberto]);
 
   const fecharDetalhes = useCallback(() => {
     const id = selecionado;
@@ -570,8 +602,6 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
     if (id !== null) setFocarId({ id });
   }, [selecionado]);
 
-  const nomeAba = ABAS.find((a) => a.id === local.aba)?.rotulo ?? '';
-  const nomeColecao = COLECOES.find((c) => c.id === local.colecao)?.rotulo ?? '';
   const naBiblioteca = local.aba === 'biblioteca' && local.colecao === 'trabalhos';
 
   return (
@@ -590,6 +620,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         />
       )}
       {sobreAberto && <DialogoSobre aoFechar={() => setSobreAberto(false)} />}
+      {ajuda !== null && <DialogoAjuda tipo={ajuda} aoFechar={() => setAjuda(null)} />}
       {exportacao !== null && (
         <DialogoExportar
           estado={exportacao}
@@ -617,8 +648,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           busca={busca}
           aoBuscar={(termo) => {
             setBusca(termo);
-            // No M1 a busca só alcança os trabalhos: digitar leva à Biblioteca (a busca global vem com o editor).
-            if (termo.trim() !== '') ir({ aba: 'biblioteca', colecao: 'trabalhos' });
+            // A busca filtra a coleção escolhida da Biblioteca: digitar leva à Biblioteca (F-E6-01: na coleção atual).
+            if (termo.trim() !== '') ir({ aba: 'biblioteca' });
           }}
           refBusca={refBusca}
           podeAnterior={estrutura.podeAnterior}
@@ -641,7 +672,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           <BarraLateral
             contagens={contagens}
             filtro={local.filtro}
-            aoFiltrar={(filtro) => ir({ filtro, aba: 'biblioteca', colecao: 'trabalhos' })}
+            aoFiltrar={(filtro) => ir({ filtro, aba: 'biblioteca' })}
             nomePasta={bib.estado.fase === 'pronta' ? bib.estado.pasta.nome : null}
           />
           <main className="principal" id={ID_PAINEL} role="tabpanel" aria-labelledby={idDaAba(local.aba)} tabIndex={-1}>
@@ -666,8 +697,27 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoAbrirSalvo={(id) => void abrirSalvo(id)}
                 aoAdiar={(id) => setOfertas((os) => os.filter((o) => o.identificador !== id))}
               />
-            ) : local.aba === 'escrever' ? (
+            ) : local.aba === 'biblioteca' ? (
+              <AreaColecao
+                colecao={local.colecao === 'trabalhos' ? 'referencias' : local.colecao}
+                estado={bib.estado}
+                filtro={local.filtro}
+                busca={busca}
+                ocupado={bib.ocupado}
+                aoAbrir={(id) => void abrirItem(id)}
+                aoCriar={(tipo) => {
+                  setUltimoTipo(tipo);
+                  void criar(tipo);
+                }}
+              />
+            ) : (
               <AreaEscrever
+                modo={local.aba}
+                aoIrParaModo={(modo: ModoTrabalho) => ir({ aba: modo })}
+                pedidoElementos={pedidoElementos}
+                aoAtenderPedidoElementos={atenderPedidoElementos}
+                pedidoProximaNC={pedidoProximaNC}
+                aoAtenderPedidoProximaNC={atenderPedidoProximaNC}
                 aoAtualizarCadastros={(dados) => sessao.atualizarCadastros(dados)}
                 posTextuais={{
                   incluir: (tipo) => sessao.incluirPosTextual(tipo),
@@ -724,11 +774,6 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   ler: (sha256) => sessao.lerMidia(sha256),
                 }}
               />
-            ) : (
-              <div className="estado">
-                <h2>{local.aba === 'biblioteca' ? nomeColecao : nomeAba}</h2>
-                <p>Esta área ainda não está disponível nesta versão.</p>
-              </div>
             )}
           </main>
           {naBiblioteca && itemSelecionado !== null && (

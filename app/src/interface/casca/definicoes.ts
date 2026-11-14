@@ -43,7 +43,14 @@ export type ComandoMenu =
   | 'secaoAnterior'
   | 'proximaSecao'
   // E7-T03: Verificar › Verificar conformidade (F7), ligado à janela do verificador da aba Escrever (M7).
-  | 'verificarConformidade';
+  | 'verificarConformidade'
+  // F-E6-01: os itens que ainda não tinham ação.
+  | 'dadosTrabalho'
+  | 'elementosPreTextuais'
+  | 'inserirSigla'
+  | 'proximaNaoConformidade'
+  | 'guiaRapido'
+  | 'atalhosTeclado';
 
 export interface ItemMenu {
   rotulo: string;
@@ -97,8 +104,8 @@ export const MENUS: readonly Menu[] = [
   {
     rotulo: 'Trabalho',
     itens: [
-      { rotulo: 'Dados do trabalho…' }, // M2
-      { rotulo: 'Elementos pré-textuais…' }, // M2
+      { rotulo: 'Dados do trabalho…', comando: 'dadosTrabalho' },
+      { rotulo: 'Elementos pré-textuais…', comando: 'elementosPreTextuais' },
       { rotulo: 'Estrutura de seções…', comando: 'estruturaSecoes' },
     ],
   },
@@ -112,14 +119,14 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Equação', atalho: 'Alt+=', comando: 'inserirEquacao' },
       { rotulo: 'Remissiva…', comando: 'inserirRemissiva' },
       { rotulo: 'Nota de rodapé', atalho: 'Ctrl+Alt+F', comando: 'inserirNota' },
-      { rotulo: 'Sigla…' }, // M2
+      { rotulo: 'Sigla…', comando: 'inserirSigla' },
     ],
   },
   {
     rotulo: 'Verificar',
     itens: [
       { rotulo: 'Verificar conformidade', atalho: 'F7', comando: 'verificarConformidade' }, // M7
-      { rotulo: 'Ir para a próxima não conformidade', atalho: 'F8' }, // M4
+      { rotulo: 'Ir para a próxima não conformidade', atalho: 'F8', comando: 'proximaNaoConformidade' },
     ],
   },
   {
@@ -128,7 +135,11 @@ export const MENUS: readonly Menu[] = [
   },
   {
     rotulo: 'Ajuda',
-    itens: [{ rotulo: 'Guia rápido', atalho: 'F1' }, { rotulo: 'Atalhos de teclado' }, { rotulo: 'Sobre o BiblioDocs Pro', comando: 'sobre' }],
+    itens: [
+      { rotulo: 'Guia rápido', atalho: 'F1', comando: 'guiaRapido' },
+      { rotulo: 'Atalhos de teclado', comando: 'atalhosTeclado' },
+      { rotulo: 'Sobre o BiblioDocs Pro', comando: 'sobre' },
+    ],
   },
 ];
 
@@ -143,7 +154,12 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
   if (trabalho === null || trabalho.somenteLeitura) d.add('salvar');
   if (trabalho === null || trabalho.somenteLeitura) d.add('exportarDocx');
   if (trabalho === null) d.add('fecharTrabalho');
-  if (trabalho === null) d.add('verificarConformidade');
+  if (trabalho === null) {
+    d.add('verificarConformidade');
+    d.add('proximaNaoConformidade');
+    d.add('dadosTrabalho');
+    d.add('elementosPreTextuais');
+  }
   if (trabalho === null || trabalho.somenteLeitura) {
     d.add('inserirNota');
     d.add('inserirCitacao');
@@ -152,6 +168,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('inserirEquacao');
     d.add('inserirRemissiva');
     d.add('inserirGrafico');
+    d.add('inserirSigla');
   }
   if (trabalho === null) {
     d.add('estruturaSecoes');

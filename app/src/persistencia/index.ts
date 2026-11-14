@@ -61,7 +61,10 @@ export {
   type VersaoFutura,
 } from './conteiner/pacote';
 export {
+  esquemaConteudoResumo,
   esquemaResumoProjeto,
+  MAX_ITENS_CONTEUDO,
+  type ConteudoResumo,
   gravarIndice,
   gravarPreferencias,
   indiceVazio,
@@ -90,7 +93,7 @@ export {
   type ResultadoNome,
 } from './biblioteca/nomes';
 export { renomearSemSobrescrever, type ResultadoRenomear } from './biblioteca/renomear';
-export { resumirProjeto } from './biblioteca/resumo';
+export { conteudoDoDocumento, resumirProjeto } from './biblioteca/resumo';
 export {
   ARQUIVOS_POR_LOTE,
   PRAZO_VARREDURA_MS,

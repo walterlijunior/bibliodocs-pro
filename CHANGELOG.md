@@ -12,6 +12,11 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Integração contínua (`.github/workflows/ci.yml`) e instalador por tag (`release.yml`), com assinatura pela SignPath Foundation quando o projeto for aprovado.
 - README com a seção "Code signing policy" exigida pela SignPath Foundation (papéis da equipe, privacidade, desinstalação); as notas da release apontam para ela.
 
+### Adicionado
+- F-E6-01 (2026-11-14): as abas **Elementos** (pré-textuais, pós-textuais, lista de tabelas, quadros, figuras, gráficos e equações, e os cadastros de siglas, símbolos e glossário), **Referências** (obras, importação e conferência) e **Conformidade** (relatório na própria página, com "Ir ao local" levando à aba certa) mostram as funções do trabalho aberto.
+- F-E6-01: as coleções da Biblioteca **Referências**, **Figuras e Tabelas** e **Siglas** juntam o conteúdo de todos os trabalhos da pasta, com o trabalho de origem e o botão para abri-lo; **Modelos** cria um trabalho de cada tipo do Manual da UFT. A busca e a barra lateral filtram também as coleções.
+- F-E6-01: Trabalho › Dados do trabalho… e Elementos pré-textuais…, Inserir › Sigla…, Verificar › Ir para a próxima não conformidade (F8), Ajuda › Guia rápido (F1) e Atalhos de teclado passaram a funcionar. Todo item de menu tem ação.
+
 ### Corrigido
 - Primeiro CI (2026-11-13): Enter no título da seção não divide mais o título; abre um parágrafo vazio logo depois dele. Antes, Enter no começo do título passava o texto todo para o corpo e deixava o título vazio.
 - Primeiro CI (2026-11-13): com a janela estreita (até 1100 px), o botão "Novo trabalho" da Biblioteca fica à esquerda e não some por baixo do painel de detalhes.

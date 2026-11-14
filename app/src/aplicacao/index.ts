@@ -42,6 +42,7 @@ export {
   type EstadoItem,
   type FalhaBiblioteca,
   type IdentificadorItem,
+  type ConteudoItem,
   type ItemBiblioteca,
   type PastaBiblioteca,
   type ResultadoCriar,

@@ -34,6 +34,7 @@ function item(parcial: Partial<ItemBiblioteca> = {}): ItemBiblioteca {
     tipoTrabalho: 'generico',
     criadoEm: '2026-10-16T10:00:00-03:00',
     atualizadoEm: '2026-10-16T10:00:00-03:00',
+    conteudo: null,
     modificadoEm: Date.UTC(2026, 9, 16, 13),
     bytes: 4096,
     ...parcial,

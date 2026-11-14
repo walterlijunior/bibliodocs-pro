@@ -75,8 +75,8 @@ igual no pacote e no "Sobre"; licenças do Electron e do Chromium no pacote; com
      continuaria pelo modo de desenvolvimento (`npm run dev`), que roda o Electron assinado.
    A assinatura é o único caminho para instalar e distribuir sem desligar a proteção do Windows.
 2. **DOC-08 / M3-T12** (Etapa 6): conferência manual de um DOCX no Word.
-3. **F-E6-01** (Etapa 6): abas e coleções sem tela própria, e itens de menu ainda sem ação (Dados do trabalho…,
-   Elementos pré-textuais…, Sigla…, F8, Guia rápido, Atalhos de teclado).
+3. ~~**F-E6-01** (Etapa 6): abas e coleções sem tela própria, e itens de menu ainda sem ação~~ — corrigido em
+   2026-11-14 (ver `ETAPA6_VALIDACAO.md`).
 
 ## Pendências para a próxima versão
 

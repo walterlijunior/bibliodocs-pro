@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-13 — correções do primeiro CI; antes, 2026-11-08 — Etapas 6 e 7 feitas no que dependia da sessão; aguardam o usuário (assinatura D-E7-01, DOC-08 e F-E6-01).
+**Última atualização:** 2026-11-14 — F-E6-01 corrigido (abas Elementos, Referências e Conformidade, coleções da Biblioteca e itens de menu sem ação); antes, 2026-11-13 — correções do primeiro CI; antes, 2026-11-08 — Etapas 6 e 7 feitas no que dependia da sessão; aguardam o usuário (assinatura D-E7-01, DOC-08 e F-E6-01).
 **Etapa atual:** Etapa 6 — Testes e validação (aguardando usuário); Etapa 5 — Marcos **M1, M2, M4, M5, M6 e M7 concluídos**; M3 em andamento (T00–T11 ✔; T12 aguardando o usuário).
 
 ## Etapas
@@ -16,12 +16,19 @@
 | 3. Análise normativa | CONCLUÍDA (312 RN: 283 CONFIRMADA, 5 AMBÍGUA, 24 PENDENTE-FONTE, 0 CONFLITO; +3 PENDENTE-FONTE (RN-313 a 315) na revisão do M3) | `docs/relatorios/ETAPA3_ANALISE_NORMATIVA.md` |
 | 4. Planejamento arquitetural | CONCLUÍDA (ADR-0003 a 0006 aceitos) | `docs/decisoes/ADR-0003-tecnologia-do-aplicativo.md`, `docs/relatorios/ETAPA4_REVISAO_SEGURANCA.md` |
 | 5. Implementação (M1–M7) | EM ANDAMENTO (M1: T01–T15 ✔ — **M1 CONCLUÍDO**; M2: T01–T13 ✔ — **M2 CONCLUÍDO**, ADR-0007 ACEITO; M3: T00–T11 ✔, T12 AGUARDANDO USUÁRIO; M4: T00–T10 ✔ — **M4 CONCLUÍDO**; M5: T00–T10 ✔ — **M5 CONCLUÍDO**; M6: T00–T07 ✔ — **M6 CONCLUÍDO**; M7: T00–T05 ✔ — **M7 CONCLUÍDO**) | `docs/relatorios/M1_RELATORIO_MARCO.md`, `docs/relatorios/REVISAO_M1.md`, `docs/relatorios/M2_RELATORIO_MARCO.md` |
-| 6. Testes e validação | AGUARDANDO USUÁRIO (E6-T00–T05 ✔; falta a conferência manual do DOC-08 e a decisão F-E6-01) | `docs/relatorios/ETAPA6_VALIDACAO.md` |
+| 6. Testes e validação | AGUARDANDO USUÁRIO (E6-T00–T05 ✔; F-E6-01 corrigido em 2026-11-14; falta a conferência manual do DOC-08) | `docs/relatorios/ETAPA6_VALIDACAO.md` |
 | 7. Estabilização | AGUARDANDO USUÁRIO (E7-T00–T04 ✔; instalador e app empacotado bloqueados pelo Controle Inteligente de Aplicativos sem assinatura; D-E7-01) | `docs/relatorios/ETAPA7_DISTRIBUICAO.md` |
 
 Status possíveis: `PENDENTE`, `EM ANDAMENTO`, `AGUARDANDO USUÁRIO`, `CONCLUÍDA`.
 
 ## Próximo passo
+0. **F-E6-01 corrigido (2026-11-14, "faça então essa parte da programação que falta"):** abas Elementos, Referências e
+   Conformidade ligadas às funções do trabalho aberto; coleções Referências, Figuras e Tabelas, Siglas e Modelos;
+   Dados do trabalho…, Elementos pré-textuais…, Sigla…, F8, F1 e Atalhos de teclado com ação. Decisões técnicas por
+   delegação: o índice da biblioteca passa à versão 2 com o conteúdo de cada trabalho (o da versão 1 é refeito na
+   próxima varredura); F7 continua abrindo a janela na aba Escrever (a aba Conformidade mostra o mesmo relatório na
+   página); "Dados do trabalho…" abre a folha de rosto (ou a capa). Testes: `tests/abas-colecoes.test.ts`,
+   `e2e/abas-colecoes.spec.ts`. Falta só a conferência do usuário no app.
 1. **Pendente do usuário para fechar o M3 (M3-T12):**
    - conferência no Word (DOC-08): exportar com Ctrl+E e dizer se há aviso de reparo, pergunta de atualizar campos (o espaço entre títulos seguidos, N-M3-07, já foi medido no Word por automação e não dobra).
 2. Pendente do usuário: arquivo do brasão da UFT (RN-118).

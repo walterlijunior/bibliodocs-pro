@@ -43,6 +43,7 @@ function item(parcial: Partial<ItemBiblioteca> = {}): ItemBiblioteca {
     tipoTrabalho: 'generico',
     criadoEm: '2026-10-16T10:00:00-03:00',
     atualizadoEm: '2026-10-16T10:00:00-03:00',
+    conteudo: null,
     modificadoEm: Date.UTC(2026, 9, 16, 13, 0, 0) + seq,
     bytes: 2048,
     ...parcial,
@@ -290,11 +291,16 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
 
   it('comandos desativados conforme o trabalho aberto', () => {
     const lista = (t: Parameters<typeof comandosDesativados>[0]) => [...comandosDesativados(t)].sort();
-    expect(lista(null)).toEqual(['estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior', 'verificarConformidade']);
+    expect(lista(null)).toEqual(['dadosTrabalho', 'elementosPreTextuais', 'estruturaSecoes', 'exportarDocx', 'fecharTrabalho', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'proximaNaoConformidade', 'proximaSecao', 'salvar', 'salvarComo', 'secaoAnterior', 'verificarConformidade']);
     expect(lista({ podeSalvar: true, somenteLeitura: false })).toEqual([]);
     // Sem .bdp: Salvar continua ativo para mostrar o aviso que leva ao "Salvar como…".
     expect(lista({ podeSalvar: false, somenteLeitura: false })).toEqual([]);
-    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirTabela', 'salvar', 'salvarComo']);
+    expect(lista({ podeSalvar: false, somenteLeitura: true })).toEqual(['exportarDocx', 'inserirCitacao', 'inserirEquacao', 'inserirFigura', 'inserirGrafico', 'inserirNota', 'inserirRemissiva', 'inserirSigla', 'inserirTabela', 'salvar', 'salvarComo']);
+  });
+
+  it('F-E6-01: todo item de menu tem ação', () => {
+    const semAcao = MENUS.flatMap((m) => m.itens.flatMap((i) => (i !== 'separador' && i.comando === undefined ? [`${m.rotulo} › ${i.rotulo}`] : [])));
+    expect(semAcao).toEqual([]);
   });
 
   it('Arquivo (M1-T11): Abrir, Salvar, Salvar como e Fechar trabalho ligados aos comandos e aos atalhos', () => {

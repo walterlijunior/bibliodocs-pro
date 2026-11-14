@@ -177,6 +177,7 @@ export function criarManipuladoresBiblioteca(dep: DependenciasBiblioteca): {
       atualizadoEm: ok?.atualizadoEm ?? null,
       modificadoEm: e.modificadoEmMs,
       bytes: e.bytes,
+      conteudo: ok?.conteudo ?? null,
     };
   };
 

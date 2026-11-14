@@ -30,6 +30,27 @@ const MAX_CAMINHO = 32_767;
 
 const textoCurto = z.string().max(64);
 
+/** Itens de cada lista do conteúdo de um trabalho guardados no índice (coleções da Biblioteca, F-E6-01). */
+export const MAX_ITENS_CONTEUDO = 300;
+/** Caracteres de cada texto do conteúdo (referência, legenda, sigla por extenso). */
+export const MAX_TEXTO_CONTEUDO = 600;
+
+const textoConteudo = z.string().max(MAX_TEXTO_CONTEUDO);
+
+/**
+ * O que as coleções Referências, Figuras e Tabelas e Siglas mostram de um trabalho, sem abri-lo: as referências já
+ * formatadas, os elementos visuais numerados e as siglas cadastradas. Só texto, cortado nos limites acima.
+ */
+export const esquemaConteudoResumo = z.strictObject({
+  referencias: z.array(textoConteudo).max(MAX_ITENS_CONTEUDO),
+  visuais: z
+    .array(z.strictObject({ tipo: z.enum(['tabela', 'ilustracao', 'grafico']), rotulo: z.string().max(64), descricao: textoConteudo }))
+    .max(MAX_ITENS_CONTEUDO),
+  siglas: z.array(z.strictObject({ sigla: z.string().max(64), extenso: textoConteudo })).max(MAX_ITENS_CONTEUDO),
+});
+
+export type ConteudoResumo = z.infer<typeof esquemaConteudoResumo>;
+
 export const esquemaResumoProjeto = z.discriminatedUnion('estado', [
   z.strictObject({
     estado: z.literal('ok'),
@@ -38,6 +59,7 @@ export const esquemaResumoProjeto = z.discriminatedUnion('estado', [
     tipoTrabalho: textoCurto,
     criadoEm: textoCurto,
     atualizadoEm: textoCurto,
+    conteudo: esquemaConteudoResumo.optional(),
   }),
   z.strictObject({ estado: z.literal('versaoFutura'), versaoFormato: z.int().min(0) }),
   z.strictObject({ estado: z.literal('invalido') }),
@@ -57,7 +79,8 @@ export type EntradaIndice = z.infer<typeof esquemaEntrada>;
 
 const esquemaIndice = z.strictObject({
   formato: z.literal(FORMATO_INDICE),
-  versao: z.literal(1),
+  /** 2: com o conteúdo de cada trabalho (F-E6-01). O índice da versão 1 é descartado e refeito na próxima varredura. */
+  versao: z.literal(2),
   /** Caminho da pasta indexada; índice de outra pasta é descartado. */
   pasta: z.string().max(MAX_CAMINHO),
   entradas: z.array(esquemaEntrada).max(LIMITE_ITENS_BIBLIOTECA),
@@ -79,7 +102,7 @@ const esquemaPreferencias = z.strictObject({
 
 export type Preferencias = z.infer<typeof esquemaPreferencias>;
 
-export const indiceVazio = (pasta: string): IndiceBiblioteca => ({ formato: FORMATO_INDICE, versao: 1, pasta, entradas: [] });
+export const indiceVazio = (pasta: string): IndiceBiblioteca => ({ formato: FORMATO_INDICE, versao: 2, pasta, entradas: [] });
 
 export const PREFERENCIAS_PADRAO: Preferencias = { formato: FORMATO_PREFERENCIAS, versao: 1, pastaBiblioteca: null };
 

@@ -32,11 +32,13 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
 
 1. Abra o BiblioDocs Pro pelo atalho da Área de Trabalho ou do Menu Iniciar.
 2. **Criar primeiro trabalho** (ou Ctrl+N) e escolha o tipo.
-3. Preencha título, autoria, curso e orientação; depois, os pré-textuais.
-4. Escreva na aba **Escrever**. Use a barra e o menu **Inserir** para citação, tabela, figura, gráfico, equação,
+3. Preencha o título na aba **Escrever**. Na aba **Elementos**, a capa (autoria, curso) e a folha de rosto (natureza,
+   orientação; Trabalho › **Dados do trabalho…** leva direto a ela), e os demais pré-textuais e pós-textuais.
+4. Cadastre as obras na aba **Referências** (ou importe BibTeX e RIS).
+5. Escreva na aba **Escrever**. Use a barra e o menu **Inserir** para citação, tabela, figura, gráfico, equação,
    remissiva, nota de rodapé e sigla.
-5. **Verificar conformidade** (F7) antes de entregar.
-6. **Exportar DOCX** (Ctrl+E) e confira o arquivo no Word. Ao abrir, o Word pode oferecer atualizar o sumário e as
+6. Confira a aba **Conformidade** (ou F7) antes de entregar; F8 leva à próxima não conformidade.
+7. **Exportar DOCX** (Ctrl+E) e confira o arquivo no Word. Ao abrir, o Word pode oferecer atualizar o sumário e as
    listas: pode aceitar.
 
 ## Atalhos principais
@@ -56,7 +58,14 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
 | Ctrl+PageUp / Ctrl+PageDown | Seção anterior / próxima |
 | F5 | Atualizar a biblioteca |
 | F7 | Verificar conformidade |
+| F8 | Próxima não conformidade |
+| F1 | Guia rápido |
 | Ctrl+E | Exportar DOCX |
+
+A lista completa fica em Ajuda › **Atalhos de teclado**.
+
+Na Biblioteca, o seletor de coleção mostra, além dos trabalhos, as **Referências**, as **Figuras e Tabelas** e as
+**Siglas** de todos os trabalhos da pasta, e os **Modelos** (um para cada tipo de trabalho do Manual da UFT).
 
 ## Onde ficam os seus dados
 
@@ -75,8 +84,6 @@ Copie o arquivo `.bdp` para levar o trabalho a outro computador. **Desinstalar n
 - As regras de citação e referência seguem o Manual da UFT; as NBR 6023 e 10520 não estavam disponíveis, então alguns
   detalhes são critérios provisórios, marcados assim no verificador.
 - No LibreOffice, a capa e a folha de rosto aparecem com o texto no alto da página (no Word saem distribuídas).
-- As abas **Elementos**, **Referências** e **Conformidade**, algumas coleções da Biblioteca e os itens de menu Guia
-  rápido, Atalhos de teclado e "Ir para a próxima não conformidade" ainda não têm tela própria: use a aba **Escrever**.
 - Não há atualização automática: para atualizar, instale a versão nova por cima.
 
 ## Licença e componentes de terceiros

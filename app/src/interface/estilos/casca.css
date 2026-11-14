@@ -469,3 +469,19 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tipos-trabalho__opcao:has(input:checked) { border-color: var(--cor-destaque); background: var(--cor-superficie); }
 .tipos-trabalho__opcao .dica { grid-column: 2; }
 .tipos-trabalho__nome { font-weight: 600; }
+/* F-E6-01: coleções da Biblioteca, aba Conformidade, lista de elementos visuais e ajuda. */
+.colecao__lista { list-style: none; margin: var(--esp-3) 0 0; padding: 0; display: grid; gap: var(--esp-2); max-width: var(--largura-texto, 80ch); }
+.colecao__item { display: grid; gap: var(--esp-1); padding: var(--esp-2) var(--esp-3); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); }
+.colecao__texto { margin: 0; overflow-wrap: anywhere; }
+.colecao__onde { margin: 0; font-size: var(--tam-peq); color: var(--cor-texto-sec); overflow-wrap: anywhere; }
+.btn-link { background: none; border: 0; padding: 0; font: inherit; color: var(--cor-destaque-texto); text-decoration: underline; cursor: pointer; min-height: 0; }
+.btn-link:disabled { color: var(--cor-texto-sec); cursor: default; }
+.conformidade { display: grid; gap: var(--esp-2); max-width: 80ch; }
+.elementos__grupo { font-size: var(--tam-peq); font-weight: 600; margin: var(--esp-2) 0 var(--esp-1); color: var(--cor-texto-sec); }
+.ajuda { max-height: 60vh; }
+.ajuda__passos { margin: 0; padding-left: 1.4em; display: grid; gap: var(--esp-2); }
+.ajuda h3 { margin: var(--esp-3) 0 var(--esp-1); font-size: 1em; }
+.ajuda__atalhos { margin: 0; display: grid; gap: 2px; }
+.ajuda__atalhos div { display: grid; grid-template-columns: minmax(10em, auto) 1fr; gap: var(--esp-3); }
+.ajuda__atalhos dd { margin: 0; }
+.ajuda kbd { font: inherit; font-size: var(--tam-peq); padding: 0 4px; border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }

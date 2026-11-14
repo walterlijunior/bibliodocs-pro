@@ -9,13 +9,18 @@ const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um :
  * Janela do verificador de conformidade (RF-15; M7-T03): resumo de pendências e avisos, filtro, grupos por família, local
  * legível, "Ir ao local" e exportação do relatório.
  */
-export function Conformidade(p: { relatorio: RelatorioConformidade; aoAtualizar: () => void; aoLocal: (local: NaoConformidade['local']) => void; aoExportar: () => Promise<ResultadoExportar>; aoFechar: () => void }) {
+export function Conformidade(p: { relatorio: RelatorioConformidade; aoAtualizar: () => void; aoLocal: (local: NaoConformidade['local']) => void; aoExportar: () => Promise<ResultadoExportar>; aoFechar: () => void; embutido?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const base = useId();
+  const embutido = p.embutido === true;
   const [exportando, setExportando] = useState(false);
   const [mensagem, setMensagem] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todos');
-  useEffect(() => { ref.current?.showModal(); return () => ref.current?.close(); }, []);
+  useEffect(() => {
+    if (embutido) return;
+    ref.current?.showModal();
+    return () => ref.current?.close();
+  }, [embutido]);
   const exportar = async () => {
     if (exportando) return;
     setExportando(true); setMensagem('');
@@ -34,9 +39,8 @@ export function Conformidade(p: { relatorio: RelatorioConformidade; aoAtualizar:
     : `${plural(erros, 'pendência', 'pendências')} e ${plural(avisos, 'aviso', 'avisos')}.`;
   const opcoes: readonly [Filtro, string][] = [['todos', `Todos (${todos.length})`], ['erro', `Pendências (${erros})`], ['aviso', `Avisos (${avisos})`]];
 
-  return <dialog ref={ref} className="dialogo dialogo--conformidade" aria-labelledby={`${base}-titulo`} onCancel={(e) => { e.preventDefault(); if (!exportando) p.aoFechar(); }}>
-    <div className="dialogo__corpo">
-      <h2 id={`${base}-titulo`}>Verificar conformidade</h2>
+  const corpo = <>
+      {!embutido && <h2 id={`${base}-titulo`}>Verificar conformidade</h2>}
       <p>Verificações automáticas implementadas para o perfil UFT. Conferem o conteúdo do trabalho; a formatação (fonte, margens, espaçamento) é aplicada pelo aplicativo na exportação. Este relatório apoia a revisão e não substitui a conferência de todas as normas.</p>
       <p role="status">{resumo}</p>
       {todos.length > 0 && <fieldset className="conformidade__filtro">
@@ -59,7 +63,11 @@ export function Conformidade(p: { relatorio: RelatorioConformidade; aoAtualizar:
         </section>;
       })}
       {mensagem && <p role="status">{mensagem}</p>}
-      <div className="dialogo__acoes"><button type="button" className="btn-secundario" onClick={p.aoAtualizar} disabled={exportando}>Verificar novamente</button><button type="button" className="btn-principal" onClick={() => void exportar()} disabled={exportando}>{exportando ? 'Exportando…' : 'Exportar relatório…'}</button><button type="button" className="btn-secundario" onClick={p.aoFechar} disabled={exportando}>Fechar</button></div>
-    </div>
+      <div className="dialogo__acoes"><button type="button" className="btn-secundario" onClick={p.aoAtualizar} disabled={exportando}>Verificar novamente</button><button type="button" className="btn-principal" onClick={() => void exportar()} disabled={exportando}>{exportando ? 'Exportando…' : 'Exportar relatório…'}</button>{!embutido && <button type="button" className="btn-secundario" onClick={p.aoFechar} disabled={exportando}>Fechar</button>}</div>
+  </>;
+  // Na aba Conformidade (F-E6-01) o relatório fica na própria página; pelo F7 na aba Escrever, numa janela.
+  if (embutido) return <section className="conformidade" aria-label="Relatório de conformidade">{corpo}</section>;
+  return <dialog ref={ref} className="dialogo dialogo--conformidade" aria-labelledby={`${base}-titulo`} onCancel={(e) => { e.preventDefault(); if (!exportando) p.aoFechar(); }}>
+    <div className="dialogo__corpo">{corpo}</div>
   </dialog>;
 }

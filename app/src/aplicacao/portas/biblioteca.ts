@@ -45,6 +45,15 @@ export interface ItemBiblioteca {
   /** Data de modificação do arquivo no disco (ms desde 1970). */
   modificadoEm: number;
   bytes: number;
+  /** Referências, elementos visuais e siglas do trabalho, para as coleções da Biblioteca; `null` quando não há. */
+  conteudo: ConteudoItem | null;
+}
+
+/** Conteúdo de um trabalho mostrado nas coleções (F-E6-01): só texto, já formatado. */
+export interface ConteudoItem {
+  referencias: readonly string[];
+  visuais: readonly { tipo: 'tabela' | 'ilustracao' | 'grafico'; rotulo: string; descricao: string }[];
+  siglas: readonly { sigla: string; extenso: string }[];
 }
 
 export interface PastaBiblioteca {

@@ -35,11 +35,37 @@ import type { CadastrosDocumento } from '../../aplicacao';
 import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade } from './Conformidade';
-import type { RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
+import type { ElementoNaSessao, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
+export { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
+
+const TITULOS_MODO: Readonly<Record<ModoTrabalho, string>> = {
+  escrever: 'Escrever',
+  elementos: 'Elementos',
+  referencias: 'Referências',
+  conformidade: 'Conformidade',
+};
+
+const ROTULOS_VISUAL: Readonly<Record<string, string>> = {
+  tabela: 'Tabelas e quadros',
+  ilustracao: 'Figuras',
+  grafico: 'Gráficos',
+  equacao: 'Equações',
+};
 
 export interface PropsAreaEscrever {
+  /** Aba do trabalho (F-E6-01); sem ela, Escrever. */
+  modo?: ModoTrabalho;
+  /** Leva a outra aba do trabalho ("Ir ao local" na aba Conformidade, F8, elemento visual na aba Elementos). */
+  aoIrParaModo?: (modo: ModoTrabalho) => void;
+  /** Trabalho › Dados do trabalho… (`dados`) e Elementos pré-textuais… (`lista`); atendido, `aoAtenderPedidoElementos`. */
+  pedidoElementos?: { alvo: 'dados' | 'lista' } | null;
+  aoAtenderPedidoElementos?: () => void;
+  /** Verificar › Ir para a próxima não conformidade (F8): maior que 0 quando pedido; atendido, volta a 0. */
+  pedidoProximaNC?: number;
+  aoAtenderPedidoProximaNC?: () => void;
   aoAtualizarCadastros?: (dados: CadastrosDocumento) => ResultadoObra;
   /** Elementos pós-textuais (M6-T05; ligado na revisão do M6, R-M6-02): incluir, retirar, renomear e ordenar. */
   posTextuais?: {
@@ -130,6 +156,20 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const refArvore = useRef<HTMLUListElement>(null);
   const refEscrever = useRef<HTMLDivElement>(null);
   const { controleEditor } = p;
+  const modo = p.modo ?? 'escrever';
+  // Relatório da aba Conformidade (na página, F-E6-01), refeito ao entrar na aba e ao abrir outro trabalho.
+  const [relatorioAba, setRelatorioAba] = useState<RelatorioConformidade | null>(null);
+  useEffect(() => {
+    if (modo !== 'conformidade' || !verificarConformidade) return;
+    setRelatorioAba(verificarConformidade());
+  }, [modo, verificarConformidade, t?.geracao]);
+  // F8: índice da última não conformidade visitada e o anúncio dela.
+  const indiceNC = useRef(-1);
+  const [anuncioNC, setAnuncioNC] = useState<string | null>(null);
+  useEffect(() => {
+    indiceNC.current = -1;
+    setAnuncioNC(null);
+  }, [t?.geracao]);
   useEffect(() => {
     setCadastrosAbertos(false); setRelatorioConformidade(null); setPedidoSigla(null); setSugestaoPre(null);
   }, [t?.geracao]);
@@ -258,6 +298,83 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setPedidoGrafico(null);
     setConferencia(null);
   }, [ativaId, t?.geracao]);
+  // Ao trocar de aba, o que estava no lugar do editor sai (salvo quando a troca veio de "Ir ao local", que já escolheu).
+  const manterAoTrocar = useRef(false);
+  useEffect(() => {
+    if (manterAoTrocar.current) {
+      manterAoTrocar.current = false;
+      return;
+    }
+    setElementoId(null);
+    setObraAberta(null);
+    setConferencia(null);
+    setSugestaoPre(null);
+  }, [modo]);
+  const preLista = t?.preTextuais?.lista;
+  const { aoIrParaModo } = p;
+  const escolherSecao = e.escolher;
+  /** "Ir ao local" de uma não conformidade; `trocarDeAba` leva à aba do local (aba Conformidade e F8). */
+  const irAoLocal = useCallback(
+    (local: NaoConformidade['local'], trocarDeAba: boolean) => {
+      setRelatorioConformidade(null);
+      setConferencia(null);
+      setObraAberta(null);
+      setElementoId(null);
+      if (local.tipo === 'preTextual') {
+        const id = preLista?.find((x) => x.tipo === local.elemento)?.id ?? null;
+        setElementoId(id);
+        if (id === null) setSugestaoPre(local.elemento);
+      } else if (local.tipo === 'obra') setObraAberta({ id: local.obra });
+      else if (local.tipo === 'texto') {
+        setIrAoTexto({ ...local, trecho: local.trecho ?? '' });
+        escolherSecao(local.secao, null);
+      }
+      const destino = modoDoLocal(local);
+      if (trocarDeAba && destino !== modo && aoIrParaModo) {
+        manterAoTrocar.current = true;
+        aoIrParaModo(destino);
+      }
+    },
+    [preLista, escolherSecao, modo, aoIrParaModo],
+  );
+  // Trabalho › Dados do trabalho… e Elementos pré-textuais… (quem pediu já escolheu a aba Elementos).
+  const { pedidoElementos = null, aoAtenderPedidoElementos } = p;
+  useEffect(() => {
+    if (pedidoElementos === null || modo !== 'elementos') return;
+    aoAtenderPedidoElementos?.();
+    if (pedidoElementos.alvo === 'dados') {
+      const lista = preLista ?? [];
+      const alvo = lista.find((x) => x.tipo === 'folhaRosto') ?? lista.find((x) => x.tipo === 'capa') ?? null;
+      if (alvo !== null) {
+        setElementoId(alvo.id);
+        return;
+      }
+      setAnuncioElemento('Este trabalho não tem capa nem folha de rosto: inclua uma delas para preencher os dados.');
+    }
+    refEscrever.current?.querySelector<HTMLElement>('.elementos__item, .elementos__incluir select')?.focus();
+  }, [pedidoElementos, aoAtenderPedidoElementos, modo, preLista]);
+  // F8: a próxima não conformidade com local, na aba dela.
+  const { pedidoProximaNC = 0, aoAtenderPedidoProximaNC } = p;
+  useEffect(() => {
+    if (pedidoProximaNC === 0 || !verificarConformidade) return;
+    aoAtenderPedidoProximaNC?.();
+    const relatorio = verificarConformidade();
+    if (modo === 'conformidade') setRelatorioAba(relatorio);
+    const prox = proximaComLocal(relatorio.problemas, indiceNC.current);
+    if (prox === null) {
+      indiceNC.current = -1;
+      setAnuncioNC(
+        relatorio.problemas.length === 0
+          ? 'Nenhuma não conformidade encontrada.'
+          : 'As não conformidades encontradas valem para o trabalho todo, sem um local: veja a aba Conformidade.',
+      );
+      return;
+    }
+    indiceNC.current = prox.indice;
+    const c = relatorio.problemas[prox.indice]!;
+    setAnuncioNC(`${c.gravidade === 'erro' ? 'Pendência' : 'Aviso'} ${prox.ordem} de ${prox.total} (${c.rotuloLocal}): ${c.mensagem}`);
+    irAoLocal(c.local, true);
+  }, [pedidoProximaNC, aoAtenderPedidoProximaNC, verificarConformidade, modo, irAoLocal]);
   // A seção pedida já está no editor (os efeitos do filho rodam antes): seleciona o trecho.
   useEffect(() => {
     if (irAoTexto === null || controleEditor.current?.secaoId !== irAoTexto.secao) return;
@@ -325,10 +442,10 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   return (
     <>
       <div className="principal__cab">
-        <h1>Escrever</h1>
+        <h1>{TITULOS_MODO[modo]}</h1>
         <div className="acoes">
-          {p.conformidade && <button type="button" className="btn-secundario" onClick={() => setRelatorioConformidade(p.conformidade!.verificar())}>Verificar conformidade</button>}
-          {p.aoAtualizarCadastros && <button type="button" className="btn-secundario" onClick={() => setCadastrosAbertos(true)}>Siglas, símbolos e glossário…</button>}
+          {p.conformidade && modo === 'escrever' && <button type="button" className="btn-secundario" onClick={() => setRelatorioConformidade(p.conformidade!.verificar())}>Verificar conformidade</button>}
+          {p.aoAtualizarCadastros && (modo === 'escrever' || modo === 'elementos') && <button type="button" className="btn-secundario" onClick={() => setCadastrosAbertos(true)}>Siglas, símbolos e glossário…</button>}
           {t.podeSalvar && (
             <button type="button" className="btn-principal" onClick={p.aoSalvar} aria-keyshortcuts="Control+S">
               Salvar
@@ -350,8 +467,26 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           <AvisoComAcoes key={a.texto} aviso={a} rotuloDescartar={p.rotuloDescartar} aoAcao={p.aoAcao} />
         ))}
       </ul>
+      <p className="dica" role="status" hidden={anuncioNC === null}>
+        {anuncioNC}
+      </p>
 
-      <form className="formulario formulario--compacto" onSubmit={(ev) => ev.preventDefault()} aria-label="Dados do trabalho">
+      {modo === 'conformidade' ? (
+        relatorioAba && p.conformidade ? (
+          <Conformidade
+            embutido
+            relatorio={relatorioAba}
+            aoAtualizar={() => setRelatorioAba(p.conformidade!.verificar())}
+            aoExportar={p.conformidade.exportar}
+            aoFechar={() => undefined}
+            aoLocal={(local) => irAoLocal(local, true)}
+          />
+        ) : (
+          <p className="dica">O verificador não está disponível para este trabalho.</p>
+        )
+      ) : (
+      <>
+      {modo === 'escrever' && <form className="formulario formulario--compacto" onSubmit={(ev) => ev.preventDefault()} aria-label="Dados do trabalho">
         <label htmlFor={ID_CAMPO_TITULO}>Título do trabalho</label>
         <input
           id={ID_CAMPO_TITULO}
@@ -375,11 +510,11 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           <dt>Tipo</dt>
           <dd>{rotuloTipo(t.tipoTrabalho)}</dd>
         </dl>
-      </form>
+      </form>}
 
       <div className="escrever" ref={refEscrever}>
         <div className="escrever__coluna">
-        {pre !== null && (
+        {pre !== null && modo !== 'referencias' && (
           <ListaElementos
             elementos={pre.resumos}
             ausentes={pre.ausentes}
@@ -405,7 +540,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoHistorico={e.historico}
           />
         )}
-        <ArvoreSecoes
+        {modo === 'escrever' && <ArvoreSecoes
           secoes={secoes}
           ativaId={ativa?.id ?? null}
           somenteLeitura={t.somenteLeitura}
@@ -420,18 +555,25 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoMover={(id, alvo, lado) => e.moverJunto(id, alvo, lado)}
           aoHistorico={e.historico}
           aoIrAoTexto={e.pedirFoco}
-        />
-        {p.posTextuais && (
+        />}
+        {p.posTextuais && modo !== 'referencias' && (
           <PosTextuais
             elementos={t.posTextuais ?? []}
             somenteLeitura={t.somenteLeitura}
             ativoId={ativa?.id ?? null}
             {...(t.rotulosPosTextuais ? { rotulos: t.rotulosPosTextuais } : {})}
-            aoEscolher={(id) => escolher(id, 'editor')}
+            aoEscolher={(id) => {
+              escolher(id, 'editor');
+              // Apêndice e anexo são escritos no editor, que fica na aba Escrever.
+              if (modo !== 'escrever') aoIrParaModo?.('escrever');
+            }}
             aoIncluir={(tipo) => {
               const id = p.posTextuais!.incluir(tipo);
               // Apêndice e anexo têm conteúdo: o novo abre no editor.
-              if (id !== null && (tipo === 'apendice' || tipo === 'anexo')) escolher(id, 'titulo');
+              if (id !== null && (tipo === 'apendice' || tipo === 'anexo')) {
+                escolher(id, 'titulo');
+                if (modo !== 'escrever') aoIrParaModo?.('escrever');
+              }
             }}
             aoRetirar={(id) => void p.posTextuais!.retirar(id)}
             aoRenomear={(id, titulo) => void p.posTextuais!.renomear(id, titulo)}
@@ -439,7 +581,17 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoHistorico={e.historico}
           />
         )}
-        <ListaObras
+        {modo === 'elementos' && (
+          <ListaVisuais
+            elementos={t.elementos}
+            aoIr={(x) => {
+              setIrAoTexto({ tipo: 'texto', secao: x.secao, no: x.id, trecho: '' });
+              escolher(x.secao, null);
+              aoIrParaModo?.('escrever');
+            }}
+          />
+        )}
+        {modo !== 'elementos' && <ListaObras
           obras={t.obras}
           ativaId={obraDaLista?.id ?? null}
           somenteLeitura={t.somenteLeitura}
@@ -464,7 +616,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             setObraAberta({ nova: { id: 'obr_rascunho0001', tipo: 'livro', titulo: [] } });
           }}
           aoHistorico={e.historico}
-        />
+        />}
         {importacao !== null && (
           <DialogoImportacao
             nomeArquivo={importacao.nomeArquivo}
@@ -490,17 +642,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoAtualizar={() => setRelatorioConformidade(p.conformidade!.verificar())}
           aoExportar={p.conformidade.exportar}
           aoFechar={() => setRelatorioConformidade(null)}
-          aoLocal={(local) => {
-            setRelatorioConformidade(null);
-            setConferencia(null); setObraAberta(null); setElementoId(null);
-            if (local.tipo === 'preTextual') {
-              const id = pre?.lista.find((x) => x.tipo === local.elemento)?.id ?? null;
-              setElementoId(id);
-              if (id === null) setSugestaoPre(local.elemento);
-            }
-            else if (local.tipo === 'obra') setObraAberta({ id: local.obra });
-            else if (local.tipo === 'texto') { setIrAoTexto({ ...local, trecho: local.trecho ?? '' }); e.escolher(local.secao, null); }
-          }}
+          aoLocal={(local) => irAoLocal(local, false)}
         />}
         <section
           className="escrever__texto"
@@ -522,6 +664,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 setConferencia(null);
                 setIrAoTexto(local);
                 e.escolher(local.secao, null);
+                if (modo !== 'escrever') aoIrParaModo?.('escrever');
               }}
             />
           ) : comObra && obraAberta !== null ? (
@@ -570,6 +713,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 }
               }}
             />
+          ) : modo !== 'escrever' ? (
+            <p className="dica" id="titulo-secao-ativa">
+              {modo === 'elementos'
+                ? 'Escolha um elemento na lista para preenchê-lo. Apêndices, anexos, tabelas e figuras abrem na aba Escrever.'
+                : 'Escolha uma obra na lista, inclua uma nova ou use “Conferir” para comparar as citações com as obras.'}
+            </p>
           ) : ativa === null ? (
             <p className="dica" id="titulo-secao-ativa">
               {t.somenteLeitura ? 'Este trabalho não tem seções.' : 'Use “Nova seção” para começar o texto.'}
@@ -716,7 +865,43 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           </ul>
         </section>
       </div>
+      </>
+      )}
     </>
+  );
+}
+
+/**
+ * Tabelas, quadros, figuras, gráficos e equações numerados do trabalho, na ordem do documento (aba Elementos,
+ * F-E6-01). Cada um leva ao ponto do texto onde está, na aba Escrever.
+ */
+function ListaVisuais({ elementos, aoIr }: { elementos: readonly ElementoNaSessao[]; aoIr: (x: ElementoNaSessao) => void }) {
+  const grupos = Object.entries(ROTULOS_VISUAL)
+    .map(([tipo, nome]) => ({ tipo, nome, itens: elementos.filter((x) => x.tipo === tipo) }))
+    .filter((g) => g.itens.length > 0);
+  return (
+    <section className="elementos" aria-labelledby="titulo-visuais">
+      <h2 id="titulo-visuais">Tabelas, figuras e equações</h2>
+      {grupos.length === 0 ? (
+        <p className="dica">Nenhum ainda. Use o menu Inserir na aba Escrever.</p>
+      ) : (
+        grupos.map((g) => (
+          <div key={g.tipo}>
+            <h3 className="elementos__grupo">{g.nome}</h3>
+            <ul className="elementos__lista">
+              {g.itens.map((x) => (
+                <li key={x.id}>
+                  <button type="button" className="elementos__item" onClick={() => aoIr(x)} title="Ir ao texto, na aba Escrever">
+                    <span>{x.descricao}</span>
+                    {x.remissivas === 0 && x.tipo !== 'equacao' && <span className="elementos__marca">sem remissiva no texto</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
+    </section>
   );
 }
 

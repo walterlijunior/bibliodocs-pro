@@ -123,6 +123,6 @@ export async function varrerPasta(
     atrasados.forEach((e) => falharam.add(e));
   }
 
-  const indice: IndiceBiblioteca = { formato: FORMATO_INDICE, versao: 1, pasta, entradas: entradas.filter((e) => !falharam.has(e)) };
+  const indice: IndiceBiblioteca = { formato: FORMATO_INDICE, versao: 2, pasta, entradas: entradas.filter((e) => !falharam.has(e)) };
   return { entradas, indice, alterado: JSON.stringify(indice) !== JSON.stringify(anterior), avisos };
 }

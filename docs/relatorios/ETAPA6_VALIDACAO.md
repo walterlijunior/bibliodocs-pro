@@ -57,7 +57,7 @@ powershell -File ferramentas/word/conferir-no-word.ps1 -Arquivo exemplo-<tipo>.d
 | E6-04 | RF-01, RF-15; R-M1-10; RN-265, RN-276 | PASSOU | `e2e/dialogos.spec.ts`, `tests/verificador-tabelas.test.ts` | A Lixeira real não é exercida |
 | DOC-08 | RNF-05 | PARCIAL | Automação | Falta a conferência manual do usuário |
 
-## Achados da Etapa 6 (todos corrigidos, salvo F-E6-01)
+## Achados da Etapa 6 (todos corrigidos)
 
 | Id | Achado | Correção |
 |---|---|---|
@@ -65,7 +65,7 @@ powershell -File ferramentas/word/conferir-no-word.ps1 -Arquivo exemplo-<tipo>.d
 | A-E6-02 | Os controles "corretos" do RF-15 e a transcrição da Tabela 4 do IBGE tinham sinal sem explicação na nota geral e nota específica sem chamada | Controles corrigidos; o verificador passou a apontar os dois casos (N-M5-06) |
 | A-E6-03 | O painel do trabalho na Biblioteca dizia que a verificação de conformidade não estava disponível | Texto indica o botão "Verificar conformidade" da aba Escrever |
 | A-E6-04 | Linha EDT-06 da matriz de testes quebrada em duas (fora da tabela) | Juntada |
-| **F-E6-01** | As abas **Elementos**, **Referências** e **Conformidade** e as coleções da Biblioteca **Referências**, **Figuras e Tabelas**, **Siglas** e **Modelos** ainda mostram "Esta área ainda não está disponível nesta versão." As funções existem, mas dentro da aba Escrever (pré-textuais, obras, verificador) e na janela "Siglas, símbolos e glossário…" | **Aberto: decisão do usuário** (a casca foi aprovada por ele no M1, `docs/GUIA_VISUAL.md`). Opções: ligar cada aba à função que já existe, ou retirar as abas e coleções que não terão tela própria nesta versão |
+| **F-E6-01** | As abas **Elementos**, **Referências** e **Conformidade** e as coleções da Biblioteca **Referências**, **Figuras e Tabelas**, **Siglas** e **Modelos** ainda mostram "Esta área ainda não está disponível nesta versão." As funções existem, mas dentro da aba Escrever (pré-textuais, obras, verificador) e na janela "Siglas, símbolos e glossário…" | **Corrigido em 2026-11-14** (decisão do usuário: "faça então essa parte da programação que falta"): cada aba ligada à função que já existia (`escrever/AreaEscrever.tsx` com `modo`); coleções com o conteúdo de todos os trabalhos, guardado no índice da biblioteca (versão 2, `persistencia/biblioteca/resumo.ts`) e Modelos com os tipos do perfil; itens de menu sem ação ligados (Dados do trabalho…, Elementos pré-textuais…, Sigla…, F8, F1, Atalhos de teclado). Testes: `tests/abas-colecoes.test.ts` e `e2e/abas-colecoes.spec.ts` |
 
 ## Falhas
 
@@ -125,5 +125,5 @@ o apêndice, imagem do PDF) e com as RN da matriz.
 ## Conclusão
 
 Critério da Etapa 6 ("todos os casos críticos `PASSOU`; falhas restantes documentadas com impacto e plano"): cumprido
-na parte automática. Falta só a conferência manual do DOC-08 pelo usuário, e a decisão do F-E6-01. A Etapa 6 fica
+na parte automática. Falta só a conferência manual do DOC-08 pelo usuário (o F-E6-01 foi corrigido em 2026-11-14). A Etapa 6 fica
 **AGUARDANDO USUÁRIO**.
