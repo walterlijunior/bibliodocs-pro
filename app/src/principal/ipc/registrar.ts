@@ -7,7 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { app, BrowserWindow, dialog, ipcMain, shell, webContents, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import { PERFIL_UFT_2022 } from '../../aplicacao/perfil-padrao';
-import { CANAIS_BIBLIOTECA, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
+import { CANAIS_BIBLIOTECA, CANAIS_CATALOGO, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao } from '../../aplicacao';
 import { arquivar, conciliarBackupsExcluidos, fazerBackupRotativo, marcarBackupsExcluidos, salvarProjeto, type PacoteProjeto } from '../../persistencia';
 import { ehArtefatoDeFumaca } from '../seguranca/fumaca';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
@@ -16,6 +16,7 @@ import { criarEmpacotador } from './empacotador-isolado';
 import { exportarIsolado } from './exportador-isolado';
 import { lerIsolado, resumirIsolado } from './leitor-isolado';
 import { criarManipuladoresExportacao, gravarExportacao } from './manipuladores-exportacao';
+import { criarManipuladoresCatalogo } from './manipuladores-catalogo';
 import { criarManipuladoresBiblioteca } from './manipuladores-biblioteca';
 import { criarManipuladoresEdicao } from './manipuladores-edicao';
 import { criarManipuladoresProjetos, EXTENSAO_PROJETO } from './manipuladores-projetos';
@@ -221,7 +222,11 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     gravar: gravarExportacao,
   });
 
+  // Etapa 3: catálogo acadêmico do usuário, num arquivo fixo da pasta de dados local.
+  const catalogo = criarManipuladoresCatalogo({ origem, conteudosPermitidos, arquivo: join(dadosLocais, 'catalogo.json') });
+
   const todos = [
+    ...Object.entries(catalogo),
     ...Object.entries(exportacao),
     ...Object.entries(manipuladores),
     ...Object.entries(biblioteca.manipuladores),
@@ -258,7 +263,7 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
     /** Espera as gravações da recuperação terminarem (antes de o app sair). */
     aguardarRecuperacao: (): Promise<void> => rec.aguardar(),
     remover(): void {
-      const canais = [CANAIS_PROJETOS, CANAIS_BIBLIOTECA, CANAIS_RECUPERACAO, CANAIS_EDICAO, CANAIS_EXPORTACAO].flatMap((c) => Object.values(c));
+      const canais = [CANAIS_PROJETOS, CANAIS_BIBLIOTECA, CANAIS_RECUPERACAO, CANAIS_EDICAO, CANAIS_EXPORTACAO, CANAIS_CATALOGO].flatMap((c) => Object.values(c));
       for (const canal of canais) {
         ipcMain.removeHandler(canal);
       }

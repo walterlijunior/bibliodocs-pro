@@ -1,0 +1,717 @@
+{
+ "formato": "bibliodocs-catalogo",
+ "versao": 1,
+ "instituicoes": [
+  {
+   "id": "uft",
+   "nome": "Universidade Federal do Tocantins",
+   "sigla": "UFT",
+   "perfis": [
+    "uft-2022"
+   ],
+   "campi": [
+    {
+     "id": "uft-arraias",
+     "nome": "Arraias",
+     "especie": "campus",
+     "cidade": "Arraias",
+     "uf": "TO",
+     "cursos": [
+      {
+       "id": "uft-arraias-direito",
+       "nome": "Direito",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-arraias-educacao-do-campo",
+       "nome": "Educação do Campo",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-arraias-educacao-escolar-quilombola",
+       "nome": "Educação Escolar Quilombola",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-arraias-matematica",
+       "nome": "Matemática",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-arraias-pedagogia",
+       "nome": "Pedagogia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-arraias-turismo-patrimonial-e-socioambiental",
+       "nome": "Turismo Patrimonial e Socioambiental",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      }
+     ],
+     "origem": "oficial",
+     "fonte": {
+      "url": "https://www.uft.edu.br/campus",
+      "consultadoEm": "2026-11-14"
+     }
+    },
+    {
+     "id": "uft-gurupi",
+     "nome": "Gurupi",
+     "especie": "campus",
+     "cidade": "Gurupi",
+     "uf": "TO",
+     "cursos": [
+      {
+       "id": "uft-gurupi-agroindustria",
+       "nome": "Agroindústria",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-agronomia",
+       "nome": "Agronomia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-biotecnologia",
+       "nome": "Biotecnologia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-engenharia-de-bioprocessos-e-biotecnologia",
+       "nome": "Engenharia de Bioprocessos e Biotecnologia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-engenharia-florestal",
+       "nome": "Engenharia Florestal",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-medicina-veterinaria",
+       "nome": "Medicina Veterinária",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-quimica",
+       "nome": "Química",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-gurupi-quimica-ambiental",
+       "nome": "Química Ambiental",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      }
+     ],
+     "origem": "oficial",
+     "fonte": {
+      "url": "https://www.uft.edu.br/campus",
+      "consultadoEm": "2026-11-14"
+     }
+    },
+    {
+     "id": "uft-miracema",
+     "nome": "Miracema",
+     "especie": "campus",
+     "cidade": "Miracema do Tocantins",
+     "uf": "TO",
+     "cursos": [
+      {
+       "id": "uft-miracema-educacao-fisica",
+       "nome": "Educação Física",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-miracema-pedagogia",
+       "nome": "Pedagogia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-miracema-psicologia",
+       "nome": "Psicologia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-miracema-servico-social",
+       "nome": "Serviço Social",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      }
+     ],
+     "origem": "oficial",
+     "fonte": {
+      "url": "https://www.uft.edu.br/campus",
+      "consultadoEm": "2026-11-14",
+      "observacao": "A página da UFT chama o câmpus de \"Miracema\"; a cidade está com o nome oficial do município."
+     }
+    },
+    {
+     "id": "uft-palmas",
+     "nome": "Palmas",
+     "especie": "campus",
+     "cidade": "Palmas",
+     "uf": "TO",
+     "cursos": [
+      {
+       "id": "uft-palmas-administracao",
+       "nome": "Administração",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-arquitetura-e-urbanismo",
+       "nome": "Arquitetura e Urbanismo",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-ciencia-da-computacao",
+       "nome": "Ciência da Computação",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-ciencias-contabeis",
+       "nome": "Ciências Contábeis",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-ciencias-economicas",
+       "nome": "Ciências Econômicas",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-direito",
+       "nome": "Direito",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-enfermagem",
+       "nome": "Enfermagem",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-engenharia-ambiental",
+       "nome": "Engenharia Ambiental",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-engenharia-civil",
+       "nome": "Engenharia Civil",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-engenharia-de-alimentos",
+       "nome": "Engenharia de Alimentos",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-engenharia-eletrica",
+       "nome": "Engenharia Elétrica",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-filosofia",
+       "nome": "Filosofia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-inteligencia-artificial",
+       "nome": "Inteligência Artificial",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-jornalismo",
+       "nome": "Jornalismo",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-licenciatura-intercultural-indigena",
+       "nome": "Licenciatura Intercultural Indígena",
+       "nivel": "graduacao",
+       "grau": "licenciatura",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-medicina",
+       "nome": "Medicina",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-nutricao",
+       "nome": "Nutrição",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-pedagogia",
+       "nome": "Pedagogia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-segunda-licenciatura-em-educacao-bilingue-de-surdos",
+       "nome": "Segunda Licenciatura em Educação Bilíngue de Surdos",
+       "nivel": "graduacao",
+       "grau": "licenciatura",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-palmas-teatro",
+       "nome": "Teatro",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      }
+     ],
+     "origem": "oficial",
+     "fonte": {
+      "url": "https://www.uft.edu.br/campus",
+      "consultadoEm": "2026-11-14"
+     }
+    },
+    {
+     "id": "uft-porto-nacional",
+     "nome": "Porto Nacional",
+     "especie": "campus",
+     "cidade": "Porto Nacional",
+     "uf": "TO",
+     "cursos": [
+      {
+       "id": "uft-porto-nacional-ciencias-biologicas",
+       "nome": "Ciências Biológicas",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-ciencias-sociais",
+       "nome": "Ciências Sociais",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-educacao-intercultural-indigena",
+       "nome": "Educação Intercultural Indígena",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-geografia",
+       "nome": "Geografia",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-historia",
+       "nome": "História",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-letras",
+       "nome": "Letras",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-letras-libras",
+       "nome": "Letras - Libras",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      },
+      {
+       "id": "uft-porto-nacional-relacoes-internacionais",
+       "nome": "Relações Internacionais",
+       "nivel": "graduacao",
+       "disciplinas": [],
+       "docentes": [],
+       "origem": "oficial",
+       "fonte": {
+        "url": "https://www.uft.edu.br/graduacao/cursos",
+        "consultadoEm": "2026-11-14",
+        "observacao": "Lista dos cursos presenciais de graduação na página da Pró-Reitoria de Graduação; a página não informa o grau de cada curso."
+       }
+      }
+     ],
+     "origem": "oficial",
+     "fonte": {
+      "url": "https://www.uft.edu.br/campus",
+      "consultadoEm": "2026-11-14"
+     }
+    }
+   ],
+   "origem": "oficial",
+   "fonte": {
+    "url": "https://www.uft.edu.br/campus",
+    "consultadoEm": "2026-11-14",
+    "observacao": "Cinco câmpus; Araguaína e Tocantinópolis passaram à UFNT em 2019. Programas de pós-graduação, disciplinas e docentes não vêm nos dados iniciais: a página dos programas monta a lista no navegador e não pôde ser lida, e docentes são cadastrados por quem usa o aplicativo."
+   }
+  },
+  {
+   "id": "usp",
+   "nome": "Universidade de São Paulo",
+   "sigla": "USP",
+   "perfis": [],
+   "campi": [],
+   "origem": "oficial"
+  },
+  {
+   "id": "unb",
+   "nome": "Universidade de Brasília",
+   "sigla": "UnB",
+   "perfis": [],
+   "campi": [],
+   "origem": "oficial"
+  },
+  {
+   "id": "ufrgs",
+   "nome": "Universidade Federal do Rio Grande do Sul",
+   "sigla": "UFRGS",
+   "perfis": [],
+   "campi": [],
+   "origem": "oficial"
+  }
+ ]
+}

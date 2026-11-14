@@ -14,6 +14,7 @@ export type {
   BlocoAlineas,
   BlocoLista,
   AlinhamentoParagrafo,
+  VinculoInstitucional,
   BlocoCitacaoLonga,
   BlocoEquacao,
   BlocoGrafico,

@@ -5,7 +5,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'n
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ACOES_EDICAO, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
+import { ACOES_EDICAO, CANAIS_CATALOGO, CANAIS_EDICAO, CANAIS_PROJETOS, CANAIS_RECUPERACAO, type AcaoEdicao, type PacoteTransferivel, type ResultadoAbrir } from '../src/aplicacao';
 import type { Manifesto } from '../src/dominio/esquemas';
 import type { Documento } from '../src/dominio/modelo';
 import { abrirProjeto, empacotarProjeto, salvarProjeto } from '../src/persistencia';
@@ -305,7 +305,17 @@ describe('preload (C-10)', () => {
     expect(chamadas.map((c) => c[0])).toEqual([CANAIS_PROJETOS.abrir, CANAIS_PROJETOS.salvar, CANAIS_PROJETOS.salvarComo, CANAIS_PROJETOS.fechar]);
     expect(chamadas.map((c) => c.length)).toEqual([1, 3, 2, 2]);
     expect(Object.isFrozen(api) && Object.isFrozen(api.projetos)).toBe(true);
-    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao', 'exportacao']);
+    expect(Object.keys(api)).toEqual(['projetos', 'biblioteca', 'recuperacao', 'edicao', 'exportacao', 'catalogo']);
+  });
+
+  it('catalogo (Etapa 3): `ler` e `gravar` usam só os seus canais', async () => {
+    const chamadas: unknown[][] = [];
+    const api = criarApiBiblioDocs(async (...a) => (chamadas.push(a), { ok: true }));
+    const usuario = { catalogo: { formato: 'bibliodocs-catalogo' as const, versao: 1 as const, instituicoes: [] }, removidos: [] };
+    await api.catalogo.ler();
+    await api.catalogo.gravar(usuario);
+    expect(chamadas).toEqual([[CANAIS_CATALOGO.ler], [CANAIS_CATALOGO.gravar, usuario]]);
+    expect(Object.isFrozen(api.catalogo)).toBe(true);
   });
 
   it('edicao (M2-T06): `executar` usa só o seu canal, manda só a ação e só com gesto do usuário', async () => {

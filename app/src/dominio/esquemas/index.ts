@@ -59,3 +59,14 @@ export {
   type ResultadoMigracao,
 } from './migracoes';
 export { esquemaPerfil, validarPerfil } from './perfil';
+export {
+  esquemaCatalogo,
+  esquemaCatalogoUsuario,
+  LIMITES_CATALOGO,
+  PADRAO_ID_CATALOGO,
+  validarCatalogo,
+  validarCatalogoUsuario,
+  type CatalogoUsuarioValidado,
+  type CatalogoValidado,
+  type ResultadoCatalogo,
+} from './catalogo';

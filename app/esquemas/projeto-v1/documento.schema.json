@@ -139,6 +139,39 @@
         "bolsista": {
           "type": "boolean",
           "const": true
+        },
+        "vinculo": {
+          "type": "object",
+          "properties": {
+            "instituicao": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            },
+            "campus": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            },
+            "curso": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            },
+            "disciplina": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            },
+            "orientador": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            },
+            "coorientador": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+            }
+          },
+          "required": [
+            "instituicao"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [

@@ -62,6 +62,7 @@ import {
   type ResultadoOperacaoSecao,
   type Secao,
   type TipoTrabalhoId,
+  type VinculoInstitucional,
 } from '../../dominio/modelo';
 import { pendenciasPreTextuais, type PendenciaPreTextual } from '../../dominio/normas';
 import { LIMITES_V1, midiasDoDocumento, validarDocumentoV1 } from '../../dominio/esquemas';
@@ -75,7 +76,7 @@ import { verificarBibliografiaDoDocumento } from './citacoes';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
 import { validarObra } from './obras';
-import { aplicarCampos, aplicarDados, comElemento, limparTexto, type AlteracaoDados, type CamposElemento } from './pre-textuais';
+import { aplicarCampos, aplicarDados, aplicarDadosDoCatalogo, comElemento, limparTexto, type AlteracaoDados, type CamposElemento, type DadosDoCatalogo } from './pre-textuais';
 import {
   CODIGO_MIDIA_AUSENTE,
   type ApiProjetos,
@@ -768,6 +769,18 @@ export class SessaoTrabalho {
     const atual = a.pacote.documento.metadados;
     const novos = aplicarDados(atual, alteracao);
     if (novos !== atual) this.#trocarMetadados(a, novos);
+  }
+
+  /**
+   * Etapa 3: dados institucionais escolhidos no catálogo, de uma vez (`aplicarDadosDoCatalogo`). `vinculo` `null` desfaz
+   * o vínculo e mantém os textos.
+   */
+  aplicarCatalogo(dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes: { substituirNatureza?: boolean } = {}): void {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return;
+    const atual = a.pacote.documento.metadados;
+    const novos = aplicarDadosDoCatalogo(atual, dados, vinculo, opcoes);
+    if (JSON.stringify(novos) !== JSON.stringify(atual)) this.#trocarMetadados(a, novos);
   }
 
   alterarSubtitulo(texto: string): void {

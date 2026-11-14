@@ -385,6 +385,20 @@ export interface PessoaTitulada {
 }
 
 /** Dados de identificação (RN-117, RN-127, RN-140). Campo vazio fica ausente (M2-T08). */
+/**
+ * Escolha feita no catálogo acadêmico para este trabalho (Etapa 3 da especificação de atualização): só os ids. Os textos
+ * da capa e da folha de rosto ficam copiados nos campos de `Metadados`, e o trabalho continua completo sem o catálogo
+ * (id que o catálogo não tem mais é só ignorado na tela).
+ */
+export interface VinculoInstitucional {
+  instituicao: string;
+  campus?: string;
+  curso?: string;
+  disciplina?: string;
+  orientador?: string;
+  coorientador?: string;
+}
+
 export interface Metadados {
   titulo: InlineDeTitulo[];
   subtitulo?: InlineDeTitulo[];
@@ -401,6 +415,8 @@ export interface Metadados {
   coorientador?: PessoaTitulada;
   /** RN-147: torna os agradecimentos obrigatórios. Só `true`; falso fica ausente. */
   bolsista?: true;
+  /** Etapa 3: de onde vieram os dados institucionais no catálogo; ausente quando foram digitados à mão. */
+  vinculo?: VinculoInstitucional;
 }
 
 /**

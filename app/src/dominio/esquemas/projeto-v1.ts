@@ -327,6 +327,8 @@ export const esquemaElementoPosTextual = z
   ])
   .meta({ id: 'ElementoPosTextual' });
 
+/** Id de registro do catálogo acadêmico (o mesmo padrão de `PADRAO_ID_CATALOGO`). */
+const idCatalogo = z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/);
 const pessoaTitulada = z.strictObject({ nome: campoCurto.optional(), titulacao: campoCurto.optional() });
 
 const tituloObra = conteudoTitulo.min(1, { error: 'o título da obra não pode ficar vazio' });
@@ -407,6 +409,17 @@ export const esquemaDocumentoV1 = z.strictObject({
     orientador: pessoaTitulada.optional(),
     coorientador: pessoaTitulada.optional(),
     bolsista: z.literal(true).optional(),
+    // Etapa 3: ids da escolha no catálogo acadêmico (aditivo; o texto continua nos campos acima).
+    vinculo: z
+      .strictObject({
+        instituicao: idCatalogo,
+        campus: idCatalogo.optional(),
+        curso: idCatalogo.optional(),
+        disciplina: idCatalogo.optional(),
+        orientador: idCatalogo.optional(),
+        coorientador: idCatalogo.optional(),
+      })
+      .optional(),
   }),
   preTextuais: z.array(esquemaElementoPreTextual).min(1).max(LIMITES_V1.elementosPreTextuais).optional(),
   corpo: z.array(esquemaSecao).max(LIMITES_V1.secoesPorNivel),

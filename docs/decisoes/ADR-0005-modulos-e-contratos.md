@@ -404,3 +404,16 @@ Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no i
 `subalineas` (e não `subitens`). Decisões e motivos estão no adendo do M2-T04 no ADR-0007.
 
 **Adendo do M3-T02 (2026-11-02).** `normas` não importa `esquemas`, então o tipo `Perfil` fica em `dominio/normas/perfil.ts` e o esquema zod em `dominio/esquemas/perfil.ts`; o teste liga os dois. Só `aplicacao/perfil-padrao.ts` lê o JSON. `RegraNormativa.status` aceita também `IMPLEMENTADA`, para espelhar a matriz.
+
+## Adendo da Etapa 3 da especificação de atualização (2026-11-14) — catálogo acadêmico
+
+- **Submódulo novo `dominio/catalogo`:** tipos e operações puras do catálogo (instituições, câmpus, cursos, disciplinas,
+  docentes; seletores dependentes; textos institucionais; mesclagem). Importa só `dominio/modelo` (regra 2, tabela em
+  `tests/apoio/analisador-fontes.ts`). O esquema zod do arquivo fica em `dominio/esquemas/catalogo.ts`, com o tipo no
+  submódulo, como o perfil (`tests/catalogo.test.ts` confere que batem).
+- **Dados iniciais** em `app/catalogos/catalogo-inicial.json`, carregados pela aplicação (`aplicacao/catalogo.ts`),
+  como o perfil; a interface usa as operações reexportadas pela aplicação (regra 4).
+- **Porta `catalogo`** (`bibliodocs:catalogo:ler`, `bibliodocs:catalogo:gravar`): o principal lê e grava só o catálogo
+  do usuário, em `%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`, e valida o que recebe; a mesclagem com os dados
+  iniciais é feita no renderer.
+

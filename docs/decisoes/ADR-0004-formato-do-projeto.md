@@ -782,3 +782,11 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   (teste de fixtures e de seções aleatórias).
 - **DOCX:** estilo `itemLista` e duas numerações (`marcadores`, `numerada`) entram em todo arquivo, como as alíneas; os
   instantâneos de regressão mudaram só por acréscimo.
+
+## Adendo da Etapa 3 da especificação de atualização (2026-11-14) — vínculo institucional
+
+- `metadados.vinculo?: { instituicao, campus?, curso?, disciplina?, orientador?, coorientador? }`, só os ids da escolha
+  no catálogo acadêmico. Aditivo, sem subir `versaoFormato`. Os textos da capa e da folha de rosto continuam copiados nos
+  campos de sempre (`instituicao`, `campus`, `curso`, `local`, `orientador`…): o trabalho abre e exporta igual em outro
+  computador, sem o catálogo; id que o catálogo não tem é ignorado na tela.
+

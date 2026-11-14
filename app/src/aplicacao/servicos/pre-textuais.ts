@@ -13,6 +13,7 @@ import {
   type MembroBanca,
   type Metadados,
   type PessoaTitulada,
+  type VinculoInstitucional,
 } from '../../dominio/modelo';
 
 /** Campos de texto simples de `Metadados` (título e subtítulo têm trechos; `bolsista` é marca). */
@@ -92,6 +93,68 @@ export function aplicarDados(m: Metadados, a: AlteracaoDados): Metadados {
     else delete copia[a.campo];
   }
   return copia[a.campo] === m[a.campo] ? m : copia;
+}
+
+/** Dados institucionais vindos do catálogo (Etapa 3; `dadosInstitucionais` do domínio). */
+export interface DadosDoCatalogo {
+  instituicao?: string;
+  campus?: string;
+  curso?: string;
+  local?: string;
+  areaConcentracao?: string;
+  orientador?: PessoaTitulada;
+  coorientador?: PessoaTitulada;
+  natureza?: string;
+}
+
+/** Campos que o catálogo preenche; os demais (autoria, título, subtítulo, ano, volume, bolsista) são do autor. */
+const CAMPOS_DO_CATALOGO = ['instituicao', 'campus', 'curso', 'local', 'areaConcentracao', 'orientador', 'coorientador'] as const;
+
+/**
+ * Aplica a escolha do catálogo aos metadados (Etapa 3). Preenche o que a escolha tem; tira o que tinha vindo da escolha
+ * anterior e não vale mais (trocar o câmpus tira o curso do outro câmpus); nunca toca nos dados do autor. A natureza
+ * proposta só entra se o campo está vazio ou se `substituirNatureza`. `vinculo` `null` desfaz o vínculo e mantém os
+ * textos, que passam a ser do autor.
+ */
+export function aplicarDadosDoCatalogo(
+  m: Metadados,
+  dados: DadosDoCatalogo,
+  vinculo: VinculoInstitucional | null,
+  opcoes: { substituirNatureza?: boolean } = {},
+): Metadados {
+  const copia: Metadados = { ...m };
+  if (vinculo === null) {
+    delete copia.vinculo;
+    return copia;
+  }
+  const anterior = m.vinculo;
+  // O que a escolha anterior tinha preenchido, nível a nível.
+  const vinhaDoCatalogo: Record<(typeof CAMPOS_DO_CATALOGO)[number], boolean> = {
+    instituicao: anterior !== undefined,
+    campus: anterior?.campus !== undefined,
+    local: anterior?.campus !== undefined,
+    curso: anterior?.curso !== undefined,
+    areaConcentracao: anterior?.curso !== undefined,
+    orientador: anterior?.orientador !== undefined,
+    coorientador: anterior?.coorientador !== undefined,
+  };
+  for (const campo of CAMPOS_DO_CATALOGO) {
+    const valor = dados[campo];
+    if (valor === undefined) {
+      if (vinhaDoCatalogo[campo]) delete copia[campo];
+      continue;
+    }
+    if (campo === 'orientador' || campo === 'coorientador') {
+      const p = pessoa(valor as PessoaTitulada);
+      if (p) copia[campo] = p;
+    } else {
+      const v = curto(valor as string);
+      if (v !== '') copia[campo] = v;
+    }
+  }
+  if (dados.natureza !== undefined && ((m.natureza ?? '').trim() === '' || opcoes.substituirNatureza)) copia.natureza = curto(dados.natureza);
+  copia.vinculo = { ...vinculo };
+  return copia;
 }
 
 /** Palavras-chave de um texto separado por ponto e vírgula. O ponto final vem da formatação (RN-156), não do autor. */

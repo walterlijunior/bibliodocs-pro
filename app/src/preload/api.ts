@@ -4,6 +4,7 @@
  * e são validados no principal (C-11). Separada do `index.ts` para ser testada sem o Electron.
  */
 import { CANAIS_BIBLIOTECA, type ApiBiblioteca } from '../aplicacao/portas/biblioteca';
+import { CANAIS_CATALOGO, type ApiCatalogo } from '../aplicacao/portas/catalogo';
 import { CANAIS_EDICAO, type ApiEdicao } from '../aplicacao/portas/edicao';
 import { CANAIS_EXPORTACAO, type ApiExportacao } from '../aplicacao/portas/exportacao';
 import { CANAIS_PROJETOS, type ApiBiblioDocs } from '../aplicacao/portas/projetos';
@@ -65,11 +66,16 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
     relatorio: (pacote) => invocar(CANAIS_EXPORTACAO.relatorio, pacote) as ReturnType<ApiExportacao['relatorio']>,
     docx: (pacote, opcoes) => invocar(CANAIS_EXPORTACAO.docx, pacote, opcoes) as ReturnType<ApiExportacao['docx']>,
   };
+  const catalogo: ApiCatalogo = {
+    ler: () => invocar(CANAIS_CATALOGO.ler) as ReturnType<ApiCatalogo['ler']>,
+    gravar: (usuario) => invocar(CANAIS_CATALOGO.gravar, usuario) as ReturnType<ApiCatalogo['gravar']>,
+  };
   return Object.freeze({
     projetos: Object.freeze(projetos),
     biblioteca: Object.freeze(biblioteca),
     recuperacao: Object.freeze(recuperacao),
     edicao: Object.freeze(edicao),
     exportacao: Object.freeze(exportacao),
+    catalogo: Object.freeze(catalogo),
   });
 }

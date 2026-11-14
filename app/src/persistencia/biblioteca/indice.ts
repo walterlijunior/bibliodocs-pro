@@ -11,7 +11,7 @@
  */
 import { dirname, isAbsolute } from 'node:path';
 import { z } from 'zod';
-import { PADRAO_ID } from '../../dominio/esquemas';
+import { PADRAO_ID, validarCatalogoUsuario, type CatalogoUsuarioValidado } from '../../dominio/esquemas';
 import { LIMITES_CONTEINER } from '../conteiner/limites';
 import { gravarAtomico, type OpcoesGravacao, type ResultadoGravacao } from '../arquivo/gravacao-atomica';
 import { lerArquivoLimitado } from '../arquivo/projeto-em-disco';
@@ -173,4 +173,33 @@ export function gravarPreferencias(
   opcoes: Omit<OpcoesGravacao, 'fs'> = {},
 ): Promise<ResultadoGravacao> {
   return gravarJsonLocal(arquivo, preferencias, fs, opcoes);
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Catálogo acadêmico do usuário (Etapa 3): `%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`
+// ---------------------------------------------------------------------------------------------------------
+
+/**
+ * Lê o catálogo do usuário (o que ele acrescentou e corrigiu, e os ids oficiais que retirou). Ausente → `null` sem
+ * motivo; ilegível ou inválido → `null` e o motivo, e o arquivo fica como está (quem chama avisa). Nunca lança.
+ */
+export async function lerCatalogoUsuario(
+  arquivo: string,
+  fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE,
+): Promise<{ catalogo: CatalogoUsuarioValidado | null; descarte: MotivoDescarte }> {
+  const { valor, motivo } = await lerJsonLocal(arquivo, fs);
+  if (motivo === 'ausente') return { catalogo: null, descarte: null };
+  if (motivo) return { catalogo: null, descarte: motivo };
+  const r = validarCatalogoUsuario(valor);
+  return r.ok ? { catalogo: r.valor, descarte: null } : { catalogo: null, descarte: 'invalido' };
+}
+
+/** Grava o catálogo do usuário pelo salvamento atômico (com `.bak` da versão anterior). */
+export function gravarCatalogoUsuario(
+  arquivo: string,
+  catalogo: CatalogoUsuarioValidado,
+  fs: SistemaArquivos = SISTEMA_ARQUIVOS_NODE,
+  opcoes: Omit<OpcoesGravacao, 'fs'> = {},
+): Promise<ResultadoGravacao> {
+  return gravarJsonLocal(arquivo, catalogo, fs, opcoes);
 }

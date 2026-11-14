@@ -1,0 +1,45 @@
+/**
+ * Submódulo `dominio/catalogo` — catálogo acadêmico (Etapa 3 da especificação de atualização).
+ *
+ * Regras de dependência (ADR-0005, seção 2): TypeScript puro; importa só `dominio/modelo` (regra 2). A validação do
+ * arquivo do catálogo fica em `dominio/esquemas` (zod só lá); os dados iniciais são carregados pela aplicação.
+ */
+export type {
+  Campus,
+  Catalogo,
+  Curso,
+  Disciplina,
+  Docente,
+  FonteRegistro,
+  GrauCurso,
+  Instituicao,
+  NivelCurso,
+  OrigemRegistro,
+  SelecaoCatalogo,
+} from './tipos';
+export {
+  campiDisponiveis,
+  campusDe,
+  cursoDe,
+  cursosDisponiveis,
+  dadosInstitucionais,
+  disciplinasDisponiveis,
+  docentesDisponiveis,
+  gravarCampus,
+  gravarCurso,
+  gravarInstituicao,
+  idDoNome,
+  idsDoCatalogo,
+  idsRetirados,
+  instituicaoDe,
+  mesclarCatalogo,
+  naturezaSugerida,
+  retirarRegistro,
+  revisarSelecao,
+  textoCampus,
+  textoCurso,
+  tiposDeTrabalhoDoNivel,
+  TODOS_OS_TIPOS,
+  type CampoSelecao,
+  type DadosInstitucionais,
+} from './operacoes';

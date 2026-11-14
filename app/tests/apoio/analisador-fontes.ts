@@ -348,7 +348,7 @@ export function extrairImportacoes(conteudo: string): Importacao[] {
 // 3. Classificação de módulos e destinos
 // ---------------------------------------------------------------------------------------------------------
 
-export const SUBMODULOS_DOMINIO = ['modelo', 'numeracao', 'bibliografia', 'visuais', 'normas', 'verificador', 'esquemas'] as const;
+export const SUBMODULOS_DOMINIO = ['modelo', 'numeracao', 'bibliografia', 'visuais', 'normas', 'verificador', 'esquemas', 'catalogo'] as const;
 const SUBMODULOS_EXPORTACAO = ['docx'] as const;
 const MODULOS_SIMPLES = ['principal', 'preload', 'persistencia', 'integracoes', 'aplicacao', 'interface', 'importacao'] as const;
 
@@ -444,6 +444,8 @@ export const PERMISSOES_DOMINIO: Readonly<Record<string, readonly string[]>> = {
   ],
   // esquemas pode importar modelo (texto do ADR).
   'dominio/esquemas': ['dominio/modelo'],
+  // Etapa 3 da especificação de atualização: o catálogo acadêmico importa só modelo (adendo no ADR-0005).
+  'dominio/catalogo': ['dominio/modelo'],
   // Arquivos da raiz de dominio/ (ex.: index.ts como agregador). Decisão técnica do M1-T03: não reexporta
   // normas (senão a interface contornaria a regra 4) nem verificador ("ninguém importa verificador").
   dominio: ['dominio/modelo', 'dominio/numeracao', 'dominio/bibliografia', 'dominio/visuais', 'dominio/esquemas'],
