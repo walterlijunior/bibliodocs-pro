@@ -26,6 +26,8 @@ Funciona sem internet. Os trabalhos ficam no seu computador; nada é enviado par
   prévia, fonte, contagem de remissivas e os rótulos digitados à mão que ainda não estão ligados.
 - **Fontes de pesquisa** com link e PDF do computador, citação escrita à mão ligada à obra e **histórico do trabalho**
   (Trabalho › Histórico do trabalho…) para voltar texto, citações e referências a um estado anterior.
+- **Registro de atividades e cronograma** (Trabalho › Registro de atividades…), separado do texto, com exportação
+  avulsa em DOCX e incorporação num apêndice.
 - **Siglas, símbolos e glossário:** a primeira ocorrência da sigla sai por extenso, e as listas são geradas.
 - **Apêndices e anexos** com conteúdo próprio.
 - **Verificador de conformidade** (F7): lista o que falta ou foge do Manual e da Norma Tabular, com a regra de origem

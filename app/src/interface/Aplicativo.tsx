@@ -100,6 +100,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   // E7-T03: cada pedido do menu (F7) abre a janela do verificador na aba Escrever.
   const [pedidoConformidade, setPedidoConformidade] = useState(0);
   const atenderPedidoConformidade = useCallback(() => setPedidoConformidade(0), []);
+  // Etapa 6: Trabalho › Registro de atividades…
+  const [pedidoRegistro, setPedidoRegistro] = useState(0);
+  const atenderPedidoRegistro = useCallback(() => setPedidoRegistro(0), []);
   const [busca, setBusca] = useState('');
   const [modoLista, setModoLista] = useState(false);
   // Etapa 2: zoom do texto do editor (50% a 200%), lembrado neste computador; o arquivo exportado não muda.
@@ -567,6 +570,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           if (!ABAS_DO_TRABALHO.has(local.aba)) irParaEscrever();
           setPedidoProximaNC((n) => n + 1);
           return;
+        case 'registroAtividades':
+          ir({ aba: 'elementos' });
+          setPedidoRegistro((n) => n + 1);
+          return;
         case 'historicoTrabalho':
           setPontosHistorico(sessao.pontosDoHistorico());
           return;
@@ -778,6 +785,18 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   mover: (id, sentido) => sessao.moverPosTextual(id, sentido),
                 }}
                 mencoes={() => sessao.mencoesDoTexto()}
+                registro={{
+                  alterar: (r) => sessao.alterarRegistro(r),
+                  incorporar: (d) => sessao.incorporarRegistro(d),
+                  atualizar: () => sessao.atualizarRegistroNoTrabalho(),
+                  retirar: () => sessao.retirarRegistroDoTrabalho(),
+                  exportar: () => {
+                    const pacote = sessao.cronogramaParaExportar();
+                    return pacote ? window.bibliodocs.exportacao.docx(pacote, {}) : Promise.resolve({ ok: false as const, motivo: 'ERRO' as const, mensagem: 'Não há registro para exportar.' });
+                  },
+                }}
+                pedidoRegistro={pedidoRegistro}
+                aoAtenderPedidoRegistro={atenderPedidoRegistro}
                 pedidoConformidade={pedidoConformidade}
                 aoAtenderPedidoConformidade={atenderPedidoConformidade}
                 conformidade={{

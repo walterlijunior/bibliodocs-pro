@@ -813,3 +813,12 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   um caminho absoluto, local (não UNC), sem caractere de controle, até 2.000 caracteres, com extensão `.pdf` e que é um
   arquivo comum. O conteúdo nunca é lido pelo aplicativo. Os links da obra continuam fora do `shell.openExternal` (C-6).
 - **Histórico do trabalho** (D-E5-04) não muda o formato: os pontos ficam na memória da sessão.
+
+## Adendo da Etapa 6 da especificação de atualização (2026-11-14) — registro de atividades
+
+- **Aditivo, sem subir `versaoFormato`.** `Documento.registro?: { titulo?, fonte?, colunas, linhas, incorporadoEm? }`:
+  colunas `{ id, titulo, tipo: 'data' | 'natureza' | 'texto' }` (1 a 10), linhas `{ id, valores }` (até 1.000, um valor
+  por coluna, vazio permitido, data AAAA-MM-DD). Ids únicos dentro do registro. JSON Schema regenerado.
+- O motor ignora `registro`: fora do manuscrito por padrão. Incorporar copia o quadro (bloco `tabela`, espécie `quadro`)
+  para um apêndice; `incorporadoEm { apendice, bloco, apendiceCriado? }` só vale se o bloco ainda está lá (o Ctrl+Z dos
+  pós-textuais pode tirá-lo).

@@ -550,4 +550,34 @@ export interface Documento {
   siglas?: Sigla[];
   simbolos?: Simbolo[];
   glossario?: TermoGlossario[];
+  /** Registro de atividades e cronograma (Etapa 6): fora do manuscrito, salvo quando incorporado num apêndice. */
+  registro?: RegistroAtividades;
+}
+
+/** Coluna do registro: `data` (AAAA-MM-DD), `natureza` (atividade ou reunião com o orientador) ou texto livre. */
+export interface ColunaRegistro {
+  id: Id;
+  titulo: string;
+  tipo: 'data' | 'natureza' | 'texto';
+}
+
+export interface LinhaRegistro {
+  id: Id;
+  /** Um valor por coluna, na ordem de `colunas`; vazio = não preenchido. */
+  valores: string[];
+}
+
+/**
+ * Registro de atividades e encontros de orientação de um trabalho (Etapa 6 da especificação de atualização). Fica
+ * separado do texto: só entra no documento exportado quando incorporado, como quadro de um apêndice (`incorporadoEm`).
+ */
+export interface RegistroAtividades {
+  /** Título do quadro e do arquivo avulso. Ausente: o padrão. */
+  titulo?: string;
+  /** Texto depois de "Fonte:" no quadro. Ausente: o padrão. */
+  fonte?: string;
+  colunas: ColunaRegistro[];
+  linhas: LinhaRegistro[];
+  /** Onde o quadro foi posto no trabalho; `apendiceCriado`: o apêndice foi criado para ele (sai junto ao retirar). */
+  incorporadoEm?: { apendice: Id; bloco: Id; apendiceCriado?: true };
 }

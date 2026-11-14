@@ -237,6 +237,111 @@
       "items": {
         "$ref": "#/$defs/TermoGlossario"
       }
+    },
+    "registro": {
+      "type": "object",
+      "properties": {
+        "titulo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "fonte": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "colunas": {
+          "minItems": 1,
+          "maxItems": 10,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{8,64}$"
+              },
+              "titulo": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+              },
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "data",
+                  "natureza",
+                  "texto"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "titulo",
+              "tipo"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "linhas": {
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{8,64}$"
+              },
+              "valores": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 2000,
+                  "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "valores"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "incorporadoEm": {
+          "type": "object",
+          "properties": {
+            "apendice": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "bloco": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "apendiceCriado": {
+              "type": "boolean",
+              "const": true
+            }
+          },
+          "required": [
+            "apendice",
+            "bloco"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "colunas",
+        "linhas"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

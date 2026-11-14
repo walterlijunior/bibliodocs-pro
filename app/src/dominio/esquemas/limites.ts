@@ -19,6 +19,9 @@ export const LIMITES_V1 = {
   textoInline: 100_000,
   /** Texto da menção sem número (Etapa 4 da especificação de atualização). */
   textoMencao: 200,
+  /** Registro de atividades (Etapa 6). */
+  colunasRegistro: 10,
+  linhasRegistro: 1_000,
   /** Trechos (`Inline`) num título, parágrafo ou metadado. */
   inlinesPorConteudo: 10_000,
   blocosPorSecao: 10_000,

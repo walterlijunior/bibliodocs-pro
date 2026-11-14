@@ -446,6 +446,33 @@ export const esquemaDocumentoV1 = z.strictObject({
   siglas: z.array(esquemaSigla).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
   simbolos: z.array(esquemaSimbolo).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
   glossario: z.array(esquemaTermoGlossario).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
+  registro: z
+    .strictObject({
+      titulo: campoCurto.min(1).optional(),
+      fonte: campoCurto.min(1).optional(),
+      colunas: z
+        .array(z.strictObject({ id, titulo: campoCurto.min(1), tipo: z.enum(['data', 'natureza', 'texto']) }))
+        .min(1)
+        .max(LIMITES_V1.colunasRegistro),
+      // Célula vazia é normal (campo não preenchido).
+      linhas: z.array(z.strictObject({ id, valores: z.array(z.string().max(LIMITES_V1.campoCurto).regex(PADRAO_TEXTO_XML)).max(LIMITES_V1.colunasRegistro) })).max(LIMITES_V1.linhasRegistro),
+      incorporadoEm: z.strictObject({ apendice: id, bloco: id, apendiceCriado: z.literal(true).optional() }).optional(),
+    })
+    .superRefine((r, ctx) => {
+      const ids = new Set<string>();
+      for (const x of [...r.colunas, ...r.linhas]) {
+        if (ids.has(x.id)) ctx.addIssue({ code: 'custom', message: `id repetido no registro: ${x.id}` });
+        ids.add(x.id);
+      }
+      r.linhas.forEach((l, i) => {
+        if (l.valores.length !== r.colunas.length) ctx.addIssue({ code: 'custom', path: ['linhas', i, 'valores'], message: 'um valor por coluna' });
+        r.colunas.forEach((c, j) => {
+          const v = l.valores[j] ?? '';
+          if (c.tipo === 'data' && v !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(v)) ctx.addIssue({ code: 'custom', path: ['linhas', i, 'valores', j], message: 'data inválida: use AAAA-MM-DD' });
+        });
+      });
+    })
+    .optional(),
 });
 
 // ---------- manifesto.json ----------

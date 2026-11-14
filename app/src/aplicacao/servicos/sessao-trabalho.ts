@@ -51,6 +51,7 @@ import {
   type BlocoTabela,
   type Documento,
   type ElementoPosTextual,
+  type RegistroAtividades,
   type ElementoPosTextualId,
   type ElementoPreTextual,
   type ElementoPreTextualId,
@@ -73,6 +74,7 @@ import type { ApiRecuperacao } from '../portas/recuperacao';
 import { formatarReferencia, ordenarReferencias, textoDaReferencia } from '../../dominio/bibliografia';
 import { HistoricoEdicao, type CadastrosDocumento, type EntradaHistorico, type InversoElemento, type InversoObra } from './historico-edicao';
 import { verificarBibliografiaDoDocumento } from './citacoes';
+import { atualizarIncorporado, documentoDoCronograma, incorporacaoAtual, incorporar, retirarIncorporado, type DestinoRegistro } from './registro';
 import { descreverCitacao, mudancasDeCitacao, PontosDoHistorico, rotuloCurtoObra, type PontoHistorico } from './historico-trabalho';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
@@ -214,6 +216,9 @@ export interface TrabalhoDaSessao {
   secoesEdicao?: readonly ResumoSecao[];
   /** Alvos de remissiva (M5-T08). O objeto só muda quando a lista, os números, os títulos ou as contagens mudam. */
   elementos: readonly ElementoNaSessao[];
+  /** Etapa 6: registro de atividades e onde ele está incorporado (rótulo do apêndice), se estiver. */
+  registro?: RegistroAtividades;
+  registroIncorporado?: { apendice: Id; rotulo: string } | null;
 }
 
 export interface EstadoSessao {
@@ -458,6 +463,8 @@ export class SessaoTrabalho {
               rotulosPosTextuais: this.#rotulosPos(a.pacote.documento),
               secoesEdicao: [...this.#secoes, ...this.#resumosPos(a.pacote.documento)],
               elementos: this.#publicarElementos(a.pacote.documento),
+              ...(a.pacote.documento.registro ? { registro: a.pacote.documento.registro } : {}),
+              registroIncorporado: this.#registroIncorporado(a.pacote.documento),
             },
       avisos: this.#avisos,
     };
@@ -1232,6 +1239,91 @@ export class SessaoTrabalho {
   }
 
   // ---------- histórico do trabalho (Etapa 5) ----------
+
+  // ---------- registro de atividades e cronograma (Etapa 6) ----------
+
+  #registroIncorporado(doc: Documento): { apendice: Id; rotulo: string } | null {
+    const atual = incorporacaoAtual(doc);
+    return atual ? { apendice: atual.apendice, rotulo: this.#rotulosPos(doc).get(atual.apendice) ?? 'APÊNDICE' } : null;
+  }
+
+  /**
+   * Troca o registro (ou o tira, com `null`). Não entra no desfazer: cada campo tem o próprio. Só grava o que o formato
+   * aceita. Fica fora do texto até ser incorporado.
+   */
+  alterarRegistro(registro: RegistroAtividades | null): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const { registro: _antigo, ...resto } = a.pacote.documento;
+    const candidato: Documento = { ...resto, ...(registro ? { registro } : {}) };
+    const r = validarDocumentoV1(candidato);
+    if (!r.ok) return { ok: false, mensagem: 'O registro não foi gravado: confira as datas e as colunas.' };
+    a.pacote = { ...a.pacote, documento: candidato };
+    this.#marcarAlteracao();
+    this.#emitir();
+    return { ok: true, id: a.pacote.documento.id };
+  }
+
+  /** "Incorporar registro/cronograma ao trabalho": o quadro entra no apêndice escolhido (ou num novo). Entra no desfazer. */
+  incorporarRegistro(destino: DestinoRegistro): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const gerar = this.#dep.gerarIdElemento;
+    if (!gerar) return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    if (a.pacote.documento.tipoTrabalho === 'generico') {
+      return { ok: false, mensagem: 'Este trabalho é do tipo genérico, que não tem apêndices. Use “Exportar cronograma…” para um arquivo separado.' };
+    }
+    const novoId = (prefixo: string) => {
+      let id = `${prefixo}_${gerar().replace(/^[a-z]+_/, '')}`;
+      while (this.#idEmUso(a, id)) id = `${prefixo}_${gerar().replace(/^[a-z]+_/, '')}`;
+      return id;
+    };
+    const r = incorporar(a.pacote.documento, destino, { apendice: novoId('ele'), bloco: novoId('tab') });
+    if (r === null) return { ok: false, mensagem: 'O apêndice escolhido não existe mais, ou o trabalho já tem o máximo de apêndices.' };
+    return this.#trocarPosERegistro(a, r.posTextuais, r.registro);
+  }
+
+  /** Refaz o quadro incorporado com o registro atual. Entra no desfazer. */
+  atualizarRegistroNoTrabalho(): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = atualizarIncorporado(a.pacote.documento);
+    if (lista === null) return { ok: false, mensagem: 'O registro não está no trabalho.' };
+    return this.#trocarPosERegistro(a, lista, a.pacote.documento.registro!);
+  }
+
+  /** Tira o quadro do trabalho (e o apêndice criado para ele, se ficou vazio). Entra no desfazer. */
+  retirarRegistroDoTrabalho(): ResultadoObra {
+    const a = this.#aberto;
+    if (a?.modo !== 'edicao') return { ok: false, mensagem: MENSAGEM_NAO_EDITAVEL };
+    const lista = retirarIncorporado(a.pacote.documento);
+    if (lista === null) return { ok: false, mensagem: 'O registro não está no trabalho.' };
+    const { incorporadoEm: _em, ...registro } = a.pacote.documento.registro!;
+    return this.#trocarPosERegistro(a, lista, registro);
+  }
+
+  #trocarPosERegistro(a: Extract<Aberto, { modo: 'edicao' }>, lista: readonly ElementoPosTextual[], registro: RegistroAtividades): ResultadoObra {
+    const antes = a.pacote.documento.posTextuais ?? [];
+    const { posTextuais: _p, registro: _r, ...resto } = a.pacote.documento;
+    const candidato: Documento = { ...resto, ...(lista.length ? { posTextuais: [...lista] } : {}), registro };
+    const v = validarDocumentoV1(candidato);
+    if (!v.ok) return { ok: false, mensagem: 'O registro não coube no trabalho: confira os apêndices e o tamanho do quadro.' };
+    a.pacote = { ...a.pacote, documento: candidato };
+    this.#caminhos = caminhosDasSecoes(candidato.corpo);
+    this.#historico.registrar({ tipo: 'posTextuais', inverso: antes });
+    this.#marcarAlteracao();
+    this.#emitir();
+    return { ok: true, id: candidato.id };
+  }
+
+  /** "Exportar cronograma": um pacote avulso, só com o quadro do registro, para o exportador de DOCX. */
+  cronogramaParaExportar(): PacoteTransferivel | null {
+    const a = this.#aberto;
+    if (a === null || a.modo !== 'edicao') return null;
+    const documento = documentoDoCronograma(a.pacote.documento);
+    if (documento === null) return null;
+    return { manifesto: { ...a.pacote.manifesto, tipoTrabalho: 'generico', midias: [] }, documento, midias: [] };
+  }
 
   /** Pontos do histórico, do mais novo ao mais antigo. */
   pontosDoHistorico(): PontoHistorico[] {

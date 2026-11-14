@@ -21,6 +21,7 @@ import { DialogoCitacao } from './DialogoCitacao';
 import { DialogoFigura } from './DialogoFigura';
 import { DialogoRemissiva } from './DialogoRemissiva';
 import { ListaVisuais, PainelElemento, PainelMencoes, type NovoElemento } from './GerenciadorElementos';
+import { PainelRegistro } from './PainelRegistro';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
 import { areaUtilDoPerfilMm } from '../../aplicacao';
@@ -38,7 +39,8 @@ import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
-import type { MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { RegistroAtividades } from '../../dominio/modelo';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
 export { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
@@ -82,6 +84,17 @@ export interface PropsAreaEscrever {
   conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
   /** Gerenciador de elementos (Etapa 4): menções escritas sem ligação e menções sem número. */
   mencoes?: () => MencoesDoTexto;
+  /** Etapa 6: registro de atividades e cronograma. */
+  registro?: {
+    alterar: (r: RegistroAtividades | null) => ResultadoObra;
+    incorporar: (destino: DestinoRegistro) => ResultadoObra;
+    atualizar: () => ResultadoObra;
+    retirar: () => ResultadoObra;
+    exportar: () => Promise<ResultadoExportar>;
+  };
+  /** Trabalho › Registro de atividades…: maior que 0 quando pedido (quem pediu já escolheu a aba Elementos). */
+  pedidoRegistro?: number;
+  aoAtenderPedidoRegistro?: () => void;
   /** E7-T03: maior que 0 quando Verificar › Verificar conformidade (F7) pediu a janela; atendido, volta a 0. */
   pedidoConformidade?: number;
   aoAtenderPedidoConformidade?: () => void;
@@ -226,6 +239,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [elementoId, setElementoId] = useState<string | null>(null);
   // Gerenciador (Etapa 4): o elemento visual escolhido na aba Elementos e a ação que espera o editor na aba Escrever.
   const [visualId, setVisualId] = useState<string | null>(null);
+  // Etapa 6: o registro de atividades no lugar do editor (aba Elementos).
+  const [registroAberto, setRegistroAberto] = useState(false);
   const [acaoNoEditor, setAcaoNoEditor] = useState<{ secao: string; acao: AcaoNoEditor } | null>(null);
   const [anuncioElemento, setAnuncioElemento] = useState<string | null>(null);
   // Obra na tela no lugar do editor: a do trabalho (pelo id) ou o rascunho de uma nova.
@@ -348,10 +363,19 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     }
     setElementoId(null);
     setVisualId(null);
+    setRegistroAberto(false);
     setObraAberta(null);
     setConferencia(null);
     setSugestaoPre(null);
   }, [modo]);
+  const { pedidoRegistro = 0, aoAtenderPedidoRegistro } = p;
+  useEffect(() => {
+    if (pedidoRegistro === 0 || modo !== 'elementos') return;
+    aoAtenderPedidoRegistro?.();
+    setElementoId(null);
+    setVisualId(null);
+    setRegistroAberto(true);
+  }, [pedidoRegistro, aoAtenderPedidoRegistro, modo]);
   const preLista = t?.preTextuais?.lista;
   const { aoIrParaModo } = p;
   const escolherSecao = e.escolher;
@@ -676,10 +700,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             somenteLeitura={t.somenteLeitura}
             aoEscolher={(x) => {
               setElementoId(null);
+              setRegistroAberto(false);
               setVisualId(x.id);
             }}
             aoMencoes={() => {
               setElementoId(null);
+              setRegistroAberto(false);
               setVisualId(null);
             }}
             aoNovo={(qual) => {
@@ -691,6 +717,26 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               aoIrParaModo?.('escrever');
             }}
           />
+        )}
+        {modo === 'elementos' && p.registro && (
+          <section className="elementos" aria-labelledby="titulo-registro">
+            <h2 id="titulo-registro">Registro e cronograma</h2>
+            <button
+              type="button"
+              className="elementos__item"
+              aria-current={registroAberto ? 'true' : undefined}
+              onClick={() => {
+                setElementoId(null);
+                setVisualId(null);
+                setRegistroAberto(true);
+              }}
+            >
+              <span>Registro de atividades</span>
+              <span className="elementos__marca">
+                {t.registro ? `${t.registro.linhas.length === 1 ? '1 linha' : `${t.registro.linhas.length} linhas`}${t.registroIncorporado ? `, no ${t.registroIncorporado.rotulo}` : ', fora do trabalho'}` : 'não iniciado'}
+              </span>
+            </button>
+          </section>
         )}
         {modo !== 'elementos' && <ListaObras
           obras={t.obras}
@@ -817,6 +863,18 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                   refEscrever.current?.querySelector<HTMLElement>('.elementos__item')?.focus();
                 }
               }}
+            />
+          ) : registroAberto && modo === 'elementos' && p.registro && elementoAtivo === null ? (
+            <PainelRegistro
+              registro={t.registro}
+              incorporado={t.registroIncorporado ?? null}
+              apendices={(t.posTextuais ?? []).flatMap((e) => (e.tipo === 'apendice' ? [{ id: e.id, rotulo: t.rotulosPosTextuais?.get(e.id) ?? 'APÊNDICE', titulo: e.titulo ?? '' }] : []))}
+              somenteLeitura={t.somenteLeitura}
+              aoAlterar={p.registro.alterar}
+              aoIncorporar={p.registro.incorporar}
+              aoAtualizar={p.registro.atualizar}
+              aoRetirar={p.registro.retirar}
+              aoExportar={p.registro.exportar}
             />
           ) : visualAtivo !== null ? (
             <PainelElemento

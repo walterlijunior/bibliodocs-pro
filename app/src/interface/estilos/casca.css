@@ -632,3 +632,15 @@ ol.bd-lista { list-style: decimal; }
 .obra__acesso h3 { margin: 0; font-size: var(--tam-base); }
 .obra__link { overflow-wrap: anywhere; }
 .historico__lista { max-height: 50vh; }
+
+/* Registro de atividades e cronograma (Etapa 6 da especificação de atualização). */
+.registro__campos { display: grid; gap: var(--esp-1); max-width: 40rem; }
+.registro__colunas summary { cursor: pointer; font-weight: 600; }
+.registro__coluna { display: flex; flex-wrap: wrap; gap: var(--esp-1); align-items: center; padding: var(--esp-1) 0; }
+.registro__coluna .campo { width: auto; min-width: 10rem; }
+.registro__tabela { border-collapse: collapse; width: 100%; }
+.registro__tabela th, .registro__tabela td { border: 1px solid var(--cor-borda); padding: 2px; vertical-align: top; text-align: left; }
+.registro__tabela th { background: var(--cor-superficie); font-weight: 600; padding: var(--esp-1); }
+.registro__tabela .campo { width: 100%; min-width: 8rem; }
+.registro__saida { display: grid; gap: var(--esp-2); }
+.registro__saida h3 { margin: 0; font-size: var(--tam-base); }
