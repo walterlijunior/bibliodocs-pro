@@ -6,6 +6,7 @@
  * A imagem escolhida só entra no trabalho ao confirmar (`aoConfirmar` leva os bytes novos); cancelar não deixa nada.
  */
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import {
   avaliarImagem,
   ESPECIES_FIGURA,
@@ -107,7 +108,7 @@ export function DialogoFigura(p: PropsDialogoFigura) {
         e.preventDefault();
         p.aoFechar();
       }}
-      onClose={p.aoFechar}
+      onClose={aoFecharDialogo(p.aoFechar)}
     >
       <form
         className="dialogo__corpo"

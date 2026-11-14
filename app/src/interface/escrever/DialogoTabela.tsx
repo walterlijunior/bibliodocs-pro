@@ -6,6 +6,7 @@
  * O rótulo numerado ("Tabela 3 –"), os traços e o corpo 10 vêm do motor: aqui só o conteúdo.
  */
 import { useEffect, useId, useRef, useState } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import {
   alterarCelula,
   aplicarPlanilha,
@@ -116,7 +117,7 @@ export function DialogoTabela(p: PropsDialogoTabela) {
         e.preventDefault();
         p.aoFechar();
       }}
-      onClose={p.aoFechar}
+      onClose={aoFecharDialogo(p.aoFechar)}
     >
       <form
         className="dialogo__corpo"

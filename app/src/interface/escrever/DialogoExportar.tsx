@@ -3,6 +3,7 @@
  * do arquivo é escolhido no diálogo do sistema. A escolha da fonte vale para a sessão: o trabalho ainda não a guarda.
  */
 import { useEffect, useId, useRef } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 
 export type EstadoExportacao =
   | { etapa: 'escolher' }
@@ -48,9 +49,9 @@ export function DialogoExportar(p: PropsDialogoExportar) {
         e.preventDefault();
         if (!exportando) p.aoFechar();
       }}
-      onClose={() => {
+      onClose={aoFecharDialogo(() => {
         if (!exportando) p.aoFechar();
-      }}
+      })}
     >
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Exportar DOCX</h2>

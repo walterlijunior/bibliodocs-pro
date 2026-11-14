@@ -19,6 +19,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - F-E6-01: Trabalho › Dados do trabalho… e Elementos pré-textuais…, Inserir › Sigla…, Verificar › Ir para a próxima não conformidade (F8), Ajuda › Guia rápido (F1) e Atalhos de teclado passaram a funcionar. Todo item de menu tem ação.
 
 ### Corrigido
+- Etapa 1 da especificação de atualização (2026-11-14): no `npm run dev`, "Novo trabalho" abria o diálogo e ele sumia logo em seguida, sem criar nada. Causa: o `StrictMode` do React desfaz e refaz o efeito do diálogo, e o evento `close` da limpeza chegava com o diálogo já reaberto e era tratado como "Cancelar". Os oito diálogos com `onClose` (Novo trabalho, Versões descartadas, Sobre, Citação, Exportar, Figura, Importação de obras e Tabela) passam por `aoFecharDialogo`, que ignora esse evento atrasado. O build de produção não era afetado.
 - Primeiro CI (2026-11-13): Enter no título da seção não divide mais o título; abre um parágrafo vazio logo depois dele. Antes, Enter no começo do título passava o texto todo para o corpo e deixava o título vazio.
 - Primeiro CI (2026-11-13): com a janela estreita (até 1100 px), o botão "Novo trabalho" da Biblioteca fica à esquerda e não some por baixo do painel de detalhes.
 - CI: o E2E roda numa tela de 1920×1080 (o runner vem com 1024×768, onde a janela mínima em 125% e 150% não cabe).

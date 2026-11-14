@@ -4,6 +4,7 @@
  * inserida. Com a chamada já no texto, a janela altera ou retira. Texto sempre como texto (nunca HTML).
  */
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import { validarCitacao, type DadosCitacao, type FormatadorDeChamadas, type ObraNaLista } from '../../aplicacao';
 import type { ObraCitada } from '../../dominio/modelo';
 import { Icone } from '../Icones';
@@ -71,7 +72,7 @@ export function DialogoCitacao(p: PropsDialogoCitacao) {
         e.preventDefault();
         p.aoFechar();
       }}
-      onClose={p.aoFechar}
+      onClose={aoFecharDialogo(p.aoFechar)}
     >
       <form
         className="dialogo__corpo"

@@ -3,6 +3,7 @@
  * terceiros, o mesmo texto de `TERCEIROS.txt`.
  */
 import { useEffect, useId, useRef } from 'react';
+import { aoFecharDialogo } from './dialogo';
 import terceiros from '../../../recursos-build/TERCEIROS.txt?raw';
 import { version } from '../../../package.json';
 
@@ -27,7 +28,7 @@ export function DialogoSobre({ aoFechar }: { aoFechar: () => void }) {
         e.preventDefault();
         aoFechar();
       }}
-      onClose={aoFechar}
+      onClose={aoFecharDialogo(aoFechar)}
     >
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Sobre o BiblioDocs Pro</h2>

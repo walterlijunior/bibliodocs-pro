@@ -3,7 +3,7 @@
 > Fonte única de verdade sobre o andamento. Atualizado pela skill `fechamento-de-tarefa` ao fim de
 > cada tarefa. Lido no início de toda sessão (regra do `CLAUDE.md`).
 
-**Última atualização:** 2026-11-14 — F-E6-01 corrigido (abas Elementos, Referências e Conformidade, coleções da Biblioteca e itens de menu sem ação); antes, 2026-11-13 — correções do primeiro CI; antes, 2026-11-08 — Etapas 6 e 7 feitas no que dependia da sessão; aguardam o usuário (assinatura D-E7-01, DOC-08 e F-E6-01).
+**Última atualização:** 2026-11-14 — Etapa 1 da especificação de atualização (`BiblioDocs-Pro-Especificacao.md`, fora do repositório): "Novo trabalho" sumia no `npm run dev` por causa do `StrictMode` [VERIFICADO: reproduzido no modo dev e corrigido em `app/src/interface/casca/dialogo.ts`; criar, salvar, fechar o app e reabrir conferidos no modo dev; `verificar` 2164/2164, E2E 43/43]; antes, 2026-11-14 — F-E6-01 corrigido (abas Elementos, Referências e Conformidade, coleções da Biblioteca e itens de menu sem ação); antes, 2026-11-13 — correções do primeiro CI; antes, 2026-11-08 — Etapas 6 e 7 feitas no que dependia da sessão; aguardam o usuário (assinatura D-E7-01, DOC-08 e F-E6-01).
 **Etapa atual:** Etapa 6 — Testes e validação (aguardando usuário); Etapa 5 — Marcos **M1, M2, M4, M5, M6 e M7 concluídos**; M3 em andamento (T00–T11 ✔; T12 aguardando o usuário).
 
 ## Etapas

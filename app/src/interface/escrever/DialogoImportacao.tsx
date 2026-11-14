@@ -4,6 +4,7 @@
  * marcadas as obras válidas que ainda não estão no trabalho; nada entra sem o botão. Texto sempre como texto.
  */
 import { useEffect, useId, useRef, useState } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import type { ItemImportacao, PreviaImportacao } from '../../aplicacao';
 
 export interface PropsDialogoImportacao {
@@ -55,7 +56,7 @@ export function DialogoImportacao(p: PropsDialogoImportacao) {
         e.preventDefault();
         p.aoFechar();
       }}
-      onClose={p.aoFechar}
+      onClose={aoFecharDialogo(p.aoFechar)}
     >
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Importar obras</h2>

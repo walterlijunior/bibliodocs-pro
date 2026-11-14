@@ -3,6 +3,7 @@
  * não altera nenhum arquivo: a versão vem como trabalho sem arquivo, e só "Salvar como…" a grava.
  */
 import { useEffect, useId, useRef } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import type { IdentificadorOferta, VersaoDescartada } from '../../aplicacao';
 import { quandoLegivel } from './recuperacao';
 
@@ -62,7 +63,7 @@ export function DialogoVersoes(p: PropsDialogoVersoes) {
         e.preventDefault();
         p.aoFechar();
       }}
-      onClose={p.aoFechar}
+      onClose={aoFecharDialogo(p.aoFechar)}
     >
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>{t.titulo}</h2>

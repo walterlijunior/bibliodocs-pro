@@ -3,6 +3,7 @@
  * tipo. `<dialog>` modal do próprio Chromium: prende o foco e fecha com Esc; o resto da janela fica inerte.
  */
 import { useEffect, useId, useRef, useState } from 'react';
+import { aoFecharDialogo } from '../casca/dialogo';
 import type { TipoTrabalhoUft } from '../../dominio/modelo';
 import { ROTULOS_TIPO, TIPOS_NOVO_TRABALHO } from './selecao';
 
@@ -47,7 +48,7 @@ export function DialogoNovoTrabalho(p: PropsDialogoNovoTrabalho) {
         p.aoCancelar();
       }}
       // Fechado à força pelo Chromium (Esc repetido sem ativação): o estado acompanha.
-      onClose={p.aoCancelar}
+      onClose={aoFecharDialogo(p.aoCancelar)}
     >
       <form
         className="dialogo__corpo"
