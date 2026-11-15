@@ -50,3 +50,13 @@ Um commit por lacuna, com `verificar:tudo`. Ordem: G4a, G4b, G5a–c, G6a–b, G
 | G1 | — | Reconferido pelos E2E de exportação, menus e zoom (todos passam); o zoom escala a folha |
 
 Pendências: paginação real no editor (o texto não passa para a folha seguinte; há só a marca do fim de cada folha); "(continua)/(conclusão)" de tabela entre páginas (o DOCX repete o cabeçalho, mas a quebra é do Word); régua só de leitura (perfil UFT fixo); IA da bibliografia testada só com resposta simulada.
+
+## Continuação (2026-11-15)
+
+| Item | Commit | Situação |
+|---|---|---|
+| Tabela 1 do relato de experiência (p. 3–4) | `2539cda` | Conferida no PDF pelo LibreOffice: números, sinais, vírgula decimal, fonte e notas iguais; as colunas, antes todas iguais, passaram a seguir o conteúdo (D-E4-08) |
+| Quadro 1 do relatório da UFT (p. 16) e lista de quadros (p. 6) | `8b92353` | O quadro do exemplo é uma imagem: a figura ganhou a espécie "Quadro", na mesma sequência dos quadros e na lista de quadros (D-E4-09, revê a D-M5-11 aceita pelo usuário — confirmar) |
+| E2E de desempenho instável | `8541d0f` | Corrida do teste (lia o arquivo antes do último salvamento); agora espera o arquivo |
+
+Continua pendente: paginação real no editor (o texto passar para a folha seguinte), que muda o desenho do editor e fica para um ciclo próprio.
