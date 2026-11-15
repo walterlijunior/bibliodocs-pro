@@ -4,7 +4,7 @@
  * `catalogo.gravar`. Sem o canal (testes da casca), vale só o catálogo inicial.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { CATALOGO_INICIAL, idsRetirados, mesclarCatalogo, type ApiCatalogo, type Catalogo } from '../../aplicacao';
+import { CATALOGO_INICIAL, idsRetirados, mesclarCatalogo, type ApiCatalogo, type ApiIa, type Catalogo } from '../../aplicacao';
 
 export interface EstadoCatalogo {
   catalogo: Catalogo;
@@ -14,6 +14,8 @@ export interface EstadoCatalogo {
   alterar: (novo: Catalogo) => Promise<boolean>;
   /** O canal do catálogo (exportar a ficha institucional); ausente nos testes da casca. */
   api?: ApiCatalogo | undefined;
+  /** O serviço de IA (preenchimento opcional da ficha institucional); ausente sem o canal. */
+  ia?: ApiIa | undefined;
 }
 
 const PADRAO: EstadoCatalogo = { catalogo: CATALOGO_INICIAL, aviso: null, alterar: async () => false };
@@ -21,7 +23,7 @@ const Contexto = createContext<EstadoCatalogo>(PADRAO);
 
 export const useCatalogo = (): EstadoCatalogo => useContext(Contexto);
 
-export function ProvedorCatalogo({ api, children }: { api: ApiCatalogo | undefined; children: ReactNode }) {
+export function ProvedorCatalogo({ api, ia, children }: { api: ApiCatalogo | undefined; ia?: ApiIa | undefined; children: ReactNode }) {
   const [catalogo, setCatalogo] = useState<Catalogo>(CATALOGO_INICIAL);
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -57,6 +59,6 @@ export function ProvedorCatalogo({ api, children }: { api: ApiCatalogo | undefin
     [api],
   );
 
-  const valor = useMemo(() => ({ catalogo, aviso, alterar, api }), [catalogo, aviso, alterar, api]);
+  const valor = useMemo(() => ({ catalogo, aviso, alterar, api, ia }), [catalogo, aviso, alterar, api, ia]);
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

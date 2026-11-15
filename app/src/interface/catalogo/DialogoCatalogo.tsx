@@ -61,7 +61,7 @@ function Campo(p: { rotulo: string; valor: string; aoMudar: (v: string) => void;
 const obrigatorio = (v: string) => (v.trim() === '' ? 'Obrigatório.' : undefined);
 
 export function DialogoCatalogo(p: PropsDialogoCatalogo) {
-  const { catalogo, alterar, api } = useCatalogo();
+  const { catalogo, alterar, api, ia } = useCatalogo();
   const ref = useRef<HTMLDialogElement>(null);
   const base = useId();
   const [cat, setCat] = useState<Catalogo>(catalogo);
@@ -349,7 +349,7 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
           </div>
         )}
 
-        <FichaInstitucional catalogo={cat} instituicao={inst} api={api} aoTrocar={trocar} aoEscolherInstituicao={(id) => setSel({ instituicao: id })} />
+        <FichaInstitucional catalogo={cat} instituicao={inst} api={api} ia={ia} aoTrocar={trocar} aoEscolherInstituicao={(id) => setSel({ instituicao: id })} />
 
         <p className="dica" role="status">
           {mensagem ?? (erros.length > 0 ? 'Preencha os campos marcados para guardar.' : '')}

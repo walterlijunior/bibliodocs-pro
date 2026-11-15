@@ -11,11 +11,26 @@
  * - Manuais e perfis da instituição: cada perfil mostra as regras e a fonte, e só pode ser usado num trabalho depois de
  *   marcado como revisado.
  *
+ * - Preencher com IA (opcional, só com a IA configurada): o autor cola o texto da página oficial ou do manual, ou abre um
+ *   arquivo de texto, e informa o endereço de onde veio; o envio mostra o conteúdo exato antes; a ficha sugerida passa
+ *   pela mesma prévia, com o trecho de origem de cada sugestão e o que a IA marcou como incerto.
+ *
  * O arquivo é lido como texto no renderer e validado pelo esquema (`lerFicha`); texto sempre como texto (nunca HTML).
  */
 import { useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   aspectosComPerfilPadrao,
+  estimarPedido,
+  LIMITE_TEXTO_FICHA_IA,
+  lerSugestaoFicha,
+  pedidoPreencherFicha,
+  PROVEDORES,
+  textoDoArquivoFicha,
+  TITULO_PREENCHER_FICHA,
+  type ApiIa,
+  type OrigemSugestao,
+  type PedidoIA,
   BYTES_MAX_FICHA,
   fichaDoCatalogo,
   fichaModelo,
@@ -32,11 +47,15 @@ import {
   type ItemPrevia,
   type PerfilInstitucional,
 } from '../../aplicacao';
+import { consumo } from '../ia/consumo';
+import { DialogoAutorizacao } from '../ia/PainelIA';
 
 export interface PropsFichaInstitucional {
   catalogo: Catalogo;
   instituicao: Instituicao | undefined;
   api: ApiCatalogo | undefined;
+  /** Serviço de IA (opcional): sem ele, "Preencher com IA…" não aparece. */
+  ia?: ApiIa | undefined;
   /** Troca o catálogo da janela (ainda não guardado). */
   aoTrocar: (novo: Catalogo) => void;
   /** Depois da importação: escolhe a instituição importada no catálogo. */
@@ -112,6 +131,15 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
   const [lida, setLida] = useState<{ nome: string; ficha: Ficha } | null>(null);
   const [decisoes, setDecisoes] = useState<DecisoesImportacao>({});
   const [perfilAberto, setPerfilAberto] = useState<string | null>(null);
+  // Preenchimento com IA.
+  const refTexto = useRef<HTMLInputElement>(null);
+  const [iaAberta, setIaAberta] = useState(false);
+  const [iaTexto, setIaTexto] = useState('');
+  const [iaUrl, setIaUrl] = useState('');
+  const [iaArquivo, setIaArquivo] = useState<string | null>(null);
+  const [iaPedido, setIaPedido] = useState<{ pedido: PedidoIA; provedor: string } | null>(null);
+  const [iaEnviando, setIaEnviando] = useState(false);
+  const [sugestao, setSugestao] = useState<{ origens: OrigemSugestao[]; observacoes: string[] } | null>(null);
   const inst = p.instituicao;
 
   const resultado = useMemo(() => (lida ? importarFicha(p.catalogo, lida.ficha, decisoes) : null), [lida, p.catalogo, decisoes]);
@@ -133,8 +161,68 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
     const r = lerFicha(await arquivo.text());
     if (!r.ok) return setAnuncio(`“${arquivo.name}”: ${r.mensagem}`);
     setLida({ nome: arquivo.name, ficha: r.ficha });
+    setSugestao(null);
     setDecisoes({});
     setAnuncio(`Ficha “${arquivo.name}” lida. Confira a prévia antes de incluir no catálogo.`);
+  };
+
+  const urlValida = iaUrl.trim() === '' || /^https:\/\/[^\s]+$/.test(iaUrl.trim());
+  const entradaIa = () => ({
+    texto: iaTexto,
+    ...(iaUrl.trim() ? { url: iaUrl.trim() } : {}),
+    ...(iaArquivo ? { arquivo: iaArquivo } : {}),
+    ...(inst ? { instituicao: { nome: inst.nome, sigla: inst.sigla } } : {}),
+  });
+
+  const abrirTexto = async (arquivo: File | undefined) => {
+    if (!arquivo) return;
+    if (arquivo.size > 5 * 1024 * 1024) return setAnuncio(`“${arquivo.name}” passa de 5 MB.`);
+    const texto = textoDoArquivoFicha(arquivo.name, await arquivo.text());
+    setIaTexto(texto.slice(0, LIMITE_TEXTO_FICHA_IA));
+    setIaArquivo(arquivo.name);
+    setAnuncio(
+      texto.length > LIMITE_TEXTO_FICHA_IA
+        ? `“${arquivo.name}” foi cortado em ${LIMITE_TEXTO_FICHA_IA.toLocaleString('pt-BR')} caracteres: envie o restante numa segunda vez.`
+        : `Texto de “${arquivo.name}” carregado.`,
+    );
+  };
+
+  const pedirAutorizacao = async () => {
+    if (!p.ia) return;
+    try {
+      const cfg = await p.ia.lerConfig();
+      const provedor = PROVEDORES.find((x) => x.id === cfg.provedor);
+      if (!cfg.ativa) return setAnuncio('A IA está desativada. Ative-a em Trabalho › Assistente de IA… ou preencha a ficha à mão.');
+      if (provedor?.exigeChave && !cfg.temChave) return setAnuncio('Falta a chave de API do serviço de IA: informe-a em Trabalho › Assistente de IA….');
+      setIaPedido({ pedido: pedidoPreencherFicha(entradaIa()), provedor: provedor?.nome ?? 'serviço de IA' });
+    } catch {
+      setAnuncio('Não foi possível ler a configuração da IA.');
+    }
+  };
+
+  const enviarIa = async (pedido: PedidoIA) => {
+    setIaPedido(null);
+    if (!p.ia) return;
+    setIaEnviando(true);
+    setAnuncio('Enviando à IA…');
+    try {
+      const r = await p.ia.enviar(pedido);
+      if (!r.ok) return setAnuncio(`${r.mensagem} Nada foi alterado.`);
+      consumo.registrar({ em: new Date().toISOString(), operacao: TITULO_PREENCHER_FICHA, etapa: inst ? inst.sigla : 'nova instituição', uso: r.uso, estimativa: estimarPedido(pedido) }, r.limites, r.usoMes);
+      const hoje = new Date();
+      const dia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+      const s = lerSugestaoFicha(r.texto, entradaIa(), dia);
+      if (!s.ok) return setAnuncio(s.mensagem);
+      setLida({ nome: 'sugestão da IA', ficha: s.ficha });
+      setSugestao({ origens: s.origens, observacoes: s.observacoes });
+      setDecisoes({});
+      setIaAberta(false);
+      setAnuncio('Sugestão da IA pronta. Confira a origem de cada item e a prévia antes de incluir no catálogo.');
+    } catch {
+      setAnuncio('Não foi possível falar com o serviço de IA. Nada foi alterado.');
+    } finally {
+      setIaEnviando(false);
+    }
   };
 
   const escolher = (pendencia: string, valor: string) =>
@@ -155,6 +243,7 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
     p.aoTrocar(resultado.catalogo);
     if (resultado.instituicao) p.aoEscolherInstituicao(resultado.instituicao);
     setLida(null);
+    setSugestao(null);
     setAnuncio('Ficha incluída no catálogo. Confira os registros e use “Guardar” para valer neste computador.');
   };
 
@@ -202,10 +291,91 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
             Exportar ficha da {inst.sigla}…
           </button>
         )}
+        {p.ia && (
+          <button type="button" className="btn-secundario" aria-expanded={iaAberta} onClick={() => setIaAberta((a) => !a)}>
+            Preencher com IA…
+          </button>
+        )}
         <button type="button" className="btn-secundario" onClick={() => void exportar(fichaModelo(), 'ficha-modelo.bdficha.json', 'O modelo de preenchimento foi')}>
           Modelo de preenchimento…
         </button>
       </div>
+
+      {iaAberta && p.ia && (
+        <section className="ficha__previa" aria-labelledby={`${base}-ia`}>
+          <h3 id={`${base}-ia`} className="elementos__grupo">
+            Preencher com IA{inst ? ` (${inst.sigla})` : ''}
+          </h3>
+          <p className="dica">
+            Cole o texto da página oficial ou do manual, ou abra um arquivo de texto ou HTML salvo da página. O aplicativo não acessa o endereço: ele só fica
+            registrado como fonte. A IA sugere câmpus, cursos, disciplinas, docentes, manuais e regras do perfil; tudo passa pela prévia, e o perfil chega sem
+            revisão.{inst ? '' : ' Sem instituição escolhida acima, a IA identifica a instituição pelo texto.'}
+          </p>
+          <input
+            ref={refTexto}
+            type="file"
+            accept=".txt,.md,.html,.htm,text/plain,text/html"
+            hidden
+            aria-label="Arquivo de texto para a IA"
+            onChange={(e) => {
+              void abrirTexto(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <div className="campo-catalogo">
+            <label htmlFor={`${base}-ia-url`}>Endereço da fonte (https)</label>
+            <input
+              id={`${base}-ia-url`}
+              className="campo"
+              type="url"
+              value={iaUrl}
+              placeholder="https://www.instituicao.edu.br/cursos"
+              aria-invalid={!urlValida || undefined}
+              onChange={(e) => setIaUrl(e.target.value)}
+            />
+            {!urlValida && <span className="dica dica--erro">Use um endereço que comece com https://.</span>}
+          </div>
+          <div className="campo-catalogo">
+            <label htmlFor={`${base}-ia-texto`}>Texto da fonte</label>
+            <textarea
+              id={`${base}-ia-texto`}
+              className="campo"
+              rows={6}
+              maxLength={LIMITE_TEXTO_FICHA_IA}
+              value={iaTexto}
+              onChange={(e) => {
+                setIaTexto(e.target.value);
+                setIaArquivo(null);
+              }}
+            />
+            <span className="dica">
+              {iaTexto.length.toLocaleString('pt-BR')} de {LIMITE_TEXTO_FICHA_IA.toLocaleString('pt-BR')} caracteres{iaArquivo ? ` (de “${iaArquivo}”)` : ''}.
+            </span>
+          </div>
+          <div className="acoes">
+            <button type="button" className="btn-secundario" onClick={() => refTexto.current?.click()}>
+              Abrir arquivo de texto…
+            </button>
+            <button type="button" className="btn-principal" disabled={iaTexto.trim() === '' || !urlValida || iaEnviando} onClick={() => void pedirAutorizacao()}>
+              Enviar à IA…
+            </button>
+          </div>
+        </section>
+      )}
+      {iaPedido &&
+        createPortal(
+          <DialogoAutorizacao
+            provedor={iaPedido.provedor}
+            pedidos={[{ chave: 'ficha', rotulo: TITULO_PREENCHER_FICHA, pedido: iaPedido.pedido }]}
+            rotuloConteudo="texto da fonte"
+            aoEnviar={() => void enviarIa(iaPedido.pedido)}
+            aoCancelar={() => {
+              setIaPedido(null);
+              setAnuncio('Envio cancelado. Nada saiu do computador.');
+            }}
+          />,
+          document.body,
+        )}
 
       {lida && previa && (
         <section className="ficha__previa" aria-labelledby={`${base}-previa`}>
@@ -219,6 +389,33 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
               {mudancas.length === 1 ? '1 registro será incluído ou atualizado' : `${mudancas.length} registros serão incluídos ou atualizados`}
               {iguais > 0 ? `; ${iguais === 1 ? '1 já existe' : `${iguais} já existem`} e fica como está` : ''}. {previa.vinculosPreservados > 0 ? `${previa.vinculosPreservados} vínculo(s) já existente(s) preservado(s).` : ''}
             </p>
+          )}
+
+          {sugestao && (
+            <div role="group" aria-labelledby={`${base}-origens`}>
+              <h4 id={`${base}-origens`}>Origem das sugestões da IA</h4>
+              <p className="dica">
+                {sugestao.origens.some((o) => o.incerto)
+                  ? `${sugestao.origens.filter((o) => o.incerto).length} sugestão(ões) marcada(s) pela IA como incerta(s): confira na fonte antes de incluir.`
+                  : 'Confira cada item na fonte antes de incluir.'}
+              </p>
+              <ul className="ficha__itens">
+                {sugestao.origens.map((o, k) => (
+                  <li key={k}>
+                    {o.incerto && <strong>Incerto: </strong>}
+                    {o.rotulo}
+                    {o.trecho ? ` — “${o.trecho}”` : ' — sem trecho citado'}
+                  </li>
+                ))}
+              </ul>
+              {sugestao.observacoes.length > 0 && (
+                <ul className="modelo-evento__instrucoes">
+                  {sugestao.observacoes.map((t, k) => (
+                    <li key={k}>{t}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
           {previa.pendencias.length > 0 && (
@@ -329,6 +526,7 @@ export function FichaInstitucional(p: PropsFichaInstitucional) {
               className="btn-secundario"
               onClick={() => {
                 setLida(null);
+                setSugestao(null);
                 setAnuncio('Importação cancelada. O catálogo não mudou.');
               }}
             >

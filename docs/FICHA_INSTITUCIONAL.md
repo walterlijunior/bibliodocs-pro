@@ -20,6 +20,22 @@ Em **Catálogo acadêmico…** (na capa ou na folha de rosto), seção **Ficha i
   que vale para o curso e o tipo escolhidos aparece em Trabalho › Modelo de evento (DOCX)… › **Usar este perfil** e
   passa pela mesma prévia de um modelo de evento antes de aplicar.
 
+## Preencher com IA (opcional)
+
+Com o assistente de IA configurado (Trabalho › Assistente de IA…), **Preencher com IA…** aparece na seção da ficha:
+
+1. Cole o texto da página oficial ou do trecho do manual, ou abra um arquivo `.txt`, `.md` ou `.html` salvo da página
+   (até 60 mil caracteres por envio), e informe o endereço (https) de onde veio. O aplicativo **não acessa o endereço**:
+   ele só vira a fonte dos registros. PDF não é lido (D-E3-04).
+2. **Enviar à IA…** mostra o conteúdo exato na janela de autorização; cancelar não envia nada.
+3. A resposta vira uma ficha e passa pela **mesma prévia** da importação, com a lista **Origem das sugestões da IA**
+   (o trecho citado de cada item e o que a IA marcou como incerto). Nome de câmpus ou curso que não casa vira
+   pendência. As regras do perfil passam pelo filtro do modelo de evento (só aspectos conhecidos, valores nos limites)
+   e o perfil chega **não revisado**.
+
+Com a IA desativada, o envio é recusado com a explicação; o formulário, a importação e a exportação funcionam sem IA.
+Um envio só, sem ponto de retomada (D-E3-08).
+
 ## Como a importação cruza os dados
 
 - Os registros são comparados pelo **nome normalizado** (sem acento, caixa, pontuação nem espaços repetidos): "Câmpus

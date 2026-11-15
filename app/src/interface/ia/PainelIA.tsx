@@ -479,13 +479,14 @@ export function PainelIA(p: PropsPainelIA) {
       </p>
 
       {autorizacao !== null && (
-        <DialogoAutorizacao provedor={PROVEDORES.find((x) => x.id === config.provedor)?.nome ?? 'serviço'} autorizacao={autorizacao} aoEnviar={() => void executar(autorizacao)} aoCancelar={() => setAutorizacao(null)} />
+        <DialogoAutorizacao provedor={PROVEDORES.find((x) => x.id === config.provedor)?.nome ?? 'serviço'} pedidos={autorizacao.pedidos} aoEnviar={() => void executar(autorizacao)} aoCancelar={() => setAutorizacao(null)} />
       )}
     </div>
   );
 }
 
-function DialogoAutorizacao(p: { provedor: string; autorizacao: Autorizacao; aoEnviar: () => void; aoCancelar: () => void }) {
+/** Autorização com o conteúdo exato de cada envio (também usada pela ficha institucional). */
+export function DialogoAutorizacao(p: { provedor: string; pedidos: readonly { chave: string; rotulo: string; pedido: PedidoIA }[]; aoEnviar: () => void; aoCancelar: () => void; rotuloConteudo?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const base = useId();
   useEffect(() => {
@@ -496,7 +497,7 @@ function DialogoAutorizacao(p: { provedor: string; autorizacao: Autorizacao; aoE
     }
     return () => d?.close();
   }, []);
-  const estimativa = p.autorizacao.pedidos.reduce((n, x) => n + estimarPedido(x.pedido), 0);
+  const estimativa = p.pedidos.reduce((n, x) => n + estimarPedido(x.pedido), 0);
   return (
     <dialog
       ref={ref}
@@ -511,16 +512,16 @@ function DialogoAutorizacao(p: { provedor: string; autorizacao: Autorizacao; aoE
       <div className="dialogo__corpo">
         <h2 id={`${base}-titulo`}>Autorizar o envio à IA</h2>
         <p>
-          Será enviado a {p.provedor} exatamente o conteúdo abaixo ({p.autorizacao.pedidos.length} {p.autorizacao.pedidos.length === 1 ? 'envio' : 'envios'}; estimativa do aplicativo:
-          cerca de {numero(estimativa)} tokens). Nada mais do trabalho sai do computador.
+          Será enviado a {p.provedor} exatamente o conteúdo abaixo ({p.pedidos.length} {p.pedidos.length === 1 ? 'envio' : 'envios'}; estimativa do aplicativo:
+          cerca de {numero(estimativa)} tokens). Nada mais sai do computador.
         </p>
         <div className="lista-rolavel assistente-ia__conteudo" tabIndex={0} aria-label="Conteúdo que será enviado">
-          {p.autorizacao.pedidos.map((x) => (
+          {p.pedidos.map((x) => (
             <section key={x.chave}>
               <h3 className="elementos__grupo">{x.rotulo}</h3>
               {x.pedido.mensagens.map((m, i) => (
                 <pre key={i} className="assistente-ia__mensagem">
-                  {m.papel === 'sistema' ? '[instruções] ' : '[conteúdo do trabalho] '}
+                  {m.papel === 'sistema' ? '[instruções] ' : `[${p.rotuloConteudo ?? 'conteúdo do trabalho'}] `}
                   {m.texto}
                 </pre>
               ))}

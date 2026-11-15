@@ -87,6 +87,7 @@ export {
   type SugestaoModelo,
   type SugestaoTabela,
 } from './servicos/ia';
+export { LIMITE_TEXTO_FICHA_IA, lerSugestaoFicha, pedidoPreencherFicha, textoDoArquivoFicha, TITULO_PREENCHER_FICHA, type EntradaFichaIA, type OrigemSugestao, type ResultadoSugestaoFicha } from './servicos/ia-ficha';
 export {
   CANAIS_IA,
   PROVEDORES,

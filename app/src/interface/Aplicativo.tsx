@@ -689,7 +689,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const escrevendo = local.aba === 'escrever';
 
   return (
-    <ProvedorCatalogo api={api.catalogo}>
+    <ProvedorCatalogo api={api.catalogo} ia={api.ia}>
       <SimbolosSvg />
       {escolhendoTipo && (
         <DialogoNovoTrabalho
