@@ -533,6 +533,13 @@ button:disabled { opacity: 0.45; cursor: default; }
 .dialogo--citacao select.campo { max-width: 100%; }
 /* Verificador de conformidade (M7-T03): o corpo todo rola, com grupos por família. */
 .dialogo--conformidade .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.busca-documento { display: grid; gap: var(--esp-1); margin-bottom: var(--esp-3); }
+.busca-documento__lista { list-style: none; margin: 0; padding: 0; max-height: 40vh; overflow: auto; display: grid; gap: 2px; }
+.busca-documento__item { width: 100%; display: grid; gap: 2px; text-align: left; padding: var(--esp-1) var(--esp-2); border: 1px solid transparent; border-radius: var(--raio); background: none; color: var(--cor-texto); font: inherit; font-size: var(--tam-peq); cursor: pointer; }
+.busca-documento__item:hover, .busca-documento__item[aria-current="true"] { background: var(--cor-superficie); border-color: var(--cor-borda); }
+.busca-documento__secao { color: var(--cor-texto-sec); overflow-wrap: anywhere; }
+.busca-documento__trecho { overflow-wrap: anywhere; }
+.busca-documento__trecho mark { background: color-mix(in srgb, var(--cor-foco) 30%, transparent); color: inherit; }
 /* Visão geral × detalhes (Etapa 6, D-E6-05): categorias à esquerda, detalhe à direita; uma coluna em janela estreita. */
 .conformidade__painel { display: grid; grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
 .conformidade__navegacao ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
@@ -632,6 +639,22 @@ button:disabled { opacity: 0.45; cursor: default; }
 /* Texto no editor: largura de leitura confortável, centrada, com o zoom da barra superior. */
 .bd-editor { font-size: calc(1rem * var(--zoom-editor, 1)); }
 .principal--escrever .editor-secao__texto { max-width: calc(52rem * var(--zoom-editor, 1)); margin-inline: auto; }
+/* Etapa 2 (D-E2-06): a folha do perfil (A4, margens) desde a primeira linha, com o zoom; a janela estreita rola. */
+.editor-secao__folha { --mm: calc(1mm * var(--zoom-editor, 1)); overflow-x: auto; padding-bottom: var(--esp-2); }
+.principal--escrever .editor-secao__texto--folha { width: calc(var(--pag-larg) * var(--mm)); max-width: none; box-sizing: border-box; margin-inline: auto; }
+.principal--escrever .editor-secao__texto--folha .bd-editor {
+  box-sizing: border-box; width: 100%; min-height: calc(var(--pag-alt) * var(--mm));
+  padding: calc(var(--pag-ms) * var(--mm)) calc(var(--pag-md) * var(--mm)) calc(var(--pag-mi) * var(--mm)) calc(var(--pag-me) * var(--mm));
+  box-shadow: 0 1px 6px var(--cor-sombra);
+  /* Fim de cada folha: uma linha a cada altura de página (indicação na tela; a quebra real é a do DOCX). */
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--pag-alt) * var(--mm) - 1px), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm) - 1px), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm)));
+}
+.regua { position: relative; width: calc(var(--pag-larg) * var(--mm)); height: 22px; margin: 0 auto var(--esp-1); background: var(--cor-fundo); border: 1px solid var(--cor-borda); border-radius: 2px; font-size: 10px; color: var(--cor-texto-sec); overflow: hidden; }
+.regua__margem { position: absolute; top: 0; bottom: 0; background: var(--cor-superficie); }
+.regua__marca { position: absolute; bottom: 0; width: 1px; height: 4px; background: var(--cor-texto-sec); }
+.regua__marca--cm { height: 7px; }
+.regua__numero { position: absolute; bottom: 7px; left: 0; transform: translateX(-50%); line-height: 1; }
+.regua__recuo { position: absolute; top: 0; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--cor-destaque); transform: translateX(-5px); }
 .principal--escrever .bd-editor { min-height: max(240px, calc(100dvh - 430px)); padding: var(--esp-4) var(--esp-5); }
 /* Parágrafo do perfil (RN-003): justificado, recuo de 1,25 cm na primeira linha; as escolhas do autor por cima. */
 .bd-paragrafo { text-align: justify; text-indent: calc(1.25cm * var(--zoom-editor, 1)); }

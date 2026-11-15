@@ -25,7 +25,7 @@ import { closeHistory, isHistoryTransaction, redoDepth, undoDepth } from 'prosem
 import { keydownHandler } from 'prosemirror-keymap';
 import { NodeSelection, TextSelection, type EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import type { ChamadaEscrita, DadosCitacao, DadosFigura, DadosTabela, FormatadorDeChamadas } from '../../aplicacao';
 import type { AlinhamentoParagrafo, MarcaTexto, Sigla } from '../../dominio/modelo';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
@@ -87,6 +87,8 @@ import {
   type GraficoNoEditor,
   type TabelaNoEditor,
 } from './tabelas';
+import { Regua } from './Regua';
+import type { PaginaMm } from '../../aplicacao';
 import { renomearTitulo } from './titulo-painel';
 import { GraficoView, RegistroGraficos } from './grafico-view';
 import type { BlocoTabela } from '../../dominio/modelo';
@@ -213,6 +215,10 @@ export interface PropsEditorSecao {
   secaoId: string;
   /** Número da seção ("2.1"), mostrado antes do título na página (Etapa 2). */
   indicativo?: string;
+  /** Página do perfil (Etapa 2): largura, margens e régua; ausente = coluna de leitura (testes da casca). */
+  pagina?: PaginaMm;
+  /** Recuo da primeira linha do perfil, em mm, para a régua. */
+  recuoMm?: number;
   geracao: number;
   memoria: MemoriaEditores;
   /** Conteúdo atual da seção no modelo (lido só ao montar sem estado guardado). */
@@ -942,7 +948,25 @@ export function EditorSecao(p: PropsEditorSecao) {
           </button>
         </div>
       )}
-      <div ref={refHospedeiro} className="editor-secao__texto" />
+      {/* Etapa 2 (D-E2-06): a folha tem a largura e as margens do perfil, com o zoom; em janela estreita, rola. */}
+      <div
+        className="editor-secao__folha"
+        style={
+          (p.pagina
+            ? {
+                '--pag-larg': p.pagina.larguraMm,
+                '--pag-alt': p.pagina.alturaMm,
+                '--pag-ms': p.pagina.margemSuperiorMm,
+                '--pag-mi': p.pagina.margemInferiorMm,
+                '--pag-me': p.pagina.margemEsquerdaMm,
+                '--pag-md': p.pagina.margemDireitaMm,
+              }
+            : {}) as CSSProperties
+        }
+      >
+        {p.pagina && <Regua pagina={p.pagina} recuoMm={p.recuoMm ?? 12.5} />}
+        <div ref={refHospedeiro} className={`editor-secao__texto${p.pagina ? ' editor-secao__texto--folha' : ''}`} />
+      </div>
       {sugestaoSigla.length > 0 && !somenteLeitura && (
         <div className="editor-secao__sugestao" role="group" aria-label="Siglas escritas no texto">
           <p role="status">O texto contém siglas cadastradas: {[...new Set(sugestaoSigla.map((s) => s.texto))].join(', ')}. Deseja ligar ao cadastro para gerar a primeira ocorrência por extenso?</p>

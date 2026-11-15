@@ -81,6 +81,7 @@ import { descreverCitacao, mudancasDeCitacao, PontosDoHistorico, rotuloCurtoObra
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
 import { inventarioConformidade, type InventarioConformidade } from './inventario-conformidade';
+import { buscarNoDocumento, type ResultadoBusca } from './busca-documento';
 import { validarObra } from './obras';
 import { aplicarCampos, aplicarDados, aplicarDadosDoCatalogo, comElemento, limparTexto, type AlteracaoDados, type CamposElemento, type DadosDoCatalogo, type OpcoesAplicarCatalogo } from './pre-textuais';
 import {
@@ -1030,6 +1031,12 @@ export class SessaoTrabalho {
     const a = this.#aberto;
     if (!a) return { problemas: [], diagnosticos: [] };
     return avaliarConformidade(a.pacote.documento, perfilComModelo(PERFIL_UFT_2022, a.pacote.documento.modelo), { imagens: new Map(a.pacote.midias.map((m) => [m.sha256, m.bytes])) });
+  }
+
+  /** Busca no documento (Etapa 2, D-E2-05): títulos e texto das seções do corpo. */
+  buscarNoDocumento(termo: string): ResultadoBusca[] {
+    const a = this.#aberto;
+    return a ? buscarNoDocumento(a.pacote.documento.corpo, termo) : [];
   }
 
   /**

@@ -187,10 +187,16 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   );
   const itemSelecionado = itensVisiveis.find((i) => i.identificador === selecionado) ?? null;
 
+  // Ctrl+F: na aba Escrever com trabalho aberto, a busca no documento (Etapa 2); fora dela, a busca da biblioteca.
+  const [pedidoBuscaDocumento, setPedidoBuscaDocumento] = useState(0);
   const focarBusca = useCallback(() => {
+    if (local.aba === 'escrever' && sessao.obterEstado().trabalho) {
+      setPedidoBuscaDocumento((n) => n + 1);
+      return;
+    }
     refBusca.current?.focus();
     refBusca.current?.select();
-  }, []);
+  }, [local.aba, sessao]);
 
   useEffect(() => {
     if (focarTitulo > 0) document.getElementById(ID_CAMPO_TITULO)?.focus();
@@ -848,6 +854,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                   mover: (id, sentido) => sessao.moverPosTextual(id, sentido),
                 }}
                 mencoes={() => sessao.mencoesDoTexto()}
+                buscar={(termo) => sessao.buscarNoDocumento(termo)}
+                pedidoBusca={pedidoBuscaDocumento}
                 registro={{
                   alterar: (r) => sessao.alterarRegistro(r),
                   incorporar: (d) => sessao.incorporarRegistro(d),

@@ -32,6 +32,7 @@ import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
 import { DialogoImportarPlanilha } from './DialogoImportarPlanilha';
+import { BuscaDocumento } from './BuscaDocumento';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
@@ -43,7 +44,7 @@ import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade, type RetornoConformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
-import type { ApiIa, DadosTabela, InventarioConformidade, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { ApiIa, DadosTabela, InventarioConformidade, ResultadoBusca, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 import type { ModeloEvento, RegistroAtividades, RegrasModelo } from '../../dominio/modelo';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
@@ -90,6 +91,9 @@ export interface PropsAreaEscrever {
   conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar>; inventario?: (r: RelatorioConformidade) => InventarioConformidade };
   /** Gerenciador de elementos (Etapa 4): menções escritas sem ligação e menções sem número. */
   mencoes?: () => MencoesDoTexto;
+  /** Etapa 2 (D-E2-05): busca no documento; `pedidoBusca` > 0 põe o foco no campo (Ctrl+F na aba Escrever). */
+  buscar?: (termo: string) => ResultadoBusca[];
+  pedidoBusca?: number;
   /** Etapa 6: registro de atividades e cronograma. */
   registro?: {
     alterar: (r: RegistroAtividades | null) => ResultadoObra;
@@ -824,6 +828,16 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoHistorico={e.historico}
           />
         )}
+        {modo === 'escrever' && p.buscar && (
+          <BuscaDocumento
+            buscar={p.buscar}
+            {...(p.pedidoBusca ? { pedidoFoco: p.pedidoBusca } : {})}
+            aoIr={(r) => {
+              if (r.noTitulo) escolher(r.secao, 'arvore');
+              else irAoLocal({ tipo: 'texto', secao: r.secao, no: r.bloco, trecho: r.trecho }, true);
+            }}
+          />
+        )}
         {modo === 'escrever' && <ArvoreSecoes
           secoes={secoes}
           ativaId={ativa?.id ?? null}
@@ -1175,6 +1189,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               </h2>
               <EditorSecao
                 secaoId={ativa.id}
+                pagina={pagina}
+                recuoMm={(t.modelo?.regras.recuoPrimeiraLinhaCm ?? 1.25) * 10}
                 {...(secoes.find((s) => s.id === ativa.id)?.indicativo ? { indicativo: secoes.find((s) => s.id === ativa.id)!.indicativo } : {})}
                 geracao={t.geracao}
                 memoria={e.memoria}
