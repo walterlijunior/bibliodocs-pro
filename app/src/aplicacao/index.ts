@@ -291,3 +291,4 @@ export type { CodigoProblemaBibliografia, LocalProblema, ProblemaBibliografia } 
 export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';
 export * from './catalogo';
 export { TITULACOES, titulacaoDaLista } from './titulacoes';
+export { catalogoRestaurado, criarBackup, lerBackup, LIMITE_BYTES_BACKUP, NAO_INCLUIDO_NO_BACKUP, previaRestauracao, resumoDoCatalogo, type Backup, type PreviaRestauracao } from './servicos/backup';

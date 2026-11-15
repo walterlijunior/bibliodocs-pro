@@ -9,6 +9,7 @@ export const CANAIS_CATALOGO = {
   ler: 'bibliodocs:catalogo:ler',
   gravar: 'bibliodocs:catalogo:gravar',
   exportarFicha: 'bibliodocs:catalogo:exportarFicha',
+  exportarBackup: 'bibliodocs:catalogo:exportarBackup',
 } as const;
 
 export type CanalCatalogo = (typeof CANAIS_CATALOGO)[keyof typeof CANAIS_CATALOGO];
@@ -37,4 +38,9 @@ export interface ApiCatalogo {
    * antes de gravar; `nomeSugerido` só sugere o nome.
    */
   exportarFicha(texto: string, nomeSugerido: string): Promise<ResultadoExportarFicha>;
+  /**
+   * Etapa 10: backup dos cadastros e configurações (texto JSON) num arquivo escolhido pelo usuário (pasta, pendrive ou
+   * outra unidade). O principal confere o formato antes de gravar.
+   */
+  exportarBackup(texto: string, nomeSugerido: string): Promise<ResultadoExportarFicha>;
 }

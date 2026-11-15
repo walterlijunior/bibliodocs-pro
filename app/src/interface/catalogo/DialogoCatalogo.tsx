@@ -29,6 +29,8 @@ import { origemDaEscolha } from './SeletorInstitucional';
 export interface PropsDialogoCatalogo {
   inicial: SelecaoCatalogo;
   aoFechar: () => void;
+  /** Aberto pelo menu Arquivo: "Cadastrar instituição" leva ao botão Nova instituição; "Editar perfis", à ficha com os perfis. */
+  foco?: 'instituicao' | 'perfis';
 }
 
 const NIVEIS: readonly [NivelCurso, string][] = [
@@ -76,7 +78,18 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
     const anterior = document.activeElement;
     if (d && !d.open) {
       d.showModal();
-      d.querySelector<HTMLElement>('select')?.focus();
+      const botoes = [...d.querySelectorAll<HTMLButtonElement>('button')];
+      const alvo =
+        p.foco === 'instituicao'
+          ? botoes.find((b) => b.textContent?.trim() === 'Nova instituição')
+          : p.foco === 'perfis'
+            ? d.querySelector<HTMLElement>('fieldset.ficha')
+            : null;
+      if (alvo) {
+        alvo.scrollIntoView({ block: 'center' });
+        if (alvo instanceof HTMLButtonElement) alvo.focus();
+        else alvo.querySelector<HTMLElement>('button, select, input')?.focus();
+      } else d.querySelector<HTMLElement>('select')?.focus();
     }
     return () => {
       d?.close();

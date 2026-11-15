@@ -72,3 +72,4 @@ export {
   type ResultadoCatalogo,
 } from './catalogo';
 export { esquemaFicha, validarFicha, type FichaValidada } from './ficha';
+export { FORMATO_BACKUP, LIMITE_BYTES_BACKUP, NAO_INCLUIDO_NO_BACKUP, validarBackup, VERSAO_BACKUP, type Backup } from './backup';

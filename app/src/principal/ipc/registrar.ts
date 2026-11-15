@@ -243,6 +243,18 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
       });
       return r.canceled || !r.filePath ? null : r.filePath;
     },
+    // Etapa 10: backup dos cadastros e configurações, em qualquer pasta ou unidade (pendrive).
+    escolherDestinoBackup: async (id, nome) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showSaveDialog(janela, {
+        title: 'Criar backup de cadastros e configurações',
+        defaultPath: join(app.getPath('documents'), nome),
+        filters: [{ name: 'Backup do BiblioDocs Pro', extensions: ['json'] }],
+        properties: ['showOverwriteConfirmation'],
+      });
+      return r.canceled || !r.filePath ? null : r.filePath;
+    },
     gravarArquivo: gravarExportacao,
   });
 

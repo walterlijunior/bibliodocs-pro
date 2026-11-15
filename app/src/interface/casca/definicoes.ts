@@ -14,6 +14,10 @@ export type ComandoMenu =
   | 'atualizarBiblioteca'
   | 'versoesDescartadas' // M2-T11
   | 'copiasSeguranca' // M3-T09
+  | 'catalogoAcademico'
+  | 'perfisFormatacao'
+  | 'criarBackup'
+  | 'restaurarBackup'
   | 'sobre' // M3-T11
   | 'exportarDocx' // M3-T08
   | 'sair'
@@ -90,6 +94,11 @@ export const MENUS: readonly Menu[] = [
       { rotulo: 'Atualizar biblioteca', atalho: 'F5', comando: 'atualizarBiblioteca' },
       { rotulo: 'Versões descartadas…', comando: 'versoesDescartadas' },
       { rotulo: 'Cópias de segurança…', comando: 'copiasSeguranca' },
+      'separador',
+      { rotulo: 'Cadastrar instituição (catálogo acadêmico)…', comando: 'catalogoAcademico' },
+      { rotulo: 'Editar perfis de formatação…', comando: 'perfisFormatacao' },
+      { rotulo: 'Criar backup de cadastros e configurações…', comando: 'criarBackup' },
+      { rotulo: 'Restaurar backup de cadastros e configurações…', comando: 'restaurarBackup' },
       'separador',
       { rotulo: 'Fechar trabalho', atalho: 'Ctrl+W', comando: 'fecharTrabalho' },
       { rotulo: 'Sair', atalho: 'Alt+F4', comando: 'sair' },

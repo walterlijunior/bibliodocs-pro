@@ -50,6 +50,9 @@ import { useEstrutura } from './escrever/useEstrutura';
 import { useSessao } from './escrever/useSessao';
 import { SimbolosSvg } from './Icones';
 import { ProvedorCatalogo } from './catalogo/ContextoCatalogo';
+import { DialogoBackup } from './catalogo/DialogoBackup';
+import { DialogoCatalogo } from './catalogo/DialogoCatalogo';
+import { version as VERSAO_APP } from '../../package.json';
 
 /** Lugar da interface guardado no histórico de Voltar/Avançar. */
 interface Local {
@@ -85,6 +88,8 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
   const [historico, setHistorico] = useState(() => iniciarHistorico<Local>({ aba: 'biblioteca', colecao: 'trabalhos', filtro: FILTRO_TODOS }));
   /** Diálogo "Exportar DOCX": `null` fechado (M3-T08). */
   const [exportacao, setExportacao] = useState<EstadoExportacao | null>(null);
+  // Arquivo › catálogo acadêmico, perfis e backup (Etapas 3 e 10).
+  const [janelaCadastro, setJanelaCadastro] = useState<'catalogo' | 'perfis' | 'backup-criar' | 'backup-restaurar' | null>(null);
   const [fonteExportacao, setFonteExportacao] = useState<string>(FONTES_EXPORTACAO[0]);
   const [origemVersoes, setOrigemVersoes] = useState<OrigemVersoes>('descartadas');
   const [sobreAberto, setSobreAberto] = useState(false);
@@ -634,6 +639,18 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'copiasSeguranca':
           void pedirVersoes('backups');
           return;
+        case 'catalogoAcademico':
+          setJanelaCadastro('catalogo');
+          return;
+        case 'perfisFormatacao':
+          setJanelaCadastro('perfis');
+          return;
+        case 'criarBackup':
+          setJanelaCadastro('backup-criar');
+          return;
+        case 'restaurarBackup':
+          setJanelaCadastro('backup-restaurar');
+          return;
         case 'sair':
           window.close();
           return;
@@ -952,6 +969,10 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
           )}
         </div>
       </div>
+      {(janelaCadastro === 'catalogo' || janelaCadastro === 'perfis') && <DialogoCatalogo inicial={{}} foco={janelaCadastro === 'perfis' ? 'perfis' : 'instituicao'} aoFechar={() => setJanelaCadastro(null)} />}
+      {(janelaCadastro === 'backup-criar' || janelaCadastro === 'backup-restaurar') && (
+        <DialogoBackup modo={janelaCadastro === 'backup-criar' ? 'criar' : 'restaurar'} appVersao={VERSAO_APP} aoFechar={() => setJanelaCadastro(null)} />
+      )}
     </ProvedorCatalogo>
   );
 }

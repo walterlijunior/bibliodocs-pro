@@ -314,6 +314,10 @@ describe('conteúdo aprovado da casca (decisões do usuário, 2026-10-16)', () =
       ['Atualizar biblioteca', 'F5', 'atualizarBiblioteca'],
       ['Versões descartadas…', undefined, 'versoesDescartadas'], // M2-T11
       ['Cópias de segurança…', undefined, 'copiasSeguranca'], // M3-T09
+      ['Cadastrar instituição (catálogo acadêmico)…', undefined, 'catalogoAcademico'], // Etapa 3 (G3a)
+      ['Editar perfis de formatação…', undefined, 'perfisFormatacao'],
+      ['Criar backup de cadastros e configurações…', undefined, 'criarBackup'], // Etapa 10
+      ['Restaurar backup de cadastros e configurações…', undefined, 'restaurarBackup'],
       ['Fechar trabalho', 'Ctrl+W', 'fecharTrabalho'],
       ['Sair', 'Alt+F4', 'sair'],
     ]);

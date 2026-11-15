@@ -4,7 +4,7 @@
  * do catálogo antes de gravar. Gravações em fila (a segunda espera a primeira).
  */
 import { CANAIS_CATALOGO, type CanalCatalogo, type ResultadoExportarFicha, type ResultadoGravarCatalogo, type ResultadoLerCatalogo } from '../../aplicacao/portas/catalogo';
-import { validarCatalogoUsuario, validarFicha } from '../../dominio/esquemas';
+import { LIMITE_BYTES_BACKUP, validarBackup, validarCatalogoUsuario, validarFicha } from '../../dominio/esquemas';
 import { gravarCatalogoUsuario, lerCatalogoUsuario, SISTEMA_ARQUIVOS_NODE, type SistemaArquivos } from '../../persistencia';
 import type { OrigemPermitida } from '../seguranca/politica-urls';
 import { criarConferencia, type Manipulador } from './chamada';
@@ -23,6 +23,14 @@ export function nomeSeguroFicha(nome: unknown): string | null {
   return /^[A-Za-z0-9][A-Za-z0-9._-]*\.bdficha\.json$/.test(nome) ? nome : null;
 }
 
+export const MENSAGEM_BACKUP_NAO_GRAVADO = 'Não foi possível gravar o backup nesse lugar. Confira se a unidade (pendrive) está conectada e tem espaço, ou escolha outra pasta.';
+
+/** Nome de arquivo seguro para sugerir na janela de salvar o backup. */
+export function nomeSeguroBackup(nome: unknown): string | null {
+  if (typeof nome !== 'string' || nome.length === 0 || nome.length > 120) return null;
+  return /^[A-Za-z0-9][A-Za-z0-9._-]*\.bdbackup\.json$/.test(nome) ? nome : null;
+}
+
 export interface DependenciasCatalogo {
   origem: OrigemPermitida;
   conteudosPermitidos: () => ReadonlySet<number>;
@@ -32,6 +40,8 @@ export interface DependenciasCatalogo {
   log?: (m: string) => void;
   /** Janela de salvar do sistema; `null` = cancelado. */
   escolherDestinoFicha?: (idConteudo: number, nomeSugerido: string) => Promise<string | null>;
+  /** Etapa 10: janela de salvar do backup; `null` = cancelado. */
+  escolherDestinoBackup?: (idConteudo: number, nomeSugerido: string) => Promise<string | null>;
   gravarArquivo?: (destino: string, bytes: Uint8Array) => Promise<{ ok: boolean }>;
 }
 
@@ -98,5 +108,35 @@ export function criarManipuladoresCatalogo(dep: DependenciasCatalogo): Readonly<
     return { ok: true, nome: destino.split(/[\/]/).pop() ?? nomeSeguro };
   };
 
-  return { [CANAIS_CATALOGO.ler]: ler, [CANAIS_CATALOGO.gravar]: gravar, [CANAIS_CATALOGO.exportarFicha]: exportarFicha } as Record<CanalCatalogo, Manipulador>;
+  const exportarBackup: Manipulador = async (r, argumentos): Promise<ResultadoExportarFicha> => {
+    const canal = CANAIS_CATALOGO.exportarBackup;
+    conferir(canal, r, argumentos, 2);
+    const [texto, nome] = argumentos;
+    const nomeSeguro = nomeSeguroBackup(nome);
+    if (typeof texto !== 'string' || texto.length > LIMITE_BYTES_BACKUP || nomeSeguro === null) return recusarArgumento(canal, 'backup');
+    let json: unknown;
+    try {
+      json = JSON.parse(texto);
+    } catch {
+      return recusarArgumento(canal, 'backup (JSON)');
+    }
+    const v = validarBackup(json);
+    if (!v.ok) return recusarArgumento(canal, `backup (${v.erro})`);
+    if (!dep.escolherDestinoBackup || !dep.gravarArquivo) return { ok: false, cancelado: false, mensagem: MENSAGEM_BACKUP_NAO_GRAVADO };
+    const destino = await dep.escolherDestinoBackup(r.idConteudo, nomeSeguro);
+    if (destino === null) return { ok: false, cancelado: true };
+    const g = await dep.gravarArquivo(destino, new TextEncoder().encode(texto)).catch(() => ({ ok: false }));
+    if (!g.ok) {
+      log('[catalogo] gravação do backup falhou');
+      return { ok: false, cancelado: false, mensagem: MENSAGEM_BACKUP_NAO_GRAVADO };
+    }
+    return { ok: true, nome: destino.split(/[\\/]/).pop() ?? nomeSeguro };
+  };
+
+  return {
+    [CANAIS_CATALOGO.ler]: ler,
+    [CANAIS_CATALOGO.gravar]: gravar,
+    [CANAIS_CATALOGO.exportarFicha]: exportarFicha,
+    [CANAIS_CATALOGO.exportarBackup]: exportarBackup,
+  } as Record<CanalCatalogo, Manipulador>;
 }

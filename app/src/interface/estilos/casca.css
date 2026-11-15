@@ -694,6 +694,12 @@ ol.bd-lista { list-style: decimal; }
 .seletor-institucional .dica:empty { display: none; }
 .seletor-institucional > .btn-secundario { margin-top: var(--esp-2); }
 .dialogo--catalogo { width: min(760px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+/* Backup de cadastros e configurações (Etapa 10). */
+.dialogo.dialogo--backup { width: min(640px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--backup .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.backup__resumo { margin: 0; padding-left: 1.2em; }
+.backup__previa { display: grid; gap: var(--esp-2); }
+.backup__previa h3 { margin: 0; }
 .dialogo--catalogo .dialogo__corpo { grid-template-rows: none; overflow: auto; }
 .catalogo__nivel { display: grid; gap: 2px; }
 .catalogo__linha { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: end; }

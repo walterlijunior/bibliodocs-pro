@@ -12,6 +12,9 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 - Etapa 6 (2026-11-15): **visão geral do painel de conformidade**, na organização do Gerenciador de Tarefas: categorias com os itens no trabalho, os verificados sem ocorrência e os com pendência ou aviso; em tabelas, quadros, figuras, gráficos e equações, cada elemento com rótulo, título, menções ligadas e situação, e os botões para ir ao elemento ou à menção. O filtro por categoria passou a dizer que conta ocorrências (D-E6-05).
 
+- Etapa 10 (2026-11-15): **Arquivo › Criar backup de cadastros e configurações…** e **Restaurar backup…**. O backup leva o catálogo acadêmico (instituições com logotipo, câmpus, cursos, disciplinas, docentes, vínculos, manuais e perfis), a configuração da IA sem a chave e as preferências da interface, para qualquer pasta ou pendrive; restaurar mostra antes o que entra e os conflitos e deixa escolher acrescentar ou substituir. Trabalhos não entram (use as cópias de segurança); a chave de IA é informada de novo (D-E10-01).
+- Etapa 3: acesso visível em **Arquivo › Cadastrar instituição (catálogo acadêmico)…** e **Editar perfis de formatação…**.
+
 ### Corrigido
 - A legenda da tabela e do quadro no editor mostrava só "Tabela – título": agora traz o número ("Tabela 2 – título") e acompanha a renumeração, como a menção no texto (D-E4-07).
 
