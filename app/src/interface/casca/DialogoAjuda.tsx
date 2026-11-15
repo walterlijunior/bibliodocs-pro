@@ -56,17 +56,27 @@ function Guia() {
         rosto e preencha autor, orientador, curso, cidade e ano. Inclua ou retire elementos pré-textuais e pós-textuais.
       </li>
       <li>
-        <strong>Escreva.</strong> Na aba Escrever, cada seção tem o seu texto. A lista à esquerda cria, move, recua e
-        promove seções. O menu Inserir põe citações, tabelas, figuras, gráficos, equações, remissivas, notas de rodapé e
-        siglas no ponto do cursor.
+        <strong>Escreva.</strong> Na aba Escrever, cada seção tem o seu texto, numa folha do tamanho da página do perfil,
+        com a régua das margens. O painel Seções, à esquerda, cria, renomeia (F2), move, recua e promove seções; a página
+        mostra o número e o título. O menu Inserir põe citações, tabelas, figuras, gráficos, equações, remissivas, notas de
+        rodapé e siglas no ponto do cursor. “Buscar no documento” (Ctrl+F nesta aba) acha um termo em todas as seções.
+      </li>
+      <li>
+        <strong>Traga tabelas e quadros de planilhas.</strong> Inserir › Tabelas de planilha (.xlsx)… (ou “Importar
+        planilha…” na aba Elementos): escolha as abas e os intervalos, confira a prévia e insira todos de uma vez. Também
+        dá para colar as células do Excel na janela da tabela. Um quadro em imagem entra pela janela da figura, com a
+        espécie “Quadro”.
       </li>
       <li>
         <strong>Cadastre as referências.</strong> Na aba Referências, inclua as obras (ou importe BibTeX e RIS) e use
-        “Conferir” para achar obras sem citação e citações sem obra.
+        “Conferir” para achar obras sem citação e citações sem obra. A referência pronta do portal (SciELO, Google
+        Acadêmico) pode ser colada na obra e convertida em campos; relatórios de RI e demonstrações financeiras têm tipos
+        próprios.
       </li>
       <li>
-        <strong>Confira.</strong> A aba Conformidade (F7) lista pendências e avisos com o local de cada um; F8 leva à
-        próxima. O relatório pode ser exportado.
+        <strong>Confira.</strong> A aba Conformidade (F7) mostra, por categoria, quantos itens há no trabalho, quantos
+        estão sem ocorrência e quantos têm pendência ou aviso, com o local de cada um; F8 leva à próxima. O relatório pode
+        ser exportado.
       </li>
       <li>
         <strong>Exporte.</strong> Exportar › Exportar DOCX… (Ctrl+E) gera o arquivo do Word com a formatação do Manual da
@@ -75,6 +85,11 @@ function Guia() {
       <li>
         O trabalho é salvo sozinho 30 segundos depois da última edição, ao trocar de trabalho e ao fechar; Ctrl+S salva na
         hora. Se o app fechar de repente, a Biblioteca oferece recuperar o que estava aberto.
+      </li>
+      <li>
+        <strong>Guarde os cadastros.</strong> Arquivo › Criar backup de cadastros e configurações… grava instituições,
+        cursos, docentes, perfis e preferências num arquivo (num pendrive, por exemplo); Restaurar backup… os traz de volta
+        numa instalação nova. Os trabalhos ficam nos arquivos .bdp e nas cópias de segurança.
       </li>
     </ol>
   );

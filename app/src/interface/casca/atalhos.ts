@@ -20,10 +20,17 @@ export const ATALHOS_EXTRAS: readonly { grupo: string; itens: readonly [string, 
   {
     grupo: 'Na lista de seções',
     itens: [
-      ['F2', 'Renomear a seção'],
+      ['F2', 'Renomear a seção no painel (Enter grava e vai ao texto; Esc desiste)'],
       ['Delete', 'Excluir a seção'],
       ['Alt+Shift+↑ / ↓', 'Subir ou descer a seção'],
       ['Alt+Shift+→ / ←', 'Recuar ou promover a seção'],
+    ],
+  },
+  {
+    grupo: 'Busca no documento (aba Escrever)',
+    itens: [
+      ['Ctrl+F', 'Ir ao campo “Buscar no documento”'],
+      ['Enter / Shift+Enter', 'Próximo / anterior resultado'],
     ],
   },
   {

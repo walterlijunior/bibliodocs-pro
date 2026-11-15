@@ -21,6 +21,8 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 - Etapa 4: **quadro em imagem**: na janela da figura, a espécie "Quadro" põe a imagem (recorte de um relatório, por exemplo) na sequência dos quadros e na lista de quadros (D-E4-09).
 
+- Ajuda: o Guia rápido (F1), os atalhos e os botões "?" explicam a busca no documento, o título pelo painel Seções, a importação de planilhas, a referência colada, a visão geral da conformidade e o backup.
+
 ### Corrigido
 - Tabelas e quadros saíam no DOCX com todas as colunas iguais, quebrando o texto das colunas largas e sobrando espaço nas de números: agora as larguras seguem o conteúdo (D-E4-08).
 - A página de escrita aparecia como uma coluna estreita na seção vazia e alargava ao digitar: agora a folha tem a largura e as margens do perfil desde a primeira linha, com o zoom (D-E2-06).

@@ -6,6 +6,7 @@
  */
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ResultadoBusca } from '../../aplicacao';
+import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 
 export function BuscaDocumento(p: { buscar: (termo: string) => ResultadoBusca[]; aoIr: (r: ResultadoBusca) => void; pedidoFoco?: number }) {
   const base = useId();
@@ -32,6 +33,7 @@ export function BuscaDocumento(p: { buscar: (termo: string) => ResultadoBusca[];
       <h2 id={`${base}-t`} className="sr-only">
         Buscar no documento
       </h2>
+      <div className="busca-documento__linha">
       <input
         ref={refCampo}
         type="search"
@@ -49,6 +51,11 @@ export function BuscaDocumento(p: { buscar: (termo: string) => ResultadoBusca[];
           ir(e.shiftKey ? (atual <= 0 ? resultados.length - 1 : atual - 1) : (atual + 1) % resultados.length);
         }}
       />
+      <AjudaContextual titulo="Buscar no documento">
+        <TextoAjuda>Procura nos títulos e no texto de todas as seções, sem diferença de maiúsculas nem de acentos (“funcao” acha “Função”), a partir de duas letras.</TextoAjuda>
+        <TextoAjuda>Clique num resultado, ou use Enter e Shift+Enter no campo, para ir ao trecho, que fica selecionado. Ctrl+F nesta aba volta ao campo.</TextoAjuda>
+      </AjudaContextual>
+      </div>
       {termo.trim().length >= 2 && (
         <p className="dica" role="status">
           {resultados.length === 0 ? 'Nada encontrado.' : `${resultados.length} ${resultados.length === 1 ? 'resultado' : 'resultados'}${atual >= 0 ? ` (${atual + 1}.º)` : ''}. Enter vai ao próximo.`}

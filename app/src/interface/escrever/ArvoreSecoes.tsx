@@ -135,6 +135,7 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
         <AjudaContextual titulo="Seções">
           <TextoAjuda>As seções formam o texto do trabalho, com a numeração progressiva do Manual da UFT (1, 1.1, 1.1.1…).</TextoAjuda>
           <TextoAjuda>Clique numa seção para escrever nela. Os botões abaixo da lista acrescentam seções e mudam a posição e o nível de cada uma; a numeração se refaz sozinha.</TextoAjuda>
+          <TextoAjuda>O título se escreve aqui: “Renomear” ou F2 abre o campo no item; Enter grava e leva ao texto. Na página, o número e o título aparecem sozinhos e não se editam.</TextoAjuda>
         </AjudaContextual>
       </div>
       {secoes.length === 0 ? (
