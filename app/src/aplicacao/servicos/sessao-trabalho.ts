@@ -1049,7 +1049,10 @@ export class SessaoTrabalho {
     const doc = a.pacote.documento;
     const especies = new Map<Id, 'tabela' | 'quadro'>();
     const visitar = (s: Secao) => {
-      for (const b of s.blocos) if (b.tipo === 'tabela') especies.set(b.id, b.especie);
+      for (const b of s.blocos) {
+        if (b.tipo === 'tabela') especies.set(b.id, b.especie);
+        else if (b.tipo === 'ilustracao' && b.especie === 'quadro') especies.set(b.id, 'quadro');
+      }
       s.subsecoes.forEach(visitar);
     };
     secoesDeLeitura(doc).forEach(visitar);

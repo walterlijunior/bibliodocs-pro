@@ -61,7 +61,8 @@ export interface InventarioConformidade {
 }
 
 function categoriaDoAlvo(a: EntradaInventario['alvos'][number]): CategoriaConformidade | null {
-  if (a.tipo === 'tabela') return a.especie === 'quadro' ? 'quadros' : 'tabelas';
+  if (a.especie === 'quadro') return 'quadros';
+  if (a.tipo === 'tabela') return 'tabelas';
   if (a.tipo === 'ilustracao') return 'figuras';
   if (a.tipo === 'grafico') return 'graficos';
   if (a.tipo === 'equacao') return 'equacoes';

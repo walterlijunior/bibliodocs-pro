@@ -281,6 +281,9 @@ export type EspecieIlustracao =
   | 'mapa'
   | 'organograma'
   | 'planta'
+  /** Quadro em imagem (recorte de relatório, por exemplo): o Manual lista o quadro entre as ilustrações (RN-049, p. 18).
+   *  Conta na mesma sequência dos quadros em grade e sai na lista de quadros (D-E4-09). */
+  | 'quadro'
   | 'retrato';
 
 /** Ilustração com imagem (M5-T01): a imagem é a mídia do `.bdp` com esse sha256 (ADR-0004, seção 1). */

@@ -1,9 +1,9 @@
 {
-  "descricao": "Quadro como espécie de ilustração (o quadro é tabela, RN-061)",
+  "descricao": "\"Tabela\" como espécie de ilustração (a tabela é o bloco tabela, RN-241; o quadro pode ser ilustração em imagem, D-E4-09)",
   "erros": [
     {
       "caminho": "documento.corpo[0].blocos[0].especie",
-      "mensagem": "Opção inválida: esperava uma das seguintes opções: \"figura\"|\"desenho\"|\"esquema\"|\"fluxograma\"|\"fotografia\"|\"grafico\"|\"mapa\"|\"organograma\"|\"planta\"|\"retrato\""
+      "mensagem": "Opção inválida: esperava uma das seguintes opções: \"figura\"|\"desenho\"|\"esquema\"|\"fluxograma\"|\"fotografia\"|\"grafico\"|\"mapa\"|\"organograma\"|\"planta\"|\"quadro\"|\"retrato\""
     }
   ],
   "documento": {
@@ -30,7 +30,7 @@
           {
             "tipo": "ilustracao",
             "id": "ilu_bordm5001",
-            "especie": "quadro",
+            "especie": "tabela",
             "titulo": [
               {
                 "tipo": "texto",

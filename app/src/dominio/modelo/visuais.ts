@@ -15,6 +15,7 @@ export const ESPECIES_ILUSTRACAO: readonly EspecieIlustracao[] = [
   'mapa',
   'organograma',
   'planta',
+  'quadro',
   'retrato',
 ];
 
