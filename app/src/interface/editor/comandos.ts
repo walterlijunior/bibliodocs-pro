@@ -131,6 +131,7 @@ export const TECLAS_SECAO: Readonly<Record<string, Command>> = {
   'Shift-Mod-z': refazer,
   'Mod-i': alternarMarca('italico'),
   'Mod-b': alternarMarca('negrito'),
+  'Mod-u': alternarMarca('sublinhado'),
   // Ctrl+Shift+= no ABNT2 chega como "+" (Shift+=) ou "=", conforme o leiaute; os dois nomes valem.
   'Shift-Mod-=': alternarMarca('sobrescrito'),
   'Mod-+': alternarMarca('sobrescrito'),

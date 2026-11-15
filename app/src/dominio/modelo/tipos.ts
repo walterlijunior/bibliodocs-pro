@@ -23,7 +23,8 @@ export type TipoTrabalhoUft = 'monografia' | 'artigo-tcc' | 'dissertacao' | 'tes
 /** `generico` é o tipo dos trabalhos criados no M1: não tem elementos pré nem pós-textuais e não é mais oferecido. */
 export type TipoTrabalhoId = 'generico' | TipoTrabalhoUft;
 
-export type MarcaTexto = 'italico' | 'negrito' | 'sobrescrito' | 'subscrito';
+/** `sublinhado`: Etapa 2 da especificação revista (aditivo, adendo no ADR-0004). */
+export type MarcaTexto = 'italico' | 'negrito' | 'sublinhado' | 'sobrescrito' | 'subscrito';
 
 export interface InlineTexto {
   tipo: 'texto';

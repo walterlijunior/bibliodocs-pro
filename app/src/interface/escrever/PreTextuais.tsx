@@ -1,8 +1,8 @@
 // Elementos pré-textuais na aba Escrever (M2-T08; RF-04): a lista dos elementos do trabalho, incluir e retirar, e o
 // formulário do elemento escolhido, com as pendências dele. Texto simples nos campos: negrito e itálico ficam para quando
 // o resumo e os agradecimentos usarem o editor de seção. Texto sempre como texto (nunca HTML).
-import { useEffect, useId, useState, type KeyboardEvent } from 'react';
-import { palavrasChaveDoTexto, type AlteracaoDados, type DadosDoCatalogo, type OpcoesAplicarCatalogo, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
+import { useEffect, useId, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { palavrasChaveDoTexto, type AparenciaCampo, type CampoTextoCorrido, type AlteracaoDados, type DadosDoCatalogo, type OpcoesAplicarCatalogo, type CampoTextoDados, type CamposElemento, type PendenciaPreTextual, type ResumoElemento } from '../../aplicacao';
 import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanca, Metadados, PessoaTitulada, TipoTrabalhoId, VinculoInstitucional } from '../../dominio/modelo';
 import { SeletorInstitucional } from '../catalogo/SeletorInstitucional';
 import { ImportarFicha } from './ImportarFicha';
@@ -147,6 +147,8 @@ export interface PropsFormularioElemento {
   /** Etapa 3: tipo do trabalho (para a natureza proposta) e aplicação da escolha no catálogo. */
   tipoTrabalho?: TipoTrabalhoId;
   aoAplicarCatalogo?: (dados: DadosDoCatalogo, vinculo: VinculoInstitucional | null, opcoes?: OpcoesAplicarCatalogo) => void;
+  /** Especificação revista, Etapa 2: estilo do perfil em cada campo de texto corrido (alinhamento, recuos). */
+  aparencia?: Readonly<Record<CampoTextoCorrido, AparenciaCampo>>;
   aoAlterarSubtitulo: (texto: string) => void;
   aoAlterarElemento: (id: string, campos: CamposElemento) => void;
   aoRetirar: (id: string) => void;
@@ -157,14 +159,14 @@ export function FormularioElemento(p: PropsFormularioElemento) {
   const so = p.somenteLeitura;
   const base = useId();
   const dado = (campo: CampoTextoDados, rotulo: string, extra?: { dica?: string; linhas?: number }) => (
-    <Campo rotulo={rotulo} dica={extra?.dica} linhas={extra?.linhas} valor={p.dados[campo] ?? ''} somenteLeitura={so} aoMudar={(valor) => p.aoAlterarDados({ campo, valor })} />
+    <Campo rotulo={rotulo} dica={extra?.dica} linhas={extra?.linhas} aparencia={campo === 'natureza' ? p.aparencia?.natureza : undefined} valor={p.dados[campo] ?? ''} somenteLeitura={so} aoMudar={(valor) => p.aoAlterarDados({ campo, valor })} />
   );
   const pessoa = (campo: 'orientador' | 'coorientador', rotulo: string) => (
     <Pessoa rotulo={rotulo} valor={p.dados[campo] ?? {}} somenteLeitura={so} aoMudar={(valor) => p.aoAlterarDados({ campo, valor })} />
   );
   const texto = (rotulo: string, dica?: string, linhas = 6) =>
     'texto' in e || CAMPO_TEXTO.has(e.tipo) ? (
-      <Campo rotulo={rotulo} dica={dica} linhas={linhas} valor={(e as { texto?: string }).texto ?? ''} somenteLeitura={so} aoMudar={(v) => p.aoAlterarElemento(e.id, { texto: v })} />
+      <Campo rotulo={rotulo} dica={dica} linhas={linhas} aparencia={p.aparencia?.[e.tipo as CampoTextoCorrido]} valor={(e as { texto?: string }).texto ?? ''} somenteLeitura={so} aoMudar={(v) => p.aoAlterarElemento(e.id, { texto: v })} />
     ) : null;
 
   return (
@@ -268,7 +270,22 @@ export function FormularioElemento(p: PropsFormularioElemento) {
 const CAMPO_TEXTO: ReadonlySet<ElementoPreTextualId> = new Set(['fichaCatalografica', 'errata', 'dedicatoria', 'agradecimentos', 'epigrafe', 'resumo', 'abstract']);
 const GERADOS: ReadonlySet<ElementoPreTextualId> = new Set(['listaSiglas', 'listaSimbolos']);
 
-function Campo(p: { rotulo: string; dica?: string | undefined; linhas?: number | undefined; valor: string; somenteLeitura: boolean; aoMudar: (v: string) => void }) {
+const ALINHAMENTO_CSS = { esquerda: 'left', direita: 'right', centralizado: 'center', justificado: 'justify' } as const;
+
+/** O estilo do perfil na área de texto: alinhamento, recuos (em % da área útil), itálico e caixa alta só na tela. */
+function estiloDoCampo(a: AparenciaCampo | undefined): CSSProperties | undefined {
+  if (!a) return undefined;
+  return {
+    textAlign: ALINHAMENTO_CSS[a.alinhamento],
+    ...(a.recuoPrimeiraLinhaPct > 0 ? { textIndent: `${a.recuoPrimeiraLinhaPct}%` } : {}),
+    ...(a.recuoEsquerdaPct > 0 ? { paddingLeft: `calc(${a.recuoEsquerdaPct}% + var(--esp-2))` } : {}),
+    ...(a.italico ? { fontStyle: 'italic' } : {}),
+    ...(a.maiusculas ? { textTransform: 'uppercase' } : {}),
+    hyphens: 'auto',
+  };
+}
+
+function Campo(p: { rotulo: string; dica?: string | undefined; linhas?: number | undefined; aparencia?: AparenciaCampo | undefined; valor: string; somenteLeitura: boolean; aoMudar: (v: string) => void }) {
   const id = useId();
   const comuns = {
     id,
@@ -281,7 +298,7 @@ function Campo(p: { rotulo: string; dica?: string | undefined; linhas?: number |
   return (
     <div className="elemento__campo">
       <label htmlFor={id}>{p.rotulo}</label>
-      {p.linhas ? <textarea {...comuns} rows={p.linhas} onChange={(ev) => p.aoMudar(ev.target.value)} /> : <input {...comuns} type="text" onChange={(ev) => p.aoMudar(ev.target.value)} />}
+      {p.linhas ? <textarea {...comuns} lang="pt-BR" style={estiloDoCampo(p.aparencia)} data-alinhamento={p.aparencia?.alinhamento} rows={p.linhas} onChange={(ev) => p.aoMudar(ev.target.value)} /> : <input {...comuns} type="text" onChange={(ev) => p.aoMudar(ev.target.value)} />}
       {p.dica && (
         <p className="dica" id={`${id}-dica`}>
           {p.dica}

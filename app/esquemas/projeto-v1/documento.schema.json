@@ -763,13 +763,14 @@
           "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
         },
         "marcas": {
-          "maxItems": 4,
+          "maxItems": 5,
           "type": "array",
           "items": {
             "type": "string",
             "enum": [
               "italico",
               "negrito",
+              "sublinhado",
               "sobrescrito",
               "subscrito"
             ]

@@ -137,6 +137,7 @@ function marcasDoElemento(nome: string, estilo: Map<string, string>, herdadas: R
   const subscrito = (): void => void (m.delete('sobrescrito'), m.add('subscrito'));
   if (nome === 'b' || nome === 'strong') m.add('negrito');
   if (nome === 'i' || nome === 'em' || nome === 'cite') m.add('italico');
+  if (nome === 'u' || nome === 'ins') m.add('sublinhado');
   if (nome === 'sup') sobrescrito();
   if (nome === 'sub') subscrito();
 
@@ -150,6 +151,11 @@ function marcasDoElemento(nome: string, estilo: Map<string, string>, herdadas: R
   if (forma !== undefined) {
     if (forma.startsWith('italic') || forma.startsWith('oblique')) m.add('italico');
     else if (forma === 'normal') m.delete('italico');
+  }
+  const decoracao = estilo.get('text-decoration') ?? estilo.get('text-decoration-line');
+  if (decoracao !== undefined) {
+    if (decoracao.includes('underline')) m.add('sublinhado');
+    else if (decoracao === 'none') m.delete('sublinhado');
   }
   const vertical = estilo.get('vertical-align');
   if (vertical === 'super') sobrescrito();

@@ -259,7 +259,12 @@ button:disabled { opacity: 0.45; cursor: default; }
    Etapa 2: o parágrafo aparece com o alinhamento e o recuo do perfil (justificado, 1,25 cm) e com os que o autor
    escolher; fonte, corpo e entrelinha continuam neutros na tela (a forma completa sai no DOCX). */
 .formulario--compacto { margin-bottom: var(--esp-3); }
-.escrever { display: grid; grid-template-columns: minmax(180px, var(--largura-lateral)) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
+.escrever { display: grid; grid-template-columns: clamp(180px, var(--largura-estrutura, 260px), 45%) 9px minmax(0, 1fr); gap: var(--esp-2); align-items: start; }
+/* Divisor do painel da estrutura (especificação revista, Etapa 2): arrastar ou setas. */
+.escrever__divisor { align-self: stretch; cursor: col-resize; touch-action: none; position: relative; }
+.escrever__divisor::before { content: ''; position: absolute; inset: 0 4px; background: var(--cor-borda); }
+.escrever__divisor:hover::before, .escrever__divisor:focus-visible::before { inset: 0 3px; background: var(--cor-foco, var(--cor-destaque)); }
+.escrever__divisor:focus-visible { outline: 2px solid var(--cor-foco, var(--cor-destaque)); outline-offset: 1px; }
 .escrever__secoes { display: grid; gap: var(--esp-2); }
 .escrever__coluna { display: grid; gap: var(--esp-4); min-width: 0; }
 .elementos { display: grid; gap: var(--esp-2); }
@@ -328,6 +333,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .btn-formato[aria-pressed="true"] { background: var(--cor-superficie); border-color: var(--cor-destaque); box-shadow: inset 0 -3px 0 var(--cor-destaque); }
 .btn-formato--italico { font-style: italic; }
 .btn-formato--negrito { font-weight: 700; }
+.btn-formato--sublinhado { text-decoration: underline; }
 .barra-formatacao__separador { width: 1px; align-self: stretch; background: var(--cor-borda); margin: 0 var(--esp-1); }
 
 .bd-editor {

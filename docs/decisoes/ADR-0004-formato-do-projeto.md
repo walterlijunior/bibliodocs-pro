@@ -843,3 +843,9 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   (com `regras` no esquema do modelo e `revisado`). Catálogos antigos continuam válidos.
 - Arquivo novo **`.bdficha.json`** (`formato: "bibliodocs-ficha-institucional"`, `versao: 1`), descrito em
   `docs/FICHA_INSTITUCIONAL.md`.
+
+## Adendo da Etapa 2 da especificação revista (2026-11-15) — sublinhado
+
+- **Aditivo, sem subir `versaoFormato`.** `MarcaTexto` ganha `sublinhado` (o limite de marcas por trecho passa de 4 a
+  5). Uma versão anterior do aplicativo recusa o arquivo que tiver sublinhado, como acontece com qualquer valor novo de
+  enumeração. Sai no DOCX como `<w:u w:val="single"/>`. JSON Schema regenerado.

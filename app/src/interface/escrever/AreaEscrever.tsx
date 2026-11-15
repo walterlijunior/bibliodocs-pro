@@ -23,10 +23,11 @@ import { DialogoRemissiva } from './DialogoRemissiva';
 import { ListaVisuais, PainelElemento, PainelMencoes, type NovoElemento } from './GerenciadorElementos';
 import { PainelRegistro } from './PainelRegistro';
 import { PainelModelo } from './PainelModelo';
+import { DivisorEstrutura, estiloLargura, gravarLarguraEstrutura, lerLarguraEstrutura } from './DivisorEstrutura';
 import { PainelIA } from '../ia/PainelIA';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
-import { areaUtilDoPerfilMm } from '../../aplicacao';
+import { aparenciaDosCampos, areaUtilDoPerfilMm } from '../../aplicacao';
 import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
@@ -218,6 +219,14 @@ export function AreaEscrever(p: PropsAreaEscrever) {
       return !o;
     });
   const semEstrutura = (p.modo ?? 'escrever') === 'escrever' && estruturaOculta;
+  // Especificação revista, Etapa 2: largura do painel pelo divisor, lembrada neste computador.
+  const [larguraEstrutura, setLarguraEstrutura] = useState(lerLarguraEstrutura);
+  // Estilo do perfil nos campos de texto corrido (alinhamento e recuos), com o modelo aplicado.
+  const aparencia = useMemo(() => aparenciaDosCampos(t?.modelo), [t?.modelo]);
+  const mudarLargura = (n: number) => {
+    setLarguraEstrutura(n);
+    gravarLarguraEstrutura(n);
+  };
   const [relatorioConformidade, setRelatorioConformidade] = useState<RelatorioConformidade | null>(null);
   const { pedidoConformidade = 0, aoAtenderPedidoConformidade } = p;
   const verificarConformidade = p.conformidade?.verificar;
@@ -711,7 +720,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
         </dl>
       </form>}
 
-      <div className={semEstrutura ? 'escrever escrever--sem-estrutura' : 'escrever'} ref={refEscrever}>
+      <div className={semEstrutura ? 'escrever escrever--sem-estrutura' : 'escrever'} ref={refEscrever} style={estiloLargura(larguraEstrutura)}>
         <div className="escrever__coluna" id={ID_PAINEL_ESTRUTURA} hidden={semEstrutura}>
         {pre !== null && modo !== 'referencias' && (
           <ListaElementos
@@ -918,6 +927,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoFechar={() => setRelatorioConformidade(null)}
           aoLocal={(local) => irAoLocal(local, false)}
         />}
+        {!semEstrutura && <DivisorEstrutura largura={larguraEstrutura} controla={ID_PAINEL_ESTRUTURA} aoMudar={mudarLargura} />}
         <section
           className="escrever__texto"
           aria-labelledby={elementoAtivo || comObra || comConferencia ? undefined : 'titulo-secao-ativa'}
@@ -973,6 +983,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               key={elementoAtivo.id}
               elemento={elementoAtivo}
               dados={pre.dados}
+              aparencia={aparencia}
               subtitulo={pre.subtitulo}
               sugerido={pre.resumos.find((x) => x.id === elementoAtivo.id)?.sugerido === true}
               rotuloOrientador={t.tipoTrabalho === 'projeto-pesquisa' ? 'Coordenador(a)' : 'Orientador(a)'}

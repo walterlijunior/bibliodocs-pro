@@ -257,6 +257,7 @@ export {
   type CampoTextoDados,
   type CamposElemento,
 } from './servicos/pre-textuais';
+export { aparenciaDosCampos, type AparenciaCampo, type CampoTextoCorrido } from './servicos/aparencia-campos';
 export type { PendenciaPreTextual } from '../dominio/normas';
 export type { CodigoProblemaBibliografia, LocalProblema, ProblemaBibliografia } from '../dominio/verificador';
 export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';

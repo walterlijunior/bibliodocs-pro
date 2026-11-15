@@ -141,6 +141,7 @@ export class NotaView implements NodeView {
             'Shift-Mod-z': refazerNota,
             'Mod-i': toggleMark(esquemaEditor.marks['italico']!),
             'Mod-b': toggleMark(esquemaEditor.marks['negrito']!),
+            'Mod-u': toggleMark(esquemaEditor.marks['sublinhado']!),
             'Shift-Mod-=': toggleMark(esquemaEditor.marks['sobrescrito']!),
             'Mod-+': toggleMark(esquemaEditor.marks['sobrescrito']!),
             'Mod-=': toggleMark(esquemaEditor.marks['subscrito']!),

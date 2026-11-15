@@ -19,7 +19,7 @@ function trechos(conteudo: readonly InlineDeTitulo[] | undefined): Node[] {
   return (conteudo ?? []).map((i) => {
     const m = i.marcas ?? [];
     let no: Node = document.createTextNode(i.texto);
-    for (const [marca, tag] of [['italico', 'em'], ['negrito', 'strong'], ['sobrescrito', 'sup'], ['subscrito', 'sub']] as const) {
+    for (const [marca, tag] of [['italico', 'em'], ['negrito', 'strong'], ['sublinhado', 'u'], ['sobrescrito', 'sup'], ['subscrito', 'sub']] as const) {
       if (!m.includes(marca)) continue;
       const el = document.createElement(tag);
       el.append(no);

@@ -358,6 +358,15 @@ function semQuebraNaPrimeira(blocos: readonly BlocoFormatado[]): BlocoFormatado[
 }
 
 /** Corpo do documento em blocos, com as notas numeradas em ordem de leitura, dentro das seções do trabalho. */
+/**
+ * Os estilos resolvidos do perfil, sem documento (especificação revista, Etapa 2): a tela dos campos de texto corrido
+ * mostra o alinhamento e os recuos que a exportação aplica.
+ */
+export function estilosDoPerfil(perfil: Perfil, ajustes: AjustesProjeto = {}): readonly EstiloResolvido[] {
+  const regras = perfil.regras.filter((r) => regraAplicavel(r, perfil));
+  return ESTILOS.map((d) => resolverEstilo(d, regras, perfil, ajustes));
+}
+
 export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: AjustesProjeto = {}): DocumentoFormatado {
   const regras = perfil.regras.filter((r) => regraAplicavel(r, perfil));
   const regrasAguardando = perfil.regras.filter((r) => !regras.includes(r)).map((r) => r.id);

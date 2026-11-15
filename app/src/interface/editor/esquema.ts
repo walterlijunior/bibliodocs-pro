@@ -23,7 +23,7 @@ import type { AlinhamentoParagrafo, MarcaTexto } from '../../dominio/modelo';
 export const ALINHAMENTOS: readonly AlinhamentoParagrafo[] = ['esquerda', 'centralizado', 'direita', 'justificado'];
 
 /** Ordem canônica das marcas (a mesma da união `MarcaTexto`). */
-export const ORDEM_MARCAS: readonly MarcaTexto[] = ['italico', 'negrito', 'sobrescrito', 'subscrito'];
+export const ORDEM_MARCAS: readonly MarcaTexto[] = ['italico', 'negrito', 'sublinhado', 'sobrescrito', 'subscrito'];
 
 /** Atributo `id` dos nós que têm id no modelo; `null` só até o plugin de ids únicos preencher. */
 const atributoId = { id: { default: null, validate: 'string|null' } };
@@ -256,6 +256,10 @@ const marcas: Record<MarcaTexto, MarkSpec> = {
   negrito: {
     parseDOM: [{ tag: 'strong' }, { tag: 'b' }],
     toDOM: (): DOMOutputSpec => ['strong', 0],
+  },
+  sublinhado: {
+    parseDOM: [{ tag: 'u' }],
+    toDOM: (): DOMOutputSpec => ['u', 0],
   },
   sobrescrito: {
     excludes: 'sobrescrito subscrito',

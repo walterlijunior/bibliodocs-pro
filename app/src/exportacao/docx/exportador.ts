@@ -195,6 +195,7 @@ function runsDeTexto(t: Extract<TrechoFormatado, { tipo: 'texto' }>): TextRun[] 
   const marcas: IRunOptions = {
     ...(t.marcas.includes('italico') ? { italics: true } : {}),
     ...(t.marcas.includes('negrito') ? { bold: true } : {}),
+    ...(t.marcas.includes('sublinhado') ? { underline: {} } : {}),
     ...(t.marcas.includes('sobrescrito') ? { superScript: true } : {}),
     ...(t.marcas.includes('subscrito') ? { subScript: true } : {}),
   };

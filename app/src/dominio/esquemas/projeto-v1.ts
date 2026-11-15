@@ -25,7 +25,7 @@ const dataHora = z.iso.datetime({ offset: true, error: 'data e hora inválida: u
 
 // ---------- documento.json ----------
 
-export const esquemaMarcaTexto = z.enum(['italico', 'negrito', 'sobrescrito', 'subscrito']);
+export const esquemaMarcaTexto = z.enum(['italico', 'negrito', 'sublinhado', 'sobrescrito', 'subscrito']);
 
 /**
  * Texto que pode ir para XML 1.0 (DOCX): recusa controles C0 exceto tabulação e quebra de linha (`\n` = quebra de
@@ -40,7 +40,7 @@ export const esquemaInlineTexto = z
       .string()
       .max(LIMITES_V1.textoInline)
       .regex(PADRAO_TEXTO_XML, { error: 'o texto contém caractere de controle ou inválido (só tabulação e quebra de linha são aceitas)' }),
-    marcas: z.array(esquemaMarcaTexto).max(4).meta({ uniqueItems: true }).optional(),
+    marcas: z.array(esquemaMarcaTexto).max(5).meta({ uniqueItems: true }).optional(),
   })
   .superRefine((t, ctx) => {
     const marcas = t.marcas ?? [];

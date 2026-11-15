@@ -245,6 +245,7 @@ export interface PropsEditorSecao {
 interface Barra {
   italico: boolean;
   negrito: boolean;
+  sublinhado: boolean;
   sobrescrito: boolean;
   subscrito: boolean;
   nota: boolean;
@@ -268,13 +269,14 @@ interface Barra {
   podeLista: boolean;
 }
 
-const BARRA_VAZIA: Barra = { italico: false, negrito: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, podeSigla: false, desfazer: false, refazer: false, alinhamento: null, podeParagrafo: false, semRecuo: false, lista: null, podeLista: false };
+const BARRA_VAZIA: Barra = { italico: false, negrito: false, sublinhado: false, sobrescrito: false, subscrito: false, nota: false, alineas: false, citacao: false, podeAlineas: false, podeCitacao: false, equacao: false, podeEquacao: false, numerada: false, podeCitar: false, podeRemissiva: false, podeSigla: false, desfazer: false, refazer: false, alinhamento: null, podeParagrafo: false, semRecuo: false, lista: null, podeLista: false };
 const SIGLAS_VAZIAS: readonly Sigla[] = [];
 
 function barraDe(estado: EditorState): Barra {
   return {
     italico: marcaAtiva(estado, 'italico'),
     negrito: marcaAtiva(estado, 'negrito'),
+    sublinhado: marcaAtiva(estado, 'sublinhado'),
     sobrescrito: marcaAtiva(estado, 'sobrescrito'),
     subscrito: marcaAtiva(estado, 'subscrito'),
     nota: podeInserirNota(estado),
@@ -311,6 +313,7 @@ const mesmaBarra = (a: Barra, b: Barra): boolean => (Object.keys(a) as (keyof Ba
 const BOTOES_MARCA: readonly { marca: MarcaTexto; rotulo: string; nome?: string; atalho: string; aria: string; texto: string }[] = [
   { marca: 'italico', rotulo: 'Itálico', atalho: 'Ctrl+I', aria: 'Control+I', texto: 'I' },
   { marca: 'negrito', rotulo: 'Negrito', atalho: 'Ctrl+B', aria: 'Control+B', texto: 'N' },
+  { marca: 'sublinhado', rotulo: 'Sublinhado', atalho: 'Ctrl+U', aria: 'Control+U', texto: 'S' },
   { marca: 'sobrescrito', rotulo: 'Sobrescrito', nome: 'Sobrescrito x²', atalho: 'Ctrl+Shift+=', aria: 'Control+Shift+=', texto: 'x²' },
   { marca: 'subscrito', rotulo: 'Subscrito', nome: 'Subscrito x₂', atalho: 'Ctrl+=', aria: 'Control+=', texto: 'x₂' },
 ];
@@ -675,7 +678,7 @@ export function EditorSecao(p: PropsEditorSecao) {
               </button>
             ))}
             <AjudaContextual titulo="Texto">
-              <TextoAjuda>Destaques do texto: itálico para termos estrangeiros e títulos de obras, negrito com moderação, sobrescrito e subscrito para unidades e fórmulas (m², H₂O).</TextoAjuda>
+              <TextoAjuda>Destaques do texto: itálico para termos estrangeiros e títulos de obras, negrito com moderação, sublinhado quando o modelo pedir, sobrescrito e subscrito para unidades e fórmulas (m², H₂O).</TextoAjuda>
               <TextoAjuda>Selecione o trecho e clique no botão, ou use o atalho mostrado ao passar o mouse.</TextoAjuda>
             </AjudaContextual>
           </div>
