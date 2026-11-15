@@ -52,7 +52,10 @@ const esquemaPedido = z.strictObject({
       }),
     )
     .min(1)
-    .max(20),
+    .max(20)
+    // Revisão do ciclo da especificação revista (R-RV-01): uma imagem por pedido, só na mensagem do usuário (sem isso,
+    // 20 imagens de 8 MB passariam numa chamada).
+    .refine((ms) => ms.filter((m) => m.imagem).length <= 1 && ms.every((m) => !m.imagem || m.papel === 'usuario'), { error: 'no máximo uma imagem, na mensagem do usuário' }),
   maxTokens: z.int().min(1).max(32_000).optional(),
 });
 const uso = z.strictObject({ entrada: z.int().min(0).optional(), saida: z.int().min(0).optional(), total: z.int().min(0).optional() });

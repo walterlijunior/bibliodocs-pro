@@ -123,11 +123,24 @@ function declaracoes(css: string): Map<string, string> {
 export function estilosDeClasse(html: string): Map<string, Map<string, string>> {
   const classes = new Map<string, Map<string, string>>();
   for (const bloco of html.slice(0, 2_000_000).matchAll(/<style(?=[\s>/])[^>]*>([\s\S]*?)<\/style\s*>/gi)) {
-    const css = bloco[1]!.replace(/<!--|-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
-    for (const regra of css.matchAll(/(?:^|[}\s,])[a-z]*\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}/g)) {
-      const atual = classes.get(regra[1]!) ?? new Map<string, string>();
-      for (const [k, v] of declaracoes(regra[2]!)) atual.set(k, v);
-      classes.set(regra[1]!, atual);
+    // R-RV-02: só os primeiros 256 KB de cada folha (as do Excel têm poucos KB); regra sem "}" num texto enorme deixaria a
+    // busca quadrática.
+    const css = bloco[1]!.slice(0, 256 * 1024).replace(/<!--|-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    // Varredura linear (R-RV-02): seletor até "{", declarações até "}"; sem "}" a folha acaba ali.
+    for (let i = 0; i < css.length; ) {
+      const abre = css.indexOf('{', i);
+      if (abre < 0) break;
+      const fecha = css.indexOf('}', abre);
+      if (fecha < 0) break;
+      const corpo = declaracoes(css.slice(abre + 1, fecha));
+      for (const parte of css.slice(i, abre).split(',')) {
+        const nome = /(?:^|[^A-Za-z0-9_-])[a-z]*\.([A-Za-z0-9_-]+)$/.exec(parte.trim())?.[1];
+        if (!nome) continue;
+        const atual = classes.get(nome) ?? new Map<string, string>();
+        for (const [k, v] of corpo) atual.set(k, v);
+        classes.set(nome, atual);
+      }
+      i = fecha + 1;
     }
   }
   return classes;

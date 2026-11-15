@@ -48,6 +48,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Etapa 2 (2026-11-14): os botões ⏪ e ⏩ da barra superior, que lembravam um player de vídeo, viraram setas "Seção anterior" e "Próxima seção" com o nome escrito; o botão "Pré-visualizar", que não tinha função, saiu. A barra de formatação foi organizada em grupos com ícones de editor (alinhamentos, recuo, listas).
 
 ### Corrigido
+- Revisão do ciclo: o envio à IA aceita no máximo uma imagem, só na mensagem do usuário (R-RV-01); a leitura dos estilos da planilha colada do Excel é linear mesmo com folhas de estilo malformadas (R-RV-02).
 - Dependências de desenvolvimento atualizadas dentro das faixas (`npm audit fix`); nenhuma vulnerabilidade nas dependências do aplicativo (`npm audit --omit=dev`).
 - Especificação revista, Etapa 4 (2026-11-15): na janela **Ligar menção**, a mensagem sobre a menção escrita e o rótulo "Como aparece no texto" se sobrepunham (captura A): o corpo da janela usava 4 linhas fixas e a mensagem caía numa linha que podia encolher a zero. Agora cada bloco cresce com o conteúdo, o corpo rola e os botões ficam presos embaixo, também na menor janela com escala de 150%.
 - Especificação revista, Etapa 4: **cancelar** a janela de tabela (colar ou importar planilha), de figura ou de gráfico levava a rolagem do texto ao topo da seção; o cursor e o texto ficavam certos. As janelas devolvem o foco sem rolar (`preventScroll`).

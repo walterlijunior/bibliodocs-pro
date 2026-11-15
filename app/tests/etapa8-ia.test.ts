@@ -127,6 +127,10 @@ describe('canais do principal', () => {
     expect((s.pedidos[0]!.body as { messages: { content: unknown }[] }).messages[0]!.content).toEqual([{ type: 'text', text: 'U' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } }]);
     await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: { tipo: 'image/png', base64: 'não é base64' } }] }])).rejects.toThrow();
     await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: { tipo: 'image/gif', base64: 'AAAA' } }] }])).rejects.toThrow();
+    // R-RV-01: duas imagens, ou imagem nas instruções, são recusadas.
+    const img = { tipo: 'image/png' as const, base64: 'AAAA' };
+    await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: img }, { papel: 'usuario', texto: 'V', imagem: img }] }])).rejects.toThrow();
+    await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'sistema', texto: 'S', imagem: img }, { papel: 'usuario', texto: 'U' }] }])).rejects.toThrow();
     expect(s.pedidos).toHaveLength(1);
   });
 

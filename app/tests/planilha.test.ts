@@ -267,3 +267,12 @@ describe('especificação revista, Etapa 4: alinhamento, bordas e estilos da ori
   });
 });
 
+
+describe('revisão do ciclo da especificação revista (R-RV-02)', () => {
+  it('folha <style> enorme com regras sem "}" é lida em tempo linear', () => {
+    const html = `<html><head><style>${'.xl1 {border:1px solid '.repeat(80_000)}</style></head><body><table><tr><td class=xl1>a</td></tr></table></body></html>`;
+    const t0 = performance.now();
+    estilosDeClasse(html);
+    expect(performance.now() - t0).toBeLessThan(1000);
+  });
+});
