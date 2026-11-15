@@ -5,6 +5,10 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+## [0.1.0] — 2026-11-15
+
+Primeira versão publicada: as sete etapas do plano mestre, as oito etapas da especificação de atualização e a especificação revista (ficha institucional, painel de conformidade, IA para tabelas e conformidade). Instalador para Windows sem assinatura de código (ver o README).
+
 ### Projeto
 - Código aberto sob a GNU GPL v3 ou posterior (`LICENSE`); o diálogo "Sobre" informa a licença e o instalador leva `LICENSE.txt`.
 - README da raiz apresenta o aplicativo; o guia do kit do Claude Code passou para `KIT_CLAUDE_CODE.md`.
