@@ -7,6 +7,7 @@ import type { ElementoPreTextual, ElementoPreTextualId, IdiomaResumo, MembroBanc
 import { SeletorInstitucional } from '../catalogo/SeletorInstitucional';
 import { ImportarFicha } from './ImportarFicha';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
+import { SeletorTitulacao } from '../casca/SeletorTitulacao';
 import { Icone } from '../Icones';
 
 export const ROTULOS_ELEMENTO: Readonly<Record<ElementoPreTextualId, string>> = {
@@ -21,6 +22,7 @@ export const ROTULOS_ELEMENTO: Readonly<Record<ElementoPreTextualId, string>> = 
   resumo: 'Resumo',
   abstract: 'Resumo em língua estrangeira',
   listaIlustracoes: 'Lista de ilustrações',
+  listaQuadros: 'Lista de quadros',
   listaTabelas: 'Lista de tabelas',
   listaSiglas: 'Lista de abreviaturas e siglas',
   listaSimbolos: 'Lista de símbolos',
@@ -259,7 +261,14 @@ export function FormularioElemento(p: PropsFormularioElemento) {
           Usar lista única de ilustrações
         </label>
       )}
-      {(e.tipo === 'listaIlustracoes' || e.tipo === 'listaTabelas' || e.tipo === 'sumario') && <p className="dica">Gerado automaticamente ao exportar o DOCX. As páginas são estimadas; no Word, selecione tudo e pressione F9 para atualizar os campos.</p>}
+      {e.tipo === 'listaSiglas' && (
+        <label className="elemento__marcar">
+          <input type="checkbox" checked={e.agrupada === true} disabled={so} onChange={(ev) => p.aoAlterarElemento(e.id, { agrupada: ev.target.checked })} />
+          Separar por grupos (crie os grupos em Cadastros; o perfil UFT pede a relação alfabética simples)
+        </label>
+      )}
+      {e.tipo === 'listaQuadros' && <p className="dica">Os quadros do trabalho saem nesta lista, na ordem do texto, e não na lista de ilustrações.</p>}
+      {(e.tipo === 'listaIlustracoes' || e.tipo === 'listaQuadros' || e.tipo === 'listaTabelas' || e.tipo === 'sumario') && <p className="dica">Gerado automaticamente ao exportar o DOCX. As páginas são estimadas; no Word, selecione tudo e pressione F9 para atualizar os campos.</p>}
       {GERADOS.has(e.tipo) && <p className="dica">Este elemento é gerado a partir do texto do trabalho. A geração chega numa próxima versão.</p>}
 
       <ListaPendencias itens={p.pendencias} rotulo={`Pendências: ${ROTULOS_ELEMENTO[e.tipo]}`} />
@@ -312,7 +321,7 @@ function Pessoa(p: { rotulo: string; valor: PessoaTitulada; somenteLeitura: bool
   return (
     <fieldset className="elemento__grupo">
       <legend>{p.rotulo}</legend>
-      <Campo rotulo="Titulação" dica="Ex.: Prof. Dr." valor={p.valor.titulacao ?? ''} somenteLeitura={p.somenteLeitura} aoMudar={(titulacao) => p.aoMudar({ ...p.valor, titulacao })} />
+      <SeletorTitulacao valor={p.valor.titulacao} somenteLeitura={p.somenteLeitura} aoMudar={(titulacao) => p.aoMudar({ ...p.valor, titulacao })} />
       <Campo rotulo="Nome" valor={p.valor.nome ?? ''} somenteLeitura={p.somenteLeitura} aoMudar={(nome) => p.aoMudar({ ...p.valor, nome })} />
     </fieldset>
   );
@@ -326,7 +335,7 @@ function Banca(p: { banca: readonly MembroBanca[]; somenteLeitura: boolean; aoMu
       {p.banca.map((m, i) => (
         <fieldset key={i} className="elemento__grupo">
           <legend>Membro {i + 1}</legend>
-          <Campo rotulo="Titulação" valor={m.titulacao ?? ''} somenteLeitura={p.somenteLeitura} aoMudar={(titulacao) => mudar(i, { ...m, titulacao })} />
+          <SeletorTitulacao valor={m.titulacao} somenteLeitura={p.somenteLeitura} aoMudar={(titulacao) => mudar(i, { ...m, titulacao })} />
           <Campo rotulo="Nome" valor={m.nome ?? ''} somenteLeitura={p.somenteLeitura} aoMudar={(nome) => mudar(i, { ...m, nome })} />
           <Campo rotulo="Instituição" valor={m.instituicao ?? ''} somenteLeitura={p.somenteLeitura} aoMudar={(instituicao) => mudar(i, { ...m, instituicao })} />
           {!p.somenteLeitura && (

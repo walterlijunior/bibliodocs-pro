@@ -26,6 +26,7 @@ export type AlteracaoDados =
 
 export interface CamposElemento {
   listaUnica?: boolean;
+  agrupada?: boolean;
   texto?: string;
   palavrasChave?: readonly string[];
   idioma?: IdiomaResumo;
@@ -35,6 +36,7 @@ export interface CamposElemento {
 
 const CAMPOS_POR_TIPO: Partial<Readonly<Record<ElementoPreTextualId, readonly (keyof CamposElemento)[]>>> = {
   listaIlustracoes: ['listaUnica'],
+  listaSiglas: ['agrupada'],
   fichaCatalografica: ['texto'],
   errata: ['texto'],
   dedicatoria: ['texto'],
@@ -184,6 +186,8 @@ export function aplicarCampos(e: ElementoPreTextual, campos: CamposElemento): El
     delete novo[k];
     if (k === 'listaUnica') {
       if (campos.listaUnica === true) novo.listaUnica = true;
+    } else if (k === 'agrupada') {
+      if (campos.agrupada === true) novo.agrupada = true;
     } else if (k === 'texto') {
       const v = limparTexto(campos.texto ?? '', LIMITES_V1.textoInline);
       if (v !== '') novo.texto = v;

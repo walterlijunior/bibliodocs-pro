@@ -53,6 +53,7 @@ export type {
   ObraNoTodo,
   PessoaTitulada,
   Secao,
+  GrupoSiglas,
   Sigla,
   Simbolo,
   TermoGlossario,

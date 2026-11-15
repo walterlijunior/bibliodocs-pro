@@ -30,6 +30,7 @@ const NOMES: Readonly<Record<ElementoPreTextualId, string>> = {
   resumo: 'Resumo',
   abstract: 'Resumo em língua estrangeira',
   listaIlustracoes: 'Lista de ilustrações',
+  listaQuadros: 'Lista de quadros',
   listaTabelas: 'Lista de tabelas',
   listaSiglas: 'Lista de abreviaturas e siglas',
   listaSimbolos: 'Lista de símbolos',

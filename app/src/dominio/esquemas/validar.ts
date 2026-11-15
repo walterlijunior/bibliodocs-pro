@@ -177,6 +177,7 @@ function idRepetido(doc: Documento): readonly PropertyKey[] | null {
   for (const [i, e] of (doc.posTextuais ?? []).entries()) if (!novo(e.id)) return ['posTextuais', i, 'id'];
   for (const [i, o] of (doc.obras ?? []).entries()) if (!novo(o.id)) return ['obras', i, 'id'];
   for (const [i, s] of (doc.siglas ?? []).entries()) if (!novo(s.id)) return ['siglas', i, 'id'];
+  for (const [i, g] of (doc.gruposSiglas ?? []).entries()) if (!novo(g.id)) return ['gruposSiglas', i, 'id'];
   for (const [i, s] of (doc.simbolos ?? []).entries()) if (!novo(s.id)) return ['simbolos', i, 'id'];
   for (const [i, s] of (doc.glossario ?? []).entries()) if (!novo(s.id)) return ['glossario', i, 'id'];
   return null;

@@ -97,3 +97,49 @@ describe('M6-T01: DOCX', () => {
     expect(f.avisos.filter((a) => a.codigo === 'ELEMENTO_ADIADO')).toEqual([]);
   });
 });
+
+describe('Especificação revista, Etapa 3: lista de quadros (D-E3-11)', () => {
+  const comQuadros: ElementoPreTextual[] = [{ tipo: 'listaIlustracoes', id: 'pre_lista0001' }, { tipo: 'listaQuadros', id: 'pre_lista0003' }, { tipo: 'listaTabelas', id: 'pre_lista0002' }];
+  const quadro = (n: number, titulo: string) => ({ ...QUADRO_CORPUS, id: `tab_quadro${String(n).padStart(3, '0')}`, titulo: [{ tipo: 'texto' as const, texto: titulo }] });
+  it('com a lista de quadros, os quadros saem dela, na ordem, e não na lista de ilustrações', () => {
+    const f = formatar(doc([figura(1), quadro(1, 'Primeiro'), TABELA_CORPUS, quadro(2, 'Segundo')], comQuadros), PERFIL);
+    expect(titulos(f)).toEqual(['LISTA DE ILUSTRAÇÕES', 'LISTA DE QUADROS', 'LISTA DE TABELAS']);
+    expect(listas(f).map((l) => l.entradas.map((e) => texto(e.trechos)))).toEqual([
+      ['Figura 1 – Degradê fictício de teste'],
+      ['Quadro 1 – Primeiro', 'Quadro 2 – Segundo'],
+      ['Tabela 1 – Produção fictícia por região, 2020–2022'],
+    ]);
+  });
+  it('mover um quadro troca número e ordem na lista; sem quadros, a lista não reserva folha', () => {
+    const f = formatar(doc([quadro(2, 'Segundo'), figura(1), quadro(1, 'Primeiro')], comQuadros), PERFIL);
+    expect(listas(f)[1]!.entradas.map((e) => texto(e.trechos))).toEqual(['Quadro 1 – Segundo', 'Quadro 2 – Primeiro']);
+    expect(titulos(formatar(doc([figura(1)], comQuadros), PERFIL))).toEqual(['LISTA DE ILUSTRAÇÕES']);
+  });
+  it('o elemento é válido no arquivo e fica entre a lista de ilustrações e a de tabelas', () => {
+    expect(esquemaElementoPreTextual.safeParse({ tipo: 'listaQuadros', id: 'pre_lista0003' }).success).toBe(true);
+  });
+});
+
+describe('Especificação revista, Etapa 3: grupos de siglas (D-E3-12)', () => {
+  const siglas = [
+    { id: 'sig_aneel01', sigla: 'ANEEL', extenso: 'Agência Nacional de Energia Elétrica', grupo: 'grp_orgs0001' },
+    { id: 'sig_abnt001', sigla: 'ABNT', extenso: 'Associação Brasileira de Normas Técnicas', grupo: 'grp_orgs0001' },
+    { id: 'sig_dre0001', sigla: 'DRE', extenso: 'Demonstração do Resultado do Exercício', grupo: 'grp_docs0001' },
+    { id: 'sig_ben0001', sigla: 'BEN', extenso: 'Balanço Energético Nacional', grupo: 'grp_docs0001' },
+    { id: 'sig_uft0001', sigla: 'UFT', extenso: 'Universidade Federal do Tocantins' },
+  ];
+  const grupos = [{ id: 'grp_orgs0001', nome: 'Siglas de Organizações e Normas' }, { id: 'grp_docs0001', nome: 'Siglas de Documentos e Termos Técnicos' }];
+  const corpo = [{ id: 'sec_sigla001', titulo: [{ tipo: 'texto' as const, texto: 'Introdução' }], subsecoes: [], blocos: [{ tipo: 'paragrafo' as const, id: 'par_sigla001', conteudo: siglas.map((s) => ({ tipo: 'sigla' as const, id: `x${s.id}`, sigla: s.id })) }] }];
+  const linhas = (agrupada: boolean) => {
+    const f = formatar({ corpo, siglas, gruposSiglas: grupos, preTextuais: [{ tipo: 'listaSiglas', id: 'pre_sigla001', ...(agrupada ? { agrupada: true as const } : {}) }] } as never, PERFIL);
+    return { f, textos: todos(f).flatMap((b) => (b.tipo === 'paragrafo' && b.estilo === 'entradaLista' ? [texto(b.trechos).split('\t')[0]] : [])) };
+  };
+  it('sem a opção, a lista é a relação alfabética simples (RN-165)', () => {
+    expect(linhas(false).textos).toEqual(['ABNT', 'ANEEL', 'BEN', 'DRE', 'UFT']);
+  });
+  it('agrupada: sem grupo primeiro, depois os grupos na ordem do autor, alfabética dentro de cada um, com aviso', () => {
+    const { f, textos } = linhas(true);
+    expect(textos).toEqual(['UFT', 'Siglas de Organizações e Normas', 'ABNT', 'ANEEL', 'Siglas de Documentos e Termos Técnicos', 'BEN', 'DRE']);
+    expect(f.avisos.some((a) => a.codigo === 'FORMA_SEM_FONTE' && /RN-165/.test(a.mensagem))).toBe(true);
+  });
+});

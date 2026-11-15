@@ -849,3 +849,11 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
 - **Aditivo, sem subir `versaoFormato`.** `MarcaTexto` ganha `sublinhado` (o limite de marcas por trecho passa de 4 a
   5). Uma versão anterior do aplicativo recusa o arquivo que tiver sublinhado, como acontece com qualquer valor novo de
   enumeração. Sai no DOCX como `<w:u w:val="single"/>`. JSON Schema regenerado.
+
+## Adendo da Etapa 3 da especificação revista (2026-11-15) — lista de quadros e grupos de siglas
+
+- **Aditivos, sem subir `versaoFormato`** (uma versão anterior recusa o arquivo que os usar, como em qualquer valor novo):
+  pré-textual `listaQuadros` (só lugar, entre `listaIlustracoes` e `listaTabelas` na ordem canônica); `listaSiglas`
+  aceita `agrupada: true`; `Sigla.grupo?` (id) e `Documento.gruposSiglas?: { id, nome }[]` (1 a 50, ids únicos no
+  documento). Sigla com grupo que não existe sai sem grupo. Perfil UFT: `listaQuadros` opcional em todos os tipos
+  (RN-161). JSON Schema regenerado.

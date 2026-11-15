@@ -100,6 +100,14 @@ export interface Sigla {
   id: Id;
   sigla: string;
   extenso: string;
+  /** Especificação revista, Etapa 3 (D-E3-12): grupo opcional (id em `gruposSiglas`); ausente = sem grupo. */
+  grupo?: Id;
+}
+
+/** Grupo opcional da lista de siglas, na ordem escolhida pelo autor (D-E3-12). */
+export interface GrupoSiglas {
+  id: Id;
+  nome: string;
 }
 
 export interface Simbolo {
@@ -338,6 +346,8 @@ export type ElementoPreTextualId =
   | 'resumo'
   | 'abstract'
   | 'listaIlustracoes'
+  /** Especificação revista, Etapa 3 (D-E3-11): lista própria dos quadros. */
+  | 'listaQuadros'
   | 'listaTabelas'
   | 'listaSiglas'
   | 'listaSimbolos'
@@ -365,9 +375,11 @@ export interface MembroBanca {
  * só a opção de agrupamento. Campo vazio fica ausente.
  */
 export type ElementoPreTextual =
-  | SoLugar<'capa' | 'folhaRosto' | 'listaTabelas' | 'listaSiglas' | 'listaSimbolos' | 'sumario'>
+  | SoLugar<'capa' | 'folhaRosto' | 'listaQuadros' | 'listaTabelas' | 'listaSimbolos' | 'sumario'>
   /** Ausente = listas por espécie a partir de cinco itens (RN-161, C-B8). */
   | { tipo: 'listaIlustracoes'; id: Id; listaUnica?: true }
+  /** `agrupada`: separar a lista pelos grupos de siglas (D-E3-12); ausente = relação alfabética simples (RN-165). */
+  | { tipo: 'listaSiglas'; id: Id; agrupada?: true }
   | ComTexto<'fichaCatalografica' | 'errata' | 'dedicatoria' | 'agradecimentos' | 'epigrafe'>
   | { tipo: 'folhaAprovacao'; id: Id; dataAprovacao?: string; banca?: MembroBanca[] }
   | { tipo: 'resumo'; id: Id; texto?: string; palavrasChave?: string[] }
@@ -549,6 +561,7 @@ export interface Documento {
   obras?: Obra[];
   /** Cadastros de abreviaturas e siglas; ausência quando vazio (M6-T02). */
   siglas?: Sigla[];
+  gruposSiglas?: GrupoSiglas[];
   simbolos?: Simbolo[];
   glossario?: TermoGlossario[];
   /** Registro de atividades e cronograma (Etapa 6): fora do manuscrito, salvo quando incorporado num apêndice. */

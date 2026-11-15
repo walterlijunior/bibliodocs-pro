@@ -90,7 +90,7 @@ function membro(b: MembroBanca): string {
 export function blocosPreTextual(
   e: ElementoPreTextual,
   m: Metadados,
-  opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado; rotulosPalavrasChave: RotulosPalavrasChave; listas: (e: Extract<ElementoPreTextual, { tipo: 'listaIlustracoes' | 'listaTabelas' }>) => BlocoFormatado[]; siglas: () => BlocoFormatado[]; simbolos: () => BlocoFormatado[] },
+  opcoes: { meioDaAreaUtilTw: number | null; avisos: AvisoFormatacao[]; entradas: () => BlocoFormatado; rotulosPalavrasChave: RotulosPalavrasChave; listas: (e: Extract<ElementoPreTextual, { tipo: 'listaIlustracoes' | 'listaQuadros' | 'listaTabelas' }>) => BlocoFormatado[]; siglas: () => BlocoFormatado[]; simbolos: () => BlocoFormatado[] },
 ): BlocoFormatado[] {
   const titulo = (texto: string, origem: readonly string[]) => paragrafo('tituloSemIndicativo', [trecho(texto)], origem, { novaPagina: true });
   switch (e.tipo) {
@@ -144,6 +144,7 @@ export function blocosPreTextual(
     case 'sumario':
       return [titulo('SUMÁRIO', ['RN-007', 'RN-045', 'RN-171']), opcoes.entradas()];
     case 'listaIlustracoes':
+    case 'listaQuadros':
     case 'listaTabelas':
       return opcoes.listas(e);
     case 'listaSiglas':

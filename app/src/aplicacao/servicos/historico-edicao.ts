@@ -12,7 +12,7 @@
  */
 import type { Documento, ElementoPosTextual, ElementoPreTextual, Id, InversoSecao, Obra } from '../../dominio/modelo';
 
-export type CadastrosDocumento = Pick<Documento, 'siglas' | 'simbolos' | 'glossario'>;
+export type CadastrosDocumento = Pick<Documento, 'siglas' | 'gruposSiglas' | 'simbolos' | 'glossario'>;
 
 /**
  * Incluir e retirar elemento pré-textual (M2-T08): o que desfaz é só aquele elemento. Os campos digitados depois em outros

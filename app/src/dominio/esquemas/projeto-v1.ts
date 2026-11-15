@@ -319,8 +319,9 @@ export const esquemaElementoPreTextual = z
         .optional(),
     }),
     z.strictObject({ tipo: z.literal('listaIlustracoes'), id, listaUnica: z.literal(true).optional() }),
+    soLugar('listaQuadros'),
     soLugar('listaTabelas'),
-    soLugar('listaSiglas'),
+    z.strictObject({ tipo: z.literal('listaSiglas'), id, agrupada: z.literal(true).optional() }),
     soLugar('listaSimbolos'),
     soLugar('sumario'),
     comTexto('dedicatoria'),
@@ -403,7 +404,8 @@ export const esquemaObra = z
   .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
   .meta({ id: 'Obra' });
 
-export const esquemaSigla = z.strictObject({ id, sigla: campoCurto, extenso: campoCurto }).meta({ id: 'Sigla' });
+export const esquemaSigla = z.strictObject({ id, sigla: campoCurto, extenso: campoCurto, grupo: id.optional() }).meta({ id: 'Sigla' });
+export const esquemaGrupoSiglas = z.strictObject({ id, nome: campoCurto.min(1) }).meta({ id: 'GrupoSiglas' });
 export const esquemaSimbolo = z.strictObject({ id, simbolo: campoCurto, significado: campoCurto }).meta({ id: 'Simbolo' });
 export const esquemaTermoGlossario = z.strictObject({ id, termo: campoCurto, definicao: campoCurto }).meta({ id: 'TermoGlossario' });
 
@@ -472,6 +474,7 @@ export const esquemaDocumentoV1 = z.strictObject({
   posTextuais: z.array(esquemaElementoPosTextual).min(1).max(LIMITES_V1.elementosPosTextuais).optional(),
   obras: z.array(esquemaObra).min(1, { error: 'lista de obras vazia: omita o campo quando não houver obras' }).max(LIMITES_V1.obras).optional(),
   siglas: z.array(esquemaSigla).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
+  gruposSiglas: z.array(esquemaGrupoSiglas).min(1).max(50).optional(),
   simbolos: z.array(esquemaSimbolo).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
   glossario: z.array(esquemaTermoGlossario).min(1).max(LIMITES_V1.entradasCatalogo).optional(),
   registro: z

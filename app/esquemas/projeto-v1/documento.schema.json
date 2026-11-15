@@ -185,7 +185,7 @@
     },
     "preTextuais": {
       "minItems": 1,
-      "maxItems": 15,
+      "maxItems": 16,
       "type": "array",
       "items": {
         "$ref": "#/$defs/ElementoPreTextual"
@@ -220,6 +220,14 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/Sigla"
+      }
+    },
+    "gruposSiglas": {
+      "minItems": 1,
+      "maxItems": 50,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/GrupoSiglas"
       }
     },
     "simbolos": {
@@ -950,6 +958,24 @@
           "properties": {
             "tipo": {
               "type": "string",
+              "const": "listaQuadros"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            }
+          },
+          "required": [
+            "tipo",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tipo": {
+              "type": "string",
               "const": "listaTabelas"
             },
             "id": {
@@ -973,6 +999,10 @@
             "id": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{8,64}$"
+            },
+            "agrupada": {
+              "type": "boolean",
+              "const": true
             }
           },
           "required": [
@@ -2773,12 +2803,36 @@
           "minLength": 1,
           "maxLength": 2000,
           "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "grupo": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
         }
       },
       "required": [
         "id",
         "sigla",
         "extenso"
+      ],
+      "additionalProperties": false
+    },
+    "GrupoSiglas": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "nome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        }
+      },
+      "required": [
+        "id",
+        "nome"
       ],
       "additionalProperties": false
     },

@@ -1930,6 +1930,13 @@
      ],
      "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
     },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
+    },
     "listaTabelas": {
      "presenca": "opcional",
      "rn": [
@@ -2140,6 +2147,13 @@
      ],
      "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
     },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
+    },
     "listaTabelas": {
      "presenca": "opcional",
      "rn": [
@@ -2340,6 +2354,13 @@
       "RN-160"
      ],
      "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
+    },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
     },
     "listaTabelas": {
      "presenca": "opcional",
@@ -2551,6 +2572,13 @@
      ],
      "fonte": "M, p. 31, Quadro 5; p. 42, 5.11"
     },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
+    },
     "listaTabelas": {
      "presenca": "opcional",
      "rn": [
@@ -2728,6 +2756,13 @@
      "rn": [],
      "fonte": "modelo UFT de relatório técnico (exemplo, não norma; C-B18)"
     },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
+    },
     "listaTabelas": {
      "presenca": "sugerido",
      "rn": [],
@@ -2868,6 +2903,13 @@
      "presenca": "sugerido",
      "rn": [],
      "fonte": "modelo UFT de projeto de pesquisa (exemplo, não norma; C-B18)"
+    },
+    "listaQuadros": {
+     "presenca": "opcional",
+     "rn": [
+      "RN-161"
+     ],
+     "fonte": "M, p. 42, 5.11 e anotação da Fig. 12 (listas próprias por tipo, RN-161); D-E3-11"
     },
     "listaTabelas": {
      "presenca": "sugerido",

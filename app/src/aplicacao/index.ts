@@ -262,3 +262,4 @@ export type { PendenciaPreTextual } from '../dominio/normas';
 export type { CodigoProblemaBibliografia, LocalProblema, ProblemaBibliografia } from '../dominio/verificador';
 export { HistoricoEdicao, LIMITE_HISTORICO_EDICAO, type EntradaHistorico } from './servicos/historico-edicao';
 export * from './catalogo';
+export { TITULACOES, titulacaoDaLista } from './titulacoes';

@@ -183,10 +183,10 @@ describe('elementos no documento.json', () => {
     expect(primeiroErro(d)).toEqual({ caminho: 'documento.preTextuais[1].tipo', mensagem: 'elemento fora da ordem do Quadro 5 do Manual UFT' });
   });
 
-  it('a ordem canônica é a do Quadro 5, item a item (tabela da matriz, linhas 1–24, sem a lombada)', () => {
+  it('a ordem canônica é a do Quadro 5, item a item (tabela da matriz, linhas 1–24, sem a lombada; lista de quadros logo depois da de ilustrações, D-E3-11)', () => {
     expect(ORDEM_PRE_TEXTUAIS).toEqual([
       'capa', 'folhaRosto', 'fichaCatalografica', 'errata', 'folhaAprovacao', 'dedicatoria', 'agradecimentos', 'epigrafe',
-      'resumo', 'abstract', 'listaIlustracoes', 'listaTabelas', 'listaSiglas', 'listaSimbolos', 'sumario',
+      'resumo', 'abstract', 'listaIlustracoes', 'listaQuadros', 'listaTabelas', 'listaSiglas', 'listaSimbolos', 'sumario',
     ]);
     expect(ORDEM_POS_TEXTUAIS).toEqual(['referencias', 'glossario', 'apendice', 'anexo', 'indice']);
   });

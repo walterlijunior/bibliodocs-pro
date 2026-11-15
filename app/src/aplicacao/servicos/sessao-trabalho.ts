@@ -977,6 +977,7 @@ export class SessaoTrabalho {
   #cadastros(doc: Documento): CadastrosDocumento {
     return {
       ...(doc.siglas ? { siglas: doc.siglas } : {}),
+      ...(doc.gruposSiglas ? { gruposSiglas: doc.gruposSiglas } : {}),
       ...(doc.simbolos ? { simbolos: doc.simbolos } : {}),
       ...(doc.glossario ? { glossario: doc.glossario } : {}),
     };
@@ -995,7 +996,7 @@ export class SessaoTrabalho {
   }
 
   #trocarCadastros(a: Extract<Aberto, { modo: 'edicao' }>, cadastros: CadastrosDocumento): boolean {
-    const { siglas: _s, simbolos: _y, glossario: _g, ...resto } = a.pacote.documento;
+    const { siglas: _s, gruposSiglas: _gs, simbolos: _y, glossario: _g, ...resto } = a.pacote.documento;
     const candidato: Documento = { ...resto, ...cadastros };
     const r = validarDocumentoV1(candidato);
     if (!r.ok) return false;

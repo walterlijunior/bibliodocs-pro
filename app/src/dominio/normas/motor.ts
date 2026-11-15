@@ -294,13 +294,14 @@ const textoVazio = (c: readonly Inline[]): boolean => c.every((i) => i.tipo === 
 /** Listas geradas dos pré-textuais, para o aviso de lista vazia (N-M6-15). */
 const NOME_LISTA = {
   listaIlustracoes: 'A LISTA DE ILUSTRAÇÕES',
+  listaQuadros: 'A LISTA DE QUADROS',
   listaTabelas: 'A LISTA DE TABELAS',
   listaSiglas: 'A LISTA DE ABREVIATURAS E SIGLAS',
   listaSimbolos: 'A LISTA DE SÍMBOLOS',
 } as const;
 
 export type DocumentoParaFormatar = Pick<Documento, 'corpo'> &
-  Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras' | 'siglas' | 'simbolos' | 'glossario'>> & {
+  Partial<Pick<Documento, 'metadados' | 'preTextuais' | 'posTextuais' | 'obras' | 'siglas' | 'gruposSiglas' | 'simbolos' | 'glossario'>> & {
     /** Bytes das imagens das ilustrações, pelo sha256 (M5-T06). Sem a imagem, a ilustração sai sem ela, com aviso. */
     imagens?: ReadonlyMap<string, Uint8Array>;
     /** PNG de cada gráfico gerado, pelo id do bloco, desenhado pela interface (M5-T09). Sem ele, sai sem a imagem. */
@@ -686,8 +687,13 @@ export function formatar(doc: DocumentoParaFormatar, perfil: Perfil, ajustes: Aj
   const blocosPre = pre.flatMap((e) => {
     const r = blocosPreTextual(e, m, {
       meioDaAreaUtilTw, avisos, entradas, rotulosPalavrasChave,
-      listas: (elemento) => listasDeElementos(elemento, leitura, legendas, regras, perfil, visuais.larguraTw),
-      siglas: () => temProcedimento(regras, 'listaDeSiglas') === null ? [] : blocosListaSiglas(doc.siglas ?? [], siglasUsadas, visuais.larguraTw),
+      listas: (elemento) => listasDeElementos(elemento, leitura, legendas, regras, perfil, visuais.larguraTw, { quadrosProprios: (doc.preTextuais ?? []).some((x) => x.tipo === 'listaQuadros') }),
+      siglas: () => {
+        if (temProcedimento(regras, 'listaDeSiglas') === null) return [];
+        const agrupada = (doc.preTextuais ?? []).some((x) => x.tipo === 'listaSiglas' && x.agrupada === true) && (doc.gruposSiglas ?? []).length > 0;
+        if (agrupada) avisos.push({ codigo: 'FORMA_SEM_FONTE', id: (doc.preTextuais ?? []).find((x) => x.tipo === 'listaSiglas')!.id, mensagem: 'O Manual da UFT pede a lista de siglas em ordem alfabética (RN-165): os grupos são escolha sua; confira se o seu curso aceita.' });
+        return blocosListaSiglas(doc.siglas ?? [], siglasUsadas, visuais.larguraTw, agrupada ? doc.gruposSiglas : undefined);
+      },
       simbolos: () => temProcedimento(regras, 'listaDeSimbolos') === null ? [] : blocosListaSimbolos(doc.simbolos ?? [], visuais.larguraTw),
     });
     // N-M6-15, R-M6-09: lista incluída sem nenhum item não reserva folha, mas o autor fica sabendo.

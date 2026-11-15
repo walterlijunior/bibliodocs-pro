@@ -231,7 +231,7 @@ export function verificarConformidade(doc: Documento, perfil: Perfil, opcoes: Op
 const PRE_TEXTUAIS: Readonly<Record<ElementoPreTextualId, string>> = {
   capa: 'Capa', folhaRosto: 'Folha de rosto', fichaCatalografica: 'Ficha catalográfica', errata: 'Errata',
   folhaAprovacao: 'Folha de aprovação', dedicatoria: 'Dedicatória', agradecimentos: 'Agradecimentos', epigrafe: 'Epígrafe',
-  resumo: 'Resumo', abstract: 'Resumo em língua estrangeira', listaIlustracoes: 'Lista de ilustrações',
+  resumo: 'Resumo', abstract: 'Resumo em língua estrangeira', listaIlustracoes: 'Lista de ilustrações', listaQuadros: 'Lista de quadros',
   listaTabelas: 'Lista de tabelas', listaSiglas: 'Lista de abreviaturas e siglas', listaSimbolos: 'Lista de símbolos', sumario: 'Sumário',
 };
 

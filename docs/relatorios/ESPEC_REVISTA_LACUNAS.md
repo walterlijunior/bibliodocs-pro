@@ -40,7 +40,7 @@ com o código em `bd03f4a`. Conferido nos arquivos indicados [VERIFICADO], salvo
 ## Plano (um commit por incremento, `verificar:tudo` em cada um)
 
 1. **R1 — Etapa 2:** L1 (sublinhado no editor, no arquivo e no DOCX), L2 (divisor), L3 (justificação nos campos). **Feito em 2026-11-15** (`e2e/editor-revisto.spec.ts`).
-2. **R2 — Etapa 3:** L4, L5 (teste e correção se precisar), L6, L7.
+2. **R2 — Etapa 3:** L4, L5 (teste e correção se precisar), L6, L7. **Feito em 2026-11-15** (`e2e/pre-textuais-revisto.spec.ts`, `tests/caixa-folha-rosto.test.ts`, `tests/motor-listas.test.ts`). L5: a edição 2022 do Manual pede a folha de rosto em caixa baixa e é o que sai; a especificação cita outra edição (D-E3-10, pendente do usuário).
 3. **R3 — Etapa 4:** L12, L11, L9, L10.
 4. **R4 — Etapa 6:** L13.
 5. **R5 — Etapa 9:** L14, L15.

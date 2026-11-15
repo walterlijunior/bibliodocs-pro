@@ -32,6 +32,7 @@ export const ORDEM_PRE_TEXTUAIS: readonly ElementoPreTextualId[] = [
   'resumo',
   'abstract',
   'listaIlustracoes',
+  'listaQuadros',
   'listaTabelas',
   'listaSiglas',
   'listaSimbolos',
