@@ -43,6 +43,6 @@ com o código em `bd03f4a`. Conferido nos arquivos indicados [VERIFICADO], salvo
 2. **R2 — Etapa 3:** L4, L5 (teste e correção se precisar), L6, L7. **Feito em 2026-11-15** (`e2e/pre-textuais-revisto.spec.ts`, `tests/caixa-folha-rosto.test.ts`, `tests/motor-listas.test.ts`). L5: a edição 2022 do Manual pede a folha de rosto em caixa baixa e é o que sai; o usuário decidiu seguir a edição 2022 (D-E3-10).
 3. **R3 — Etapa 4:** L12, L11, L9, L10. **L12, L11 e L9 feitos em 2026-11-15** (`e2e/ligar-mencao-layout.spec.ts` reproduz a captura A na versão anterior e passa na nova; `e2e/cancelar-posicao.spec.ts` achou a rolagem indo ao topo ao cancelar; `tests/planilha.test.ts`). **L10 feito em 2026-11-15** na opção 1 do usuário (só o que a norma aceita; `e2e/ajuste-tamanho.spec.ts`). R3 concluído.
 4. **R4 — Etapa 6:** L13. **Feito em 2026-11-15** (`e2e/painel-conformidade.spec.ts`).
-5. **R5 — Etapa 9:** L14, L15.
+5. **R5 — Etapa 9:** L14, L15. **Feito em 2026-11-15** (`e2e/ia-tabela-conformidade.spec.ts`, `tests/ia-tabela-conformidade.test.ts`; só com servidor falso). **Plano R1 a R5 concluído.**
 
 L8 continua com o usuário (D-E3-04: ler PDF pede uma biblioteca nova).

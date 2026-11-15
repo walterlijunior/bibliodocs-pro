@@ -56,7 +56,12 @@ export interface EstadoConfigIA extends ConfigIA {
 export interface MensagemIA {
   papel: 'sistema' | 'usuario';
   texto: string;
+  /** Imagem junto do texto (especificação revista, Etapa 9: tabela a partir de imagem); só em mensagem do usuário. */
+  imagem?: { tipo: 'image/png' | 'image/jpeg'; base64: string };
 }
+
+/** Tamanho máximo da imagem enviada (em base64, cerca de 6 MB de arquivo). */
+export const LIMITE_BASE64_IMAGEM_IA = 8_000_000;
 
 export interface PedidoIA {
   mensagens: MensagemIA[];

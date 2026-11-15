@@ -520,10 +520,13 @@ export function DialogoAutorizacao(p: { provedor: string; pedidos: readonly { ch
             <section key={x.chave}>
               <h3 className="elementos__grupo">{x.rotulo}</h3>
               {x.pedido.mensagens.map((m, i) => (
-                <pre key={i} className="assistente-ia__mensagem">
-                  {m.papel === 'sistema' ? '[instruções] ' : `[${p.rotuloConteudo ?? 'conteúdo do trabalho'}] `}
-                  {m.texto}
-                </pre>
+                <div key={i}>
+                  <pre className="assistente-ia__mensagem">
+                    {m.papel === 'sistema' ? '[instruções] ' : `[${p.rotuloConteudo ?? 'conteúdo do trabalho'}] `}
+                    {m.texto}
+                  </pre>
+                  {m.imagem && <img className="assistente-ia__imagem" src={`data:${m.imagem.tipo};base64,${m.imagem.base64}`} alt="Imagem que será enviada" />}
+                </div>
               ))}
             </section>
           ))}

@@ -4,9 +4,19 @@
  * não converteu; só "Usar estes dados" troca a grade da janela. Título, fonte e notas ficam.
  */
 import { useId, useMemo, useRef, useState, type ClipboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import {
   converterPlanilha,
   detectarSeparador,
+  estimarPedido,
+  LIMITE_BASE64_IMAGEM_IA,
+  LIMITE_TEXTO_TABELA_IA,
+  lerTabelaSugerida,
+  pedidoGerarTabela,
+  PROVEDORES,
+  TITULO_GERAR_TABELA,
+  type ApiIa,
+  type PedidoIA,
   LIMITE_BYTES_CSV,
   lerCsv,
   lerTextoColado,
@@ -19,14 +29,25 @@ import {
 import { arvoreDoHtmlColado } from '../editor/colagem';
 import { estilosDeClasse, planilhaDoHtml } from '../editor/planilha-colada';
 import { Icone } from '../Icones';
+import { consumo } from '../ia/consumo';
+import { DialogoAutorizacao } from '../ia/PainelIA';
 
 /** Linhas mostradas na prévia. */
 const LINHAS_NA_PREVIA = 10;
 
 export interface PropsPlanilhaTabela {
   especie: 'tabela' | 'quadro';
-  aoUsar: (convertida: PlanilhaConvertida) => void;
+  /** `sugestao`: título e fonte lidos pela IA (só preenchem campos vazios). */
+  aoUsar: (convertida: PlanilhaConvertida, sugestao?: { titulo?: string; fonte?: string }) => void;
+  /** Serviço de IA (especificação revista, Etapa 9): "Gerar com IA…" a partir de imagem ou texto. */
+  ia?: ApiIa | undefined;
 }
+
+const base64De = (bytes: Uint8Array): string => {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+};
 
 const VAZIOS: readonly { valor: SinalParaVazio; rotulo: string }[] = [
   { valor: '', rotulo: 'Deixar vazias' },
@@ -48,7 +69,14 @@ function lerColagem(html: string, texto: string): PlanilhaLida | null {
 
 export function PlanilhaTabela(p: PropsPlanilhaTabela) {
   const base = useId();
-  const [previa, setPrevia] = useState<{ lida: PlanilhaLida; opcoes: OpcoesPlanilha; origem: string } | null>(null);
+  const [previa, setPrevia] = useState<{ lida: PlanilhaLida; opcoes: OpcoesPlanilha; origem: string; sugestao?: { titulo?: string; fonte?: string } } | null>(null);
+  // Gerar com IA (especificação revista, Etapa 9).
+  const refImagem = useRef<HTMLInputElement>(null);
+  const [iaAberta, setIaAberta] = useState(false);
+  const [iaTexto, setIaTexto] = useState('');
+  const [iaImagem, setIaImagem] = useState<{ nome: string; tipo: 'image/png' | 'image/jpeg'; base64: string } | null>(null);
+  const [iaPedido, setIaPedido] = useState<{ pedido: PedidoIA; provedor: string } | null>(null);
+  const [iaEnviando, setIaEnviando] = useState(false);
   const [anuncio, setAnuncio] = useState<string | null>(null);
   const refArquivo = useRef<HTMLInputElement>(null);
 
@@ -88,6 +116,53 @@ export function PlanilhaTabela(p: PropsPlanilhaTabela) {
     mostrar(lerCsv(texto, avisos), `Arquivo “${arquivo.name}”`);
   };
 
+  const escolherImagem = async (arquivo: File | undefined) => {
+    if (!arquivo) return;
+    const tipo = arquivo.type === 'image/png' || arquivo.type === 'image/jpeg' ? arquivo.type : null;
+    if (!tipo) return setAnuncio(`“${arquivo.name}”: use uma imagem PNG ou JPEG.`);
+    const base64 = base64De(new Uint8Array(await arquivo.arrayBuffer()));
+    if (base64.length > LIMITE_BASE64_IMAGEM_IA) return setAnuncio(`“${arquivo.name}” é grande demais para enviar (até cerca de 6 MB).`);
+    setIaImagem({ nome: arquivo.name, tipo, base64 });
+    setAnuncio(null);
+  };
+
+  const pedirAutorizacao = async () => {
+    if (!p.ia) return;
+    try {
+      const cfg = await p.ia.lerConfig();
+      const provedor = PROVEDORES.find((x) => x.id === cfg.provedor);
+      if (!cfg.ativa) return setAnuncio('A IA está desativada. Ative-a em Trabalho › Assistente de IA… ou cole os dados da planilha.');
+      if (provedor?.exigeChave && !cfg.temChave) return setAnuncio('Falta a chave de API do serviço de IA: informe-a em Trabalho › Assistente de IA….');
+      setIaPedido({
+        pedido: pedidoGerarTabela({ especie: p.especie, ...(iaTexto.trim() ? { texto: iaTexto } : {}), ...(iaImagem ? { imagem: { tipo: iaImagem.tipo, base64: iaImagem.base64 } } : {}) }),
+        provedor: provedor?.nome ?? 'serviço de IA',
+      });
+    } catch {
+      setAnuncio('Não foi possível ler a configuração da IA.');
+    }
+  };
+
+  const enviarIa = async (pedido: PedidoIA) => {
+    setIaPedido(null);
+    if (!p.ia) return;
+    setIaEnviando(true);
+    setAnuncio('Enviando à IA…');
+    try {
+      const r = await p.ia.enviar(pedido);
+      if (!r.ok) return setAnuncio(`${r.mensagem} A grade não mudou.`);
+      consumo.registrar({ em: new Date().toISOString(), operacao: TITULO_GERAR_TABELA, etapa: iaImagem ? `imagem ${iaImagem.nome}` : 'texto', uso: r.uso, estimativa: estimarPedido(pedido) }, r.limites, r.usoMes);
+      const s = lerTabelaSugerida(r.texto);
+      if (!s) return setAnuncio('A resposta da IA não trouxe uma tabela no formato pedido. Tente de novo ou cole os dados.');
+      setIaAberta(false);
+      setAnuncio(null);
+      setPrevia({ lida: s.lida, opcoes: opcoesSugeridas(s.lida), origem: 'Sugestão da IA', sugestao: { ...(s.titulo ? { titulo: s.titulo } : {}), ...(s.fonte ? { fonte: s.fonte } : {}) } });
+    } catch {
+      setAnuncio('Não foi possível falar com o serviço de IA. A grade não mudou.');
+    } finally {
+      setIaEnviando(false);
+    }
+  };
+
   const mudar = (o: Partial<OpcoesPlanilha>) => previa && setPrevia({ ...previa, opcoes: { ...previa.opcoes, ...o } });
 
   return (
@@ -106,6 +181,11 @@ export function PlanilhaTabela(p: PropsPlanilhaTabela) {
         <button type="button" className="btn-secundario" onClick={() => refArquivo.current?.click()}>
           Importar CSV…
         </button>
+        {p.ia && (
+          <button type="button" className="btn-secundario" aria-expanded={iaAberta} onClick={() => setIaAberta((a) => !a)}>
+            Gerar com IA…
+          </button>
+        )}
         <input
           ref={refArquivo}
           type="file"
@@ -122,6 +202,59 @@ export function PlanilhaTabela(p: PropsPlanilhaTabela) {
       <span id={`${base}-colar-dica`} className="dica">
         Os dados substituem a grade abaixo depois da prévia. XLSX: salve como CSV no Excel ou no LibreOffice.
       </span>
+      {iaAberta && p.ia && (
+        <section className="tabela-planilha__ia" aria-labelledby={`${base}-ia`}>
+          <h3 id={`${base}-ia`} className="elementos__grupo">Gerar {p.especie === 'quadro' ? 'o quadro' : 'a tabela'} com IA</h3>
+          <p className="dica">
+            Envie uma imagem (foto ou captura da tabela) ou cole o texto. A IA transcreve sem calcular nem completar; o que ela não ler com segurança vem marcado com “[?]”
+            para você conferir. Tudo passa pela prévia antes de entrar na grade.
+          </p>
+          <input
+            ref={refImagem}
+            type="file"
+            accept="image/png,image/jpeg"
+            hidden
+            aria-label="Imagem da tabela"
+            onChange={(ev) => {
+              const arquivo = ev.target.files?.[0];
+              ev.target.value = '';
+              void escolherImagem(arquivo);
+            }}
+          />
+          <div className="acoes">
+            <button type="button" className="btn-secundario" onClick={() => refImagem.current?.click()}>
+              Escolher imagem…
+            </button>
+            {iaImagem && (
+              <span className="dica">
+                {iaImagem.nome}{' '}
+                <button type="button" className="btn-link" onClick={() => setIaImagem(null)}>
+                  Retirar
+                </button>
+              </span>
+            )}
+          </div>
+          <label htmlFor={`${base}-ia-texto`}>Texto da tabela (opcional com imagem)</label>
+          <textarea id={`${base}-ia-texto`} className="campo" rows={4} maxLength={LIMITE_TEXTO_TABELA_IA} value={iaTexto} onChange={(e) => setIaTexto(e.target.value)} />
+          <button type="button" className="btn-principal" disabled={iaEnviando || (iaTexto.trim() === '' && iaImagem === null)} onClick={() => void pedirAutorizacao()}>
+            Enviar à IA…
+          </button>
+        </section>
+      )}
+      {iaPedido &&
+        createPortal(
+          <DialogoAutorizacao
+            provedor={iaPedido.provedor}
+            pedidos={[{ chave: 'tabela', rotulo: TITULO_GERAR_TABELA, pedido: iaPedido.pedido }]}
+            rotuloConteudo="material enviado"
+            aoEnviar={() => void enviarIa(iaPedido.pedido)}
+            aoCancelar={() => {
+              setIaPedido(null);
+              setAnuncio('Envio cancelado. Nada saiu do computador.');
+            }}
+          />,
+          document.body,
+        )}
       {anuncio !== null && (
         <p className="aviso" role="status">
           <Icone nome="alerta" />
@@ -214,7 +347,7 @@ export function PlanilhaTabela(p: PropsPlanilhaTabela) {
               className="btn-principal"
               disabled={convertida.vazia}
               onClick={() => {
-                p.aoUsar(convertida);
+                p.aoUsar(convertida, previa.sugestao);
                 setPrevia(null);
                 setAnuncio(`Dados da planilha na grade: ${convertida.grade.length} × ${convertida.alinhamentos.length}.`);
               }}

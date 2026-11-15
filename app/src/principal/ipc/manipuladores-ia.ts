@@ -43,7 +43,16 @@ const esquemaConfig = z.strictObject({
   limiteTokensMes: z.int().min(1).max(1_000_000_000).optional(),
 });
 const esquemaPedido = z.strictObject({
-  mensagens: z.array(z.strictObject({ papel: z.enum(['sistema', 'usuario']), texto: texto(400_000) })).min(1).max(20),
+  mensagens: z
+    .array(
+      z.strictObject({
+        papel: z.enum(['sistema', 'usuario']),
+        texto: texto(400_000),
+        imagem: z.strictObject({ tipo: z.enum(['image/png', 'image/jpeg']), base64: z.string().max(8_000_000).regex(/^[A-Za-z0-9+/]+={0,2}$/) }).optional(),
+      }),
+    )
+    .min(1)
+    .max(20),
   maxTokens: z.int().min(1).max(32_000).optional(),
 });
 const uso = z.strictObject({ entrada: z.int().min(0).optional(), saida: z.int().min(0).optional(), total: z.int().min(0).optional() });

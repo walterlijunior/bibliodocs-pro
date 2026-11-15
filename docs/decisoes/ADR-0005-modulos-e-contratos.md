@@ -442,3 +442,11 @@ Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no i
   nunca volta ao renderer nem vai para log.
 - **Canais novos** `bibliodocs:ia:*` (configuração, envio, pontos de retomada), com esquema zod para cada argumento;
   pontos de retomada em `ia-retomada.json`, gravados por cópia temporária e troca.
+
+## Adendo da Etapa 9 da especificação revista (2026-11-15) — imagem no pedido à IA
+
+- `MensagemIA.imagem?: { tipo: 'image/png' | 'image/jpeg'; base64 }` (só a interface escolhe a imagem; o principal
+  valida o tipo e o base64 até 8 MB de texto no esquema do canal `bibliodocs:ia:enviar`). O cliente manda a mensagem com
+  imagem como partes (`text` + `image_url` com data URL), o formato aceito pelos serviços compatíveis com a API de chat
+  da OpenAI. A autorização mostra a imagem que será enviada.
+

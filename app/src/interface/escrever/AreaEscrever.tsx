@@ -27,7 +27,7 @@ import { DivisorEstrutura, estiloLargura, gravarLarguraEstrutura, lerLarguraEstr
 import { PainelIA } from '../ia/PainelIA';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
-import { aparenciaDosCampos, areaUtilDoPerfilMm, paginaDoPerfilMm } from '../../aplicacao';
+import { aparenciaDosCampos, areaUtilDoPerfilMm, dadosComSugestao, paginaDoPerfilMm, type ContextoSugestao } from '../../aplicacao';
 import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
@@ -596,6 +596,24 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const elementoAtivo = comObra || comConferencia ? null : (pre?.lista.find((x) => x.id === elementoId) ?? null);
   const visualAtivo = modo === 'elementos' && elementoAtivo === null ? (t.elementos.find((x) => x.id === visualId && x.bloco !== undefined) ?? null) : null;
   /** Leva à aba Escrever, na seção, e faz a ação do gerenciador quando o editor dela estiver na tela. */
+  // Sugestão de conformidade com IA (especificação revista, Etapa 9): o conteúdo do local e a aplicação na tabela.
+  const iaConformidade = p.ia && t ? {
+    api: p.ia.api,
+    contexto: (item: NaoConformidade): ContextoSugestao => {
+      const no = item.local.tipo === 'texto' ? item.local.no : null;
+      const el = no ? t.elementos.find((x) => x.id === no && x.bloco?.tipo === 'tabela') : undefined;
+      return el ? { tabela: { bloco: el.bloco as BlocoTabela, rotulo: el.rotulo } } : item.local.tipo === 'texto' && item.local.trecho ? { trecho: item.local.trecho } : {};
+    },
+    aplicarTabela: (item: NaoConformidade, campos: { titulo?: string; fonte?: string; nota?: string }) => {
+      const no = item.local.tipo === 'texto' ? item.local.no : null;
+      const el = no ? t.elementos.find((x) => x.id === no && x.bloco?.tipo === 'tabela') : undefined;
+      if (!el) return;
+      const dados = dadosComSugestao(el.bloco as BlocoTabela, { ...campos, observacoes: [] }, Object.keys(campos) as ('titulo' | 'fonte' | 'nota')[]);
+      setRevendo({ chave: item.chave, rotulo: item.rotuloLocal, origem: modo === 'conformidade' ? 'aba' : 'janela' });
+      setRelatorioConformidade(null);
+      noEditor(el.secao, { tipo: 'sugestaoTabela', id: el.id, dados });
+    },
+  } : undefined;
   const noEditor = (secao: string, acao: AcaoNoEditor) => {
     setAcaoNoEditor({ secao, acao });
     escolher(secao, null);
@@ -720,6 +738,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             }}
             retorno={retornoConformidade}
             aoRetornoAtendido={atenderRetorno}
+            {...(iaConformidade ? { ia: iaConformidade } : {})}
           />
         ) : (
           <p className="dica">O verificador não está disponível para este trabalho.</p>
@@ -966,6 +985,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           }}
           retorno={retornoConformidade}
           aoRetornoAtendido={atenderRetorno}
+          {...(iaConformidade ? { ia: iaConformidade } : {})}
         />}
         {!semEstrutura && <DivisorEstrutura largura={larguraEstrutura} controla={ID_PAINEL_ESTRUTURA} aoMudar={mudarLargura} />}
         <section
@@ -1217,6 +1237,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 <DialogoTabela
                   inicial={pedidoTabela.existente?.dados ?? null}
                   pagina={pagina}
+                  ia={p.ia?.api}
                   aoConfirmar={(dados) => {
                     const x = pedidoTabela.existente;
                     setPedidoTabela(null);

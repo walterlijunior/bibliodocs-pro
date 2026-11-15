@@ -87,9 +87,12 @@ export {
   type SugestaoModelo,
   type SugestaoTabela,
 } from './servicos/ia';
+export { lerSugestaoConformidade, pedidoSugestaoConformidade, TITULO_SUGESTAO_CONFORMIDADE, type ContextoSugestao, type SugestaoConformidade } from './servicos/ia-conformidade';
+export { celulasAConferir, lerTabelaSugerida, LIMITE_TEXTO_TABELA_IA, MARCADOR_CONFERIR, pedidoGerarTabela, TITULO_GERAR_TABELA, type EntradaTabelaIA, type TabelaSugerida } from './servicos/ia-tabela';
 export { LIMITE_TEXTO_FICHA_IA, lerSugestaoFicha, pedidoPreencherFicha, textoDoArquivoFicha, TITULO_PREENCHER_FICHA, type EntradaFichaIA, type OrigemSugestao, type ResultadoSugestaoFicha } from './servicos/ia-ficha';
 export {
   CANAIS_IA,
+  LIMITE_BASE64_IMAGEM_IA,
   PROVEDORES,
   type ApiIa,
   type CanalIa,

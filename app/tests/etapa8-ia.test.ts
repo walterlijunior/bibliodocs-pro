@@ -118,6 +118,18 @@ describe('canais do principal', () => {
     expect(r2).toMatchObject({ ok: true, uso: null, usoMes: { tokens: 150 } });
   });
 
+  it('especificação revista, Etapa 9: o pedido com imagem passa; base64 inválido ou tipo fora de PNG e JPEG é recusado', async () => {
+    const s = servidor([{ corpo: resposta('{}') }]);
+    const m = criar(s.buscar);
+    await m[CANAIS_IA.gravarConfig](r, [config, 'sk-segredo-123']);
+    const r1 = await m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: { tipo: 'image/png', base64: 'iVBORw0KGgo=' } }] }]);
+    expect(r1).toMatchObject({ ok: true });
+    expect((s.pedidos[0]!.body as { messages: { content: unknown }[] }).messages[0]!.content).toEqual([{ type: 'text', text: 'U' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } }]);
+    await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: { tipo: 'image/png', base64: 'não é base64' } }] }])).rejects.toThrow();
+    await expect(m[CANAIS_IA.enviar](r, [{ mensagens: [{ papel: 'usuario', texto: 'U', imagem: { tipo: 'image/gif', base64: 'AAAA' } }] }])).rejects.toThrow();
+    expect(s.pedidos).toHaveLength(1);
+  });
+
   it('sem cifra no sistema, a chave não é gravada; endereço inválido é recusado', async () => {
     const m = criarManipuladoresIa({ origem: ORIGEM_PRODUCAO, conteudosPermitidos: () => new Set([1]), arquivoConfig: join((pasta = mkdtempSync(join(tmpdir(), 'bdp-ia-'))), 'c.json'), arquivoRetomada: join(pasta, 'r.json'), cifra: { ...cifra, disponivel: () => false }, buscar: servidor([]).buscar, log: () => {} });
     expect(await m[CANAIS_IA.gravarConfig](r, [config, 'sk-x'])).toMatchObject({ ok: false, mensagem: expect.stringContaining('cifra') });

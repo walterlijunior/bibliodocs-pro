@@ -1,13 +1,25 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CATEGORIAS_CONFORMIDADE,
   COBERTURA_CONFORMIDADE,
+  estimarPedido,
   FAMILIAS_CONFORMIDADE,
+  lerSugestaoConformidade,
+  pedidoSugestaoConformidade,
+  PROVEDORES,
+  TITULO_SUGESTAO_CONFORMIDADE,
+  type ApiIa,
+  type ContextoSugestao,
+  type PedidoIA,
+  type SugestaoConformidade,
   type CategoriaConformidade,
   type NaoConformidade,
   type RelatorioConformidade,
   type ResultadoExportar,
 } from '../../aplicacao';
+import { consumo } from '../ia/consumo';
+import { DialogoAutorizacao } from '../ia/PainelIA';
 
 type Filtro = 'todos' | 'erro' | 'aviso';
 
@@ -29,7 +41,19 @@ export interface PropsConformidade {
   /** Voltando de "Ir ao local": a ocorrência a procurar no relatório refeito. */
   retorno?: RetornoConformidade | null;
   aoRetornoAtendido?: () => void;
+  /**
+   * Sugestão de conformidade com IA (especificação revista, Etapa 9). `contexto`: o conteúdo do local (a tabela ou o
+   * quadro, ou o trecho); `aplicarTabela`: título, fonte e nota escolhidos entram pelo editor (Ctrl+Z desfaz).
+   */
+  ia?: {
+    api: ApiIa;
+    contexto: (item: NaoConformidade) => ContextoSugestao;
+    aplicarTabela: (item: NaoConformidade, campos: { titulo?: string; fonte?: string; nota?: string }) => void;
+  };
 }
+
+type CampoSugerido = 'titulo' | 'fonte' | 'nota';
+const NOME_CAMPO: Readonly<Record<CampoSugerido, string>> = { titulo: 'Título', fonte: 'Fonte', nota: 'Nota' };
 
 /**
  * Verificador de conformidade (RF-15; M7-T03; Etapa 6 da especificação revista): resumo, filtros por gravidade e por
@@ -46,6 +70,39 @@ export function Conformidade(p: PropsConformidade) {
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [categorias, setCategorias] = useState<ReadonlySet<CategoriaConformidade>>(new Set());
   const [anuncioRetorno, setAnuncioRetorno] = useState<string | null>(null);
+  // Sugestões da IA por ocorrência (chave), com os campos marcados para aplicar.
+  const [sugestoes, setSugestoes] = useState<Readonly<Record<string, { s: SugestaoConformidade; marcados: CampoSugerido[] } | string>>>({});
+  const [pedidoIa, setPedidoIa] = useState<{ item: NaoConformidade; pedido: PedidoIA; provedor: string } | null>(null);
+  const [enviando, setEnviando] = useState<string | null>(null);
+
+  const pedirSugestao = async (item: NaoConformidade) => {
+    if (!p.ia) return;
+    try {
+      const cfg = await p.ia.api.lerConfig();
+      const provedor = PROVEDORES.find((x) => x.id === cfg.provedor);
+      if (!cfg.ativa) return setSugestoes((s) => ({ ...s, [item.chave]: 'A IA está desativada. Ative-a em Trabalho › Assistente de IA….' }));
+      if (provedor?.exigeChave && !cfg.temChave) return setSugestoes((s) => ({ ...s, [item.chave]: 'Falta a chave de API do serviço de IA.' }));
+      setPedidoIa({ item, pedido: pedidoSugestaoConformidade(item, p.ia.contexto(item)), provedor: provedor?.nome ?? 'serviço de IA' });
+    } catch {
+      setSugestoes((s) => ({ ...s, [item.chave]: 'Não foi possível ler a configuração da IA.' }));
+    }
+  };
+  const enviarIa = async (item: NaoConformidade, pedido: PedidoIA) => {
+    setPedidoIa(null);
+    if (!p.ia) return;
+    setEnviando(item.chave);
+    try {
+      const r = await p.ia.api.enviar(pedido);
+      if (!r.ok) return setSugestoes((s) => ({ ...s, [item.chave]: `${r.mensagem} Nada foi alterado.` }));
+      consumo.registrar({ em: new Date().toISOString(), operacao: TITULO_SUGESTAO_CONFORMIDADE, etapa: item.rotuloLocal, uso: r.uso, estimativa: estimarPedido(pedido) }, r.limites, r.usoMes);
+      const s = lerSugestaoConformidade(r.texto);
+      setSugestoes((x) => ({ ...x, [item.chave]: s ? { s, marcados: [] } : 'A resposta da IA não veio no formato pedido. Tente de novo.' }));
+    } catch {
+      setSugestoes((s) => ({ ...s, [item.chave]: 'Não foi possível falar com o serviço de IA. Nada foi alterado.' }));
+    } finally {
+      setEnviando(null);
+    }
+  };
   useEffect(() => {
     if (embutido) return;
     ref.current?.showModal();
@@ -133,7 +190,18 @@ export function Conformidade(p: PropsConformidade) {
             </p>
             <p>Local: {c.rotuloLocal}</p>
             <p>{c.mensagem}</p><p>{c.sugestao}</p>
-            {c.local.tipo !== 'trabalho' && <button type="button" className="btn-secundario" onClick={() => p.aoLocal(c.local, c)}>Ir ao local</button>}
+            <div className="acoes">
+              {c.local.tipo !== 'trabalho' && <button type="button" className="btn-secundario" onClick={() => p.aoLocal(c.local, c)}>Ir ao local</button>}
+              {p.ia && <button type="button" className="btn-secundario" disabled={enviando !== null} onClick={() => void pedirSugestao(c)}>{enviando === c.chave ? 'Enviando…' : 'Pedir sugestão à IA…'}</button>}
+            </div>
+            {sugestoes[c.chave] !== undefined && <SugestaoIA
+              rotulo={c.rotuloLocal}
+              valor={sugestoes[c.chave]!}
+              tabela={p.ia?.contexto(c).tabela !== undefined}
+              aoMarcar={(marcados) => setSugestoes((s) => { const v = s[c.chave]; return typeof v === 'object' ? { ...s, [c.chave]: { ...v, marcados } } : s; })}
+              aoAplicar={(campos) => p.ia?.aplicarTabela(c, campos)}
+              aoDescartar={() => setSugestoes((s) => { const { [c.chave]: _x, ...resto } = s; return resto; })}
+            />}
           </li>)}</ol>
         </section>;
       })}
@@ -147,6 +215,12 @@ export function Conformidade(p: PropsConformidade) {
         </table>
       </details>
       {mensagem && <p role="status">{mensagem}</p>}
+      {pedidoIa && createPortal(<DialogoAutorizacao
+        provedor={pedidoIa.provedor}
+        pedidos={[{ chave: pedidoIa.item.chave, rotulo: `${TITULO_SUGESTAO_CONFORMIDADE}: ${pedidoIa.item.rotuloLocal}`, pedido: pedidoIa.pedido }]}
+        aoEnviar={() => void enviarIa(pedidoIa.item, pedidoIa.pedido)}
+        aoCancelar={() => setPedidoIa(null)}
+      />, document.body)}
       <div className="dialogo__acoes"><button type="button" className="btn-secundario" onClick={p.aoAtualizar} disabled={exportando}>Verificar novamente</button><button type="button" className="btn-principal" onClick={() => void exportar()} disabled={exportando}>{exportando ? 'Exportando…' : 'Exportar relatório…'}</button>{!embutido && <button type="button" className="btn-secundario" onClick={p.aoFechar} disabled={exportando}>Fechar</button>}</div>
   </>;
   // Na aba Conformidade (F-E6-01) o relatório fica na própria página; pelo F7 na aba Escrever, numa janela.
@@ -155,3 +229,37 @@ export function Conformidade(p: PropsConformidade) {
     <div className="dialogo__corpo">{corpo}</div>
   </dialog>;
 }
+
+/** A sugestão da IA para uma ocorrência, para revisar antes de aplicar (tabela e quadro) ou de corrigir à mão (demais). */
+function SugestaoIA(p: {
+  rotulo: string;
+  valor: { s: SugestaoConformidade; marcados: CampoSugerido[] } | string;
+  tabela: boolean;
+  aoMarcar: (marcados: CampoSugerido[]) => void;
+  aoAplicar: (campos: { titulo?: string; fonte?: string; nota?: string }) => void;
+  aoDescartar: () => void;
+}) {
+  const base = useId();
+  if (typeof p.valor === 'string') return <p className="dica" role="status">{p.valor}</p>;
+  const { s, marcados } = p.valor;
+  const campos = (['titulo', 'fonte', 'nota'] as const).filter((k) => s[k] !== undefined);
+  return <section className="conformidade__sugestao" aria-labelledby={`${base}-t`}>
+    <h4 id={`${base}-t`}>Sugestão da IA (revise antes de aplicar)</h4>
+    <p>{s.explicacao}</p>
+    {s.regras.length > 0 && <p className="dica">Com base em: {s.regras.join(', ')}.</p>}
+    {p.tabela && campos.length > 0 && <fieldset className="conformidade__filtro">
+      <legend>Aplicar ao elemento</legend>
+      {campos.map((k) => <label key={k} className="conformidade__campo-sugerido">
+        <input type="checkbox" checked={marcados.includes(k)} onChange={(e) => p.aoMarcar(e.target.checked ? [...marcados, k] : marcados.filter((x) => x !== k))} />
+        {' '}{NOME_CAMPO[k]}: “{s[k]}”
+      </label>)}
+    </fieldset>}
+    {s.textoSugerido && <p>Texto sugerido: “{s.textoSugerido}”</p>}
+    <div className="acoes">
+      {p.tabela && campos.length > 0 && <button type="button" className="btn-principal" disabled={marcados.length === 0} onClick={() => p.aoAplicar(Object.fromEntries(marcados.map((k) => [k, s[k]!])))}>Aplicar os campos marcados</button>}
+      {s.textoSugerido && <button type="button" className="btn-secundario" onClick={() => void navigator.clipboard?.writeText(s.textoSugerido!).catch(() => undefined)}>Copiar texto sugerido</button>}
+      <button type="button" className="btn-secundario" onClick={p.aoDescartar}>Descartar sugestão</button>
+    </div>
+  </section>;
+}
+

@@ -50,7 +50,11 @@ export async function enviarChat(config: Pick<ConfigIA, 'url' | 'modelo'>, chave
   if (config.modelo.trim() === '') return { ok: false, motivo: 'CONFIG', mensagem: 'Informe o nome do modelo do serviço de IA.' };
   const corpo = JSON.stringify({
     model: config.modelo.trim(),
-    messages: pedido.mensagens.map((m) => ({ role: m.papel === 'sistema' ? 'system' : 'user', content: m.texto })),
+    // Com imagem: o formato de partes da API de chat (texto + `image_url` com data URL), aceito pelos serviços compatíveis.
+    messages: pedido.mensagens.map((m) => ({
+      role: m.papel === 'sistema' ? 'system' : 'user',
+      content: m.imagem ? [{ type: 'text', text: m.texto }, { type: 'image_url', image_url: { url: `data:${m.imagem.tipo};base64,${m.imagem.base64}` } }] : m.texto,
+    })),
     ...(pedido.maxTokens ? { max_tokens: pedido.maxTokens } : {}),
   });
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };

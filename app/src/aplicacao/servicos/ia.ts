@@ -15,7 +15,9 @@ import type { EtapaRetomada, LimitesInformados, OperacaoIA, PedidoIA, PontoRetom
 
 /** Estimativa do aplicativo: 4 caracteres por token (aproximação comum para textos em português e inglês). */
 export const estimarTokens = (texto: string): number => Math.ceil(texto.length / 4);
-export const estimarPedido = (p: PedidoIA): number => p.mensagens.reduce((n, m) => n + estimarTokens(m.texto), 0) + (p.maxTokens ?? 0);
+/** Imagem: os serviços cobram por blocos da imagem; o aplicativo estima 1.000 tokens por imagem. */
+export const TOKENS_ESTIMADOS_IMAGEM = 1_000;
+export const estimarPedido = (p: PedidoIA): number => p.mensagens.reduce((n, m) => n + estimarTokens(m.texto) + (m.imagem ? TOKENS_ESTIMADOS_IMAGEM : 0), 0) + (p.maxTokens ?? 0);
 
 export const TITULOS_OPERACAO: Readonly<Record<OperacaoIA, string>> = {
   revisarTabelas: 'Revisar títulos, fontes e notas de tabelas e quadros',

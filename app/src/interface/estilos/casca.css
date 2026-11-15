@@ -711,4 +711,8 @@ ol.bd-lista { list-style: decimal; }
 .conformidade__voltar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); padding: var(--esp-2) var(--esp-3); border: 1px solid var(--cor-destaque); border-radius: var(--raio); background: var(--cor-superficie); }
 .conformidade__voltar > span { flex: 1 1 auto; overflow-wrap: anywhere; }
 .dialogo--conformidade { width: min(960px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.conformidade__sugestao { border-left: 3px solid var(--cor-destaque); padding: var(--esp-2) var(--esp-3); margin-top: var(--esp-2); background: var(--cor-superficie); }
+.conformidade__sugestao h4 { margin: 0 0 var(--esp-1); font-size: 1em; }
+.conformidade__campo-sugerido { display: block; overflow-wrap: anywhere; }
+.assistente-ia__imagem { max-width: 100%; max-height: 40vh; border: 1px solid var(--cor-borda); }
 

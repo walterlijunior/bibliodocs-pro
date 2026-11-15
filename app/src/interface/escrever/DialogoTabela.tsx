@@ -23,6 +23,8 @@ import {
   separar,
   SINAIS_CONVENCIONAIS,
   validarTabela,
+  celulasAConferir,
+  type ApiIa,
   type CampoTexto,
   type DadosTabela,
   type RascunhoTabela,
@@ -42,6 +44,8 @@ export interface PropsDialogoTabela {
   aoFechar: () => void;
   /** Página do perfil do trabalho, para a prévia de "Ajustar tamanho e posição". */
   pagina?: PaginaMm;
+  /** Serviço de IA, para "Gerar com IA…" (especificação revista, Etapa 9). */
+  ia?: ApiIa | undefined;
 }
 
 const NOMES_ALINHAMENTO: Readonly<Record<AlinhamentoColuna, string>> = { esquerda: 'À esquerda', centro: 'Centralizado', direita: 'À direita' };
@@ -104,6 +108,8 @@ export function DialogoTabela(p: PropsDialogoTabela) {
   };
 
   const validacao = validarTabela(r);
+  // Células que a IA marcou para conferir ("[?]"): a tabela só entra depois da revisão (especificação revista, Etapa 9).
+  const aConferir = celulasAConferir(r.grade);
   const sinais = notaDeSinais(r);
   const { l: al, c: ac } = celulaAtiva;
   const nome = r.especie === 'quadro' ? 'quadro' : 'tabela';
@@ -130,7 +136,7 @@ export function DialogoTabela(p: PropsDialogoTabela) {
         aria-labelledby={`${base}-titulo`}
         onSubmit={(e) => {
           e.preventDefault();
-          if (validacao.ok) p.aoConfirmar(validacao.dados);
+          if (validacao.ok && aConferir.length === 0) p.aoConfirmar(validacao.dados);
         }}
       >
         <h2 id={`${base}-titulo`}>{nova ? 'Inserir tabela ou quadro' : `Alterar ${nome}`}</h2>
@@ -180,9 +186,15 @@ export function DialogoTabela(p: PropsDialogoTabela) {
           )}
           <PlanilhaTabela
             especie={r.especie}
-            aoUsar={(c) => {
+            ia={p.ia}
+            aoUsar={(c, sugestao) => {
               setMotivo(null);
-              setR(aplicarPlanilha(r, c));
+              const novo = aplicarPlanilha(r, c);
+              setR({
+                ...novo,
+                ...(sugestao?.titulo && novo.titulo.texto.trim() === '' ? { titulo: { ...novo.titulo, texto: sugestao.titulo } } : {}),
+                ...(sugestao?.fonte && novo.fonte.texto.trim() === '' ? { fonte: { ...novo.fonte, texto: sugestao.fonte } } : {}),
+              });
               setAtiva({ l: 0, c: 0 });
             }}
           />
@@ -348,9 +360,18 @@ export function DialogoTabela(p: PropsDialogoTabela) {
           </button>
         </fieldset>
 
-        {!validacao.ok && (
+        {(!validacao.ok || aConferir.length > 0) && (
           <ul className="avisos" aria-label={`O que impede gravar a ${nome}`}>
-            {validacao.erros.map((e) => (
+            {aConferir.length > 0 && (
+              <li className="aviso aviso--erro">
+                <Icone nome="erro" />
+                <span className="aviso__texto">
+                  Células a conferir (marcadas com “[?]” pela IA): {aConferir.slice(0, 8).join('; ')}
+                  {aConferir.length > 8 ? '…' : ''}. Confira na origem e apague o marcador.
+                </span>
+              </li>
+            )}
+            {(validacao.ok ? [] : validacao.erros).map((e) => (
               <li key={`${e.campo}-${e.mensagem}`} className="aviso aviso--erro">
                 <Icone nome="erro" />
                 <span className="aviso__texto">
@@ -362,7 +383,7 @@ export function DialogoTabela(p: PropsDialogoTabela) {
         )}
 
         <div className="dialogo__acoes">
-          <button type="submit" className="btn-principal" disabled={!validacao.ok}>
+          <button type="submit" className="btn-principal" disabled={!validacao.ok || aConferir.length > 0}>
             {nova ? `Inserir ${nome}` : `Alterar ${nome}`}
           </button>
           <button type="button" className="btn-secundario" onClick={p.aoFechar}>
