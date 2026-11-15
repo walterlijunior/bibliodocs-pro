@@ -1193,7 +1193,7 @@ describe('trabalho sem arquivo tem cópia de recuperação (R-M2-04, R-M2-12)', 
     const r = await p.abrirDescartada(v!.identificador);
     if (!r.ok || !r.projeto.copiaRecuperacao) throw new Error('sem cópia');
     expect(await p.instantaneo(r.projeto.copiaRecuperacao, pacote('Depois de muito uso'))).toEqual({ ok: true });
-  });
+  }, 30_000); // 111 listagens em disco: 0,2 s isolado, mas passava de 5 s com a suíte inteira em paralelo (instável desde o M3).
 
   it('duas cópias abertas no mesmo segundo ficam em conjuntos diferentes (R-M3-02)', async () => {
     const p = processo();

@@ -45,4 +45,4 @@ com o código em `bd03f4a`. Conferido nos arquivos indicados [VERIFICADO], salvo
 4. **R4 — Etapa 6:** L13. **Feito em 2026-11-15** (`e2e/painel-conformidade.spec.ts`).
 5. **R5 — Etapa 9:** L14, L15. **Feito em 2026-11-15** (`e2e/ia-tabela-conformidade.spec.ts`, `tests/ia-tabela-conformidade.test.ts`; só com servidor falso). **Plano R1 a R5 concluído.**
 
-L8 continua com o usuário (D-E3-04: ler PDF pede uma biblioteca nova).
+L8 feito em 2026-11-15, quando o usuário pediu "tudo" (`e2e/ficha-pdf.spec.ts`; pdf.js 6.4.299). Todas as lacunas fechadas.

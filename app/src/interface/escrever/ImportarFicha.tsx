@@ -3,10 +3,17 @@
  * campo da ficha, sem recriar o trabalho. O texto pode vir em UTF-8 ou no código de página do Windows (1252), como os
  * arquivos salvos pelo Bloco de Notas antigo. Com texto já no campo, pergunta antes de substituir.
  *
- * PDF: não é lido aqui. A leitura de PDF pede uma biblioteca nova no aplicativo (decisão pendente do usuário); até lá, o
- * texto do PDF gerado pelo sistema da UFT pode ser copiado e colado no campo.
+ * PDF (D-E3-04, decidido em 2026-11-15): o texto do PDF gerado pelo sistema da UFT é lido pelo pdf.js (`ficha-pdf.ts`).
+ * PDF só com imagem (digitalizado) não tem texto: a mensagem pede para colar o texto ou usar outro arquivo.
  */
 import { useId, useRef, useState } from 'react';
+import { textoDoPdf } from './ficha-pdf';
+
+/** Tamanho máximo do PDF da ficha (uma página, com fontes). */
+export const BYTES_MAX_FICHA_PDF = 2 * 1024 * 1024;
+
+const ehPdf = (arquivo: File, bytes: Uint8Array): boolean =>
+  /\.pdf$/i.test(arquivo.name) || (bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46);
 
 /** Tamanho máximo do arquivo da ficha: uma ficha tem poucas centenas de caracteres. */
 export const BYTES_MAX_FICHA = 64 * 1024;
@@ -51,17 +58,32 @@ export function ImportarFicha(p: PropsImportarFicha) {
         ref={ref}
         id={id}
         type="file"
-        accept=".txt,text/plain"
+        accept=".txt,.pdf,text/plain,application/pdf"
         hidden
         onChange={async (e) => {
           const arquivo = e.target.files?.[0];
           e.target.value = '';
           if (!arquivo) return;
-          if (arquivo.size > BYTES_MAX_FICHA) {
-            setAnuncio(`“${arquivo.name}” é grande demais para uma ficha catalográfica (limite de 64 KB).`);
+          const pdf = /\.pdf$/i.test(arquivo.name) || arquivo.type === 'application/pdf';
+          if (arquivo.size > (pdf ? BYTES_MAX_FICHA_PDF : BYTES_MAX_FICHA)) {
+            setAnuncio(`“${arquivo.name}” é grande demais para uma ficha catalográfica (limite de ${pdf ? '2 MB' : '64 KB'}).`);
             return;
           }
-          const texto = textoDoArquivoDeFicha(new Uint8Array(await arquivo.arrayBuffer()));
+          const bytes = new Uint8Array(await arquivo.arrayBuffer());
+          let texto: string;
+          if (ehPdf(arquivo, bytes)) {
+            try {
+              setAnuncio(`Lendo “${arquivo.name}”…`);
+              texto = textoDoArquivoDeFicha(new TextEncoder().encode(await textoDoPdf(bytes)));
+            } catch {
+              setAnuncio(`“${arquivo.name}” não pôde ser lido como PDF. Confira o arquivo ou copie o texto da ficha e cole no campo.`);
+              return;
+            }
+            if (texto.trim() === '') {
+              setAnuncio(`“${arquivo.name}” não tem texto (pode ser uma imagem digitalizada): copie o texto da ficha e cole no campo.`);
+              return;
+            }
+          } else texto = textoDoArquivoDeFicha(bytes);
           if (texto.trim() === '') {
             setAnuncio(`“${arquivo.name}” não tem texto.`);
             return;
@@ -71,7 +93,7 @@ export function ImportarFicha(p: PropsImportarFicha) {
         }}
       />
       <button type="button" className="btn-secundario" onClick={() => ref.current?.click()}>
-        Importar arquivo de texto…
+        Importar arquivo (PDF ou texto)…
       </button>
       {pendente && (
         <div className="importar-ficha__confirmar" role="group" aria-label="Substituir o texto da ficha">

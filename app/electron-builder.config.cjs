@@ -24,6 +24,10 @@ module.exports = {
     '!node_modules/orderedmap/**',
     '!node_modules/rope-sequence/**',
     '!node_modules/w3c-keyname/**',
+    // pdf.js (ficha em PDF, D-E3-04) vai embutido no bundle da interface, com o worker; o módulo nativo opcional dele
+    // (@napi-rs/canvas) só serve ao Node e fica fora.
+    '!node_modules/pdfjs-dist/**',
+    '!node_modules/@napi-rs/**',
     '!node_modules/**/src/**',
     // O `docx` declara estes dois como dependência, mas eles só trazem tipos; e os formatos que o Node não carrega ficam fora.
     '!node_modules/@types/**',

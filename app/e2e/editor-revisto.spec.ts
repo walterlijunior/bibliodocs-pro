@@ -38,11 +38,16 @@ test('Etapa 2 revista: sublinhado, divisor do painel e estilo do perfil nos camp
   await p.keyboard.type(' depois');
   await expect(editor.locator('u')).toHaveText('sublinhado');
   await p.keyboard.press('Shift+Home');
+  // O editor lê a seleção do DOM no `selectionchange`, que chega depois da tecla (como no FUN-13): espera a seleção.
+  await expect.poll(() => p.evaluate(() => getSelection()?.toString())).toBe('Antes sublinhado depois');
+  await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))));
   await p.keyboard.press('Control+U');
   await expect(editor.locator('u')).toHaveText('Antes sublinhado depois');
   await p.keyboard.press('Control+U');
   await expect(editor.locator('u')).toHaveCount(0);
   await p.keyboard.press('End');
+  await expect.poll(() => p.evaluate(() => getSelection()?.isCollapsed)).toBe(true);
+  await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))));
   await p.keyboard.press('Control+U');
   await p.keyboard.type(' fim');
   await expect(editor.locator('u')).toHaveText(' fim');

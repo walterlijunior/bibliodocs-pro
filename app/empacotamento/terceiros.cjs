@@ -11,6 +11,8 @@ const PREFIXO = 'node_modules/';
 
 /** Dependências declaradas que só trazem tipos: não vão no pacote (`electron-builder.config.cjs`). */
 const FORA_DO_PACOTE = new Set(['@types/node', 'undici-types']);
+/** Prefixos fora do pacote: o canvas nativo opcional do pdf.js só serve ao Node (ficha em PDF, D-E3-04). */
+const PREFIXOS_FORA_DO_PACOTE = ['@napi-rs/'];
 
 /** Licença fora desta lista exige decisão de uma pessoa: o inventário falha em vez de deixar passar. */
 const PERMITIDAS = new Set(['MIT', 'ISC', '0BSD', 'BSD-2-Clause', 'BSD-3-Clause', 'Apache-2.0']);
@@ -18,7 +20,7 @@ const PERMITIDAS = new Set(['MIT', 'ISC', '0BSD', 'BSD-2-Clause', 'BSD-3-Clause'
 /** @param {{ packages: Record<string, { version?: string, license?: string, dev?: boolean, devOptional?: boolean }> }} trava */
 function pacotesDeProducao(trava) {
   return Object.entries(trava.packages)
-    .filter(([caminho, p]) => caminho.startsWith(PREFIXO) && !p.dev && !p.devOptional && !FORA_DO_PACOTE.has(caminho.slice(caminho.lastIndexOf(PREFIXO) + PREFIXO.length)))
+    .filter(([caminho, p]) => caminho.startsWith(PREFIXO) && !p.dev && !p.devOptional && !FORA_DO_PACOTE.has(caminho.slice(caminho.lastIndexOf(PREFIXO) + PREFIXO.length)) && !PREFIXOS_FORA_DO_PACOTE.some((x) => caminho.slice(caminho.lastIndexOf(PREFIXO) + PREFIXO.length).startsWith(x)))
     .map(([caminho, p]) => ({
       caminho,
       nome: caminho.slice(caminho.lastIndexOf(PREFIXO) + PREFIXO.length),

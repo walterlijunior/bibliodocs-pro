@@ -42,6 +42,9 @@ test('Etapa 4 revista: "Ligar menção" sem sobreposição, com mensagem longa e
     // O cursor volta ao parágrafo (com um quadro selecionado, o botão abriria "Alterar quadro").
     await editor.locator('p', { hasText: MENCAO }).click();
     await p.keyboard.press('End');
+    // O clique pode cair na tabela recém-inserida (seleção do bloco): espera o cursor de texto no fim do parágrafo.
+    await expect.poll(() => p.evaluate((t) => { const s = getSelection(); return s !== null && s.isCollapsed && (s.anchorNode?.textContent ?? '') === t && s.anchorOffset === t.length; }, MENCAO)).toBe(true);
+    await p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))));
     await barra.getByRole('button', { name: 'Tabela', exact: true }).click();
     const janela = p.getByRole('dialog', { name: 'Inserir tabela ou quadro' });
     await janela.getByLabel('Quadro: conteúdo em texto, fechado').check();
