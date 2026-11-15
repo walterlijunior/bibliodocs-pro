@@ -36,3 +36,17 @@ por nome de função, rótulo da interface e tipo do modelo [VERIFICADO nos arqu
 ## Plano
 
 Um commit por lacuna, com `verificar:tudo`. Ordem: G4a, G4b, G5a–c, G6a–b, G10, G2a–c, G3a, G1.
+
+## Situação em 2026-11-15 (fim do ciclo)
+
+| # | Commit | Situação |
+|---|---|---|
+| G4a, G4b | `98ffe81` | Feito: larguras da planilha; colagem do Excel real igual à importação (teste externo `colagem-excel`, com `BDP_COLAGEM`) |
+| G5a–c | `c0c2d97` | Feito: relatório, demonstrações financeiras, base de dados (padrão provisório, D-E5-05); referência colada (D-E5-06); IA na bibliografia (D-E5-07) |
+| G6a, G6b | `fefc2da` | Feito: visão geral por categoria e elementos com menções (D-E6-05) |
+| G10, G3a | `464c402` | Feito: backup e restauração (D-E10-01); acesso no menu Arquivo ao catálogo e aos perfis |
+| G2a | `3411ed0` | Feito: títulos pelo painel Seções (D-E2-04) |
+| G2b, G2c | `45fde17` | Feito: folha com a largura do perfil, régua, busca no documento (D-E2-05, D-E2-06) |
+| G1 | — | Reconferido pelos E2E de exportação, menus e zoom (todos passam); o zoom escala a folha |
+
+Pendências: paginação real no editor (o texto não passa para a folha seguinte; há só a marca do fim de cada folha); "(continua)/(conclusão)" de tabela entre páginas (o DOCX repete o cabeçalho, mas a quebra é do Word); régua só de leitura (perfil UFT fixo); IA da bibliografia testada só com resposta simulada.
