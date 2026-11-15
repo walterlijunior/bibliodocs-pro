@@ -202,7 +202,7 @@ Executar: `cd app; npm run verificar`. Testes em `app/tests/editor-conversao.tes
 | DOC-05 | Recuo de primeira linha 1,25 cm (709 twips); citação longa com recuo de 4 cm (2268 twips) | RN-003, RN-004 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
 | DOC-06 | Estilos de título por nível conforme Quadro 1 do Manual | RN-010 a RN-014 | PASSOU (M3-T06, 2026-11-02; `tests/regressao-docx.test.ts`) |
 | DOC-07 | Sumário presente e coerente com os títulos | `RN` de sumário (Etapa 3) | PASSOU (M3-T07, 2026-11-02; `tests/externos/libreoffice.externo.ts`, Word) |
-| DOC-08 | DOCX abre sem reparo no Word e no LibreOffice | RNF-05 | PARCIAL: automático PASSOU (M3-T07, 2026-11-02: validador, LibreOffice, Word); falta a conferência manual |
+| DOC-08 | DOCX abre sem reparo no Word e no LibreOffice | RNF-05 | PASSOU (2026-11-15): além do automático do M3-T07, `ferramentas/word/conferir-reparo.ps1` abre no Word 16 real com os alertas ligados e registra toda janela de diálogo do Word; os seis exemplos completos e um DOCX com os recursos do ciclo da especificação revista (sublinhado, lista de quadros, siglas agrupadas, figura de 120 mm) abriram sem nenhum diálogo (sem reparo, sem pergunta de atualizar campos). Controle positivo: um DOCX com XML danificado gerou o diálogo de reparo, que o script registrou. |
 
 ## Grupo UI — layout
 
