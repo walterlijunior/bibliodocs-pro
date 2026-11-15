@@ -362,3 +362,18 @@ describe('larguras das colunas da planilha', () => {
     expect(grid[2]! / grid[3]!).toBeCloseTo(150 / 84, 1);
   });
 });
+
+describe('larguras pelo conteúdo (D-E4-08)', () => {
+  it('coluna de texto larga, de números estreita; mesclada entre colunas não conta; texto longo limitado', async () => {
+    const { pesosPeloConteudo } = await import('../src/dominio/normas/motor-visuais');
+    const cel = (texto: string, colunas?: number) => ({ conteudo: [t(texto)], ...(colunas ? { colunas } : {}) });
+    const b = {
+      colunas: [{ alinhamento: 'esquerda' as const }, { alinhamento: 'direita' as const }, { alinhamento: 'direita' as const }],
+      linhas: [[cel('Indicador'), cel('2022'), cel('2023')], [cel('Receita líquida (R$ mi)'), cel('10.205'), cel('11.250')], [cel('Texto que ocupa as duas colunas de número sozinho', 2), cel('x')], [cel('x'.repeat(80)), cel('1'), cel('2')]],
+    };
+    const [a, n1, n2] = pesosPeloConteudo(b);
+    expect(a).toBe(84); // palavra de 80 letras: nunca menor que a palavra mais longa
+    expect([n1, n2]).toEqual([10, 10]);
+    expect(pesosPeloConteudo({ ...b, linhas: b.linhas.slice(0, 2) })).toEqual([27, 10, 10]);
+  });
+});

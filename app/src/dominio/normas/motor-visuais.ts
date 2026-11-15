@@ -125,6 +125,35 @@ function rodapeFormatado(b: BlocoTabela | BlocoIlustracao | BlocoGrafico, c: Con
   return rodape;
 }
 
+/**
+ * Larguras pelo conteúdo, quando a tabela não traz as suas (Etapa 4, D-E4-08): o peso de cada coluna é a sua maior
+ * linha de texto, limitada a 40 caracteres (texto longo quebra), e nunca menor que a palavra mais longa; a coluna de
+ * números fica estreita e a de texto, larga, sem que nada saia das margens. Cada peso leva 4 de folga (espaço interno). Célula mesclada entre colunas não conta.
+ */
+export function pesosPeloConteudo(b: Pick<BlocoTabela, 'colunas' | 'linhas'>): number[] {
+  const pesos = b.colunas.map(() => 3);
+  const cobertas = new Array<number>(b.colunas.length).fill(0);
+  for (const linha of b.linhas) {
+    let c = 0;
+    for (const cel of linha) {
+      while (c < b.colunas.length && cobertas[c]! > 0) c++;
+      const colunas = cel.colunas ?? 1;
+      if (colunas === 1 && c < pesos.length) {
+        const texto = cel.conteudo.map((i) => i.texto).join('');
+        const linhas = texto.split('\n');
+        const maiorLinha = Math.max(0, ...linhas.map((l) => l.trim().length));
+        const maiorPalavra = Math.max(0, ...texto.split(/\s+/).map((w) => w.length));
+        pesos[c] = Math.max(pesos[c]!, Math.min(maiorLinha, 40), maiorPalavra);
+      }
+      for (let k = c; k < Math.min(b.colunas.length, c + colunas); k++) cobertas[k] = cel.linhas ?? 1;
+      c += colunas;
+    }
+    for (let k = 0; k < cobertas.length; k++) cobertas[k] = Math.max(0, cobertas[k]! - 1);
+  }
+  // Folga do espaço interno da célula: sem ela, a coluna de números curtos quebraria "10.205".
+  return pesos.map((x) => x + 4);
+}
+
 /** Título, tabela e rodapé, nessa ordem (RN-242: topo, centro e rodapé). */
 export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado[] {
   const n = c.numeros.get(b.id);
@@ -152,7 +181,7 @@ export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado
       estilo: 'celulaTabela',
       larguraTw: c.larguraTw,
       colunas: b.colunas.length,
-      ...(b.colunas.every((x) => x.largura !== undefined) ? { pesosColunas: b.colunas.map((x) => x.largura!) } : {}),
+      pesosColunas: b.colunas.every((x) => x.largura !== undefined) ? b.colunas.map((x) => x.largura!) : pesosPeloConteudo(b),
       linhasCabecalho: b.linhasCabecalho,
       repetirCabecalho: repetir,
       tracos: moldura.tracos,

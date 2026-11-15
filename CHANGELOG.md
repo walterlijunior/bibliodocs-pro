@@ -20,6 +20,7 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Etapa 2: **busca no documento** (Ctrl+F na aba Escrever), sem diferença de acentos, com a lista de resultados e o salto ao trecho (D-E2-05); **régua** alinhada à folha, com as margens e o recuo do perfil (D-E2-06).
 
 ### Corrigido
+- Tabelas e quadros saíam no DOCX com todas as colunas iguais, quebrando o texto das colunas largas e sobrando espaço nas de números: agora as larguras seguem o conteúdo (D-E4-08).
 - A página de escrita aparecia como uma coluna estreita na seção vazia e alargava ao digitar: agora a folha tem a largura e as margens do perfil desde a primeira linha, com o zoom (D-E2-06).
 - A legenda da tabela e do quadro no editor mostrava só "Tabela – título": agora traz o número ("Tabela 2 – título") e acompanha a renumeração, como a menção no texto (D-E4-07).
 
