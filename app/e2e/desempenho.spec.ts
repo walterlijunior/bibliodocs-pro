@@ -130,10 +130,14 @@ test('RNF-06/07: documento de 150 páginas e 25 MiB — abrir, digitar com insta
   await expect(visor).toHaveText(/^Salvo às/, { timeout: 20_000 });
   memoriaPico = Math.max(memoriaPico, await memoriaMb());
 
-  // 4. O arquivo tem o que foi digitado, no fim da seção 1.1.1.
-  const corpo = (JSON.parse(lerDocumento(arquivo).json) as Documento).corpo;
-  const ultimo = corpo[0]!.subsecoes[0]!.subsecoes[0]!.blocos.at(-1)!;
-  expect(ultimo.tipo === 'paragrafo' && textoPlano(ultimo.conteudo).endsWith(`${digitado}b`)).toBe(true);
+  // 4. O arquivo tem o que foi digitado, no fim da seção 1.1.1. O visor já dizia "Salvo às" do salvamento do meio da
+  // digitação: sob carga, o teste lia o arquivo antes de o último Ctrl+S terminar. Espera o arquivo, não o visor.
+  const ultimoTexto = () => {
+    const corpo = (JSON.parse(lerDocumento(arquivo).json) as Documento).corpo;
+    const ultimo = corpo[0]!.subsecoes[0]!.subsecoes[0]!.blocos.at(-1)!;
+    return ultimo.tipo === 'paragrafo' ? textoPlano(ultimo.conteudo) : '';
+  };
+  await expect.poll(() => ultimoTexto().endsWith(`${digitado}b`), { timeout: 20_000 }).toBe(true);
 
   const resumo = {
     paginas: grande.paginasEstimadas,
