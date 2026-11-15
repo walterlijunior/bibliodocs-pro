@@ -242,8 +242,10 @@ test('EDT-09: árvore de seções — teclado, arrastar, barra superior e desfaz
   await p.keyboard.press('Enter');
   await p.keyboard.type('Texto um.');
   // "Nova seção" entra depois da escolhida, no mesmo nível, com o cursor no título.
-  for (const titulo of ['Método', 'Resultados']) {
+  for (const [k, titulo] of ['Método', 'Resultados'].entries()) {
     await p.getByRole('button', { name: 'Nova seção' }).click();
+    // O campo do título abre no painel; em máquina lenta, digitar antes dele aparecer perderia o texto.
+    await expect(p.getByRole('textbox', { name: `Título da seção ${k + 2}` })).toBeFocused();
     await p.keyboard.type(titulo);
     await p.keyboard.press('Enter');
   }
