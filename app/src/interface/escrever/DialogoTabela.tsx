@@ -62,7 +62,7 @@ export function DialogoTabela(p: PropsDialogoTabela) {
     }
     return () => {
       d?.close();
-      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus();
+      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus({ preventScroll: true });
     };
   }, [base]);
 

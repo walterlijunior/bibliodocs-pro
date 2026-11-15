@@ -65,7 +65,7 @@ export function DialogoRemissiva(p: PropsDialogoRemissiva) {
   return (
     <dialog
       ref={ref}
-      className="dialogo"
+      className="dialogo dialogo--remissiva"
       aria-labelledby={`${base}-titulo`}
       onCancel={(e) => {
         e.preventDefault();
@@ -101,7 +101,7 @@ export function DialogoRemissiva(p: PropsDialogoRemissiva) {
                   : `“${mencao}” não é o rótulo de nenhum elemento: escolha o elemento; o texto fica como menção sem número.`}
               </p>
             )}
-            <fieldset className="tipos-trabalho">
+            <fieldset className="tipos-trabalho remissiva__forma">
               <legend>Como aparece no texto</legend>
               <label className="tipos-trabalho__opcao">
                 <input type="radio" name={`${base}-forma`} checked={!semNumero} onChange={() => setSemNumero(false)} />

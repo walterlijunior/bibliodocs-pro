@@ -194,6 +194,7 @@ export {
   lerTextoColado,
   opcoesSugeridas,
   type CelulaPlanilha,
+  type EstiloOrigem,
   type OpcoesPlanilha,
   type PlanilhaConvertida,
   type PlanilhaLida,

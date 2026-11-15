@@ -81,7 +81,7 @@ export function DialogoNovoTrabalho(p: PropsDialogoNovoTrabalho) {
     }
     return () => {
       d?.close();
-      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus();
+      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus({ preventScroll: true });
     };
   }, []);
 

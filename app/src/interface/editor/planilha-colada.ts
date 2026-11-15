@@ -7,7 +7,8 @@
  * Nada aqui lê `innerHTML`, carrega recurso ou executa código: o texto vem dos nós de texto e o `<br>` vira quebra.
  * As planilhas copiam o valor como aparece na tela ("1.234,5"), que é o que vai para a tabela.
  */
-import type { CelulaPlanilha, PlanilhaLida } from '../../aplicacao';
+import type { CelulaPlanilha, EstiloOrigem, PlanilhaLida } from '../../aplicacao';
+import type { AlinhamentoColuna } from '../../dominio/modelo';
 import { ATRIBUTO_ESTILO, type NoHtml } from './html-colado';
 
 interface ElementoHtml extends NoHtml {
@@ -103,8 +104,58 @@ function linhasDe(tabela: ElementoHtml): { linhas: { tr: ElementoHtml; noCabecal
   return { linhas, ocultas };
 }
 
-/** A primeira tabela do HTML colado, ou `null` se não há tabela. */
-export function planilhaDoHtml(raiz: NoHtml): PlanilhaLida | null {
+/** Declarações CSS (`prop: valor`, minúsculas, sem `!important`). */
+function declaracoes(css: string): Map<string, string> {
+  const mapa = new Map<string, string>();
+  for (const d of css.split(';')) {
+    const i = d.indexOf(':');
+    if (i < 0) continue;
+    const prop = d.slice(0, i).trim().toLowerCase();
+    if (prop) mapa.set(prop, d.slice(i + 1).replace(/!\s*important/i, '').trim().toLowerCase());
+  }
+  return mapa;
+}
+
+/**
+ * Estilos por classe das folhas `<style>` do HTML colado (o Excel põe bordas e alinhamento em classes como `.xl66`).
+ * Lido como texto, antes de a neutralização tirar as folhas; só seletores de uma classe (`.xl66`, `td.xl66`) contam.
+ */
+export function estilosDeClasse(html: string): Map<string, Map<string, string>> {
+  const classes = new Map<string, Map<string, string>>();
+  for (const bloco of html.slice(0, 2_000_000).matchAll(/<style(?=[\s>/])[^>]*>([\s\S]*?)<\/style\s*>/gi)) {
+    const css = bloco[1]!.replace(/<!--|-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const regra of css.matchAll(/(?:^|[}\s,])[a-z]*\.([A-Za-z0-9_-]+)\s*\{([^}]*)\}/g)) {
+      const atual = classes.get(regra[1]!) ?? new Map<string, string>();
+      for (const [k, v] of declaracoes(regra[2]!)) atual.set(k, v);
+      classes.set(regra[1]!, atual);
+    }
+  }
+  return classes;
+}
+
+const SEM_BORDA = /^(none|0|0pt|0px|hidden)\b|\bnone\b/;
+const comBorda = (v: string | undefined): boolean => v !== undefined && v !== '' && !SEM_BORDA.test(v);
+const ALINHAMENTOS: Readonly<Record<string, AlinhamentoColuna>> = { left: 'esquerda', start: 'esquerda', center: 'centro', centre: 'centro', right: 'direita', end: 'direita', justify: 'esquerda' };
+/** Cor que não é destaque: as palavras do padrão, preto ou branco em hexadecimal, ou preto em notação funcional. */
+const PALAVRAS_PADRAO = new Set(['windowtext', 'black', 'white', 'auto', 'inherit', 'initial', 'transparent', 'none']);
+const corPadrao = (v: string | undefined): boolean => {
+  if (v === undefined) return true;
+  const t = v.trim().replace(/\s+/g, '');
+  if (PALAVRAS_PADRAO.has(t)) return true;
+  if (t.startsWith('#')) return /^(0{3}|0{6}|f{3}|f{6})$/.test(t.slice(1));
+  return /^rgba?\(0,0,0(,1)?\)$/.test(t);
+};
+
+/** Estilo efetivo da célula: o da classe e, por cima, o `style` dela. */
+function estiloDaCelula(c: ElementoHtml, classes: ReadonlyMap<string, ReadonlyMap<string, string>>): Map<string, string> {
+  const mapa = new Map<string, string>();
+  for (const nome of (c.getAttribute('class') ?? '').split(/\s+/)) for (const [k, v] of classes.get(nome) ?? []) mapa.set(k, v);
+  for (const [k, v] of declaracoes(c.getAttribute(ATRIBUTO_ESTILO) ?? c.getAttribute('style') ?? '')) mapa.set(k, v);
+  return mapa;
+}
+
+/** A primeira tabela do HTML colado, ou `null` se não há tabela. `classes`: de `estilosDeClasse` (a folha do Excel). */
+export function planilhaDoHtml(raiz: NoHtml, classes: ReadonlyMap<string, ReadonlyMap<string, string>> = new Map()): PlanilhaLida | null {
   const todas = tabelas(raiz);
   const tabela = todas[0];
   if (!tabela) return null;
@@ -114,6 +165,7 @@ export function planilhaDoHtml(raiz: NoHtml): PlanilhaLida | null {
   if (ocultas > 0) avisos.push(ocultas === 1 ? 'Uma linha oculta na planilha ficou de fora.' : `${ocultas} linhas ocultas na planilha ficaram de fora.`);
   let cabecalho = 0;
   let aindaCabecalho = true;
+  const estilo: EstiloOrigem = { celulas: 0, bordasVerticais: 0, bordasHorizontais: 0, negrito: 0, italico: 0, cores: 0 };
   const linhas: CelulaPlanilha[][] = trs.map(({ tr, noCabecalho }) => {
     const celulas = filhos(tr).filter((c): c is ElementoHtml => ehElemento(c) && (nomeDe(c) === 'td' || nomeDe(c) === 'th') && !oculto(c));
     const deCabecalho = noCabecalho || (celulas.length > 0 && celulas.every((c) => nomeDe(c) === 'th'));
@@ -122,8 +174,19 @@ export function planilhaDoHtml(raiz: NoHtml): PlanilhaLida | null {
     return celulas.map((c) => {
       const colunas = inteiro(c.getAttribute('colspan'));
       const linhasMescladas = inteiro(c.getAttribute('rowspan'));
-      return { texto: textoDe(c), ...(colunas ? { colunas } : {}), ...(linhasMescladas ? { linhas: linhasMescladas } : {}) };
+      const e = estiloDaCelula(c, classes);
+      const alinhamento = ALINHAMENTOS[(e.get('text-align') ?? c.getAttribute('align') ?? '').trim().toLowerCase()];
+      estilo.celulas++;
+      const borda = e.get('border');
+      if (comBorda(borda) || comBorda(e.get('border-left')) || comBorda(e.get('border-right'))) estilo.bordasVerticais++;
+      if (comBorda(borda) || comBorda(e.get('border-top')) || comBorda(e.get('border-bottom'))) estilo.bordasHorizontais++;
+      const peso = e.get('font-weight');
+      if (peso !== undefined && (peso === 'bold' || peso === 'bolder' || Number(peso) >= 600)) estilo.negrito++;
+      if ((e.get('font-style') ?? '').startsWith('italic')) estilo.italico++;
+      const fundo = e.get('background-color') ?? e.get('background');
+      if (!corPadrao(e.get('color')) || !corPadrao(fundo)) estilo.cores++;
+      return { texto: textoDe(c), ...(colunas ? { colunas } : {}), ...(linhasMescladas ? { linhas: linhasMescladas } : {}), ...(alinhamento ? { alinhamento } : {}) };
     });
   });
-  return { linhas, ...(cabecalho > 0 ? { linhasCabecalho: cabecalho } : {}), avisos };
+  return { linhas, ...(cabecalho > 0 ? { linhasCabecalho: cabecalho } : {}), avisos, estiloOrigem: estilo };
 }

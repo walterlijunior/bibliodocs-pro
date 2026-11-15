@@ -379,6 +379,16 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-remissiva--sem-numero { border-bottom: 1px dashed currentColor; }
 .bd-remissiva.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 1px; }
 .remissiva__lista { max-height: 50vh; }
+/* Especificação revista, Etapa 4 (captura A): a grade de 4 linhas fixas do corpo pôs a mensagem da menção numa linha que
+   encolhia a zero, sobre "Como aparece no texto". Aqui cada bloco tem a altura do conteúdo; o corpo rola e os botões
+   ficam presos embaixo; a lista de elementos rola sozinha quando é longa. */
+.dialogo--remissiva { width: min(640px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--remissiva .dialogo__corpo { grid-template-rows: none; grid-auto-rows: max-content; overflow: auto; padding-bottom: 0; }
+.dialogo--remissiva .tipos-trabalho { min-height: auto; }
+.dialogo--remissiva .remissiva__lista { max-height: min(40vh, 22rem); min-height: 6rem; }
+.dialogo--remissiva .dialogo__nota { margin: 0; overflow-wrap: anywhere; }
+.dialogo--remissiva .tipos-trabalho__nome { overflow-wrap: anywhere; }
+.dialogo--remissiva .dialogo__acoes { position: sticky; bottom: 0; background: var(--cor-fundo); padding: var(--esp-3) 0 var(--esp-4); border-top: 1px solid var(--cor-borda); }
 /* Tabela e quadro no texto (M5-T04): só conteúdo; traços e corpo 10 são do documento, na Pré-visualização. */
 .bd-tabela { margin: var(--esp-3) 0; padding: var(--esp-2); border: 1px solid var(--cor-borda); border-radius: var(--raio); background: var(--cor-superficie); cursor: pointer; }
 .bd-tabela.ProseMirror-selectednode { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

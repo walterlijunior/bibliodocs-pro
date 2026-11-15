@@ -37,7 +37,7 @@ export function DialogoExportar(p: PropsDialogoExportar) {
     }
     return () => {
       d?.close();
-      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus();
+      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus({ preventScroll: true });
     };
   }, []);
 

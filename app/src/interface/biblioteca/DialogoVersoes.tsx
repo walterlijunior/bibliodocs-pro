@@ -49,7 +49,7 @@ export function DialogoVersoes(p: PropsDialogoVersoes) {
     if (d && !d.open) d.showModal();
     return () => {
       d?.close();
-      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus();
+      if (anterior instanceof HTMLElement && anterior.isConnected) anterior.focus({ preventScroll: true });
     };
   }, []);
 

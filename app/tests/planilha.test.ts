@@ -17,7 +17,7 @@ import {
   type PlanilhaConvertida,
   type PlanilhaLida,
 } from '../src/aplicacao';
-import { planilhaDoHtml } from '../src/interface/editor/planilha-colada';
+import { estilosDeClasse, planilhaDoHtml } from '../src/interface/editor/planilha-colada';
 import { lerHtmlMinimo } from './apoio/html-minimo';
 
 const fixture = (nome: string) => readFileSync(join(__dirname, 'fixtures', 'planilha', nome));
@@ -225,3 +225,45 @@ describe('memória da leitura de CSV e de texto colado (R-M5-03, revisão do M5)
     expect(converter(p).relatorio.join(' ')).toContain('Ficaram de fora 74 células além da 63.ª coluna');
   });
 });
+
+describe('especificação revista, Etapa 4: alinhamento, bordas e estilos da origem', () => {
+  // Excel: bordas e alinhamento nas classes da folha <style>; a 2.ª coluna centralizada, a 3.ª com alinhamentos misturados.
+  const EXCEL = `<html><head><style><!--
+.xl70 {border:.5pt solid windowtext; text-align:center; font-weight:700;}
+.xl71 {border-top:none; border-bottom:.5pt solid windowtext; border-left:.5pt solid windowtext; border-right:.5pt solid windowtext; text-align:center;}
+.xl72 {border:.5pt solid windowtext; background:#FFFF00; mso-pattern:black none;}
+--></style></head><body><table>
+<tr><td class=xl70>Item</td><td class=xl70>Situação</td><td class=xl70>Obs.</td></tr>
+<tr><td class=xl72>A</td><td class=xl71>Concluído</td><td align=right>sim</td></tr>
+<tr><td class=xl72>B</td><td class=xl71>Pendente</td><td align=left>não</td></tr>
+</table></body></html>`;
+  const lida = () => planilhaDoHtml(lerHtmlMinimo(EXCEL), estilosDeClasse(EXCEL))!;
+
+  it('lê o alinhamento das classes e do atributo, e conta bordas, negrito e cores', () => {
+    const p = lida();
+    expect(p.linhas[1]!.map((c) => c.alinhamento)).toEqual([undefined, 'centro', 'direita']);
+    expect(p.estiloOrigem).toEqual({ celulas: 9, bordasVerticais: 7, bordasHorizontais: 7, negrito: 3, italico: 0, cores: 2 });
+  });
+
+  it('a coluna com alinhamento coerente na origem fica com ele; a misturada fica com a sugestão; o relatório diz o que não entrou', () => {
+    const c = converterPlanilha(lida(), 'quadro', { decimal: 'virgula', vazios: '', linhasCabecalho: 1 });
+    expect(c.alinhamentos).toEqual(['esquerda', 'centro', 'esquerda']);
+    expect(c.relatorio).toContain('Alinhamento da origem mantido: coluna 2 centralizada.');
+    expect(c.relatorio.some((r) => r.startsWith('Alinhamentos diferentes entre as células (coluna 3)'))).toBe(true);
+    expect(c.relatorio).toContain('As bordas da origem não são copiadas: o quadro usa o estilo acadêmico, fechado e com todas as linhas (RN-062).');
+    expect(c.relatorio).toContain('Não entram na tabela: negrito, cores de texto ou de fundo da origem (o estilo acadêmico define a fonte e o destaque do cabeçalho).');
+    const t = converterPlanilha(lida(), 'tabela', { decimal: 'virgula', vazios: '', linhasCabecalho: 1 });
+    expect(t.relatorio.some((r) => r.includes('estilo acadêmico do IBGE') && r.includes('escolha “Quadro”'))).toBe(true);
+    // O alinhamento chega ao que é gravado.
+    expect(gravada(c).colunas.map((x) => x.alinhamento)).toEqual(['esquerda', 'centro', 'esquerda']);
+  });
+
+  it('Google Planilhas: estilo na própria célula; sem bordas nem destaques, o relatório não fala deles', () => {
+    const g = '<table><tr><td style="text-align:right">1</td><td style="text-align:right;">2</td></tr><tr><td style="text-align:right">3</td><td>4</td></tr></table>';
+    const p = planilhaDoHtml(lerHtmlMinimo(g), estilosDeClasse(g))!;
+    expect(p.estiloOrigem).toMatchObject({ bordasVerticais: 0, bordasHorizontais: 0, negrito: 0, cores: 0 });
+    const c = converterPlanilha(p, 'tabela', { decimal: 'virgula', vazios: '', linhasCabecalho: 0 });
+    expect(c.relatorio.some((r) => /bordas|Não entram/.test(r))).toBe(false);
+  });
+});
+

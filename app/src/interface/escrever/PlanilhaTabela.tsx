@@ -17,7 +17,7 @@ import {
   type SinalParaVazio,
 } from '../../aplicacao';
 import { arvoreDoHtmlColado } from '../editor/colagem';
-import { planilhaDoHtml } from '../editor/planilha-colada';
+import { estilosDeClasse, planilhaDoHtml } from '../editor/planilha-colada';
 import { Icone } from '../Icones';
 
 /** Linhas mostradas na prévia. */
@@ -39,7 +39,7 @@ const VAZIOS: readonly { valor: SinalParaVazio; rotulo: string }[] = [
 /** O que foi colado: a tabela do HTML, ou o texto com tabulações (ou o separador do CSV, sem tabulação). */
 function lerColagem(html: string, texto: string): PlanilhaLida | null {
   if (html) {
-    const lida = planilhaDoHtml(arvoreDoHtmlColado(html));
+    const lida = planilhaDoHtml(arvoreDoHtmlColado(html), estilosDeClasse(html));
     if (lida) return lida;
   }
   if (texto.trim() === '') return null;

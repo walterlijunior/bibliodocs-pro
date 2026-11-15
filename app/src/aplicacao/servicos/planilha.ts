@@ -23,6 +23,21 @@ export interface CelulaPlanilha {
   texto: string;
   colunas?: number;
   linhas?: number;
+  /** Alinhamento horizontal escolhido na origem (especificação revista, Etapa 4); ausente = o padrão da planilha. */
+  alinhamento?: AlinhamentoColuna;
+}
+
+/** O que a origem tinha de formatação que o estilo acadêmico substitui (contagem de células), para o relatório. */
+export interface EstiloOrigem {
+  celulas: number;
+  /** Células com borda à esquerda ou à direita (grade com linhas verticais). */
+  bordasVerticais: number;
+  /** Células com borda em cima ou embaixo. */
+  bordasHorizontais: number;
+  negrito: number;
+  italico: number;
+  /** Cor de texto ou de fundo diferente do padrão. */
+  cores: number;
 }
 
 export interface PlanilhaLida {
@@ -31,6 +46,8 @@ export interface PlanilhaLida {
   linhasCabecalho?: number;
   /** Avisos da leitura (mais de uma tabela colada, arquivo fora do UTF-8…). */
   avisos: string[];
+  /** Formatação visível da origem (só na colagem em HTML). */
+  estiloOrigem?: EstiloOrigem;
   /** Linhas com texto que a leitura nem guardou, por passarem do limite (R-M5-03); entram no relatório como "fora". */
   linhasNaoLidas?: number;
   /** Campos com texto além do limite de colunas, também não guardados (R-M5-03). */
@@ -207,6 +224,7 @@ interface Posicionada {
   c: number;
   colunas: number;
   linhas: number;
+  alinhamento?: AlinhamentoColuna;
 }
 
 /** Põe as células na grade como o navegador poria, reduzindo mesclagens que sobrepõem outra ou passam do limite. */
@@ -233,7 +251,7 @@ function posicionar(linhas: readonly CelulaPlanilha[][], maxLinhas: number, rel:
       while (h < pedidas.linhas && l + h < nLinhas && linhaLivre(l + h)) h++;
       if (w !== pedidas.colunas || h !== pedidas.linhas) rel.mesclagensAjustadas++;
       for (let ll = l; ll < l + h; ll++) for (let cc = c; cc < c + w; cc++) ocupada[ll]![cc] = true;
-      celulas.push({ texto: cel.texto, l, c, colunas: w, linhas: h });
+      celulas.push({ texto: cel.texto, l, c, colunas: w, linhas: h, ...(cel.alinhamento ? { alinhamento: cel.alinhamento } : {}) });
       nColunas = Math.max(nColunas, c + w);
       c += w;
     }
@@ -251,8 +269,9 @@ interface Contagem {
 const vazia = (x: CelulaRascunho | null) => x !== null && x.campo.texto.trim() === '' && x.colunas === 1 && x.linhas === 1;
 
 /** Grade completa, sem linhas e colunas vazias no fim (a quebra final do Excel, o ";" final do CSV). */
-function gradeCompleta(p: PlanilhaLida, rel: Contagem): (CelulaRascunho | null)[][] {
+function gradeCompleta(p: PlanilhaLida, rel: Contagem, alinhOrigem?: { l: number; c: number; colunas: number; alinhamento: AlinhamentoColuna }[]): (CelulaRascunho | null)[][] {
   const { celulas, nLinhas, nColunas } = posicionar(p.linhas, LIMITES_V1.linhasTabela, rel);
+  if (alinhOrigem) for (const x of celulas) if (x.alinhamento) alinhOrigem.push({ l: x.l, c: x.c, colunas: x.colunas, alinhamento: x.alinhamento });
   let grade: (CelulaRascunho | null)[][] = Array.from({ length: nLinhas }, () => new Array<CelulaRascunho | null>(nColunas).fill(null));
   const coberta: boolean[][] = Array.from({ length: nLinhas }, () => new Array<boolean>(nColunas).fill(false));
   for (const x of celulas) {
@@ -323,7 +342,8 @@ const plural = (n: number, um: string, varios: string): string => (n === 1 ? um 
 /** Converte a planilha lida com as opções da prévia. */
 export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro', opcoes: OpcoesPlanilha): PlanilhaConvertida {
   const cont: Contagem = { linhasFora: p.linhasNaoLidas ?? 0, celulasFora: p.camposNaoLidos ?? 0, mesclagensAjustadas: 0, completadas: 0 };
-  const grade = gradeCompleta(p, cont);
+  const alinhOrigem: { l: number; c: number; colunas: number; alinhamento: AlinhamentoColuna }[] = [];
+  const grade = gradeCompleta(p, cont, alinhOrigem);
   const nColunas = grade[0]?.length ?? 0;
   const linhasCabecalho = cabecalhoSemCorte(grade, opcoes.linhasCabecalho);
 
@@ -367,6 +387,20 @@ export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro',
     return total > 0 && dados * 2 >= total;
   });
   const alinhamentos: AlinhamentoColuna[] = numerica.map((n) => (n ? 'direita' : 'esquerda'));
+  // Especificação revista, Etapa 4: o alinhamento escolhido na origem vale quando as células do corpo da coluna
+  // concordam (o formato alinha a coluna inteira). Célula mesclada entre colunas não conta.
+  const doCorpo = alinhOrigem.filter((x) => x.l >= linhasCabecalho && x.colunas === 1 && x.c < nColunas);
+  const mantidas: string[] = [];
+  const divergentes: string[] = [];
+  const NOME_ALINHAMENTO = { esquerda: 'à esquerda', centro: 'centralizada', direita: 'à direita' } as const;
+  for (let c = 0; c < nColunas; c++) {
+    const vistos = new Set(doCorpo.filter((x) => x.c === c).map((x) => x.alinhamento));
+    if (vistos.size === 1) {
+      const a = [...vistos][0]!;
+      if (a !== alinhamentos[c]) mantidas.push(`coluna ${c + 1} ${NOME_ALINHAMENTO[a]}`);
+      alinhamentos[c] = a;
+    } else if (vistos.size > 1) divergentes.push(`coluna ${c + 1}`);
+  }
 
   const vazios: string[] = [];
   const naoNumericas: string[] = [];
@@ -383,6 +417,20 @@ export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro',
   });
 
   const relatorio: string[] = [...p.avisos];
+  if (mantidas.length > 0) relatorio.push(`Alinhamento da origem mantido: ${mantidas.join('; ')}.`);
+  if (divergentes.length > 0) relatorio.push(`Alinhamentos diferentes entre as células (${divergentes.join(', ')}): o formato alinha a coluna inteira; ficou o alinhamento sugerido, que você pode trocar na grade.`);
+  const e = p.estiloOrigem;
+  if (e && e.celulas > 0) {
+    if (e.bordasVerticais > 0 || e.bordasHorizontais > 0) {
+      relatorio.push(
+        especie === 'tabela'
+          ? `As bordas da origem não são copiadas: a tabela usa o estilo acadêmico do IBGE (traços só no topo, sob o cabeçalho e no fim, sem linhas verticais nem bordas laterais, RN-247 e RN-249).${e.bordasVerticais > 0 ? ' A origem tinha linhas verticais: se o conteúdo é texto, escolha “Quadro” (fechado, com todas as linhas).' : ''}`
+          : 'As bordas da origem não são copiadas: o quadro usa o estilo acadêmico, fechado e com todas as linhas (RN-062).',
+      );
+    }
+    const outros = [e.negrito > 0 ? 'negrito' : null, e.italico > 0 ? 'itálico' : null, e.cores > 0 ? 'cores de texto ou de fundo' : null].filter((x): x is string => x !== null);
+    if (outros.length > 0) relatorio.push(`Não entram na tabela: ${outros.join(', ')} da origem (o estilo acadêmico define a fonte e o destaque do cabeçalho).`);
+  }
   if (numerosConvertidos > 0) relatorio.push(`${plural(numerosConvertidos, 'Um número convertido', '# números convertidos')} para o padrão brasileiro (ex.: ${exemploNumero}).`);
   if (datas > 0) relatorio.push(`${plural(datas, 'Uma data convertida', '# datas convertidas')} para dia/mês/ano.`);
   if (hifens > 0) relatorio.push(`${plural(hifens, 'Uma célula', '# células')} com “-” ${hifens === 1 ? 'será gravada' : 'serão gravadas'} com “–”, o sinal de dado igual a zero (RN-264).`);
