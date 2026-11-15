@@ -40,7 +40,7 @@ import type { Estrutura, PedidoFoco } from './useEstrutura';
 import type { CadastrosDocumento } from '../../aplicacao';
 import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
-import { Conformidade } from './Conformidade';
+import { Conformidade, type RetornoConformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
 import type { ApiIa, DadosTabela, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 import type { ModeloEvento, RegistroAtividades, RegrasModelo } from '../../dominio/modelo';
@@ -229,6 +229,10 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     gravarLarguraEstrutura(n);
   };
   const [relatorioConformidade, setRelatorioConformidade] = useState<RelatorioConformidade | null>(null);
+  // Especificação revista, Etapa 6: a ocorrência aberta por "Ir ao local", para voltar ao relatório no mesmo item.
+  const [revendo, setRevendo] = useState<(RetornoConformidade & { origem: 'aba' | 'janela' }) | null>(null);
+  const [retornoConformidade, setRetornoConformidade] = useState<RetornoConformidade | null>(null);
+  const atenderRetorno = useCallback(() => setRetornoConformidade(null), []);
   const { pedidoConformidade = 0, aoAtenderPedidoConformidade } = p;
   const verificarConformidade = p.conformidade?.verificar;
   useEffect(() => {
@@ -257,7 +261,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     setAnuncioNC(null);
   }, [t?.geracao]);
   useEffect(() => {
-    setCadastrosAbertos(false); setRelatorioConformidade(null); setPedidoSigla(null); setSugestaoPre(null);
+    setCadastrosAbertos(false); setRelatorioConformidade(null); setPedidoSigla(null); setSugestaoPre(null); setRevendo(null); setRetornoConformidade(null);
   }, [t?.geracao]);
   useEffect(() => {
     if (sugestaoPre !== null) refEscrever.current?.querySelector<HTMLSelectElement>('.elementos__incluir select')?.focus();
@@ -673,6 +677,31 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           </li>
         </ul>
       )}
+      {revendo !== null && modo !== 'conformidade' && relatorioConformidade === null && p.conformidade && (
+        <div className="conformidade__voltar" role="region" aria-label="Revisão de conformidade">
+          <span>Revendo: {revendo.rotulo}</span>
+          <button
+            type="button"
+            className="btn-principal"
+            onClick={() => {
+              const r = revendo;
+              setRevendo(null);
+              setRetornoConformidade({ chave: r.chave, rotulo: r.rotulo });
+              if (r.origem === 'aba' && aoIrParaModo) {
+                // O relatório refeito já no primeiro desenho da aba (o da visita anterior diria que a ocorrência ainda aparece).
+                setRelatorioAba(p.conformidade!.verificar());
+                aoIrParaModo('conformidade');
+              }
+              else setRelatorioConformidade(p.conformidade!.verificar());
+            }}
+          >
+            Voltar ao relatório
+          </button>
+          <button type="button" className="btn-link" onClick={() => setRevendo(null)}>
+            Dispensar
+          </button>
+        </div>
+      )}
       <p className="dica" role="status" hidden={anuncioNC === null}>
         {anuncioNC}
       </p>
@@ -685,7 +714,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             aoAtualizar={() => setRelatorioAba(p.conformidade!.verificar())}
             aoExportar={p.conformidade.exportar}
             aoFechar={() => undefined}
-            aoLocal={(local) => irAoLocal(local, true)}
+            aoLocal={(local, item) => {
+              setRevendo({ chave: item.chave, rotulo: item.rotuloLocal, origem: 'aba' });
+              irAoLocal(local, true);
+            }}
+            retorno={retornoConformidade}
+            aoRetornoAtendido={atenderRetorno}
           />
         ) : (
           <p className="dica">O verificador não está disponível para este trabalho.</p>
@@ -926,7 +960,12 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoAtualizar={() => setRelatorioConformidade(p.conformidade!.verificar())}
           aoExportar={p.conformidade.exportar}
           aoFechar={() => setRelatorioConformidade(null)}
-          aoLocal={(local) => irAoLocal(local, false)}
+          aoLocal={(local, item) => {
+            setRevendo({ chave: item.chave, rotulo: item.rotuloLocal, origem: 'janela' });
+            irAoLocal(local, false);
+          }}
+          retorno={retornoConformidade}
+          aoRetornoAtendido={atenderRetorno}
         />}
         {!semEstrutura && <DivisorEstrutura largura={larguraEstrutura} controla={ID_PAINEL_ESTRUTURA} aoMudar={mudarLargura} />}
         <section

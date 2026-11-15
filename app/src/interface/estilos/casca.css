@@ -486,7 +486,6 @@ button:disabled { opacity: 0.45; cursor: default; }
 .dialogo--citacao .dialogo__corpo { grid-template-rows: none; overflow: auto; }
 .dialogo--citacao select.campo { max-width: 100%; }
 /* Verificador de conformidade (M7-T03): o corpo todo rola, com grupos por família. */
-.dialogo--conformidade { width: min(720px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
 .dialogo--conformidade .dialogo__corpo { grid-template-rows: none; overflow: auto; }
 .conformidade__filtro { display: flex; flex-wrap: wrap; gap: var(--esp-3); border: 0; margin: 0; padding: 0; }
 .conformidade__grupo h3 { margin: var(--esp-2) 0; font-size: 1em; }
@@ -700,3 +699,16 @@ ol.bd-lista { list-style: decimal; }
 .assistente-ia__conteudo { max-height: 50vh; overflow: auto; border: 1px solid var(--cor-borda); padding: var(--esp-2); }
 .assistente-ia__mensagem { white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--tam-peq); margin: 0 0 var(--esp-2); }
 .dialogo--largo { width: min(56rem, calc(100vw - 2rem)); }
+/* Painel de conformidade (especificação revista, Etapa 6): filtros por categoria, selo de verificação, volta ao item. */
+.conformidade__filtros { display: grid; gap: var(--esp-2); }
+.conformidade__categorias { display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-3); align-items: center; }
+.conformidade__categoria--vazia { color: var(--cor-texto-sec); }
+.conformidade__selo { display: inline-block; font-size: 0.85em; padding: 0 var(--esp-2); border-radius: var(--raio); border: 1px solid var(--cor-borda); white-space: nowrap; }
+.conformidade__selo--verificado { border-color: var(--cor-destaque); color: var(--cor-destaque-texto); }
+.conformidade__selo--revisar { border-style: dashed; color: var(--cor-texto-sec); }
+.conformidade__item:focus { outline: 2px solid var(--cor-foco); outline-offset: 2px; }
+.conformidade__cobertura table { width: 100%; }
+.conformidade__voltar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); padding: var(--esp-2) var(--esp-3); border: 1px solid var(--cor-destaque); border-radius: var(--raio); background: var(--cor-superficie); }
+.conformidade__voltar > span { flex: 1 1 auto; overflow-wrap: anywhere; }
+.dialogo--conformidade { width: min(960px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+

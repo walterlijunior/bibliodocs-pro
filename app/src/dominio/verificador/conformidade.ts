@@ -31,8 +31,38 @@ export const FAMILIAS_CONFORMIDADE: readonly { familia: FamiliaConformidade; nom
   { familia: 'sigla', nome: 'Siglas' },
 ];
 
+/**
+ * Categoria para o filtro do painel (Etapa 6 da especificação revista): o tipo de elemento ou o assunto da ocorrência.
+ * As tabelas e os quadros vêm da espécie do elemento; as ilustrações que não são gráfico contam como figuras.
+ */
+export type CategoriaConformidade = 'tabelas' | 'quadros' | 'figuras' | 'graficos' | 'equacoes' | 'citacoes' | 'referencias' | 'preTextual' | 'texto' | 'siglas';
+
+/** Ordem e nomes das categorias no filtro. */
+export const CATEGORIAS_CONFORMIDADE: readonly { categoria: CategoriaConformidade; nome: string }[] = [
+  { categoria: 'tabelas', nome: 'Tabelas' },
+  { categoria: 'quadros', nome: 'Quadros' },
+  { categoria: 'figuras', nome: 'Figuras' },
+  { categoria: 'graficos', nome: 'Gráficos' },
+  { categoria: 'equacoes', nome: 'Equações' },
+  { categoria: 'citacoes', nome: 'Citações' },
+  { categoria: 'referencias', nome: 'Fontes e referências' },
+  { categoria: 'preTextual', nome: 'Pré-textuais' },
+  { categoria: 'texto', nome: 'Texto e seções' },
+  { categoria: 'siglas', nome: 'Siglas' },
+];
+
+/**
+ * `verificado`: o aplicativo conferiu e a regra é definitiva (pendência objetiva, com fonte); `revisar`: aviso,
+ * heurística ou critério provisório — pede o olhar do autor antes de concluir que há erro.
+ */
+export type VerificacaoConformidade = 'verificado' | 'revisar';
+
 export interface NaoConformidade {
   id: string;
+  /** Mesma ocorrência entre duas verificações (código e local): diz se ela foi resolvida depois da correção. */
+  chave: string;
+  categoria: CategoriaConformidade;
+  verificacao: VerificacaoConformidade;
   codigo: string;
   familia: FamiliaConformidade;
   /** Local para ler: "Seção 2.1 Método — Tabela 3", "Ficha catalográfica", "Obra: Título". */
@@ -110,7 +140,7 @@ const SUGESTOES_TABELA: Readonly<Record<CodigoProblemaTabela, string>> = {
   TABELA_CHAMADA_SEM_NOTA: 'Escreva a nota específica de cada chamada, na ordem das chamadas, ou retire a chamada ou a nota que sobrou.',
 };
 
-type Candidato = Omit<NaoConformidade, 'id' | 'rotuloLocal'>;
+type Candidato = Omit<NaoConformidade, 'id' | 'rotuloLocal' | 'chave' | 'categoria' | 'verificacao'>;
 
 function decisaoPreenchida(regra: RegraNormativa, perfil: Perfil): boolean {
   return (regra.parametros?.length ?? 0) > 0 && regra.parametros!.every((p) => perfil.parametros[p]?.valor !== undefined);
@@ -216,13 +246,83 @@ export function avaliarConformidade(doc: Documento, perfil: Perfil, opcoes: Opco
   }
   const peso = { erro: 0, aviso: 1 } as const;
   const rotular = rotuladorDeLocais(doc);
+  const categoria = categorizador(doc);
+  const vistas = new Map<string, number>();
   return {
     problemas: problemas.map((p, ordem) => ({ p, ordem }))
       .sort((a, b) => peso[a.p.gravidade] - peso[b.p.gravidade] || a.ordem - b.ordem)
-      .map(({ p }, i) => ({ id: `nc_${String(i + 1).padStart(6, '0')}`, ...p, rotuloLocal: rotular(p.local) })),
+      .map(({ p }, i) => {
+        const base = `${p.codigo}|${JSON.stringify(p.local)}`;
+        const n = (vistas.get(base) ?? 0) + 1;
+        vistas.set(base, n);
+        return {
+          id: `nc_${String(i + 1).padStart(6, '0')}`,
+          chave: n === 1 ? base : `${base}#${n}`,
+          categoria: categoria(p),
+          verificacao: p.gravidade === 'erro' && !p.provisoria ? 'verificado' as const : 'revisar' as const,
+          ...p,
+          rotuloLocal: rotular(p.local),
+        };
+      }),
     diagnosticos: [...diagnosticos.values()],
   };
 }
+
+const CITACOES: ReadonlySet<string> = new Set(['CHAMADA_SEM_LIGACAO', 'CHAMADA_AMBIGUA', 'CHAMADA_COM_AVISO', 'GRAFIA_DIVERGENTE']);
+
+/** Categoria de cada ocorrência: a espécie do elemento do local (tabela, quadro, gráfico, figura, equação) ou o assunto. */
+function categorizador(doc: Documento): (p: Candidato) => CategoriaConformidade {
+  let especies: Map<string, CategoriaConformidade> | null = null;
+  const doElemento = (id: string): CategoriaConformidade | undefined => {
+    if (!especies) {
+      const n = numerarElementos(doc);
+      especies = new Map<string, CategoriaConformidade>([
+        ...n.elementos.map((e) => [e.bloco.id, e.sequencia === 'tabela' ? 'tabelas' : e.sequencia === 'quadro' ? 'quadros' : e.sequencia === 'grafico' ? 'graficos' : 'figuras'] as const),
+        ...n.equacoes.map((e) => [e.bloco.id, 'equacoes'] as const),
+      ]);
+    }
+    return especies.get(id);
+  };
+  return (p) => {
+    if (p.familia === 'preTextual') return 'preTextual';
+    if (p.familia === 'sigla') return 'siglas';
+    if (p.familia === 'bibliografia') return CITACOES.has(p.codigo) ? 'citacoes' : 'referencias';
+    if (p.familia === 'tabela') return p.local.tipo === 'texto' ? (doElemento(p.local.no) ?? 'tabelas') : 'tabelas';
+    if (p.local.tipo === 'texto') return doElemento(p.local.no) ?? 'texto';
+    return 'texto';
+  };
+}
+
+/**
+ * O que cada parte da conformidade cobre (Etapa 6 da especificação revista), para o painel explicar: o que é verificado
+ * no conteúdo, o que o aplicativo só aplica na exportação (e se confere no DOCX) e o que fica para a revisão manual.
+ */
+export const COBERTURA_CONFORMIDADE: readonly { assunto: string; verificado: string; aplicado: string; manual: string }[] = [
+  {
+    assunto: 'Tabelas',
+    verificado: 'Título, fonte, cabeçalho, indicador, sinais convencionais e notas, siglas no título e na fonte, séries e classes, totais (Norma Tabular do IBGE; RN-247 a RN-310).',
+    aplicado: 'Três traços, cabeçalho repetido em cada página, rótulo “Tabela n –”, fonte e notas abaixo (estilos do perfil).',
+    manual: 'Se o dado numérico é a informação central; a redação do título; a quebra da tabela longa no DOCX.',
+  },
+  {
+    assunto: 'Quadros, figuras e gráficos',
+    verificado: 'Título e fonte presentes, remissiva no texto, resolução da imagem no tamanho impresso, gráfico ligado a uma tabela com dados (RN-050, RN-056, RN-059).',
+    aplicado: 'Centralizados no fluxo do texto, rótulo e numeração, quadro fechado, largura até a área útil.',
+    manual: 'A legibilidade da imagem, a escolha da espécie, o que a legenda descreve.',
+  },
+  {
+    assunto: 'Citações e fontes',
+    verificado: 'Chamadas ligadas a uma obra, ambiguidade de autor e ano, grafia do autor, obras citadas e não citadas, campos essenciais da referência (NBR 10520 e 6023 conforme o perfil).',
+    aplicado: 'Forma da chamada e da referência, ordem alfabética da lista, sufixos de ano, recuo e espaçamento da lista.',
+    manual: 'Se a citação reproduz bem a fonte; citações diretas longas; dados que só a obra tem (páginas, edição).',
+  },
+  {
+    assunto: 'Pré-textuais, texto e siglas',
+    verificado: 'Elementos obrigatórios e seus campos, extensão do resumo, palavras-chave, títulos e seções vazias, siglas ligadas ao cadastro (RN-110 a RN-171, RN-043, RN-046).',
+    aplicado: 'Fonte, tamanho, margens, entrelinha, recuo, alinhamento, títulos, numeração de páginas e sumário (formatação do perfil, aplicada a todo o DOCX).',
+    manual: 'A redação, a coerência do texto e as regras ainda sem fonte confirmada (listadas em “Limites desta verificação”).',
+  },
+];
 
 export function verificarConformidade(doc: Documento, perfil: Perfil, opcoes: OpcoesConformidade = {}): NaoConformidade[] {
   return avaliarConformidade(doc, perfil, opcoes).problemas;

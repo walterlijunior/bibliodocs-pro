@@ -164,7 +164,7 @@ describe('exportação pura do relatório de conformidade', () => {
   it('relatório identifica o local de um apêndice pela mesma letra derivada do documento', () => {
     const d = documentoCorretoConformidade();
     d.posTextuais = [...d.posTextuais!, { tipo: 'apendice', id: 'pos_conformidadeap1', titulo: 'Procedimento fictício', blocos: [] }];
-    const t = textoRelatorioConformidade(d, [{ id: 'nc_pos000001', codigo: 'EQUACAO_SEM_NUMERO', familia: 'visual', rotuloLocal: '', gravidade: 'aviso', origem: ['RN-106'], mensagem: 'Equação sem número.', sugestao: 'Ative a numeração.', local: { tipo: 'texto', secao: 'pos_conformidadeap1', no: 'equ_pos000001' } }]);
+    const t = textoRelatorioConformidade(d, [{ id: 'nc_pos000001', chave: 'k', categoria: 'equacoes', verificacao: 'revisar', codigo: 'EQUACAO_SEM_NUMERO', familia: 'visual', rotuloLocal: '', gravidade: 'aviso', origem: ['RN-106'], mensagem: 'Equação sem número.', sugestao: 'Ative a numeração.', local: { tipo: 'texto', secao: 'pos_conformidadeap1', no: 'equ_pos000001' } }]);
     expect(t).toContain('Local: APÊNDICE A – Procedimento fictício');
     expect(t).not.toContain('equ_pos000001');
   });
@@ -212,5 +212,23 @@ describe('RN-096 no relatório (N-M6-03, revisão do M6)', () => {
     const p = r.problemas.filter((x) => x.origem.includes('RN-096'));
     expect(p.length).toBeGreaterThan(0);
     expect(p.every((x) => x.provisoria)).toBe(true);
+  });
+});
+
+describe('Especificação revista, Etapa 6: categoria, verificação e chave de cada ocorrência', () => {
+  it('as dez falhas do aceite do M7 saem em categorias do filtro, e a mesma ocorrência tem a mesma chave nas duas verificações', async () => {
+    const { documentoDezFalhasM7 } = await import('./corpus/conformidade');
+    const { avaliarConformidade, CATEGORIAS_CONFORMIDADE } = await import('../src/dominio/verificador/conformidade');
+    const { PERFIL_UFT_2022 } = await import('../src/aplicacao/perfil-padrao');
+    const a = avaliarConformidade(documentoDezFalhasM7(), PERFIL_UFT_2022).problemas;
+    const b = avaliarConformidade(documentoDezFalhasM7(), PERFIL_UFT_2022).problemas;
+    expect(a.map((p) => p.chave)).toEqual(b.map((p) => p.chave));
+    expect(new Set(a.map((p) => p.chave)).size).toBe(a.length);
+    const validas = new Set(CATEGORIAS_CONFORMIDADE.map((c) => c.categoria));
+    for (const p of a) expect(validas.has(p.categoria)).toBe(true);
+    for (const p of a) expect(p.verificacao).toBe(p.gravidade === 'erro' && !p.provisoria ? 'verificado' : 'revisar');
+    // As da Norma Tabular são da categoria das tabelas; as de bibliografia, de citações ou de referências.
+    for (const p of a.filter((x) => x.familia === 'tabela')) expect(p.categoria).toBe('tabelas');
+    for (const p of a.filter((x) => x.familia === 'bibliografia')) expect(['citacoes', 'referencias']).toContain(p.categoria);
   });
 });
