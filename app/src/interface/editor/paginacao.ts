@@ -80,7 +80,11 @@ export function pluginPaginacao(medidas: (view: EditorView) => MedidasFolha | nu
         });
         const { espacadores, folhas } = calcularEspacadores(blocos, m);
         view.dom.style.minHeight = `${folhas * (m.altura + m.intervalo) - m.intervalo}px`;
-        if (!iguais(espacadores, atuais)) view.dispatch(view.state.tr.setMeta(chavePaginacao, espacadores).setMeta('addToHistory', false));
+        if (iguais(espacadores, atuais)) return;
+        // A seleção feita na tela (Shift+seta) chega ao editor pelo `selectionchange`, depois da tecla. Antes de trocar os
+        // espaçadores, o editor lê a seleção da tela; senão, ao redesenhar, ele repõe a seleção antiga.
+        (view as unknown as { domObserver?: { flush?: () => void } }).domObserver?.flush?.();
+        view.dispatch(view.state.tr.setMeta(chavePaginacao, espacadores).setMeta('addToHistory', false));
       };
       const agendar = () => {
         if (quadro === 0) quadro = requestAnimationFrame(medir);
