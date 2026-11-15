@@ -382,6 +382,26 @@ button:disabled { opacity: 0.45; cursor: default; }
 /* Especificação revista, Etapa 4 (captura A): a grade de 4 linhas fixas do corpo pôs a mensagem da menção numa linha que
    encolhia a zero, sobre "Como aparece no texto". Aqui cada bloco tem a altura do conteúdo; o corpo rola e os botões
    ficam presos embaixo; a lista de elementos rola sozinha quando é longa. */
+/* "Ajustar tamanho e posição" (especificação revista, Etapa 4; D-E4-05): prévia da página com o elemento centralizado. */
+.dialogo--ajuste { width: min(820px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
+.dialogo--ajuste .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+.ajuste { display: flex; flex-wrap: wrap; gap: var(--esp-4); align-items: flex-start; }
+.ajuste__pagina { position: relative; flex: none; background: var(--cor-fundo); border: 1px solid var(--cor-borda-controle); box-shadow: 0 2px 8px var(--cor-sombra); overflow: hidden; }
+.ajuste__area { position: absolute; outline: 1px dashed var(--cor-borda); display: flex; flex-direction: column; gap: 4px; padding-top: 4px; overflow: hidden; }
+.ajuste__texto { display: grid; gap: 4px; }
+.ajuste__linha { display: block; height: 4px; background: var(--cor-borda); border-radius: 2px; }
+.ajuste__legenda { display: block; height: 4px; margin: 0 auto; background: var(--cor-texto-sec); border-radius: 2px; }
+.ajuste__elemento { position: relative; flex: none; border: 1px solid var(--cor-destaque); background: var(--cor-superficie); }
+.ajuste__elemento img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ajuste__vazio { display: block; width: 100%; height: 100%; }
+.ajuste__grade { display: block; width: 100%; height: 100%; background-image: linear-gradient(var(--cor-borda) 1px, transparent 1px); background-size: 100% 7px; }
+.ajuste__grade--quadro { background-image: linear-gradient(var(--cor-borda) 1px, transparent 1px), linear-gradient(90deg, var(--cor-borda) 1px, transparent 1px); background-size: 100% 7px, 25% 100%; }
+.ajuste__alca { position: absolute; top: 50%; width: 12px; height: 28px; margin-top: -14px; background: var(--cor-destaque); border-radius: 3px; cursor: ew-resize; touch-action: none; }
+.ajuste__alca--esquerda { left: -7px; }
+.ajuste__alca--direita { right: -7px; }
+.ajuste__alca:focus-visible { outline: 2px solid var(--cor-foco); outline-offset: 2px; }
+.ajuste__controles { flex: 1 1 260px; display: grid; gap: var(--esp-3); min-width: 0; }
+.ajuste__indisponivel { opacity: 0.6; }
 .dialogo--remissiva { width: min(640px, calc(100vw - 2 * var(--esp-4))); max-width: none; }
 .dialogo--remissiva .dialogo__corpo { grid-template-rows: none; grid-auto-rows: max-content; overflow: auto; padding-bottom: 0; }
 .dialogo--remissiva .tipos-trabalho { min-height: auto; }

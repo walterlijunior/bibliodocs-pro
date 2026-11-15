@@ -9,12 +9,13 @@
  * - Título, fonte e nota em texto simples: sem mudança, as marcas do que já estava gravado ficam.
  */
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { ElementoNaSessao } from '../../aplicacao';
+import { paginaDoPerfilMm, type ElementoNaSessao, type PaginaMm } from '../../aplicacao';
 import type { BlocoTabela, FormaGrafico, InlineDeTitulo } from '../../dominio/modelo';
 import { dadosDoGrafico, lerNumero, tamanhoGraficoMm } from '../../aplicacao';
 import { desenharEm } from '../editor/pintar-grafico';
 import type { CamposGrafico } from '../editor/tabelas';
 import { Icone } from '../Icones';
+import { AjusteTamanhoPosicao } from './AjusteTamanhoPosicao';
 
 const FORMAS: readonly { forma: FormaGrafico; nome: string }[] = [
   { forma: 'colunas', nome: 'Colunas' },
@@ -55,6 +56,8 @@ export interface PropsDialogoGrafico {
   inicial: CamposGrafico | null;
   /** Largura da área útil do perfil, em mm. */
   areaUtilMm: number;
+  /** Página do perfil do trabalho, para "Ajustar tamanho e posição". */
+  pagina?: PaginaMm;
   aoConfirmar: (dados: CamposGrafico) => void;
   aoFechar: () => void;
 }
@@ -71,6 +74,8 @@ export function DialogoGrafico(p: PropsDialogoGrafico) {
   const [series, setSeries] = useState<number[] | null>(inicial?.series ?? null);
   const [titulo, setTitulo] = useState(textoDe(inicial?.titulo));
   const [larguraTexto, setLarguraTexto] = useState(inicial?.larguraMm !== undefined ? String(inicial.larguraMm) : '');
+  const [ajuste, setAjuste] = useState<{ imagem: string | null } | null>(null);
+  const pagina = useMemo(() => p.pagina ?? paginaDoPerfilMm(), [p.pagina]);
   const tabela = tabelas.find((e) => e.id === tabelaId)?.tabela ?? null;
   const [fonte, setFonte] = useState(inicial ? textoDe(inicial.fonte) : textoDe(tabela?.fonte));
   const [nota, setNota] = useState(textoDe(inicial?.nota));
@@ -266,6 +271,38 @@ export function DialogoGrafico(p: PropsDialogoGrafico) {
           <span id={`${base}-largura-dica`} className="dica">
             Em branco: 150 mm, até a largura do texto ({areaUtilMm.toFixed(0)} mm).
           </span>
+          <button
+            type="button"
+            className="btn-secundario"
+            onClick={() => {
+              let imagem: string | null = null;
+              try {
+                imagem = refPrevia.current?.toDataURL('image/png') ?? null;
+              } catch {
+                imagem = null;
+              }
+              setAjuste({ imagem });
+            }}
+          >
+            Ajustar tamanho e posição…
+          </button>
+          {ajuste && (
+            <AjusteTamanhoPosicao
+              tipo="grafico"
+              pagina={pagina}
+              larguraMm={larguraMm !== undefined && Number.isFinite(larguraMm) ? larguraMm : undefined}
+              larguraPadraoMm={tamanhoGraficoMm({ forma }, areaUtilMm).larguraMm}
+              proporcao={forma === 'setores' ? 0.75 : 0.6}
+              limites={LARGURA}
+              imagem={ajuste.imagem}
+              rotuloPadrao="Tamanho padrão (150 mm)"
+              aoAplicar={(mm) => {
+                setAjuste(null);
+                setLarguraTexto(mm === undefined ? '' : String(mm));
+              }}
+              aoCancelar={() => setAjuste(null)}
+            />
+          )}
         </div>
 
         <div className="elemento__campo">

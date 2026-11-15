@@ -8,6 +8,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { aoFecharDialogo } from '../casca/dialogo';
 import {
+  paginaDoPerfilMm,
+  type PaginaMm,
   avaliarImagem,
   ESPECIES_FIGURA,
   LARGURA_FIGURA_MM,
@@ -21,6 +23,7 @@ import {
 } from '../../aplicacao';
 import type { EspecieIlustracao } from '../../dominio/modelo';
 import { Icone } from '../Icones';
+import { AjusteTamanhoPosicao } from './AjusteTamanhoPosicao';
 
 /** Teto do arquivo escolhido (o do formato é 64 MB; acima disto a janela recusa antes de ler). */
 const LIMITE_BYTES_IMAGEM = 64 * 1024 * 1024;
@@ -38,6 +41,8 @@ export interface PropsDialogoFigura {
   /** `imagem`: os bytes novos, quando o arquivo foi escolhido nesta janela. */
   aoConfirmar: (dados: DadosFigura, imagem: ImagemEscolhida | null) => void;
   aoFechar: () => void;
+  /** Página do perfil do trabalho, para "Ajustar tamanho e posição" (padrão: a do perfil UFT). */
+  pagina?: PaginaMm;
 }
 
 const hex = (b: ArrayBuffer): string => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
@@ -51,6 +56,8 @@ export function DialogoFigura(p: PropsDialogoFigura) {
   const [escolhida, setEscolhida] = useState<ImagemEscolhida | null>(null);
   const [erroArquivo, setErroArquivo] = useState<string | null>(null);
   const [larguraTexto, setLarguraTexto] = useState(() => (p.inicial?.larguraMm !== undefined ? String(p.inicial.larguraMm) : ''));
+  const [ajustando, setAjustando] = useState(false);
+  const pagina = useMemo(() => p.pagina ?? paginaDoPerfilMm(), [p.pagina]);
 
   useEffect(() => {
     const d = ref.current;
@@ -217,6 +224,26 @@ export function DialogoFigura(p: PropsDialogoFigura) {
             Em branco: o tamanho natural da imagem, até a largura do texto ({avaliacao ? avaliacao.areaUtilMm.toFixed(0) : '160'} mm). De {LARGURA_FIGURA_MM.minimo} a{' '}
             {LARGURA_FIGURA_MM.maximo} mm.
           </span>
+          <button type="button" className="btn-secundario" disabled={!info} onClick={() => setAjustando(true)}>
+            Ajustar tamanho e posição…
+          </button>
+          {ajustando && info && (
+            <AjusteTamanhoPosicao
+              tipo="figura"
+              pagina={pagina}
+              larguraMm={r.larguraMm ?? undefined}
+              larguraPadraoMm={avaliarImagem(info, bytes!, null).larguraMm}
+              proporcao={info.alturaPx / Math.max(1, info.larguraPx)}
+              limites={LARGURA_FIGURA_MM}
+              imagem={url}
+              aoAplicar={(mm) => {
+                setAjustando(false);
+                setLarguraTexto(mm === undefined ? '' : String(mm));
+                setR({ ...r, larguraMm: mm ?? null });
+              }}
+              aoCancelar={() => setAjustando(false)}
+            />
+          )}
         </div>
 
         <div className="elemento__campo">

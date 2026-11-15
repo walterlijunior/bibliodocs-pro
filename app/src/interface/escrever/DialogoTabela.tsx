@@ -27,16 +27,21 @@ import {
   type DadosTabela,
   type RascunhoTabela,
   type ResultadoOperacao,
+  paginaDoPerfilMm,
+  type PaginaMm,
 } from '../../aplicacao';
 import type { AlinhamentoColuna } from '../../dominio/modelo';
 import { Icone } from '../Icones';
 import { PlanilhaTabela } from './PlanilhaTabela';
+import { AjusteTamanhoPosicao } from './AjusteTamanhoPosicao';
 
 export interface PropsDialogoTabela {
   /** Tabela a alterar; `null` = nova. */
   inicial: DadosTabela | null;
   aoConfirmar: (dados: DadosTabela) => void;
   aoFechar: () => void;
+  /** Página do perfil do trabalho, para a prévia de "Ajustar tamanho e posição". */
+  pagina?: PaginaMm;
 }
 
 const NOMES_ALINHAMENTO: Readonly<Record<AlinhamentoColuna, string>> = { esquerda: 'À esquerda', centro: 'Centralizado', direita: 'À direita' };
@@ -48,6 +53,7 @@ export function DialogoTabela(p: PropsDialogoTabela) {
   const base = useId();
   const nova = p.inicial === null;
   const [r, setR] = useState<RascunhoTabela>(() => (p.inicial ? rascunhoDe(p.inicial) : rascunhoNovo('tabela')));
+  const [ajustando, setAjustando] = useState(false);
   // Célula onde estão as operações (a última que teve o foco).
   const [ativa, setAtiva] = useState<{ l: number; c: number }>({ l: 0, c: 0 });
   const [motivo, setMotivo] = useState<string | null>(null);
@@ -157,6 +163,21 @@ export function DialogoTabela(p: PropsDialogoTabela) {
 
         <fieldset className="elemento__grupo tabela-edicao">
           <legend>Conteúdo</legend>
+          <button type="button" className="btn-secundario" onClick={() => setAjustando(true)}>
+            Ajustar tamanho e posição…
+          </button>
+          {ajustando && (
+            <AjusteTamanhoPosicao
+              tipo={r.especie}
+              pagina={p.pagina ?? paginaDoPerfilMm()}
+              larguraMm={undefined}
+              larguraPadraoMm={0}
+              proporcao={Math.min(1.2, (r.grade.length * 7) / 160)}
+              limites={{ minimo: 10, maximo: 500 }}
+              aoAplicar={() => setAjustando(false)}
+              aoCancelar={() => setAjustando(false)}
+            />
+          )}
           <PlanilhaTabela
             especie={r.especie}
             aoUsar={(c) => {

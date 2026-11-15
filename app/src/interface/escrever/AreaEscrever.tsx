@@ -27,7 +27,7 @@ import { DivisorEstrutura, estiloLargura, gravarLarguraEstrutura, lerLarguraEstr
 import { PainelIA } from '../ia/PainelIA';
 import { DialogoGrafico } from './DialogoGrafico';
 import type { GraficoNoEditor } from '../editor/tabelas';
-import { aparenciaDosCampos, areaUtilDoPerfilMm } from '../../aplicacao';
+import { aparenciaDosCampos, areaUtilDoPerfilMm, paginaDoPerfilMm } from '../../aplicacao';
 import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
@@ -223,6 +223,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
   const [larguraEstrutura, setLarguraEstrutura] = useState(lerLarguraEstrutura);
   // Estilo do perfil nos campos de texto corrido (alinhamento e recuos), com o modelo aplicado.
   const aparencia = useMemo(() => aparenciaDosCampos(t?.modelo), [t?.modelo]);
+  const pagina = useMemo(() => paginaDoPerfilMm(t?.modelo), [t?.modelo]);
   const mudarLargura = (n: number) => {
     setLarguraEstrutura(n);
     gravarLarguraEstrutura(n);
@@ -1127,6 +1128,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                   elementos={t.elementos}
                   inicial={pedidoGrafico.existente?.dados ?? null}
                   areaUtilMm={areaUtilDoPerfilMm(t.modelo)}
+                  pagina={pagina}
                   aoConfirmar={(dados) => {
                     const x = pedidoGrafico.existente;
                     setPedidoGrafico(null);
@@ -1154,6 +1156,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               {pedidoFigura !== null && (
                 <DialogoFigura
                   inicial={pedidoFigura.existente?.dados ?? null}
+                  pagina={pagina}
                   lerMidia={p.midias.ler}
                   aoConfirmar={(dados, imagem) => {
                     const x = pedidoFigura.existente;
@@ -1174,6 +1177,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               {pedidoTabela !== null && (
                 <DialogoTabela
                   inicial={pedidoTabela.existente?.dados ?? null}
+                  pagina={pagina}
                   aoConfirmar={(dados) => {
                     const x = pedidoTabela.existente;
                     setPedidoTabela(null);

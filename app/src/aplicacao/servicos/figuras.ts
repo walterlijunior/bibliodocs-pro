@@ -8,7 +8,7 @@
  */
 import { LIMITES_V1, validarIlustracaoV1 } from '../../dominio/esquemas';
 import { ESPECIES_ILUSTRACAO, type ModeloEvento, type BlocoIlustracao, type EspecieIlustracao, type InlineDeTitulo } from '../../dominio/modelo';
-import { areaUtilMm, perfilComModelo } from '../../dominio/normas';
+import { areaUtilMm, formatar, perfilComModelo } from '../../dominio/normas';
 import { avisoDeResolucao } from '../../dominio/verificador';
 import { larguraImpressaMm, PALAVRA_DESIGNATIVA, resolucaoEfetivaPpi, type InfoImagem } from '../../dominio/visuais';
 import { PERFIL_UFT_2022 } from '../perfil-padrao';
@@ -104,3 +104,27 @@ export function validarFigura(r: RascunhoFigura): ResultadoValidacaoFigura {
 /** Largura útil da página; com modelo de evento (Etapa 7), a das margens dele. */
 export const areaUtilDoPerfilMm = (modelo?: ModeloEvento): number => areaUtilMm(perfilComModelo(PERFIL_UFT_2022, modelo));
 
+/** Página do perfil em mm, para a prévia de "Ajustar tamanho e posição" (especificação revista, Etapa 4). */
+export interface PaginaMm {
+  larguraMm: number;
+  alturaMm: number;
+  margemSuperiorMm: number;
+  margemInferiorMm: number;
+  margemEsquerdaMm: number;
+  margemDireitaMm: number;
+}
+
+const twParaMm = (tw: number): number => Math.round(((tw * 25.4) / 1440) * 10) / 10;
+
+/** A página e as margens que a exportação usa (perfil UFT ou com o modelo de evento aplicado). */
+export function paginaDoPerfilMm(modelo?: ModeloEvento): PaginaMm {
+  const p = formatar({ corpo: [] }, perfilComModelo(PERFIL_UFT_2022, modelo)).pagina;
+  return {
+    larguraMm: twParaMm(p.larguraTw),
+    alturaMm: twParaMm(p.alturaTw),
+    margemSuperiorMm: twParaMm(p.margemSuperiorTw),
+    margemInferiorMm: twParaMm(p.margemInferiorTw),
+    margemEsquerdaMm: twParaMm(p.margemEsquerdaTw),
+    margemDireitaMm: twParaMm(p.margemDireitaTw),
+  };
+}
