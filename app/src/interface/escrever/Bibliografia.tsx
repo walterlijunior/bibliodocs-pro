@@ -11,9 +11,11 @@ import {
   type CampoTextoObra,
   type ObraNaLista,
   type ResultadoObra,
+  type ApiIa,
 } from '../../aplicacao';
 import type { Autor, FuncaoResponsavel, InlineDeTitulo, Obra, TipoObra } from '../../dominio/modelo';
 import { Icone } from '../Icones';
+import { ReferenciaColada } from './ReferenciaColada';
 
 export const ROTULOS_TIPO_OBRA: Readonly<Record<TipoObra, string>> = {
   livro: 'Livro',
@@ -24,10 +26,13 @@ export const ROTULOS_TIPO_OBRA: Readonly<Record<TipoObra, string>> = {
   artigoJornal: 'Artigo de jornal',
   norma: 'Norma técnica',
   legislacao: 'Legislação',
-  documentoOnline: 'Documento on-line',
+  documentoOnline: 'Página web ou documento on-line',
+  relatorio: 'Relatório institucional, técnico ou empresarial (RI)',
+  demonstracaoFinanceira: 'Demonstrações financeiras',
+  baseDados: 'Base de dados',
 };
 /** Ordem do cadastro (D-M4-06). Tipo novo de versão futura não aparece aqui. */
-const TIPOS: readonly TipoObra[] = ['livro', 'capitulo', 'trabalhoAcademico', 'artigoPeriodico', 'trabalhoEvento', 'artigoJornal', 'norma', 'legislacao', 'documentoOnline'];
+const TIPOS: readonly TipoObra[] = ['livro', 'capitulo', 'trabalhoAcademico', 'artigoPeriodico', 'trabalhoEvento', 'artigoJornal', 'norma', 'legislacao', 'documentoOnline', 'relatorio', 'demonstracaoFinanceira', 'baseDados'];
 
 const ROTULOS_FUNCAO: Readonly<Record<FuncaoResponsavel, string>> = { org: 'Organização (org.)', coord: 'Coordenação (coord.)', ed: 'Edição (ed.)', comp: 'Compilação (comp.)' };
 
@@ -56,6 +61,7 @@ const ROTULOS_TEXTO: Readonly<Record<CampoTextoObra, Rotulo>> = {
   tituloOriginal: { rotulo: 'Título original', dica: 'Na língua de origem.' },
   suplemento: { rotulo: 'Suplemento', dica: '"3" sai "Supl. 3".' },
   anoVeiculo: { rotulo: 'Ano do veículo', dica: '"138" sai "ano 138".' },
+  periodo: { rotulo: 'Período', dica: 'Exercício ou período do documento: "2023", "1.º trim. 2024".' },
 };
 const ROTULOS_NUMERO: Readonly<Record<CampoNumeroObra, Rotulo>> = {
   edicao: { rotulo: 'Edição', dica: 'Número. A 1.ª não aparece na referência.' },
@@ -172,6 +178,8 @@ export interface PropsFormularioObra {
   pdf?: { escolher: () => Promise<string | null>; abrir: (caminho: string) => Promise<{ ok: true } | { ok: false; mensagem: string }> };
   /** Quantas citações do texto apontam para a obra. */
   citacoes?: number;
+  /** Serviço de IA (Etapa 5, opcional): "Sugerir com IA…" na referência pronta. */
+  ia?: ApiIa | undefined;
 }
 
 /** Nome do arquivo no fim do caminho (Windows ou não). */
@@ -234,6 +242,8 @@ export function FormularioObra(p: PropsFormularioObra) {
           </button>
         )}
       </div>
+
+      <ReferenciaColada obra={rascunho} somenteLeitura={so} aoMudar={mudar} rotuloTipo={(t) => ROTULOS_TIPO_OBRA[t]} ia={p.ia} />
 
       <div className="elemento__campo">
         <label htmlFor={`${base}-tipo`}>Tipo de obra</label>

@@ -1048,6 +1048,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 return r;
               }}
               aoCancelar={() => setObraAberta(null)}
+              ia={p.ia?.api}
               {...(p.obras.pdf ? { pdf: p.obras.pdf } : {})}
               {...(p.obras.citacoes && obraDaLista ? { citacoes: p.obras.citacoes(obraDaLista.id) } : {})}
             />

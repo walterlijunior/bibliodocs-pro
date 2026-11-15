@@ -191,7 +191,8 @@ describe('obras e citações no modelo (M4-T01)', () => {
   });
 
   it('a fixture tem uma obra de cada tipo da primeira leva (D-M4-06)', () => {
-    expect((doc.obras ?? []).map((o) => o.tipo)).toEqual([...TIPOS_OBRA]);
+    // Os tipos da Etapa 5 (relatório, demonstrações financeiras, base de dados) têm teste próprio (etapa5-tipos-obra.test.ts).
+    expect((doc.obras ?? []).map((o) => o.tipo)).toEqual(TIPOS_OBRA.slice(0, TIPOS_OBRA.indexOf('relatorio')));
   });
 
   it('o id da citação conta como id do bloco nas operações de seção, também a da nota', () => {

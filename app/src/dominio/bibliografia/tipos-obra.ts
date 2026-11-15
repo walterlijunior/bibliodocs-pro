@@ -35,6 +35,9 @@ export const FORMATADORES: Record<TipoObra, Formatador> = {
   norma: formatarNorma,
   legislacao: formatarLegislacao,
   documentoOnline: formatarDocumentoOnline,
+  relatorio: formatarRelatorio,
+  demonstracaoFinanceira: formatarRelatorio,
+  baseDados: formatarBaseDados,
 };
 
 function faltando(ctx: Contexto, rn: string, elemento: string): void {
@@ -336,4 +339,45 @@ function formatarDocumentoOnline(obra: Obra, ctx: Contexto): void {
   }
   if (!obra.url?.trim()) faltando(ctx, 'RN-189', 'o endereço eletrônico');
   escreverOnline(m, obra, ctx.avisos);
+}
+
+/**
+ * Relatório e demonstrações financeiras (Etapa 5, D-E5-05, provisório): o Manual não traz padrão próprio. Segue a
+ * monografia de autor entidade (RN-198) e o documento on-line (RN-189): ENTIDADE. **Título**: subtítulo. Período.
+ * Local: Editora, ano. Páginas. Disponível em … Acesso em …
+ */
+function formatarRelatorio(obra: Obra, ctx: Contexto): void {
+  const { m } = ctx;
+  escreverEntradaETitulo(obra, ctx, ['RN-198', 'D-E5-05'], true);
+  if (obra.periodo?.trim()) {
+    m.texto(obra.periodo.trim(), ['D-E5-05']);
+    m.ponto(['D-E5-05']);
+  } else if (obra.tipo === 'demonstracaoFinanceira') faltando(ctx, 'D-E5-05', 'o período das demonstrações');
+  if (obra.local?.trim() || obra.editora?.trim()) escreverImprenta(obra, ctx, 'RN-198');
+  else if (obra.ano !== undefined) {
+    const ano = anoOuAviso(obra, ctx, 'RN-198')!;
+    m.texto(ano.texto, ano.origem);
+    m.ponto(['RN-198']);
+  } else faltando(ctx, 'RN-198', 'o ano');
+  escreverTotalDePaginas(m, obra);
+  escreverOnline(m, obra, ctx.avisos);
+  ctx.avisos.push({ codigo: 'PADRAO_PROVISORIO', rn: 'D-E5-05', mensagem: 'O Manual não tem padrão próprio para este tipo: a referência segue o de monografia de autor entidade. Confira com o orientador.' });
+}
+
+/**
+ * Base de dados (Etapa 5, D-E5-05, provisório): AUTOR ou ENTIDADE. **Título**: subtítulo. Local: Editora, ano.
+ * Disponível em … Acesso em … (documento on-line, RN-189), como o exemplo ECONOMATICA do relato de experiência.
+ */
+function formatarBaseDados(obra: Obra, ctx: Contexto): void {
+  const { m } = ctx;
+  escreverEntradaETitulo(obra, ctx, ['RN-189', 'D-E5-05'], true);
+  if (obra.local?.trim() || obra.editora?.trim()) escreverImprenta(obra, ctx, 'RN-189');
+  else if (obra.ano !== undefined) {
+    const ano = anoOuAviso(obra, ctx, 'RN-189')!;
+    m.texto(ano.texto, ano.origem);
+    m.ponto(['RN-189']);
+  }
+  if (!obra.url?.trim()) faltando(ctx, 'RN-189', 'o endereço eletrônico');
+  escreverOnline(m, obra, ctx.avisos);
+  ctx.avisos.push({ codigo: 'PADRAO_PROVISORIO', rn: 'D-E5-05', mensagem: 'O Manual não tem padrão próprio para base de dados: a referência segue o de documento on-line. Confira com o orientador.' });
 }

@@ -405,10 +405,14 @@ export const esquemaObra = z
     tituloOriginal: campoCurto.optional(),
     suplemento: campoCurto.optional(),
     anoVeiculo: campoCurto.optional(),
+    periodo: campoCurto.optional(),
+    referenciaLivre: campoLongo.optional(),
+    usarReferenciaLivre: z.literal(true).optional(),
     /** Etapa 5: o PDF da obra no computador: só o caminho, o arquivo fica fora do `.bdp` e não entra na referência. */
     arquivoLocal: campoCurto.regex(/\.pdf$/i, { error: 'arquivo inválido: escolha um PDF' }).optional(),
   })
   .refine((o) => o.anoIncerto === undefined || o.ano !== undefined, { error: 'ano incerto sem ano', path: ['anoIncerto'] })
+  .refine((o) => o.usarReferenciaLivre === undefined || o.referenciaLivre !== undefined, { error: 'usar a referência colada sem o texto colado', path: ['usarReferenciaLivre'] })
   .meta({ id: 'Obra' });
 
 export const esquemaSigla = z.strictObject({ id, sigla: campoCurto, extenso: campoCurto, grupo: id.optional() }).meta({ id: 'Sigla' });

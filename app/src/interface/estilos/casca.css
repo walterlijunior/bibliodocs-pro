@@ -495,6 +495,10 @@ button:disabled { opacity: 0.45; cursor: default; }
 .planilha-elemento__especie { border: 0; margin: 0; padding: 0; display: grid; gap: var(--esp-1); }
 .planilha-elemento__especie legend { padding: 0; font-weight: 600; }
 .planilha-elemento__marca { display: flex; gap: var(--esp-1); align-items: center; }
+.referencia-colada { display: grid; gap: var(--esp-2); }
+.referencia-colada summary { cursor: pointer; font-weight: 600; }
+.referencia-colada__previa { display: grid; gap: var(--esp-2); }
+.referencia-colada__incerto dt, .referencia-colada__incerto dd { color: var(--cor-alerta); }
 .planilha-elemento__grade--quadro th, .planilha-elemento__grade--quadro td { border: 1px solid var(--cor-borda-controle); }
 @media (max-width: 720px) {
   .planilha__corpo { grid-template-columns: minmax(0, 1fr); }

@@ -14,6 +14,9 @@ export const TIPOS_OBRA: readonly TipoObra[] = [
   'norma',
   'legislacao',
   'documentoOnline',
+  'relatorio',
+  'demonstracaoFinanceira',
+  'baseDados',
 ];
 
 export const FUNCOES_RESPONSAVEL: readonly FuncaoResponsavel[] = ['org', 'coord', 'ed', 'comp'];

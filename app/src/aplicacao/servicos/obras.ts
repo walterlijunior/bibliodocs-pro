@@ -5,7 +5,7 @@
  * - Forma única: `prepararObra` tira o que não é do tipo, apara o texto, limpa o que o XML 1.0 não aceita e deixa ausente
  *   o que ficou vazio. Só a obra que o documento aceitaria é gravada (`validarObra`).
  */
-import { formatarReferencia, origensProvisorias, tiposComFormatador, type AvisoReferencia, type TrechoReferencia } from '../../dominio/bibliografia';
+import { formatarReferencia, origensProvisorias, tiposComFormatador, type AvisoReferencia, type ReferenciaLida, type TrechoReferencia } from '../../dominio/bibliografia';
 import { LIMITES_V1, validarObraV1, type ErroValidacao } from '../../dominio/esquemas';
 import type { Autor, EventoObra, InlineDeTitulo, Obra, ObraNoTodo, TipoObra } from '../../dominio/modelo';
 import { limparTexto } from './pre-textuais';
@@ -33,7 +33,8 @@ export type CampoTextoObra =
   | 'colecao'
   | 'tituloOriginal'
   | 'suplemento'
-  | 'anoVeiculo';
+  | 'anoVeiculo'
+  | 'periodo';
 export type CampoNumeroObra = 'edicao' | 'ano' | 'folhas';
 export type CampoObra = 'autores' | 'funcao' | 'titulo' | 'subtitulo' | 'anoIncerto' | 'ebook' | 'noTodo' | 'evento' | CampoTextoObra | CampoNumeroObra;
 
@@ -50,11 +51,14 @@ export const CAMPOS_DO_TIPO: Readonly<Record<TipoObra, readonly CampoObra[]>> = 
   norma: ['autores', 'identificacao', 'titulo', 'subtitulo', 'edicao', 'local', 'editora', 'ano', 'anoIncerto', 'paginas', ...ONLINE],
   legislacao: ['jurisdicao', 'autores', 'identificacao', 'titulo', 'subtitulo', 'ementa', 'publicacao', 'secao', 'local', 'anoVeiculo', 'numero', 'paginas', 'dataPublicacao', 'editora', 'ano', 'anoIncerto', ...ONLINE],
   documentoOnline: ['autores', 'titulo', 'subtitulo', 'local', 'editora', 'ano', 'anoIncerto', ...ONLINE],
+  relatorio: ['autores', 'titulo', 'subtitulo', 'periodo', 'local', 'editora', 'ano', 'anoIncerto', 'paginas', ...ONLINE],
+  demonstracaoFinanceira: ['autores', 'titulo', 'subtitulo', 'periodo', 'local', 'editora', 'ano', 'anoIncerto', 'paginas', ...ONLINE],
+  baseDados: ['autores', 'titulo', 'subtitulo', 'local', 'editora', 'ano', 'anoIncerto', ...ONLINE],
 };
 
 const CAMPOS_TEXTO: readonly CampoTextoObra[] = [
   'traducao', 'local', 'editora', 'paginas', 'volume', 'numero', 'periodico', 'secao', 'dataPublicacao', 'natureza', 'instituicao',
-  'programa', 'jurisdicao', 'identificacao', 'ementa', 'publicacao', 'url', 'acesso', 'doi', 'colecao', 'tituloOriginal', 'suplemento', 'anoVeiculo',
+  'programa', 'jurisdicao', 'identificacao', 'ementa', 'publicacao', 'url', 'acesso', 'doi', 'colecao', 'tituloOriginal', 'suplemento', 'anoVeiculo', 'periodo',
 ];
 const CAMPOS_NUMERO: readonly CampoNumeroObra[] = ['edicao', 'ano', 'folhas'];
 
@@ -137,6 +141,12 @@ export function prepararObra(o: Obra): Obra {
   if (noTodo) saida['noTodo'] = noTodo;
   const evento = tem('evento') ? eventoLimpo(o.evento) : undefined;
   if (evento) saida['evento'] = evento;
+  // Etapa 5 (D-E5-06): a referência colada vale para todo tipo e fica como veio (só o que o XML não aceita sai).
+  const livre = limparTexto(o.referenciaLivre ?? '', LIMITES_V1.textoInline).trim();
+  if (livre !== '') {
+    saida['referenciaLivre'] = livre;
+    if (o.usarReferenciaLivre) saida['usarReferenciaLivre'] = true;
+  }
   // Etapa 5: o PDF no computador vale para todo tipo (não sai na referência).
   const arquivo = curto(o.arquivoLocal ?? '');
   if (arquivo !== '') saida['arquivoLocal'] = arquivo;
@@ -175,4 +185,25 @@ export function previaDaObra(o: Obra): PreviaObra {
   const v = validarObraV1(preparada);
   const ref = tiposComFormatador().includes(preparada.tipo) ? formatarReferencia(preparada) : { trechos: [], avisos: [] };
   return { trechos: ref.trechos, avisos: ref.avisos, erros: v.ok ? [] : v.erros, provisorias: origensProvisorias(ref.trechos) };
+}
+
+/**
+ * Referência colada convertida em campos (Etapa 5, D-E5-06): preenche só os campos vazios da obra (o que o autor já
+ * escreveu fica) e troca o tipo apenas se a obra ainda não tem dados além do título. O texto colado fica guardado.
+ */
+export function aplicarReferenciaLida(obra: Obra, lida: ReferenciaLida, texto: string): { obra: Obra; preenchidos: string[]; mantidos: string[] } {
+  const vazia = (v: unknown) => v === undefined || (Array.isArray(v) && v.length === 0) || v === '';
+  const semDados = Object.entries(obra).every(([k, v]) => ['id', 'tipo', 'titulo', 'referenciaLivre', 'usarReferenciaLivre'].includes(k) || vazia(v));
+  const saida: Record<string, unknown> = { ...obra, referenciaLivre: texto.trim() };
+  if (semDados) saida['tipo'] = lida.tipo;
+  const preenchidos: string[] = [];
+  const mantidos: string[] = [];
+  for (const [campo, valor] of Object.entries(lida.campos)) {
+    if (vazia(valor)) continue;
+    if (vazia(saida[campo])) {
+      saida[campo] = valor;
+      preenchidos.push(campo);
+    } else if (JSON.stringify(saida[campo]) !== JSON.stringify(valor)) mantidos.push(campo);
+  }
+  return { obra: saida as unknown as Obra, preenchidos, mantidos };
 }

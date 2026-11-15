@@ -19,7 +19,11 @@ export type CodigoAvisoReferencia =
   | 'ELEMENTO_AUSENTE'
   | 'OBRA_INEXISTENTE'
   | 'SOBRENOME_E_ANO_REPETIDOS'
-  | 'NARRATIVA_COM_VARIAS_OBRAS';
+  | 'NARRATIVA_COM_VARIAS_OBRAS'
+  /** Etapa 5: a referência sai como foi colada (D-E5-06). */
+  | 'REFERENCIA_COLADA'
+  /** Etapa 5: tipo sem padrão próprio no Manual (relatório, demonstrações financeiras, base de dados; D-E5-05). */
+  | 'PADRAO_PROVISORIO';
 
 export interface AvisoReferencia {
   codigo: CodigoAvisoReferencia;

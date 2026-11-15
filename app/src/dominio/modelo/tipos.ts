@@ -472,7 +472,13 @@ export type TipoObra =
   | 'artigoJornal'
   | 'norma'
   | 'legislacao'
-  | 'documentoOnline';
+  | 'documentoOnline'
+  /** Etapa 5: relatório institucional, técnico ou empresarial (inclusive de Relações com Investidores). */
+  | 'relatorio'
+  /** Etapa 5: demonstrações financeiras (DFP, ITR, balanço), com o período. */
+  | 'demonstracaoFinanceira'
+  /** Etapa 5: base de dados (tabelas, séries, sistemas de consulta). */
+  | 'baseDados';
 
 /** Autor pessoal (RN-180, RN-181: "Filho", "Neto" fazem parte do sobrenome) ou entidade (RN-187). */
 export type Autor = { tipo: 'pessoa'; sobrenome: string; prenomes?: string } | { tipo: 'entidade'; nome: string };
@@ -556,6 +562,14 @@ export interface Obra {
   suplemento?: string;
   /** Ano do veículo oficial: "138" sai "ano 138" (exemplo da Lei 9.979, p. 60; M4-T06). */
   anoVeiculo?: string;
+  /** Período do relatório ou das demonstrações financeiras ("2023", "1.º trim. 2024"; Etapa 5, D-E5-05). */
+  periodo?: string;
+  /**
+   * Referência colada de um portal (SciELO, Google Acadêmico, repositório…), guardada como veio (Etapa 5, D-E5-06).
+   * Com `usarReferenciaLivre`, a lista de referências usa este texto em vez do montado pelos campos.
+   */
+  referenciaLivre?: string;
+  usarReferenciaLivre?: true;
   /**
    * PDF da obra no computador (Etapa 5): o caminho do arquivo, que fica onde está (o PDF não é copiado para o `.bdp`). Não sai na
    * referência; em outro computador o caminho pode não existir.

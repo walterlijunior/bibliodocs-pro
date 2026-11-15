@@ -23,6 +23,13 @@ export function formatarReferencia(obra: Obra, opcoes: OpcoesReferencia = {}): R
     avisos.push({ codigo: 'TIPO_SEM_FORMATADOR', rn: 'D-M4-06', mensagem: `O tipo "${String(obra.tipo)}" não tem formatador de referência.` });
     return { obra: obra.id, trechos: [], avisos };
   }
+  // Etapa 5 (D-E5-06): a referência colada sai como veio, a pedido do autor; os campos continuam para a ordem e a chamada.
+  const livre = obra.usarReferenciaLivre ? obra.referenciaLivre?.trim() : undefined;
+  if (livre) {
+    m.texto(livre.replace(/\s+/g, ' '), ['D-E5-06']);
+    avisos.push({ codigo: 'REFERENCIA_COLADA', rn: 'D-E5-06', mensagem: 'A referência sai como foi colada: confira a pontuação, o negrito do título e o padrão do Manual.' });
+    return { obra: obra.id, trechos: m.trechos, avisos };
+  }
   formatador(obra, { m, avisos, opcoes });
   m.aparar();
   return { obra: obra.id, trechos: m.trechos, avisos };

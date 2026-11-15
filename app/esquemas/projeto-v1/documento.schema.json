@@ -2451,7 +2451,10 @@
             "artigoJornal",
             "norma",
             "legislacao",
-            "documentoOnline"
+            "documentoOnline",
+            "relatorio",
+            "demonstracaoFinanceira",
+            "baseDados"
           ]
         },
         "autores": {
@@ -2745,6 +2748,22 @@
           "minLength": 1,
           "maxLength": 2000,
           "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "periodo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "referenciaLivre": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100000,
+          "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+        },
+        "usarReferenciaLivre": {
+          "type": "boolean",
+          "const": true
         },
         "arquivoLocal": {
           "type": "string",

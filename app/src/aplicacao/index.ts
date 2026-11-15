@@ -88,6 +88,7 @@ export {
   type SugestaoTabela,
 } from './servicos/ia';
 export { lerSugestaoConformidade, pedidoSugestaoConformidade, TITULO_SUGESTAO_CONFORMIDADE, type ContextoSugestao, type SugestaoConformidade } from './servicos/ia-conformidade';
+export { lerObraSugerida, LIMITE_TEXTO_OBRA_IA, pedidoSugerirObra, TITULO_SUGERIR_OBRA } from './servicos/ia-obra';
 export { celulasAConferir, lerTabelaSugerida, LIMITE_TEXTO_TABELA_IA, MARCADOR_CONFERIR, pedidoGerarTabela, TITULO_GERAR_TABELA, type EntradaTabelaIA, type TabelaSugerida } from './servicos/ia-tabela';
 export { LIMITE_TEXTO_FICHA_IA, lerSugestaoFicha, pedidoPreencherFicha, textoDoArquivoFicha, TITULO_PREENCHER_FICHA, type EntradaFichaIA, type OrigemSugestao, type ResultadoSugestaoFicha } from './servicos/ia-ficha';
 export {
@@ -257,7 +258,9 @@ export {
   type ItemImportacao,
   type PreviaImportacao,
 } from './servicos/importacao-bibliografia';
+export { lerReferenciaColada, type ReferenciaLida } from '../dominio/bibliografia';
 export {
+  aplicarReferenciaLida,
   CAMPOS_DO_TIPO,
   obraVazia,
   prepararObra,
