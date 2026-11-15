@@ -8,6 +8,7 @@ import type { Catalogo } from '../../dominio/catalogo';
 export const CANAIS_CATALOGO = {
   ler: 'bibliodocs:catalogo:ler',
   gravar: 'bibliodocs:catalogo:gravar',
+  exportarFicha: 'bibliodocs:catalogo:exportarFicha',
 } as const;
 
 export type CanalCatalogo = (typeof CANAIS_CATALOGO)[keyof typeof CANAIS_CATALOGO];
@@ -25,7 +26,15 @@ export type ResultadoLerCatalogo =
 
 export type ResultadoGravarCatalogo = { ok: true } | { ok: false; mensagem: string };
 
+/** `cancelado`: o usuário fechou a janela de salvar. */
+export type ResultadoExportarFicha = { ok: true; nome: string } | { ok: false; cancelado: true } | { ok: false; cancelado: false; mensagem: string };
+
 export interface ApiCatalogo {
   ler(): Promise<ResultadoLerCatalogo>;
   gravar(usuario: CatalogoUsuario): Promise<ResultadoGravarCatalogo>;
+  /**
+   * Ficha institucional (texto JSON) num arquivo escolhido pelo usuário na janela de salvar. O principal valida a ficha
+   * antes de gravar; `nomeSugerido` só sugere o nome.
+   */
+  exportarFicha(texto: string, nomeSugerido: string): Promise<ResultadoExportarFicha>;
 }

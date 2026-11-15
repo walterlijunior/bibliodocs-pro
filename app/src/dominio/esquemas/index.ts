@@ -64,9 +64,11 @@ export {
   esquemaCatalogoUsuario,
   LIMITES_CATALOGO,
   PADRAO_ID_CATALOGO,
+  TIPOS_TRABALHO_UFT,
   validarCatalogo,
   validarCatalogoUsuario,
   type CatalogoUsuarioValidado,
   type CatalogoValidado,
   type ResultadoCatalogo,
 } from './catalogo';
+export { esquemaFicha, validarFicha, type FichaValidada } from './ficha';

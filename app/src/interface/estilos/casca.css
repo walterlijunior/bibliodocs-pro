@@ -604,6 +604,13 @@ ol.bd-lista { list-style: decimal; }
 .catalogo__registro > .campo-catalogo:not(.campo-catalogo--curto) { flex: 1 1 16rem; }
 .catalogo__registro > .dica, .catalogo__registro > .catalogo__lista { flex-basis: 100%; }
 .catalogo__lista ul { margin: 0 0 var(--esp-2); padding-left: var(--esp-4); }
+/* Ficha institucional (Etapa 3): prévia da importação e perfis. */
+.ficha .acoes { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+.ficha__previa, .ficha__perfil { border-top: 1px solid var(--cor-borda); margin-top: var(--esp-3); padding-top: var(--esp-2); }
+.ficha__previa h4 { margin: var(--esp-3) 0 var(--esp-1); font-size: 1em; }
+.ficha__previa .registro__tabela { width: 100%; }
+.ficha__itens, .ficha__pendencias { max-height: 14em; overflow-y: auto; }
+.ficha__pendencias select { max-width: 100%; }
 .dialogo .tipos-trabalho { min-height: 0; }
 /* "Novo trabalho" com a instituição (Etapa 3): cinco linhas, só a lista de tipos rola. */
 .dialogo__corpo:has(> .novo-trabalho__instituicao) { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }

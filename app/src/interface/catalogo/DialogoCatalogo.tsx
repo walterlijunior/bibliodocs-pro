@@ -22,6 +22,7 @@ import {
 } from '../../aplicacao';
 import { aoFecharDialogo } from '../casca/dialogo';
 import { useCatalogo } from './ContextoCatalogo';
+import { FichaInstitucional } from './FichaInstitucional';
 import { LogotipoInstituicao } from './LogotipoInstituicao';
 import { origemDaEscolha } from './SeletorInstitucional';
 
@@ -60,7 +61,7 @@ function Campo(p: { rotulo: string; valor: string; aoMudar: (v: string) => void;
 const obrigatorio = (v: string) => (v.trim() === '' ? 'Obrigatório.' : undefined);
 
 export function DialogoCatalogo(p: PropsDialogoCatalogo) {
-  const { catalogo, alterar } = useCatalogo();
+  const { catalogo, alterar, api } = useCatalogo();
   const ref = useRef<HTMLDialogElement>(null);
   const base = useId();
   const [cat, setCat] = useState<Catalogo>(catalogo);
@@ -105,7 +106,7 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
   const incluirCampus = () => {
     if (!inst) return;
     const id = novoId(inst.id, `campus ${inst.campi.length + 1}`);
-    trocar(gravarCampus(cat, inst.id, { id, nome: 'Novo câmpus', especie: 'campus', cidade: '', uf: 'TO', cursos: [], origem: 'usuario' }));
+    trocar(gravarCampus(cat, inst.id, { id, nome: 'Novo câmpus', especie: 'campus', cursos: [], origem: 'usuario' }));
     setSel({ instituicao: inst.id, campus: id });
   };
   const incluirCurso = () => {
@@ -121,7 +122,7 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
 
   const erros = [
     ...(inst ? [obrigatorio(inst.nome), obrigatorio(inst.sigla)] : []),
-    ...(campus ? [obrigatorio(campus.nome), obrigatorio(campus.cidade), /^[A-Z]{2}$/.test(campus.uf) ? undefined : 'UF'] : []),
+    ...(campus ? [obrigatorio(campus.nome), campus.uf === undefined || /^[A-Z]{2}$/.test(campus.uf) ? undefined : 'UF'] : []),
     ...(curso ? [obrigatorio(curso.nome)] : []),
   ].filter(Boolean);
 
@@ -170,7 +171,7 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
         }}
       >
         <h2 id={`${base}-titulo`}>Catálogo acadêmico</h2>
-        <p className="dica">Acrescente ou corrija instituições, câmpus, cursos, disciplinas e docentes. Vale para todos os trabalhos deste computador.</p>
+        <p className="dica">Acrescente ou corrija instituições, câmpus, cursos, disciplinas e docentes, ou importe a ficha de uma instituição. Vale para todos os trabalhos deste computador.</p>
 
         {seletor('Instituição', sel.instituicao, cat.instituicoes.map((i) => ({ id: i.id, nome: `${i.nome} (${i.sigla})` })), (id) => setSel(id ? { instituicao: id } : {}), incluirInstituicao, 'Nova instituição')}
         {inst && (
@@ -205,8 +206,26 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
                 <option value="polo">Polo (EaD)</option>
               </select>
             </div>
-            <Campo rotulo="Cidade" valor={campus.cidade} erro={obrigatorio(campus.cidade)} aoMudar={(cidade) => salvarCampus({ ...campus, cidade })} />
-            <Campo rotulo="UF" largura="curta" valor={campus.uf} erro={/^[A-Z]{2}$/.test(campus.uf) ? undefined : 'Duas letras maiúsculas, como TO.'} aoMudar={(uf) => salvarCampus({ ...campus, uf: uf.toUpperCase().slice(0, 2) })} />
+            <Campo
+              rotulo="Cidade"
+              valor={campus.cidade ?? ''}
+              aoMudar={(cidade) => {
+                const { cidade: _c, ...resto } = campus;
+                salvarCampus(cidade.trim() === '' ? resto : { ...resto, cidade });
+              }}
+            />
+            <Campo
+              rotulo="UF"
+              largura="curta"
+              valor={campus.uf ?? ''}
+              erro={campus.uf === undefined || /^[A-Z]{2}$/.test(campus.uf) ? undefined : 'Duas letras maiúsculas, como TO.'}
+              aoMudar={(uf) => {
+                const { uf: _u, ...resto } = campus;
+                const v = uf.toUpperCase().slice(0, 2);
+                salvarCampus(v === '' ? resto : { ...resto, uf: v });
+              }}
+            />
+            {(campus.cidade === undefined || campus.uf === undefined) && <p className="dica">Sem cidade e UF, o local da capa fica para você digitar no trabalho.</p>}
             <p className="dica">{origemDaEscolha(cat, { instituicao: inst!.id, campus: campus.id })}</p>
             <button type="button" className="btn-secundario" onClick={() => retirar(campus.id, 'campus')}>
               Retirar câmpus ou polo
@@ -329,6 +348,8 @@ export function DialogoCatalogo(p: PropsDialogoCatalogo) {
             </button>
           </div>
         )}
+
+        <FichaInstitucional catalogo={cat} instituicao={inst} api={api} aoTrocar={trocar} aoEscolherInstituicao={(id) => setSel({ instituicao: id })} />
 
         <p className="dica" role="status">
           {mensagem ?? (erros.length > 0 ? 'Preencha os campos marcados para guardar.' : '')}

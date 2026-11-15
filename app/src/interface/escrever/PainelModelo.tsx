@@ -14,13 +14,17 @@ import {
   ASPECTOS,
   aspectosComPerfilPadrao,
   conferirExportado,
+  instituicaoDe,
   LIMITE_BYTES_MODELO,
   modeloDoArquivo,
+  modeloDoPerfil,
+  perfisAplicaveis,
   type ChaveAspecto,
   type DiferencaExportado,
   type ResultadoObra,
 } from '../../aplicacao';
-import type { EstiloTituloModelo, ModeloEvento, RegrasModelo } from '../../dominio/modelo';
+import type { EstiloTituloModelo, ModeloEvento, RegrasModelo, VinculoInstitucional } from '../../dominio/modelo';
+import { useCatalogo } from '../catalogo/ContextoCatalogo';
 
 export interface PropsPainelModelo {
   modelo: ModeloEvento | undefined;
@@ -29,6 +33,9 @@ export interface PropsPainelModelo {
   secoesQueFaltam: readonly string[];
   aoAplicar: (m: ModeloEvento | null) => ResultadoObra;
   aoCriarSecoes: () => number;
+  /** Etapa 3 (ficha institucional): de onde vieram os dados institucionais e o tipo do trabalho, para oferecer os perfis da instituição. */
+  vinculo?: VinculoInstitucional | undefined;
+  tipoTrabalho?: string | undefined;
 }
 
 const SITUACAO: Readonly<Record<string, string>> = {
@@ -72,6 +79,10 @@ export function PainelModelo(p: PropsPainelModelo) {
   const [anuncio, setAnuncio] = useState<string | null>(null);
   const [diferencas, setDiferencas] = useState<{ arquivo: string; lista: readonly DiferencaExportado[] } | null>(null);
   const [edicao, setEdicao] = useState<Partial<Record<ChaveAspecto, string>>>({});
+
+  const { catalogo } = useCatalogo();
+  const instituicao = instituicaoDe(catalogo, p.vinculo?.instituicao);
+  const perfis = perfisAplicaveis(instituicao, p.vinculo?.curso, p.tipoTrabalho);
 
   const mostrado = previa ?? p.modelo ?? null;
   const aplicado = previa === null && p.modelo !== undefined;
@@ -361,6 +372,34 @@ export function PainelModelo(p: PropsPainelModelo) {
             </section>
           )}
         </>
+      )}
+      {!so && previa === null && instituicao && perfis.length > 0 && (
+        <section aria-labelledby={`${base}-perfis`}>
+          <h3 id={`${base}-perfis`} className="elementos__grupo">Perfis de formatação da {instituicao.sigla}</h3>
+          <p className="dica">Perfis da ficha institucional que valem para o curso e o tipo deste trabalho. O perfil passa pela mesma prévia de um modelo.</p>
+          <ul className="elementos__lista">
+            {perfis.map((pf) => (
+              <li key={pf.id}>
+                {pf.nome}{' '}
+                {pf.revisado ? (
+                  <button
+                    type="button"
+                    className="btn-link"
+                    onClick={() => {
+                      setPrevia(modeloDoPerfil(pf, instituicao, new Date()));
+                      setDiferencas(null);
+                      setAnuncio(`Perfil “${pf.nome}” lido. Confira as regras e aplique ao trabalho.`);
+                    }}
+                  >
+                    Usar este perfil
+                  </button>
+                ) : (
+                  <span className="dica">(ainda não revisado: confira em Catálogo acadêmico… › Ficha institucional)</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
       <p className="dica" role="status">
         {anuncio}

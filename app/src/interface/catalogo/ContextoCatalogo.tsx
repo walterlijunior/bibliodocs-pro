@@ -12,6 +12,8 @@ export interface EstadoCatalogo {
   aviso: string | null;
   /** Grava o catálogo inteiro como o do usuário (o que difere dos dados iniciais fica guardado neste computador). */
   alterar: (novo: Catalogo) => Promise<boolean>;
+  /** O canal do catálogo (exportar a ficha institucional); ausente nos testes da casca. */
+  api?: ApiCatalogo | undefined;
 }
 
 const PADRAO: EstadoCatalogo = { catalogo: CATALOGO_INICIAL, aviso: null, alterar: async () => false };
@@ -55,6 +57,6 @@ export function ProvedorCatalogo({ api, children }: { api: ApiCatalogo | undefin
     [api],
   );
 
-  const valor = useMemo(() => ({ catalogo, aviso, alterar }), [catalogo, aviso, alterar]);
+  const valor = useMemo(() => ({ catalogo, aviso, alterar, api }), [catalogo, aviso, alterar, api]);
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

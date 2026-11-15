@@ -5,6 +5,9 @@
  * arquivo do catálogo fica em `dominio/esquemas` (zod só lá); os dados iniciais são carregados pela aplicação.
  */
 export type {
+  AplicacaoRegra,
+  ManualInstitucional,
+  PerfilInstitucional,
   Campus,
   Catalogo,
   Curso,
@@ -43,3 +46,29 @@ export {
   type CampoSelecao,
   type DadosInstitucionais,
 } from './operacoes';
+export {
+  contarRegistros,
+  fichaDoCatalogo,
+  fichaVazia,
+  FORMATO_FICHA,
+  importarFicha,
+  normalizarNome,
+  NOVO_REGISTRO,
+  perfisAplicaveis,
+  type CampusFicha,
+  type ConflitoPrevia,
+  type ConjuntoFicha,
+  type CursoFicha,
+  type DecisoesImportacao,
+  type DisciplinaFicha,
+  type DocenteFicha,
+  type FaltantePrevia,
+  type FichaInstitucional,
+  type ItemPrevia,
+  type ManualFicha,
+  type PendenciaPrevia,
+  type PerfilFicha,
+  type PreviaImportacao,
+  type ResultadoImportacao,
+  type VinculoPrevia,
+} from './ficha';

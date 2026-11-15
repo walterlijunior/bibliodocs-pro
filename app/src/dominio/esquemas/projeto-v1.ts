@@ -418,7 +418,7 @@ const estiloTituloModelo = z.strictObject({
   quebraPagina: z.boolean().optional(),
 });
 const margemCm = z.number().min(0).max(10);
-const esquemaRegrasModelo = z.strictObject({
+export const esquemaRegrasModelo = z.strictObject({
   larguraMm: z.number().min(50).max(1000).optional(),
   alturaMm: z.number().min(50).max(1000).optional(),
   margemSuperiorCm: margemCm.optional(),

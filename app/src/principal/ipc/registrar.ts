@@ -227,7 +227,24 @@ export function registrarIpcProjetos(origem: OrigemPermitida, conteudosPermitido
   });
 
   // Etapa 3: catálogo acadêmico do usuário, num arquivo fixo da pasta de dados local.
-  const catalogo = criarManipuladoresCatalogo({ origem, conteudosPermitidos, arquivo: join(dadosLocais, 'catalogo.json') });
+  const catalogo = criarManipuladoresCatalogo({
+    origem,
+    conteudosPermitidos,
+    arquivo: join(dadosLocais, 'catalogo.json'),
+    // Ficha institucional: a janela de salvar do sistema; o texto chega validado.
+    escolherDestinoFicha: async (id, nome) => {
+      const janela = janelaDe(id);
+      if (!janela) return null;
+      const r = await dialog.showSaveDialog(janela, {
+        title: 'Exportar ficha institucional',
+        defaultPath: join(app.getPath('documents'), nome),
+        filters: [{ name: 'Ficha institucional do BiblioDocs Pro', extensions: ['json'] }],
+        properties: ['showOverwriteConfirmation'],
+      });
+      return r.canceled || !r.filePath ? null : r.filePath;
+    },
+    gravarArquivo: gravarExportacao,
+  });
 
   // Etapa 5: o PDF da obra no computador (escolher e abrir no leitor do sistema).
   const fontes = criarManipuladoresFontes({

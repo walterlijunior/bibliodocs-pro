@@ -136,7 +136,8 @@ export function dadosInstitucionais(c: Catalogo, s: SelecaoCatalogo, tipo: TipoT
   const natureza = campus && curso ? naturezaSugerida(inst, campus, curso, tipo) : null;
   return {
     instituicao: inst.nome,
-    ...(campus && { campus: textoCampus(campus), local: `${campus.cidade}, ${campus.uf}` }),
+    ...(campus && { campus: textoCampus(campus) }),
+    ...(campus?.cidade !== undefined && { local: campus.uf !== undefined ? `${campus.cidade}, ${campus.uf}` : campus.cidade }),
     ...(curso && { curso: textoCurso(curso) }),
     ...(curso?.areaConcentracao && { areaConcentracao: curso.areaConcentracao }),
     ...(orientador && { orientador: pessoa(orientador) }),

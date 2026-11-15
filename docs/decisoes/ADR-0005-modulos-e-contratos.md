@@ -417,6 +417,16 @@ Na seção 3, o esboço de `Bloco` e `Inline` mudou. A nota é **embutida** no i
   do usuário, em `%LOCALAPPDATA%\BiblioDocsPro\catalogo.json`, e valida o que recebe; a mesclagem com os dados
   iniciais é feita no renderer.
 
+## Adendo da Etapa 3 da especificação de atualização (2026-11-15) — ficha institucional
+
+- **`dominio/catalogo/ficha.ts`** (puro): ficha a partir do catálogo, importação com prévia e decisões
+  (`importarFicha`, chamada de novo a cada decisão: prévia e resultado vêm da mesma passada) e perfis aplicáveis. O
+  esquema do arquivo fica em `dominio/esquemas/ficha.ts` (`tests/ficha-institucional.test.ts` confere que os tipos batem).
+- **Canal novo `bibliodocs:catalogo:exportarFicha`** (texto, nome sugerido): o principal confere o nome
+  (`*.bdficha.json`, sem caminho), o tamanho (8 MB) e valida a ficha antes de abrir a janela de salvar; o destino vem
+  só da janela do sistema. A importação não tem canal: o arquivo escolhido no `<input type=file>` é lido como texto no
+  renderer e validado pelo esquema; o resultado só é gravado pelo canal `gravar`, que valida o catálogo de novo.
+
 ## Adendo da Etapa 8 da especificação de atualização (2026-11-14) — rede para o serviço de IA
 
 - **Decisão do usuário (2026-11-14):** integrar o ChatGPT, mas de forma que sirva para a IA que cada usuário usa. A

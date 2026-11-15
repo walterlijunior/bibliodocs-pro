@@ -833,3 +833,13 @@ consolidação"). Tudo aditivo, sem subir `versaoFormato`; arquivo v1 sem os cam
   conformidade e na área útil dos gráficos. O perfil ganhou a entrelinha `duplo` (480), usada só por modelo.
 - O DOCX é lido no renderer, sem gravar nada: ZIP com teto de 20 MB e de 15 MB por parte descomprimida, só
   `document.xml`, `styles.xml` e `theme1.xml` são abertos; o XML é lido por expressões regulares, sem avaliar nada.
+
+## Adendo da Etapa 3 da especificação de atualização (2026-11-15) — ficha institucional
+
+- O formato do **trabalho** não muda: o perfil institucional entra como `modelo` (adendo da Etapa 7), com o nome
+  "Perfil (SIGLA)" e a fonte na primeira instrução. O trabalho abre e exporta igual sem o catálogo.
+- O **catálogo do usuário** (`catalogo.json`, versão 1, aditivo): `origem` ganha `importado`; `cidade` e `uf` do câmpus
+  passam a opcionais; docente e disciplina aceitam `fonte`; a instituição ganha `manuais[]` e `perfisInstitucionais[]`
+  (com `regras` no esquema do modelo e `revisado`). Catálogos antigos continuam válidos.
+- Arquivo novo **`.bdficha.json`** (`formato: "bibliodocs-ficha-institucional"`, `versao: 1`), descrito em
+  `docs/FICHA_INSTITUCIONAL.md`.

@@ -106,7 +106,7 @@ export {
   type UsoInformado,
 } from './portas/ia';
 export { CANAIS_FONTES, type ApiFontes, type CanalFontes, type ResultadoAbrirPdf, type ResultadoEscolherPdf } from './portas/fontes';
-export { CANAIS_CATALOGO, type ApiCatalogo, type CanalCatalogo, type CatalogoUsuario, type ResultadoGravarCatalogo, type ResultadoLerCatalogo } from './portas/catalogo';
+export { CANAIS_CATALOGO, type ApiCatalogo, type CanalCatalogo, type CatalogoUsuario, type ResultadoExportarFicha, type ResultadoGravarCatalogo, type ResultadoLerCatalogo } from './portas/catalogo';
 export { CANAIS_EXPORTACAO, type ApiExportacao, type CanalExportacao, type OpcoesExportacao, type ResultadoExportar } from './portas/exportacao';
 export { ACOES_EDICAO, CANAIS_EDICAO, type AcaoEdicao, type ApiEdicao, type CanalEdicao } from './portas/edicao';
 export {

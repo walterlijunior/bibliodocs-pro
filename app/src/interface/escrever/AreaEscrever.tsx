@@ -1012,6 +1012,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               secoesQueFaltam={p.modeloEvento.secoesQueFaltam()}
               aoAplicar={p.modeloEvento.aplicar}
               aoCriarSecoes={p.modeloEvento.criarSecoes}
+              vinculo={pre?.dados.vinculo}
+              tipoTrabalho={t.tipoTrabalho}
             />
           ) : registroAberto && modo === 'elementos' && p.registro && elementoAtivo === null ? (
             <PainelRegistro

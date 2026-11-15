@@ -71,6 +71,7 @@ export function criarApiBiblioDocs(invocar: Invocar, gestoDoUsuario: () => boole
   const catalogo: ApiCatalogo = {
     ler: () => invocar(CANAIS_CATALOGO.ler) as ReturnType<ApiCatalogo['ler']>,
     gravar: (usuario) => invocar(CANAIS_CATALOGO.gravar, usuario) as ReturnType<ApiCatalogo['gravar']>,
+    exportarFicha: (texto, nome) => invocar(CANAIS_CATALOGO.exportarFicha, texto, nome) as ReturnType<ApiCatalogo['exportarFicha']>,
   };
   const fontes: ApiFontes = {
     escolherPdf: () => invocar(CANAIS_FONTES.escolherPdf) as ReturnType<ApiFontes['escolherPdf']>,

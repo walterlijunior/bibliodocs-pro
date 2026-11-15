@@ -8,6 +8,8 @@
  * ou corrige fica marcado como dele. Registro sem fonte aparece como "sem fonte confirmada".
  */
 
+import type { RegrasModelo, TipoTrabalhoUft } from '../modelo';
+
 /** Nível do curso: decide os tipos de trabalho oferecidos (`tiposDeTrabalhoDoNivel`). */
 export type NivelCurso = 'graduacao' | 'especializacao' | 'mestrado' | 'doutorado';
 
@@ -22,8 +24,11 @@ export interface FonteRegistro {
   observacao?: string;
 }
 
-/** `oficial`: veio dos dados iniciais, com fonte; `usuario`: acrescentado ou corrigido pelo usuário. */
-export type OrigemRegistro = 'oficial' | 'usuario';
+/**
+ * `oficial`: veio dos dados iniciais, com fonte; `usuario`: acrescentado ou corrigido pelo usuário; `importado`: veio de
+ * uma ficha institucional importada (a fonte é a que a ficha informou).
+ */
+export type OrigemRegistro = 'oficial' | 'usuario' | 'importado';
 
 export interface Docente {
   id: string;
@@ -31,12 +36,14 @@ export interface Docente {
   /** "Dr.", "Dra.", "Me.", "Ma."… como o docente assina (RN-132: "Orientador (a): Titulação/Nome"). */
   titulacao?: string;
   origem: OrigemRegistro;
+  fonte?: FonteRegistro;
 }
 
 export interface Disciplina {
   id: string;
   nome: string;
   origem: OrigemRegistro;
+  fonte?: FonteRegistro;
 }
 
 export interface Curso {
@@ -59,9 +66,10 @@ export interface Campus {
   nome: string;
   /** Câmpus ou polo (EaD). */
   especie: 'campus' | 'polo';
-  cidade: string;
-  /** Sigla da unidade da federação ("TO"). */
-  uf: string;
+  /** Ausente: desconhecida (ficha importada sem a cidade); o local da capa fica para o autor. */
+  cidade?: string;
+  /** Sigla da unidade da federação ("TO"). Ausente: desconhecida. */
+  uf?: string;
   cursos: Curso[];
   origem: OrigemRegistro;
   fonte?: FonteRegistro;
@@ -79,8 +87,55 @@ export interface Instituicao {
    */
   logotipo?: { sha256: string; tipo: 'image/png' | 'image/jpeg'; dados: string };
   campi: Campus[];
+  /** Manuais, modelos e regras publicados pela instituição (ficha institucional). */
+  manuais?: ManualInstitucional[];
+  /** Perfis de formatação da instituição, com as regras e a fonte de cada uma (ficha institucional). */
+  perfisInstitucionais?: PerfilInstitucional[];
   origem: OrigemRegistro;
   fonte?: FonteRegistro;
+}
+
+/** A que cursos (ids) e tipos de trabalho algo se aplica. Lista vazia ou ausente: a todos. */
+export interface AplicacaoRegra {
+  cursos?: string[];
+  tipos?: TipoTrabalhoUft[];
+}
+
+/** Manual, modelo ou norma interna publicado pela instituição. */
+export interface ManualInstitucional {
+  id: string;
+  titulo: string;
+  /** Página ou arquivo oficial (https). */
+  url?: string;
+  /** Nome do arquivo de origem, quando a fonte foi um arquivo. */
+  arquivo?: string;
+  /** Edição, versão ou ano ("2022", "3. ed."). */
+  edicao?: string;
+  /** Data de publicação, AAAA-MM-DD ou AAAA. */
+  data?: string;
+  aplicaA?: AplicacaoRegra;
+  origem: OrigemRegistro;
+  fonte?: FonteRegistro;
+}
+
+/**
+ * Perfil de formatação da instituição: ajustes sobre o perfil base do aplicativo (os mesmos aspectos do modelo de evento,
+ * Etapa 7), com o manual e a seção de onde vieram. Só pode ser escolhido num trabalho depois de revisado.
+ */
+export interface PerfilInstitucional {
+  id: string;
+  nome: string;
+  /** Id do manual (em `manuais`) de onde vêm as regras. */
+  manual?: string;
+  /** Seção, página ou trecho do manual. */
+  secao?: string;
+  regras: RegrasModelo;
+  /** Instruções do manual que o aplicativo não aplica sozinho (ficam para o autor conferir). */
+  instrucoes?: string[];
+  aplicaA?: AplicacaoRegra;
+  /** O usuário conferiu as regras neste computador. Perfil importado ou sugerido pela IA chega sem revisão. */
+  revisado: boolean;
+  origem: OrigemRegistro;
 }
 
 export interface Catalogo {
