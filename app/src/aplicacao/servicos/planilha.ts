@@ -455,5 +455,7 @@ export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro',
 
 /** Os dados da planilha no lugar da grade do rascunho; título, fonte e notas ficam. */
 export function aplicarPlanilha(r: RascunhoTabela, c: PlanilhaConvertida): RascunhoTabela {
-  return { ...r, grade: c.grade, alinhamentos: c.alinhamentos, linhasCabecalho: c.linhasCabecalho };
+  // Dados de outra colagem: a origem da importação anterior deixa de valer.
+  const { origem: _origem, ...resto } = r;
+  return { ...resto, grade: c.grade, alinhamentos: c.alinhamentos, linhasCabecalho: c.linhasCabecalho };
 }

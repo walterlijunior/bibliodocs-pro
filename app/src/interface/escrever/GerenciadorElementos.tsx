@@ -15,7 +15,7 @@ import { lerInfoImagem, type ElementoNaSessao, type MencoesDoTexto } from '../..
 import type { Bloco, InlineDeTitulo } from '../../dominio/modelo';
 
 /** Ações que levam à aba Escrever e acontecem no editor. */
-export type NovoElemento = 'tabela' | 'figura' | 'grafico';
+export type NovoElemento = 'tabela' | 'figura' | 'grafico' | 'planilha';
 
 const GRUPOS: readonly { tipo: ElementoNaSessao['tipo']; nome: string }[] = [
   { tipo: 'tabela', nome: 'Tabelas e quadros' },
@@ -72,6 +72,9 @@ export function ListaVisuais(p: {
       {!p.somenteLeitura && (
         <div className="gerenciador__novos" role="group" aria-label="Novo elemento no cursor do texto">
           <button type="button" className="btn-secundario" onClick={() => p.aoNovo('tabela')}>Nova tabela ou quadro…</button>
+          <button type="button" className="btn-secundario" onClick={() => p.aoNovo('planilha')} title="Tabelas e quadros de um arquivo .xlsx, escolhendo as abas e os intervalos">
+            Importar planilha…
+          </button>
           <button type="button" className="btn-secundario" onClick={() => p.aoNovo('figura')}>Nova figura…</button>
           <button type="button" className="btn-secundario" onClick={() => p.aoNovo('grafico')}>Novo gráfico…</button>
         </div>
@@ -168,6 +171,14 @@ export function PainelElemento(p: {
           <>
             <dt>Nota</dt>
             <dd>{nota}</dd>
+          </>
+        )}
+        {b?.tipo === 'tabela' && b.origem && (
+          <>
+            <dt>Origem</dt>
+            <dd>
+              {b.origem.arquivo} › aba “{b.origem.aba}” › {b.origem.intervalo}
+            </dd>
           </>
         )}
         <dt>Remissivas</dt>

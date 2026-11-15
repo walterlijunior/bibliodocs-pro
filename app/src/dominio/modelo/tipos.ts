@@ -247,6 +247,18 @@ export interface BlocoTabela {
   nota?: InlineDeTitulo[];
   /** Notas específicas, na ordem das chamadas (RN-273, RN-275). Ausente quando não há (lista vazia é recusada). */
   notasEspecificas?: InlineDeTitulo[][];
+  /**
+   * De onde os dados vieram, quando a tabela foi importada de planilha (Etapa 4 da especificação de atualização:
+   * "Importar planilha" guarda o arquivo, a aba e o intervalo). Só informa: o arquivo não é lido de novo.
+   */
+  origem?: OrigemTabela;
+}
+
+/** Arquivo, aba e intervalo ("A1:C39") de onde a tabela foi importada. */
+export interface OrigemTabela {
+  arquivo: string;
+  aba: string;
+  intervalo: string;
 }
 
 /**

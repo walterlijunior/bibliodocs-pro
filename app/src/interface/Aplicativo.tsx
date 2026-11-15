@@ -535,6 +535,9 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
         case 'inserirTabela':
           refEditor.current?.pedirTabela();
           return;
+        case 'importarPlanilha':
+          refEditor.current?.pedirPlanilha();
+          return;
         case 'inserirFigura':
           refEditor.current?.pedirFigura();
           return;
@@ -649,6 +652,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
       d.add('inserirNota');
       d.add('inserirCitacao');
       d.add('inserirTabela');
+      d.add('importarPlanilha');
       d.add('inserirFigura');
       d.add('inserirEquacao');
       d.add('inserirRemissiva');

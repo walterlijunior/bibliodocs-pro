@@ -12,7 +12,7 @@
  * - `validarTabela`: só sai a tabela que o formato v1 aceita (esquema e grade, `validarTabelaV1`).
  */
 import { LIMITES_V1, validarTabelaV1 } from '../../dominio/esquemas';
-import type { AlinhamentoColuna, BlocoTabela, InlineDeTitulo } from '../../dominio/modelo';
+import type { AlinhamentoColuna, BlocoTabela, InlineDeTitulo, OrigemTabela } from '../../dominio/modelo';
 
 /** O que o editor guarda da tabela: tudo menos o id do nó. */
 export type DadosTabela = Omit<BlocoTabela, 'id'>;
@@ -39,6 +39,8 @@ export interface RascunhoTabela {
   fonte: CampoTexto;
   nota: CampoTexto;
   notasEspecificas: CampoTexto[];
+  /** Arquivo, aba e intervalo da planilha importada; sai quando a grade é trocada por outra colagem. */
+  origem?: OrigemTabela;
 }
 
 /** Resultado de uma operação na grade: a operação recusada diz o motivo, para a janela mostrar. */
@@ -182,6 +184,7 @@ export function rascunhoDe(d: DadosTabela): RascunhoTabela {
     fonte: campoDe(d.fonte),
     nota: campoDe(d.nota),
     notasEspecificas: (d.notasEspecificas ?? []).map((n) => campoDe(n)),
+    ...(d.origem ? { origem: d.origem } : {}),
   };
 }
 
@@ -207,6 +210,7 @@ export function dadosDoRascunho(r: RascunhoTabela): DadosTabela {
     ...(fonte.length > 0 ? { fonte } : {}),
     ...(nota.length > 0 ? { nota } : {}),
     ...(r.notasEspecificas.length > 0 ? { notasEspecificas: r.notasEspecificas.map((n) => conteudoDe(n)) } : {}),
+    ...(r.origem ? { origem: r.origem } : {}),
   };
 }
 

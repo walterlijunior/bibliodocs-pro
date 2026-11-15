@@ -462,6 +462,43 @@ button:disabled { opacity: 0.45; cursor: default; }
 .tabela-planilha__previa { display: grid; gap: var(--esp-2); }
 .tabela-planilha__previa h3 { margin: 0; }
 .tabela-planilha__grade th, .tabela-planilha__grade td { white-space: pre-wrap; }
+.tabela-planilha__grade th, .tabela-planilha__grade td { overflow-wrap: anywhere; }
+/* Importar planilha por aba (Etapa 4): janela larga; abas à esquerda, grade e elementos à direita; o corpo todo rola. */
+.dialogo.dialogo--planilha { width: min(1200px, calc(100vw - 2 * var(--esp-4))); max-width: none; height: calc(100vh - 2 * var(--esp-4)); }
+.dialogo--planilha .dialogo__corpo { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; height: 100%; }
+.dialogo--planilha .dialogo__acoes { align-items: center; flex-wrap: wrap; border-top: 1px solid var(--cor-borda); padding-top: var(--esp-3); }
+.planilha__resumo { flex: 1 1 16em; }
+.planilha__arquivo { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; }
+.planilha__nome { font-weight: 600; overflow-wrap: anywhere; }
+.planilha__corpo { display: grid; grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr); gap: var(--esp-4); min-height: 0; }
+.planilha__abas { border: 1px solid var(--cor-borda); border-radius: var(--raio); margin: 0; padding: var(--esp-2); overflow: auto; display: grid; align-content: start; gap: var(--esp-1); }
+.planilha__abas legend { font-weight: 600; padding: 0 var(--esp-1); }
+.planilha__aba { display: flex; gap: var(--esp-2); align-items: flex-start; overflow-wrap: anywhere; }
+.planilha__aba-nome { font-weight: 600; }
+.planilha__detalhes { overflow: auto; min-height: 0; display: grid; align-content: start; gap: var(--esp-4); padding-right: var(--esp-1); }
+.planilha__aba-detalhe { display: grid; gap: var(--esp-2); }
+.planilha__aba-detalhe h3 { margin: 0; overflow-wrap: anywhere; }
+.planilha__intervalo { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; }
+.planilha-aba__rolagem { overflow: auto; max-height: 34vh; border: 1px solid var(--cor-borda); border-radius: var(--raio); }
+.planilha-aba__grade { border-collapse: collapse; font-size: var(--tam-peq); user-select: none; touch-action: none; }
+.planilha-aba__grade th { position: sticky; top: 0; background: var(--cor-superficie); color: var(--cor-texto-sec); font-weight: normal; padding: 1px var(--esp-1); border: 1px solid var(--cor-borda); }
+.planilha-aba__grade tbody th { left: 0; z-index: 1; }
+.planilha-aba__celula { border: 1px solid var(--cor-borda); padding: 1px var(--esp-1); min-width: 6em; max-width: 16em; vertical-align: top; cursor: cell; }
+.planilha-aba__texto { display: block; max-height: 4.2em; overflow: hidden; white-space: pre-wrap; overflow-wrap: break-word; }
+.planilha-aba__celula--elemento { background: color-mix(in srgb, var(--cor-foco) 12%, transparent); }
+.planilha-aba__celula--selecionada { background: color-mix(in srgb, var(--cor-foco) 30%, transparent); outline: 1px solid var(--cor-foco); }
+.planilha-elemento { display: grid; gap: var(--esp-2); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); padding: var(--esp-3); min-width: 0; }
+.planilha-elemento__cabeca { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: baseline; }
+.planilha-elemento__cabeca h4 { margin: 0; flex: 1 1 auto; overflow-wrap: anywhere; }
+.planilha-elemento__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--esp-3); align-items: start; }
+.planilha-elemento__especie { border: 0; margin: 0; padding: 0; display: grid; gap: var(--esp-1); }
+.planilha-elemento__especie legend { padding: 0; font-weight: 600; }
+.planilha-elemento__marca { display: flex; gap: var(--esp-1); align-items: center; }
+.planilha-elemento__grade--quadro th, .planilha-elemento__grade--quadro td { border: 1px solid var(--cor-borda-controle); }
+@media (max-width: 720px) {
+  .planilha__corpo { grid-template-columns: minmax(0, 1fr); }
+  .planilha__abas { max-height: 22vh; }
+}
 .editor-secao__sugestao { display: flex; flex-wrap: wrap; gap: var(--esp-2); align-items: center; padding: var(--esp-2); margin-bottom: var(--esp-2); border: 1px solid var(--cor-borda-controle); border-radius: var(--raio); }
 .editor-secao__sugestao p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
 .bd-nota__editor:focus { outline: var(--anel) solid var(--cor-foco); outline-offset: 2px; }

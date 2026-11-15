@@ -31,6 +31,7 @@ import { aparenciaDosCampos, areaUtilDoPerfilMm, dadosComSugestao, paginaDoPerfi
 import type { BlocoTabela } from '../../dominio/modelo';
 import type { RemissivaNoEditor } from '../editor/remissivas';
 import { DialogoTabela } from './DialogoTabela';
+import { DialogoImportarPlanilha } from './DialogoImportarPlanilha';
 import { DialogoImportacao } from './DialogoImportacao';
 import { FormularioObra, ListaObras } from './Bibliografia';
 import { FormularioElemento, ListaElementos, ROTULOS_ELEMENTO } from './PreTextuais';
@@ -319,6 +320,17 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     }
     if (pedidoTabela !== null) focarAoFecharTabela.current = true;
   }, [pedidoTabela, controleEditor]);
+  // Importar planilha (Etapa 4): como a janela da tabela; fechada, o foco volta ao editor, no mesmo ponto.
+  const [pedidoPlanilha, setPedidoPlanilha] = useState(false);
+  const pedirPlanilha = useCallback(() => setPedidoPlanilha(true), []);
+  const focarAoFecharPlanilha = useRef(false);
+  useEffect(() => {
+    if (!pedidoPlanilha && focarAoFecharPlanilha.current) {
+      focarAoFecharPlanilha.current = false;
+      controleEditor.current?.focar();
+    }
+    if (pedidoPlanilha) focarAoFecharPlanilha.current = true;
+  }, [pedidoPlanilha, controleEditor]);
   // Janela da figura (M5-T06), como a da tabela.
   const [pedidoFigura, setPedidoFigura] = useState<{ existente: FiguraNoEditor | null } | null>(null);
   const pedirFigura = useCallback((existente: FiguraNoEditor | null) => setPedidoFigura({ existente }), []);
@@ -539,6 +551,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     } else {
       c.focar();
       if (acao.qual === 'tabela') c.pedirTabela(true);
+      else if (acao.qual === 'planilha') c.pedirPlanilha();
       else if (acao.qual === 'figura') c.pedirFigura(true);
       else c.pedirGrafico(true);
     }
@@ -1161,6 +1174,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                 reconhecerChamadas={reconhecerChamadas}
                 aoPedirCitacao={pedirCitacao}
                 aoPedirTabela={pedirTabela}
+                aoPedirPlanilha={pedirPlanilha}
                 aoPedirFigura={pedirFigura}
                 lerMidia={p.midias.ler}
                 rotulosRemissiva={rotulosRemissiva}
@@ -1245,6 +1259,16 @@ export function AreaEscrever(p: PropsAreaEscrever) {
                     else controleEditor.current?.alterarTabela(x.id, dados);
                   }}
                   aoFechar={() => setPedidoTabela(null)}
+                />
+              )}
+              {pedidoPlanilha && (
+                <DialogoImportarPlanilha
+                  aoInserir={(lista) => {
+                    setPedidoPlanilha(false);
+                    if (controleEditor.current?.inserirTabelas(lista))
+                      setAvisosEditor([`${lista.length === 1 ? '1 elemento importado' : `${lista.length} elementos importados`} da planilha. Ctrl+Z desfaz a importação.`]);
+                  }}
+                  aoFechar={() => setPedidoPlanilha(false)}
                 />
               )}
               {pedidoCitacao !== null && (

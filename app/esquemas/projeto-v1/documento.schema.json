@@ -1716,6 +1716,33 @@
               ]
             }
           }
+        },
+        "origem": {
+          "type": "object",
+          "properties": {
+            "arquivo": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 260,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "aba": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[^\\u0000-\\u0008\\u000B-\\u001F\\uFFFE\\uFFFF\\p{Cs}]*$"
+            },
+            "intervalo": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}\\d{1,7}(:[A-Z]{1,3}\\d{1,7})?$"
+            }
+          },
+          "required": [
+            "arquivo",
+            "aba",
+            "intervalo"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [

@@ -89,6 +89,23 @@ const inserirAtomo = (tipo: NodeType, dados: unknown): Command => (estado, despa
   };
 
 export const inserirTabela = (dados: DadosTabela): Command => inserirAtomo(tipoTabela, dados);
+
+/**
+ * Várias tabelas de uma vez ("Importar planilha", Etapa 4): entram em sequência no ponto do cursor, numa só transação,
+ * então um Ctrl+Z desfaz a importação inteira. A última fica selecionada.
+ */
+export const inserirTabelas = (lista: readonly DadosTabela[]): Command => (estado, despachar) => {
+  if (lista.length === 0) return false;
+  if (despachar) {
+    const { de, ate } = lugarDaNova(estado);
+    const nos = lista.map((dados) => tipoTabela.create({ id: null, dados: JSON.stringify(dados) }));
+    const tr = estado.tr.replaceWith(de, ate, nos);
+    const ultima = de + nos.slice(0, -1).reduce((soma, no) => soma + no.nodeSize, 0);
+    tr.setSelection(NodeSelection.create(tr.doc, ultima));
+    despachar(closeHistory(tr).scrollIntoView());
+  }
+  return true;
+};
 export const inserirFigura = (dados: DadosFigura): Command => inserirAtomo(tipoIlustracao, dados);
 export const inserirGrafico = (dados: CamposGrafico): Command => inserirAtomo(tipoGrafico, dados);
 

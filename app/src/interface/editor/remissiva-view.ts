@@ -14,7 +14,8 @@ import { TEXTO_QUEBRADA } from './remissivas';
 /** Texto de cada alvo, vindo da lista de elementos da sessão, e as remissivas na tela, para redesenhar. */
 export class RegistroRemissivas {
   #rotulos: ReadonlyMap<string, string> = new Map();
-  readonly #vistas = new Set<RemissivaView>();
+  /** Remissivas e legendas de tabela na tela (a legenda mostra "Tabela 2 –" com o mesmo rótulo, Etapa 4). */
+  readonly #vistas = new Set<{ desenhar(): void }>();
 
   definir(rotulos: ReadonlyMap<string, string>): void {
     if (rotulos === this.#rotulos) return;
@@ -32,11 +33,11 @@ export class RegistroRemissivas {
     return this.rotulo(alvo) ?? TEXTO_QUEBRADA;
   }
 
-  registrar(v: RemissivaView): void {
+  registrar(v: { desenhar(): void }): void {
     this.#vistas.add(v);
   }
 
-  esquecer(v: RemissivaView): void {
+  esquecer(v: { desenhar(): void }): void {
     this.#vistas.delete(v);
   }
 }

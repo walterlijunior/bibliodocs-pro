@@ -23,6 +23,7 @@ export type {
   BlocoParagrafo,
   BlocoQuebraPagina,
   BlocoTabela,
+  OrigemTabela,
   CelulaTabela,
   ColunaTabela,
   EspecieIlustracao,

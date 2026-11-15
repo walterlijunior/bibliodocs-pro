@@ -30,6 +30,7 @@ export type ComandoMenu =
   | 'inserirCitacao'
   // M5-T04: Inserir › Tabela ou quadro… (botão "Tabela" no editor).
   | 'inserirTabela'
+  | 'importarPlanilha'
   // M5-T06: Inserir › Figura… (botão "Figura" no editor).
   | 'inserirFigura'
   // M5-T09: Inserir › Gráfico… (botão "Gráfico" no editor).
@@ -126,6 +127,7 @@ export const MENUS: readonly Menu[] = [
     itens: [
       { rotulo: 'Citação…', atalho: 'Ctrl+Shift+C', comando: 'inserirCitacao' },
       { rotulo: 'Tabela ou quadro…', comando: 'inserirTabela' },
+      { rotulo: 'Tabelas de planilha (.xlsx)…', comando: 'importarPlanilha' },
       { rotulo: 'Figura…', comando: 'inserirFigura' },
       { rotulo: 'Gráfico…', comando: 'inserirGrafico' },
       { rotulo: 'Equação', atalho: 'Alt+=', comando: 'inserirEquacao' },
@@ -180,6 +182,7 @@ export function comandosDesativados(trabalho: Pick<TrabalhoDaSessao, 'podeSalvar
     d.add('inserirNota');
     d.add('inserirCitacao');
     d.add('inserirTabela');
+    d.add('importarPlanilha');
     d.add('inserirFigura');
     d.add('inserirEquacao');
     d.add('inserirRemissiva');

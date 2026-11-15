@@ -204,6 +204,26 @@ export {
   type SinalParaVazio,
 } from './servicos/planilha';
 export {
+  descreverOrigem,
+  intervaloSemCorte,
+  lerIntervalo,
+  lerPastaXlsx,
+  letrasColuna,
+  LIMITE_BYTES_XLSX,
+  OPCOES_INTERVALO_PADRAO,
+  planilhaDoIntervalo,
+  sugerirIntervalos,
+  textoIntervalo,
+  type AbaXlsx,
+  type CelulaXlsx,
+  type IntervaloSugerido,
+  type IntervaloXlsx,
+  type OpcoesIntervalo,
+  type OrigemPlanilha,
+  type PastaXlsx,
+  type PlanilhaDoIntervalo,
+} from './servicos/planilha-xlsx';
+export {
   alterarCelula,
   campoDe,
   dadosDoRascunho,

@@ -1,6 +1,9 @@
 /**
  * Tabela e quadro no texto da seção (M5-T04): mostra o título, a grade (com as mesclagens e o alinhamento das colunas),
- * a fonte e as notas. A forma final (traços, corpo 10, rótulo numerado) vem do motor, na Pré-visualização e no DOCX.
+ * a fonte e as notas. A forma final (traços, corpo 10) vem do motor, na Pré-visualização e no DOCX.
+ *
+ * - Legenda com o rótulo numerado ("Tabela 2 – Título"), o mesmo da remissiva, vindo da numeração da sessão
+ *   (Etapa 4 da especificação de atualização: o número aparece na própria tabela e acompanha a renumeração).
  *
  * - Clique seleciona; duplo clique, o botão "Editar", ou Enter com a tabela selecionada abrem a janela da tabela.
  * - Tabelas grandes mostram as primeiras linhas e dizem quantas faltam, para o texto continuar leve.
@@ -10,6 +13,7 @@ import type { Node as NoPm } from 'prosemirror-model';
 import type { NodeView } from 'prosemirror-view';
 import { prefixoFonte, type DadosTabela } from '../../aplicacao';
 import type { InlineDeTitulo } from '../../dominio/modelo';
+import type { RegistroRemissivas } from './remissiva-view';
 import { dadosDoNo } from './tabelas';
 
 /** Linhas mostradas no texto; o resto fica na janela. */
@@ -37,10 +41,13 @@ export class TabelaView implements NodeView {
   dom: HTMLElement;
   #no: NoPm;
   readonly #aoAbrir: () => void;
+  readonly #rotulos: RegistroRemissivas | undefined;
 
-  constructor(no: NoPm, aoAbrir: () => void) {
+  constructor(no: NoPm, aoAbrir: () => void, rotulos?: RegistroRemissivas) {
     this.#no = no;
     this.#aoAbrir = aoAbrir;
+    this.#rotulos = rotulos;
+    rotulos?.registrar(this);
     this.dom = document.createElement('div');
     this.dom.className = 'bd-tabela';
     this.dom.contentEditable = 'false';
@@ -64,7 +71,10 @@ export class TabelaView implements NodeView {
     titulo.className = 'bd-tabela__titulo';
     const rotulo = document.createElement('span');
     rotulo.className = 'bd-tabela__rotulo';
-    rotulo.textContent = `${nome} – `;
+    // Rótulo da numeração ("Quadro 3"); antes de a sessão numerar (tabela recém-inserida), só a espécie.
+    const id = this.#no.attrs['id'];
+    const numerado = typeof id === 'string' ? (this.#rotulos?.rotulo(id) ?? null) : null;
+    rotulo.textContent = `${numerado ?? nome} – `;
     titulo.append(rotulo, ...trechos(d.titulo));
     const editar = document.createElement('button');
     editar.type = 'button';
@@ -135,10 +145,14 @@ export class TabelaView implements NodeView {
 
   update(no: NoPm): boolean {
     if (no.type !== this.#no.type) return false;
-    const mudou = no.attrs['dados'] !== this.#no.attrs['dados'];
+    const mudou = no.attrs['dados'] !== this.#no.attrs['dados'] || no.attrs['id'] !== this.#no.attrs['id'];
     this.#no = no;
     if (mudou) this.desenhar();
     return true;
+  }
+
+  destroy(): void {
+    this.#rotulos?.esquecer(this);
   }
 
   selectNode(): void {

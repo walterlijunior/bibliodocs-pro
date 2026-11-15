@@ -200,6 +200,13 @@ export const esquemaBlocoTabela = z
       .min(1, { error: 'lista de notas específicas vazia: omita o campo quando não houver notas' })
       .max(LIMITES_V1.notasEspecificas)
       .optional(),
+    origem: z
+      .strictObject({
+        arquivo: z.string().min(1).max(260).regex(PADRAO_TEXTO_XML),
+        aba: z.string().min(1).max(100).regex(PADRAO_TEXTO_XML),
+        intervalo: z.string().regex(/^[A-Z]{1,3}\d{1,7}(:[A-Z]{1,3}\d{1,7})?$/, { error: 'intervalo inválido: use a forma A1:C39' }),
+      })
+      .optional(),
   })
   .meta({ id: 'BlocoTabela' });
 

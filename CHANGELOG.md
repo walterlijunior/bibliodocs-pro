@@ -5,6 +5,12 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 
 ## [Não lançado]
 
+### Adicionado
+- Etapa 4 da especificação de atualização (2026-11-15): **Importar planilha** (.xlsx) por aba, na aba Elementos ("Importar planilha…") e em Inserir › Tabelas de planilha (.xlsx)…. Lista as abas pelo nome; marque uma ou várias e deixe as auxiliares de fora. Cada aba mostra a grade da planilha e os intervalos sugeridos (vários elementos na mesma aba viram elementos separados); escolha outro intervalo arrastando na grade ou digitando. Cada elemento tem espécie, título, fonte, opções e prévia, com o relatório do que muda na aparência. Os valores entram como a planilha mostra (formato de número, fórmula pelo resultado gravado, zero, vazio e "N/A" distintos, quebras de linha, mesclagens). Todos entram no cursor num só Ctrl+Z, com a origem (arquivo, aba e intervalo) guardada no trabalho; o arquivo de origem não muda (D-E4-06).
+
+### Corrigido
+- A legenda da tabela e do quadro no editor mostrava só "Tabela – título": agora traz o número ("Tabela 2 – título") e acompanha a renumeração, como a menção no texto (D-E4-07).
+
 ## [0.1.0] — 2026-11-15
 
 Primeira versão publicada: as sete etapas do plano mestre, as oito etapas da especificação de atualização e a especificação revista (ficha institucional, painel de conformidade, IA para tabelas e conformidade). Instalador para Windows sem assinatura de código (ver o README).

@@ -9,7 +9,7 @@ import { validarDocumentoV1 } from '../src/dominio/esquemas';
 import { desfazer, refazer } from '../src/interface/editor/comandos';
 import { docParaSecao, type ConteudoSecao } from '../src/interface/editor/conversao';
 import { criarEstadoSecao } from '../src/interface/editor/estado';
-import { alterarTabela, inserirTabela, tabelaSelecionada } from '../src/interface/editor/tabelas';
+import { alterarTabela, inserirTabela, inserirTabelas, tabelaSelecionada } from '../src/interface/editor/tabelas';
 import { TABELA_CORPUS } from './corpus/corpus';
 
 let contador = 0;
@@ -94,5 +94,26 @@ describe('o que vai para o arquivo', () => {
     const doc = { ...base, corpo: [{ id: 'sec_teste0000000001', titulo: s.titulo, blocos: s.blocos, subsecoes: [] }] };
     const v = validarDocumentoV1(doc);
     expect(v.ok ? [] : v.erros).toEqual([]);
+  });
+});
+
+describe('Importar planilha (Etapa 4): várias tabelas de uma vez', () => {
+  const ORIGEM = { arquivo: 'QUADROS.xlsx', aba: 'Quadro 6', intervalo: 'A1:C11' };
+  const IMPORTADA: DadosTabela = { ...NOVA, titulo: [{ tipo: 'texto', texto: 'Importada' }], origem: ORIGEM };
+
+  it('entram em sequência no cursor, com ids novos e a origem; a última fica selecionada', () => {
+    const e = executar(selecionar(criarEstadoSecao(secao(), { gerarId }), 12), inserirTabelas([IMPORTADA, NOVA, DADOS]));
+    expect(tipos(e)).toEqual(['paragrafo', 'tabela', 'tabela', 'tabela', 'paragrafo']);
+    const blocos = docParaSecao(e.doc).blocos;
+    expect(blocos[1]).toEqual({ ...IMPORTADA, id: expect.stringMatching(/^tab_/) });
+    expect(new Set(blocos.slice(1, 4).map((b) => b.id)).size).toBe(3);
+    expect(tabelaSelecionada(e)?.id).toBe(blocos[3]!.id);
+    expect(inserirTabelas([])(e)).toBe(false);
+  });
+
+  it('um Ctrl+Z desfaz a importação inteira e devolve o parágrafo vazio', () => {
+    const inicial = selecionar(criarEstadoSecao(secao(), { gerarId }), 12);
+    const com = executar(inicial, inserirTabelas([IMPORTADA, NOVA]));
+    expect(docParaSecao(executar(com, desfazer).doc)).toEqual(docParaSecao(inicial.doc));
   });
 });

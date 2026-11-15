@@ -80,6 +80,7 @@ import {
   inserirFigura,
   inserirGrafico,
   inserirTabela,
+  inserirTabelas,
   tabelaSelecionada,
   type CamposGrafico,
   type FiguraNoEditor,
@@ -123,6 +124,10 @@ export interface ControleEditor {
   /** `nova`: sempre uma nova, mesmo com uma tabela selecionada (entra depois dela). */
   pedirTabela(nova?: boolean): boolean;
   inserirTabela(dados: DadosTabela): boolean;
+  /** Várias tabelas importadas de planilha, no cursor, num passo só do histórico (Etapa 4). */
+  inserirTabelas(lista: readonly DadosTabela[]): boolean;
+  /** Pede a janela "Importar planilha" (Etapa 4); falso em somente leitura ou sem quem atenda. */
+  pedirPlanilha(): boolean;
   alterarTabela(id: string, dados: DadosTabela): boolean;
   /** Pede a janela da figura: a selecionada, ou uma nova no cursor (M5-T06). */
   pedirFigura(nova?: boolean): boolean;
@@ -226,6 +231,8 @@ export interface PropsEditorSecao {
   aoPedirCitacao: (existente: ChamadaNoEditor | null, escrita?: CitacaoEscrita | null) => void;
   /** Abre a janela da tabela: `existente` é a tabela a alterar; `null`, uma nova no cursor (M5-T04). */
   aoPedirTabela: (existente: TabelaNoEditor | null) => void;
+  /** Abre a janela "Importar planilha" (Etapa 4: tabelas e quadros de um .xlsx, por aba). */
+  aoPedirPlanilha?: () => void;
   /** Abre a janela da figura: `existente` é a figura a alterar; `null`, uma nova no cursor (M5-T06). */
   aoPedirFigura: (existente: FiguraNoEditor | null) => void;
   /** Bytes de uma imagem do trabalho, pelo sha256 (a figura no texto). */
@@ -456,7 +463,7 @@ export function EditorSecao(p: PropsEditorSecao) {
             if (pos === undefined || somenteLeitura) return;
             v.dispatch(v.state.tr.setSelection(NodeSelection.create(v.state.doc, pos)));
             pedirTabela();
-          }),
+          }, memoria.remissivas),
         ilustracao: (no, v, posicao) =>
           new FiguraView(no, (sha) => refProps.current.lerMidia(sha), () => {
             const pos = posicao();
@@ -583,6 +590,13 @@ export function EditorSecao(p: PropsEditorSecao) {
       pedirTabela,
       // Passo próprio: o que for digitado logo depois não se junta à tabela no desfazer.
       inserirTabela: (dados) => executar(inserirTabela(dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      inserirTabelas: (lista) => executar(inserirTabelas(lista)) && (view.dispatch(closeHistory(view.state.tr)), true),
+      pedirPlanilha: () => {
+        const pedir = refProps.current.aoPedirPlanilha;
+        if (somenteLeitura || !pedir) return false;
+        pedir();
+        return true;
+      },
       alterarTabela: (id, dados) => executar(alterarTabela(id, dados)) && (view.dispatch(closeHistory(view.state.tr)), true),
       pedirFigura,
       pedirGrafico,
