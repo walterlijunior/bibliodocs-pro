@@ -89,9 +89,18 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
   await expect(chamadas).toHaveText(['Cagliari (2004, p. 12)']);
 
   // Texto colado com a chamada escrita: a sugestão espera o aceite e liga num passo só.
-  await editor.locator('p').first().click();
-  await p.keyboard.press('End');
+  // O cursor vai ao fim pelo teclado: um clique no parágrafo logo depois do duplo clique na chamada às vezes contava
+  // como triplo clique (o parágrafo todo selecionado) e o Enter seguinte apagava o parágrafo (CI, 2026-11-14).
+  // A janela devolve o foco com a chamada selecionada; o editor só larga essa seleção quando recebe o
+  // `selectionchange` do Ctrl+End. Antes disso, o Enter reabriria a janela da citação: espera a chamada sair da seleção.
+  await expect(editor).toBeFocused();
+  await expect(editor.locator('.ProseMirror-selectednode')).toHaveCount(1);
+  await p.keyboard.press('Control+End');
+  await expect(editor.locator('.ProseMirror-selectednode')).toHaveCount(0);
+  await expect.poll(() => p.evaluate(() => window.getSelection()?.isCollapsed)).toBe(true);
   await p.keyboard.press('Enter');
+  await expect(editor.locator('p')).toHaveCount(2);
+  await expect(editor.locator('p').first()).toHaveText('Como diz o autor Cagliari (2004, p. 12)');
   await x.app.evaluate(({ clipboard }) => clipboard.writeText('Segundo (CAGLIARI, 2004), e (SILVA, 2001).'));
   await p.keyboard.press('Control+V');
   const sugestao = p.getByRole('group', { name: 'Chamadas no texto colado' });
@@ -109,8 +118,13 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
   // Citação dentro da nota de rodapé: Ctrl+Shift+C no texto da nota insere na nota, e o foco volta para ela.
   // Ctrl+End desfaz o Ctrl+A pelo teclado e põe o cursor no fim do segundo (e último) parágrafo. Um clique dentro da
   // seleção inteira, seguido logo de teclas, às vezes chegava antes de o editor registrar a seleção nova (CI, 2026-11-13).
+  // O botão "Nota de rodapé" mostra a seleção que o editor registrou: desativado com tudo selecionado, ativo com o
+  // cursor num parágrafo. Esperar por ele garante que o Ctrl+Alt+F encontra o cursor no lugar (CI, 2026-11-14).
+  const botaoNota = p.getByRole('toolbar', { name: 'Formatação do texto' }).getByRole('button', { name: 'Nota de rodapé' });
+  await expect(botaoNota).toBeDisabled();
   await p.keyboard.press('Control+End');
   await expect.poll(() => p.evaluate(() => window.getSelection()?.isCollapsed)).toBe(true);
+  await expect(botaoNota).toBeEnabled();
   await p.keyboard.press('Control+Alt+F');
   const textoNota = p.getByRole('textbox', { name: 'Texto da nota de rodapé' });
   await expect(textoNota).toBeFocused();
