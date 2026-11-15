@@ -43,7 +43,7 @@ import { Cadastros } from './Cadastros';
 import { DialogoSigla } from './DialogoSigla';
 import { Conformidade, type RetornoConformidade } from './Conformidade';
 import { modoDoLocal, proximaComLocal, type ModoTrabalho } from './navegacao';
-import type { ApiIa, DadosTabela, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
+import type { ApiIa, DadosTabela, InventarioConformidade, DestinoRegistro, MencoesDoTexto, NaoConformidade, RelatorioConformidade, ResultadoExportar } from '../../aplicacao';
 import type { ModeloEvento, RegistroAtividades, RegrasModelo } from '../../dominio/modelo';
 
 export const ID_CAMPO_TITULO = 'campo-titulo';
@@ -87,7 +87,7 @@ export interface PropsAreaEscrever {
     renomear: (id: string, titulo: string) => boolean;
     mover: (id: string, sentido: 'cima' | 'baixo') => boolean;
   };
-  conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar> };
+  conformidade?: { verificar: () => RelatorioConformidade; exportar: () => Promise<ResultadoExportar>; inventario?: (r: RelatorioConformidade) => InventarioConformidade };
   /** Gerenciador de elementos (Etapa 4): menções escritas sem ligação e menções sem número. */
   mencoes?: () => MencoesDoTexto;
   /** Etapa 6: registro de atividades e cronograma. */
@@ -752,6 +752,8 @@ export function AreaEscrever(p: PropsAreaEscrever) {
             retorno={retornoConformidade}
             aoRetornoAtendido={atenderRetorno}
             {...(iaConformidade ? { ia: iaConformidade } : {})}
+            {...(p.conformidade.inventario ? { inventario: p.conformidade.inventario(relatorioAba) } : {})}
+            aoIrAoTexto={(secao, no) => irAoLocal({ tipo: 'texto', secao, no }, true)}
           />
         ) : (
           <p className="dica">O verificador não está disponível para este trabalho.</p>

@@ -870,6 +870,7 @@ export function Aplicativo({ api }: { api: ApiBiblioDocs }) {
                 aoAtenderPedidoConformidade={atenderPedidoConformidade}
                 conformidade={{
                   verificar: () => sessao.verificarConformidade(),
+                  inventario: (r) => sessao.inventarioConformidade(r),
                   exportar: () => {
                     const pacote = sessao.pacote;
                     return pacote ? window.bibliodocs.exportacao.relatorio(pacote) : Promise.resolve({ ok: false, motivo: 'CANCELADO' });

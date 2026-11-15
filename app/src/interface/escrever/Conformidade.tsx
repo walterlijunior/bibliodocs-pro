@@ -1,3 +1,5 @@
+import { ElementosDaCategoria, NavegacaoCategorias } from './VisaoGeralConformidade';
+import type { InventarioConformidade } from '../../aplicacao';
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -38,6 +40,10 @@ export interface PropsConformidade {
   aoExportar: () => Promise<ResultadoExportar>;
   aoFechar: () => void;
   embutido?: boolean;
+  /** Etapa 6 (D-E6-05): contagens por categoria e elementos com as menções; com ele, a navegação por categorias. */
+  inventario?: InventarioConformidade;
+  /** Ir ao elemento ou à menção (seção e id do nó). */
+  aoIrAoTexto?: (secao: string, no: string) => void;
   /** Voltando de "Ir ao local": a ocorrência a procurar no relatório refeito. */
   retorno?: RetornoConformidade | null;
   aoRetornoAtendido?: () => void;
@@ -158,6 +164,24 @@ export function Conformidade(p: PropsConformidade) {
       <p>Verificações automáticas implementadas para o perfil UFT. Conferem o conteúdo do trabalho; a formatação (fonte, margens, espaçamento) é aplicada pelo aplicativo na exportação. Este relatório apoia a revisão e não substitui a conferência de todas as normas.</p>
       <p role="status">{resumo}</p>
       {anuncioRetorno && <p role="status" className="conformidade__retorno">{anuncioRetorno}</p>}
+      {p.inventario && (() => {
+        const inv = p.inventario;
+        const ativa = categorias.size === 1 ? [...categorias][0]! : null;
+        const linha = ativa ? inv.categorias.find((c) => c.categoria === ativa) : undefined;
+        const comElementos = ativa !== null && ['tabelas', 'quadros', 'figuras', 'graficos', 'equacoes'].includes(ativa);
+        return <div className="conformidade__painel">
+          <NavegacaoCategorias inventario={inv} ativa={ativa} aoEscolher={(c) => { setFiltro('todos'); setCategorias(c ? new Set([c]) : new Set()); }} />
+          <div className="conformidade__area">
+            {linha && comElementos && <ElementosDaCategoria
+              linha={linha}
+              elementos={inv.elementos.filter((e) => e.categoria === ativa)}
+              aoIrAoElemento={(e) => p.aoIrAoTexto?.(e.secao, e.id)}
+              aoIrAMencao={(e, k) => { const m = e.mencoes[k]; if (m) p.aoIrAoTexto?.(m.secao, m.remissiva); }}
+            />}
+            {linha && !comElementos && <p role="status" className="conformidade__resumo-categoria"><strong>{linha.nome}:</strong> {linha.noTrabalho === null ? `${linha.pendencias + linha.avisos} ocorrências` : `${linha.noTrabalho} no trabalho, ${linha.verificados} sem ocorrência, ${linha.comOcorrencia} com pendência ou aviso`}.</p>}
+          </div>
+        </div>;
+      })()}
       {todos.length > 0 && <div className="conformidade__filtros">
         <fieldset className="conformidade__filtro">
           <legend>Mostrar</legend>
@@ -168,7 +192,7 @@ export function Conformidade(p: PropsConformidade) {
           {CATEGORIAS_CONFORMIDADE.map(({ categoria, nome }) => {
             const n = porGravidade.filter((c) => c.categoria === categoria).length;
             return <label key={categoria} className={n === 0 ? 'conformidade__categoria--vazia' : undefined}>
-              <input type="checkbox" checked={categorias.has(categoria)} onChange={(e) => marcar(categoria, e.target.checked)} /> {nome} ({n})
+              <input type="checkbox" checked={categorias.has(categoria)} onChange={(e) => marcar(categoria, e.target.checked)} /> {nome} ({n} {n === 1 ? 'ocorrência' : 'ocorrências'})
             </label>;
           })}
           {categorias.size > 0 && <button type="button" className="btn-link" onClick={() => setCategorias(new Set())}>Mostrar todas as categorias</button>}

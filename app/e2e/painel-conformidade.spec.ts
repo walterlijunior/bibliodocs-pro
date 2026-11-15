@@ -84,3 +84,40 @@ test('Etapa 6 revista: filtros por categoria, verificado × revisar, corrigir pe
   expect(x.problemas).toEqual([]);
   await x.fechar();
 });
+
+test('Etapa 6: visão geral por categoria (no trabalho, sem ocorrência, com ocorrência), elementos com menções e ir ao elemento', async () => {
+  const documento = documentoDezFalhasM7();
+  documento.metadados.titulo = [{ tipo: 'texto', texto: 'Painel de conformidade' }];
+  const midias = new Map(IMAGENS_CONFORMIDADE);
+  const agora = '2026-11-15T00:00:00.000Z';
+  const manifesto: Manifesto = {
+    formato: IDENTIFICADOR_FORMATO, versaoFormato: VERSAO_FORMATO_ATUAL, appVersao: '0.1.0', id: documento.id,
+    criadoEm: agora, atualizadoEm: agora, perfil: { id: 'uft-2022', versao: '1.0.0' }, tipoTrabalho: documento.tipoTrabalho,
+    midias: [...midias].map(([sha256, dados]) => ({ caminho: `midias/${sha256}.png`, sha256, bytes: dados.length, tipo: 'image/png' as const })),
+  };
+  for (const [sha, dados] of midias) expect(createHash('sha256').update(dados).digest('hex')).toBe(sha);
+  const r = empacotarProjeto({ manifesto, documento, midias });
+  if (!r.ok) throw new Error('pacote inválido');
+  writeFileSync(join(amb.trabalhos, 'Painel de conformidade.bdp'), r.bytes);
+
+  const x = await abrirApp(amb);
+  const p = x.pagina;
+  await p.getByRole('option', { name: /^Painel de conformidade,/u }).dblclick();
+  await expect(p.getByLabel('Título do trabalho')).toHaveValue('Painel de conformidade');
+  await p.getByRole('tab', { name: 'Conformidade', exact: true }).click();
+  const painel = p.getByRole('region', { name: 'Relatório de conformidade' });
+  const nav = painel.getByRole('navigation', { name: 'Categorias da verificação' });
+  // O rótulo diz o que é cada número (antes, "Tabelas (0)" contava ocorrências).
+  await expect(nav.getByRole('button', { name: /^Tabelas: \d+ no trabalho · \d+ sem ocorrência · / })).toBeVisible();
+  await nav.getByRole('button', { name: /^Tabelas:/ }).click();
+  const detalhe = painel.getByRole('region', { name: 'Tabelas: detalhe' });
+  await expect(detalhe.getByRole('columnheader', { name: 'Menções ligadas' })).toBeVisible();
+  const linhas = detalhe.locator('tbody tr');
+  expect(await linhas.count()).toBeGreaterThan(0);
+  // A categoria escolhida filtra também a lista de ocorrências.
+  for (const c of await painel.locator('.conformidade__item').all()) await expect(c).toHaveAttribute('data-categoria', 'tabelas');
+  await linhas.first().getByRole('button', { name: /^Ir a Tabela/ }).click();
+  await expect(p.getByRole('tab', { name: 'Escrever', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(p.locator('.bd-tabela.ProseMirror-selectednode')).toHaveCount(1);
+  expect(x.problemas).toEqual([]);
+});

@@ -10,6 +10,8 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Etapa 4: as **larguras das colunas** da planilha importada vão para a tabela, na mesma proporção, no editor, na prévia e no DOCX (com mínimo por coluna; inserir e excluir coluna mantêm as demais). Colagem editável do Excel real conferida: a grade colada de `QUADROS.xlsx` é igual à importada do arquivo (D-E4-06).
 - Etapa 5 (2026-11-15): tipos de obra **relatório institucional, técnico ou empresarial (RI)**, **demonstrações financeiras** (com o período) e **base de dados**, com padrão provisório sobre o de monografia de autor entidade e o de documento on-line (D-E5-05). **Referência pronta**: cole a referência do portal; ela fica guardada como veio, pode sair assim na lista ou ser convertida em campos, com a prévia do que foi lido e do que conferir (D-E5-06). **Sugerir com IA…** (opcional) propõe tipo, autoria e metadados a partir do mesmo texto, com a fonte de cada campo, sem mexer no que você já preencheu (D-E5-07).
 
+- Etapa 6 (2026-11-15): **visão geral do painel de conformidade**, na organização do Gerenciador de Tarefas: categorias com os itens no trabalho, os verificados sem ocorrência e os com pendência ou aviso; em tabelas, quadros, figuras, gráficos e equações, cada elemento com rótulo, título, menções ligadas e situação, e os botões para ir ao elemento ou à menção. O filtro por categoria passou a dizer que conta ocorrências (D-E6-05).
+
 ### Corrigido
 - A legenda da tabela e do quadro no editor mostrava só "Tabela – título": agora traz o número ("Tabela 2 – título") e acompanha a renumeração, como a menção no texto (D-E4-07).
 

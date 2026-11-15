@@ -80,6 +80,7 @@ import { atualizarIncorporado, documentoDoCronograma, incorporacaoAtual, incorpo
 import { descreverCitacao, mudancasDeCitacao, PontosDoHistorico, rotuloCurtoObra, type PontoHistorico } from './historico-trabalho';
 import type { ProblemaBibliografia } from '../../dominio/verificador';
 import { avaliarConformidade, type RelatorioConformidade } from '../../dominio/verificador/conformidade';
+import { inventarioConformidade, type InventarioConformidade } from './inventario-conformidade';
 import { validarObra } from './obras';
 import { aplicarCampos, aplicarDados, aplicarDadosDoCatalogo, comElemento, limparTexto, type AlteracaoDados, type CamposElemento, type DadosDoCatalogo, type OpcoesAplicarCatalogo } from './pre-textuais';
 import {
@@ -1029,6 +1030,30 @@ export class SessaoTrabalho {
     const a = this.#aberto;
     if (!a) return { problemas: [], diagnosticos: [] };
     return avaliarConformidade(a.pacote.documento, perfilComModelo(PERFIL_UFT_2022, a.pacote.documento.modelo), { imagens: new Map(a.pacote.midias.map((m) => [m.sha256, m.bytes])) });
+  }
+
+  /**
+   * Visão geral do painel de conformidade (Etapa 6, D-E6-05): quantos itens há por categoria, quantos estão sem
+   * ocorrência e quantos têm pendência ou aviso; tabelas, quadros e ilustrações com as menções ligadas.
+   */
+  inventarioConformidade(relatorio: RelatorioConformidade): InventarioConformidade {
+    const a = this.#aberto;
+    if (!a) return inventarioConformidade(relatorio, { alvos: [], remissivas: [], citacoes: 0, obras: 0, preTextuais: 0 });
+    const doc = a.pacote.documento;
+    const especies = new Map<Id, 'tabela' | 'quadro'>();
+    const visitar = (s: Secao) => {
+      for (const b of s.blocos) if (b.tipo === 'tabela') especies.set(b.id, b.especie);
+      s.subsecoes.forEach(visitar);
+    };
+    secoesDeLeitura(doc).forEach(visitar);
+    const alvos = alvosDeRemissiva(doc).map((x) => (especies.has(x.id) ? { ...x, especie: especies.get(x.id)! } : x));
+    return inventarioConformidade(relatorio, {
+      alvos,
+      remissivas: remissivasDoCorpo(doc),
+      citacoes: citacoesDoDocumento(doc).length,
+      obras: doc.obras?.length ?? 0,
+      preTextuais: doc.preTextuais?.length ?? 0,
+    });
   }
 
   /** Quantas chamadas do texto apontam para a obra, como citada ou como fonte do apud. */

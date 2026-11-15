@@ -529,6 +529,25 @@ button:disabled { opacity: 0.45; cursor: default; }
 .dialogo--citacao select.campo { max-width: 100%; }
 /* Verificador de conformidade (M7-T03): o corpo todo rola, com grupos por família. */
 .dialogo--conformidade .dialogo__corpo { grid-template-rows: none; overflow: auto; }
+/* Visão geral × detalhes (Etapa 6, D-E6-05): categorias à esquerda, detalhe à direita; uma coluna em janela estreita. */
+.conformidade__painel { display: grid; grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr); gap: var(--esp-4); align-items: start; }
+.conformidade__navegacao ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.conformidade__categoria { width: 100%; display: flex; justify-content: space-between; gap: var(--esp-2); align-items: center; padding: var(--esp-1) var(--esp-2); border: 1px solid transparent; border-radius: var(--raio); background: none; color: var(--cor-texto); font: inherit; text-align: left; cursor: pointer; }
+.conformidade__categoria:hover { background: var(--cor-superficie); }
+.conformidade__categoria[aria-pressed="true"] { background: var(--cor-superficie); border-color: var(--cor-borda-controle); font-weight: 600; }
+.conformidade__numeros { display: flex; gap: var(--esp-2); font-variant-numeric: tabular-nums; font-size: var(--tam-peq); white-space: nowrap; }
+.conformidade__num--alerta { color: var(--cor-alerta); }
+.conformidade__num--zero { color: var(--cor-texto-sec); }
+.conformidade__area { min-width: 0; display: grid; gap: var(--esp-2); }
+.conformidade__detalhe h3 { margin: 0 0 var(--esp-1); }
+.conformidade__elementos { width: 100%; table-layout: fixed; }
+.conformidade__elementos th:nth-child(1) { width: 32%; }
+.conformidade__elementos th:nth-child(2) { width: 20%; }
+.conformidade__elementos th:nth-child(4) { width: 9rem; }
+.conformidade__elementos td, .conformidade__elementos th { overflow-wrap: anywhere; vertical-align: top; }
+.conformidade__elementos th[scope="row"] { text-align: left; font-weight: normal; overflow-wrap: anywhere; }
+.conformidade__mencoes { list-style: none; margin: 0; padding: 0; }
+@media (max-width: 760px) { .conformidade__painel { grid-template-columns: minmax(0, 1fr); } }
 .conformidade__filtro { display: flex; flex-wrap: wrap; gap: var(--esp-3); border: 0; margin: 0; padding: 0; }
 .conformidade__grupo h3 { margin: var(--esp-2) 0; font-size: 1em; }
 .conformidade__item p { margin: var(--esp-1) 0; overflow-wrap: anywhere; }
@@ -555,6 +574,9 @@ button:disabled { opacity: 0.45; cursor: default; }
 .btn-link { background: none; border: 0; padding: 0; font: inherit; color: var(--cor-destaque-texto); text-decoration: underline; cursor: pointer; min-height: 0; }
 .btn-link:disabled { color: var(--cor-texto-sec); cursor: default; }
 .conformidade { display: grid; gap: var(--esp-2); max-width: 80ch; }
+/* Com a visão geral (Etapa 6), o painel usa a largura da área; o texto corrido continua em 80ch. */
+.conformidade:has(.conformidade__painel) { max-width: min(1400px, 100%); }
+.conformidade:has(.conformidade__painel) > p { max-width: 80ch; }
 .elementos__grupo { font-size: var(--tam-peq); font-weight: 600; margin: var(--esp-2) 0 var(--esp-1); color: var(--cor-texto-sec); }
 .ajuda { max-height: 60vh; }
 .ajuda__passos { margin: 0; padding-left: 1.4em; display: grid; gap: var(--esp-2); }
