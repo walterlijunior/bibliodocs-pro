@@ -648,9 +648,16 @@ button:disabled { opacity: 0.45; cursor: default; }
   box-sizing: border-box; width: 100%; min-height: calc(var(--pag-alt) * var(--mm));
   padding: calc(var(--pag-ms) * var(--mm)) calc(var(--pag-md) * var(--mm)) calc(var(--pag-mi) * var(--mm)) calc(var(--pag-me) * var(--mm));
   box-shadow: 0 1px 6px var(--cor-sombra);
-  /* Fim de cada folha: uma linha a cada altura de página (indicação na tela; a quebra real é a do DOCX). */
-  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--pag-alt) * var(--mm) - 1px), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm) - 1px), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm)));
+  /* Folhas separadas por um intervalo de 16 px (o mesmo de `paginacao.ts`); o texto segue para a folha seguinte. */
+  position: relative; border: 0; border-radius: 0; box-shadow: none; background-color: transparent;
+  background-image: repeating-linear-gradient(to bottom,
+    var(--cor-fundo) 0, var(--cor-fundo) calc(var(--pag-alt) * var(--mm)),
+    var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm)), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm) + 1px),
+    var(--cor-superficie) calc(var(--pag-alt) * var(--mm) + 1px), var(--cor-superficie) calc(var(--pag-alt) * var(--mm) + 15px),
+    var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm) + 15px), var(--cor-borda-controle) calc(var(--pag-alt) * var(--mm) + 16px));
+  outline: 1px solid var(--cor-borda-controle);
 }
+.bd-salto-folha { pointer-events: none; }
 .regua { position: relative; width: calc(var(--pag-larg) * var(--mm)); height: 22px; margin: 0 auto var(--esp-1); background: var(--cor-fundo); border: 1px solid var(--cor-borda); border-radius: 2px; font-size: 10px; color: var(--cor-texto-sec); overflow: hidden; }
 .regua__margem { position: absolute; top: 0; bottom: 0; background: var(--cor-superficie); }
 .regua__marca { position: absolute; bottom: 0; width: 1px; height: 4px; background: var(--cor-texto-sec); }

@@ -59,4 +59,4 @@ Pendências: paginação real no editor (o texto não passa para a folha seguint
 | Quadro 1 do relatório da UFT (p. 16) e lista de quadros (p. 6) | `8b92353` | O quadro do exemplo é uma imagem: a figura ganhou a espécie "Quadro", na mesma sequência dos quadros e na lista de quadros (D-E4-09, revê a D-M5-11 aceita pelo usuário — confirmar) |
 | E2E de desempenho instável | `8541d0f` | Corrida do teste (lia o arquivo antes do último salvamento); agora espera o arquivo |
 
-Continua pendente: paginação real no editor (o texto passar para a folha seguinte), que muda o desenho do editor e fica para um ciclo próprio.
+Paginação no editor feita depois (D-E2-07): o texto segue para a folha seguinte na tela; bloco mais alto que uma folha não se divide (a quebra exata é a do Word). Ajuda (F1, atalhos e "?") atualizada.

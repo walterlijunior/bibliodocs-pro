@@ -87,6 +87,7 @@ import {
   type GraficoNoEditor,
   type TabelaNoEditor,
 } from './tabelas';
+import { chavePaginacao, pluginPaginacao, type MedidasFolha } from './paginacao';
 import { Regua } from './Regua';
 import type { PaginaMm } from '../../aplicacao';
 import { renomearTitulo } from './titulo-painel';
@@ -210,6 +211,17 @@ export class MemoriaEditores {
     this.#geracao = -1;
   }
 }
+
+/** Medidas da folha em px, com o zoom da tela (a variável `--zoom-editor` da casca). */
+function medidasDaFolha(view: EditorView, pagina: PaginaMm | undefined): MedidasFolha | null {
+  if (!pagina) return null;
+  const zoom = Number.parseFloat(getComputedStyle(view.dom).getPropertyValue('--zoom-editor')) || 1;
+  const mm = (96 / 25.4) * zoom;
+  return { altura: pagina.alturaMm * mm, margemSuperior: pagina.margemSuperiorMm * mm, margemInferior: pagina.margemInferiorMm * mm, intervalo: INTERVALO_FOLHAS_PX };
+}
+
+/** Intervalo entre as folhas na tela; o mesmo do CSS (`--intervalo-folhas`). */
+const INTERVALO_FOLHAS_PX = 16;
 
 export interface PropsEditorSecao {
   secaoId: string;
@@ -371,7 +383,12 @@ export function EditorSecao(p: PropsEditorSecao) {
     const guardado = memoria.obter(geracao, secaoId);
     const conteudo = guardado ? null : refProps.current.ler(secaoId);
     if (!guardado && conteudo === null) return;
-    const estado = guardado ?? criarEstadoSecao(conteudo!, { aoAvisar: memoria.avisar, tituloPeloPainel: refProps.current.indicativo !== undefined });
+    const criado = guardado ?? criarEstadoSecao(conteudo!, { aoAvisar: memoria.avisar, tituloPeloPainel: refProps.current.indicativo !== undefined });
+    // Etapa 2 (D-E2-07): com a folha do perfil, o texto segue para a folha seguinte (só na tela).
+    const semPaginacao = criado.plugins.filter((x) => x.spec.key !== chavePaginacao);
+    const estado = refProps.current.pagina
+      ? criado.reconfigure({ plugins: [...semPaginacao, pluginPaginacao((v) => medidasDaFolha(v, refProps.current.pagina))] })
+      : criado;
     let atualBarra = barraDe(estado);
     setBarra(atualBarra);
 
