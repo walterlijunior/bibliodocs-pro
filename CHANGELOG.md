@@ -15,6 +15,8 @@ Registre aqui cada entrega do aplicativo (Etapa 5 em diante) e mudanças na infr
 - Etapa 10 (2026-11-15): **Arquivo › Criar backup de cadastros e configurações…** e **Restaurar backup…**. O backup leva o catálogo acadêmico (instituições com logotipo, câmpus, cursos, disciplinas, docentes, vínculos, manuais e perfis), a configuração da IA sem a chave e as preferências da interface, para qualquer pasta ou pendrive; restaurar mostra antes o que entra e os conflitos e deixa escolher acrescentar ou substituir. Trabalhos não entram (use as cópias de segurança); a chave de IA é informada de novo (D-E10-01).
 - Etapa 3: acesso visível em **Arquivo › Cadastrar instituição (catálogo acadêmico)…** e **Editar perfis de formatação…**.
 
+- Etapa 2 (2026-11-15): **títulos no painel Seções**. Criar e renomear seções no painel (F2 ou Renomear; a seção nova já abre o campo); a página mostra o número e o título gerados pela estrutura e reserva a digitação para o corpo (D-E2-04).
+
 ### Corrigido
 - A legenda da tabela e do quadro no editor mostrava só "Tabela – título": agora traz o número ("Tabela 2 – título") e acompanha a renumeração, como a menção no texto (D-E4-07).
 

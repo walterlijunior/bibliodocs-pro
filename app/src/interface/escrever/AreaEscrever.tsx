@@ -204,6 +204,8 @@ function lerEstruturaOculta(): boolean {
 }
 
 export function AreaEscrever(p: PropsAreaEscrever) {
+  // Etapa 2: seção cujo título está sendo renomeado no painel Seções.
+  const [renomeandoId, setRenomeandoId] = useState<string | null>(null);
   const t = p.estado.trabalho;
   const e = p.estrutura;
   const [avisosEditor, setAvisosEditor] = useState<readonly string[]>([]);
@@ -574,13 +576,18 @@ export function AreaEscrever(p: PropsAreaEscrever) {
     else if (pedidoFoco.alvo === 'editorSePerdido') {
       if (!controleEditor.current?.temFoco()) controleEditor.current?.focar();
     }
-    else if (pedidoFoco.alvo === 'titulo') controleEditor.current?.focarTitulo();
+    // Etapa 2 (D-E2-04): o título se escreve no painel Seções (seção nova, Renomear); apêndice e anexo, no painel deles.
+    else if (pedidoFoco.alvo === 'titulo') {
+      const ativaAgora = e.ativa;
+      if (ativaAgora && (t?.secoes ?? []).some((s) => s.id === ativaAgora.id)) setRenomeandoId(ativaAgora.id);
+      else controleEditor.current?.focarTitulo();
+    }
     else {
       const item = refArvore.current?.querySelector<HTMLElement>('[role="treeitem"][aria-selected="true"]');
       (item ?? refEscrever.current?.querySelector<HTMLElement>('.acoes-secao__nova'))?.focus();
     }
     consumirFoco();
-  }, [pedidoFoco, consumirFoco, controleEditor]);
+  }, [pedidoFoco, consumirFoco, controleEditor, e.ativa, t]);
 
   if (t === null) {
     return (
@@ -832,6 +839,11 @@ export function AreaEscrever(p: PropsAreaEscrever) {
           aoMover={(id, alvo, lado) => e.moverJunto(id, alvo, lado)}
           aoHistorico={e.historico}
           aoIrAoTexto={e.pedirFoco}
+          renomeandoId={renomeandoId}
+          aoPedirRenomear={setRenomeandoId}
+          aoRenomear={(id, titulo) => {
+            if (id === ativa?.id && controleEditor.current?.renomearTitulo(titulo)) controleEditor.current.focar();
+          }}
         />}
         {p.posTextuais && modo !== 'referencias' && (
           <PosTextuais
@@ -1163,6 +1175,7 @@ export function AreaEscrever(p: PropsAreaEscrever) {
               </h2>
               <EditorSecao
                 secaoId={ativa.id}
+                {...(secoes.find((s) => s.id === ativa.id)?.indicativo ? { indicativo: secoes.find((s) => s.id === ativa.id)!.indicativo } : {})}
                 geracao={t.geracao}
                 memoria={e.memoria}
                 ler={p.lerSecao}

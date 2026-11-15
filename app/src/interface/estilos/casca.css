@@ -344,7 +344,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-editor[contenteditable="false"] { background: var(--cor-superficie); }
 .bd-titulo { font-size: var(--tam-grande); font-weight: 600; margin: 0 0 var(--esp-3); }
 /* Título vazio: o convite aparece sem entrar no documento (só o `br` final do ProseMirror está lá). */
+/* Etapa 2 (D-E2-04): número e título vêm do painel Seções; na página, só leitura. */
 .bd-titulo:has(> br.ProseMirror-trailingBreak:only-child)::before { content: "Título da seção"; color: var(--cor-texto-sec); font-weight: 400; pointer-events: none; }
+[data-titulo-painel] .bd-titulo { cursor: default; }
+[data-titulo-painel] .bd-titulo::before { content: var(--bd-indicativo, ""); color: inherit; font-weight: inherit; }
+[data-titulo-painel] .bd-titulo:has(> br.ProseMirror-trailingBreak:only-child)::after { content: "Sem título: renomeie no painel Seções (F2)"; color: var(--cor-texto-sec); font-weight: 400; pointer-events: none; }
 .bd-paragrafo, .bd-linha-alinea, .bd-subalinea { margin: 0 0 var(--esp-2); }
 .bd-alineas { margin: 0 0 var(--esp-2); padding-left: var(--esp-5); }
 .bd-subalinea { padding-left: var(--esp-4); }

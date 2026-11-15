@@ -35,11 +35,11 @@ test('FUN-13: inserir, acompanhar a obra, desfazer, alterar, colar e salvar uma 
 
   await p.getByRole('treeitem', { name: '1 Introdução' }).click();
   const editor = p.getByRole('textbox', { name: 'Texto da seção 1' });
-  // Parágrafo novo depois do título (o título não aceita citação).
+  // Clicar no título leva ao parágrafo do corpo (Etapa 2: o título vem do painel Seções; a seção vazia já tem onde
+  // escrever).
   await editor.locator('h2').click();
   await expect(editor).toBeFocused();
   await p.keyboard.press('Control+End');
-  await p.keyboard.press('Enter');
   await p.keyboard.type('Como diz o autor ');
 
   // Ctrl+Shift+C: a janela vem com a obra e a forma entre parênteses; a prévia acompanha a página.

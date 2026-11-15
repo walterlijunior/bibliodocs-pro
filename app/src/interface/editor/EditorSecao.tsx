@@ -87,6 +87,7 @@ import {
   type GraficoNoEditor,
   type TabelaNoEditor,
 } from './tabelas';
+import { renomearTitulo } from './titulo-painel';
 import { GraficoView, RegistroGraficos } from './grafico-view';
 import type { BlocoTabela } from '../../dominio/modelo';
 
@@ -106,6 +107,8 @@ export interface ControleEditor {
   focar(): void;
   /** Foco no título da seção, todo selecionado (Renomear, F2). */
   focarTitulo(): void;
+  /** Etapa 2 (D-E2-04): o título vem do painel Seções; passo próprio do histórico. */
+  renomearTitulo(texto: string): boolean;
   /** O próximo passo de texto começa um evento novo no histórico da seção (outra entrada entrou na ordem única). */
   fecharGrupo(): void;
   /** O foco está no editor da seção ou no de uma nota dela. */
@@ -208,6 +211,8 @@ export class MemoriaEditores {
 
 export interface PropsEditorSecao {
   secaoId: string;
+  /** Número da seção ("2.1"), mostrado antes do título na página (Etapa 2). */
+  indicativo?: string;
   geracao: number;
   memoria: MemoriaEditores;
   /** Conteúdo atual da seção no modelo (lido só ao montar sem estado guardado). */
@@ -347,6 +352,12 @@ export function EditorSecao(p: PropsEditorSecao) {
   useEffect(() => memoria.remissivas.definir(rotulosRemissiva), [memoria, rotulosRemissiva]);
   useEffect(() => memoria.siglas.definir(p.siglas ?? SIGLAS_VAZIAS), [memoria, p.siglas]);
   useEffect(() => memoria.graficos.definir(tabelasDoTrabalho), [memoria, tabelasDoTrabalho]);
+  // Etapa 2: o número da seção aparece antes do título (CSS `::before`), sem entrar no texto.
+  useEffect(() => {
+    const ind = p.indicativo ?? '';
+    refHospedeiro.current?.toggleAttribute('data-titulo-painel', p.indicativo !== undefined);
+    refHospedeiro.current?.style.setProperty('--bd-indicativo', /^[\d.]*$/.test(ind) && ind !== '' ? `"${ind} "` : '""');
+  });
   useEffect(() => {
     const hospedeiro = refHospedeiro.current;
     if (!hospedeiro) return;
@@ -354,7 +365,7 @@ export function EditorSecao(p: PropsEditorSecao) {
     const guardado = memoria.obter(geracao, secaoId);
     const conteudo = guardado ? null : refProps.current.ler(secaoId);
     if (!guardado && conteudo === null) return;
-    const estado = guardado ?? criarEstadoSecao(conteudo!, { aoAvisar: memoria.avisar });
+    const estado = guardado ?? criarEstadoSecao(conteudo!, { aoAvisar: memoria.avisar, tituloPeloPainel: refProps.current.indicativo !== undefined });
     let atualBarra = barraDe(estado);
     setBarra(atualBarra);
 
@@ -568,6 +579,7 @@ export function EditorSecao(p: PropsEditorSecao) {
       inserirNota: () => executar(inserirNota),
       colarSemFormatacao: () => colarSemFormatacaoNaProxima(view.state),
       focar: () => view.focus(),
+      renomearTitulo: (texto) => !somenteLeitura && renomearTitulo(texto)(view.state, (tr) => view.dispatch(tr)),
       focarTitulo: () => {
         const { doc } = view.state;
         view.dispatch(view.state.tr.setSelection(TextSelection.create(doc, 1, 1 + doc.child(0).content.size)).scrollIntoView());

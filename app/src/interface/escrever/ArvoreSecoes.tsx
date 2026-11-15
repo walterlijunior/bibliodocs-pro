@@ -5,7 +5,7 @@
 // Teclas na árvore: setas, Home e End movem a seleção; Enter vai ao texto; F2 renomeia (título no editor); Delete
 // exclui; Alt+Shift+setas sobem, descem, recuam e promovem (as teclas do modo de tópicos do Word); Ctrl+Z e Ctrl+Y
 // seguem a ordem única de desfazer. Com o mouse: clicar escolhe; arrastar e soltar põe antes ou depois de outra seção.
-import { useRef, useState, type DragEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type RefObject } from 'react';
 import type { AcaoSecao, ResumoSecao } from '../../aplicacao';
 import { AjudaContextual, TextoAjuda } from '../casca/AjudaContextual';
 import { temModificador } from '../casca/teclado';
@@ -53,8 +53,12 @@ export interface PropsArvoreSecoes {
   aoOperar: (acao: AcaoSecao, foco: PedidoFoco['alvo'] | null) => void;
   aoMover: (id: string, alvoId: string, lado: 'antes' | 'depois') => void;
   aoHistorico: (sentido: SentidoHistorico) => boolean;
-  /** Enter: foco no texto da seção; F2: no título dela. */
+  /** Enter: foco no texto da seção. */
   aoIrAoTexto: (alvo: 'editor' | 'titulo') => void;
+  /** Etapa 2 (D-E2-04): o título é renomeado aqui (F2, botão Renomear, seção nova). */
+  renomeandoId?: string | null;
+  aoPedirRenomear?: (id: string | null) => void;
+  aoRenomear?: (id: string, titulo: string) => void;
 }
 
 export function ArvoreSecoes(p: PropsArvoreSecoes) {
@@ -80,7 +84,8 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
     }
     if (e.key === 'F2' && !somenteLeitura) {
       e.preventDefault();
-      p.aoIrAoTexto('titulo');
+      if (p.aoPedirRenomear) p.aoPedirRenomear(secoes[indice]!.id);
+      else p.aoIrAoTexto('titulo');
       return;
     }
     if (e.key === 'Delete' && !somenteLeitura) {
@@ -170,7 +175,19 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
                 }}
               >
                 <span className="arvore-secoes__numero">{s.indicativo}</span>{' '}
-                <span className="arvore-secoes__titulo">{tituloNaLista(s)}</span>
+                {p.renomeandoId === s.id && p.aoRenomear ? (
+                  <CampoRenomear
+                    inicial={s.titulo}
+                    rotulo={`Título da seção ${s.indicativo}`}
+                    aoConfirmar={(texto) => {
+                      p.aoRenomear!(s.id, texto);
+                      p.aoPedirRenomear?.(null);
+                    }}
+                    aoCancelar={() => p.aoPedirRenomear?.(null)}
+                  />
+                ) : (
+                  <span className="arvore-secoes__titulo">{tituloNaLista(s)}</span>
+                )}
               </li>
             );
           })}
@@ -181,6 +198,11 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
           <button type="button" className="btn-secundario acoes-secao__nova" onClick={p.aoNova} title="Nova seção depois da seção escolhida, no mesmo nível">
             Nova seção
           </button>
+          {p.aoPedirRenomear && (
+            <button type="button" className="btn-secundario" disabled={ativa === null} title="Renomear o título da seção escolhida (F2)" onClick={() => ativa && p.aoPedirRenomear!(ativa.id)}>
+              Renomear
+            </button>
+          )}
           {BOTOES.map((b) => (
             <button
               key={b.acao}
@@ -202,5 +224,44 @@ export function ArvoreSecoes(p: PropsArvoreSecoes) {
         {p.aviso?.texto ?? ''}
       </p>
     </nav>
+  );
+}
+
+/** Campo de renomear no próprio item da árvore: Enter grava, Esc desiste; sair do campo também grava. */
+function CampoRenomear(p: { inicial: string; rotulo: string; aoConfirmar: (texto: string) => void; aoCancelar: () => void }) {
+  const [texto, setTexto] = useState(p.inicial);
+  const feito = useRef(false);
+  const refCampo = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    refCampo.current?.focus();
+    refCampo.current?.select();
+  }, []);
+  const confirmar = () => {
+    if (feito.current) return;
+    feito.current = true;
+    p.aoConfirmar(texto);
+  };
+  return (
+    <input
+      ref={refCampo}
+      className="campo arvore-secoes__renomear"
+      aria-label={p.rotulo}
+      value={texto}
+      maxLength={500}
+      onChange={(e) => setTexto(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          confirmar();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          feito.current = true;
+          p.aoCancelar();
+        }
+      }}
+      onBlur={confirmar}
+    />
   );
 }

@@ -44,7 +44,8 @@ const corpoDoArquivo = (amb: Ambiente): Documento['corpo'] => {
 };
 
 /**
- * Trabalho com uma seção só, o cursor no título dela. Desde o M2-T02 o trabalho nasce com as seções do tipo: o teste
+ * Trabalho com uma seção só, com o campo do título aberto no painel Seções (Etapa 2: o título se escreve no painel;
+ * Enter grava e leva ao texto). Desde o M2-T02 o trabalho nasce com as seções do tipo: o teste
  * exclui as três do TCC pela árvore (Delete) antes de criar a sua.
  */
 async function trabalhoComSecao(x: AppAberto): Promise<Page> {
@@ -56,7 +57,7 @@ async function trabalhoComSecao(x: AppAberto): Promise<Page> {
   for (let i = 0; i < 3; i++) await p.keyboard.press('Delete');
   await expect(p.getByRole('treeitem')).toHaveCount(0);
   await p.getByRole('button', { name: 'Nova seção' }).click();
-  await expect(p.getByRole('textbox', { name: 'Texto da seção 1' })).toBeFocused();
+  await expect(p.getByRole('textbox', { name: 'Título da seção 1' })).toBeFocused();
   return p;
 }
 
@@ -84,8 +85,11 @@ test('EDT-06: digitar, formatar, desfazer, nota, salvar e reabrir idêntico', as
   const visor = p.locator('.visor [role="status"]');
 
   await p.keyboard.type('Introdução');
-  await expect(p.getByRole('treeitem', { selected: true })).toContainText('Introdução');
   await p.keyboard.press('Enter');
+  await expect(p.getByRole('treeitem', { selected: true })).toContainText('Introdução');
+  // Na página, o número e o título vêm do painel.
+  await expect(editor(p).locator('h2')).toHaveText('Introdução');
+  await expect(editor(p)).toBeFocused();
   // Teclado (acentos), insertText (como o IME entrega) e composição de IME pelo CDP (tecla morta + vogal).
   await p.keyboard.type('O pequi é do cerrado');
   await p.keyboard.insertText(', ação e ');
@@ -241,6 +245,7 @@ test('EDT-09: árvore de seções — teclado, arrastar, barra superior e desfaz
   for (const titulo of ['Método', 'Resultados']) {
     await p.getByRole('button', { name: 'Nova seção' }).click();
     await p.keyboard.type(titulo);
+    await p.keyboard.press('Enter');
   }
   await expect.poll(() => arvore(p)).toEqual(['1 Introdução', '2 Método', '3 Resultados']);
 
@@ -333,9 +338,9 @@ test('alíneas e citação longa pelo teclado e pela barra, salvas no arquivo (M
   const x = await abrirApp(amb);
   const p = await trabalhoComSecao(x);
 
-  await editor(p).click();
-  await p.keyboard.press('End');
+  // Enter no título do painel leva ao parágrafo vazio do corpo (Etapa 2).
   await p.keyboard.press('Enter');
+  await expect(editor(p)).toBeFocused();
   await p.keyboard.type('primeira');
   await p.keyboard.press('Control+Shift+L');
   await expect(p.getByRole('button', { name: 'Alíneas' })).toHaveAttribute('aria-pressed', 'true');
