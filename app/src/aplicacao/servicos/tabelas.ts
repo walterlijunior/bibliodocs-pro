@@ -39,6 +39,8 @@ export interface RascunhoTabela {
   fonte: CampoTexto;
   nota: CampoTexto;
   notasEspecificas: CampoTexto[];
+  /** Peso da largura de cada coluna (planilha importada); acompanha a inserção e a exclusão de colunas. */
+  larguras?: number[];
   /** Arquivo, aba e intervalo da planilha importada; sai quando a grade é trocada por outra colagem. */
   origem?: OrigemTabela;
 }
@@ -184,6 +186,7 @@ export function rascunhoDe(d: DadosTabela): RascunhoTabela {
     fonte: campoDe(d.fonte),
     nota: campoDe(d.nota),
     notasEspecificas: (d.notasEspecificas ?? []).map((n) => campoDe(n)),
+    ...(d.colunas.every((c) => c.largura !== undefined) ? { larguras: d.colunas.map((c) => c.largura!) } : {}),
     ...(d.origem ? { origem: d.origem } : {}),
   };
 }
@@ -196,7 +199,10 @@ export function dadosDoRascunho(r: RascunhoTabela): DadosTabela {
     tipo: 'tabela',
     especie: r.especie,
     titulo: conteudoDe(r.titulo),
-    colunas: r.alinhamentos.map((alinhamento) => ({ alinhamento })),
+    colunas: r.alinhamentos.map((alinhamento, i) => {
+      const largura = r.larguras?.length === r.alinhamentos.length ? r.larguras[i] : undefined;
+      return largura !== undefined && Number.isInteger(largura) && largura >= 1 ? { alinhamento, largura: Math.min(largura, 10_000) } : { alinhamento };
+    }),
     linhasCabecalho: r.linhasCabecalho,
     linhas: r.grade.map((linha) =>
       linha
@@ -349,12 +355,17 @@ export function inserirColuna(r: RascunhoTabela, k: number): ResultadoOperacao {
   const i = Math.max(0, Math.min(k, r.alinhamentos.length));
   const alinhamentos = [...r.alinhamentos];
   alinhamentos.splice(i, 0, r.alinhamentos[i - 1] ?? r.alinhamentos[i] ?? 'esquerda');
-  return comGrade(r, transpor(gradeComLinha(transpor(r.grade), i)), { alinhamentos });
+  const larguras = r.larguras ? [...r.larguras] : undefined;
+  larguras?.splice(i, 0, r.larguras![i - 1] ?? r.larguras![i] ?? 100);
+  return comGrade(r, transpor(gradeComLinha(transpor(r.grade), i)), { alinhamentos, ...(larguras ? { larguras } : {}) });
 }
 
 export function excluirColuna(r: RascunhoTabela, c: number): ResultadoOperacao {
   if (r.alinhamentos.length <= 1) return { ok: false, motivo: 'a tabela precisa de pelo menos uma coluna' };
-  return comGrade(r, transpor(gradeSemLinha(transpor(r.grade), c)), { alinhamentos: r.alinhamentos.filter((_, i) => i !== c) });
+  return comGrade(r, transpor(gradeSemLinha(transpor(r.grade), c)), {
+    alinhamentos: r.alinhamentos.filter((_, i) => i !== c),
+    ...(r.larguras ? { larguras: r.larguras.filter((_, i) => i !== c) } : {}),
+  });
 }
 
 const juntar = (a: CampoTexto, b: CampoTexto): CampoTexto => {

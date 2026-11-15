@@ -185,7 +185,7 @@ export const esquemaBlocoTabela = z
     especie: z.enum(['tabela', 'quadro']),
     titulo: tituloElemento,
     colunas: z
-      .array(z.strictObject({ alinhamento: z.enum(['esquerda', 'centro', 'direita']) }))
+      .array(z.strictObject({ alinhamento: z.enum(['esquerda', 'centro', 'direita']), largura: z.int().min(1).max(10_000).optional() }))
       .min(1, { error: 'a tabela precisa de pelo menos uma coluna' })
       .max(LIMITES_V1.colunasTabela),
     linhasCabecalho: z.int().min(0).max(LIMITES_V1.linhasTabela),

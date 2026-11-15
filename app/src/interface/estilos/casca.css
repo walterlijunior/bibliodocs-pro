@@ -416,6 +416,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 .bd-tabela__titulo { flex: 1 1 auto; margin: 0 0 var(--esp-2); text-align: center; overflow-wrap: anywhere; }
 .bd-tabela__rotulo { color: var(--cor-texto-sec); }
 .bd-tabela__grade { width: 100%; border-collapse: collapse; font-size: var(--tam-peq); background: var(--cor-fundo); }
+.bd-tabela__grade--larguras { table-layout: fixed; }
 .bd-tabela__grade th, .bd-tabela__grade td { padding: 2px var(--esp-1); border-bottom: 1px solid var(--cor-borda); vertical-align: top; overflow-wrap: anywhere; }
 .bd-tabela__grade thead th { font-weight: 600; border-bottom-color: var(--cor-borda-controle); }
 .bd-tabela--quadro .bd-tabela__grade th, .bd-tabela--quadro .bd-tabela__grade td { border: 1px solid var(--cor-borda-controle); }

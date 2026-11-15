@@ -114,7 +114,20 @@ export class TabelaView implements NodeView {
       for (let k = 0; k < cobertas.length; k++) cobertas[k] = Math.max(0, cobertas[k]! - 1);
       (l < d.linhasCabecalho ? cab : corpo).append(tr);
     });
-    tabela.append(...(d.linhasCabecalho > 0 ? [cab] : []), corpo);
+    // Larguras da planilha importada, em proporção (as do DOCX seguem a mesma conta, com mínimo por coluna).
+    const grupo: HTMLElement[] = [];
+    if (d.colunas.every((x) => x.largura !== undefined)) {
+      const total = d.colunas.reduce((s, x) => s + x.largura!, 0);
+      const cg = document.createElement('colgroup');
+      for (const x of d.colunas) {
+        const col = document.createElement('col');
+        col.style.width = `${((x.largura! / total) * 100).toFixed(2)}%`;
+        cg.append(col);
+      }
+      grupo.push(cg);
+      tabela.classList.add('bd-tabela__grade--larguras');
+    }
+    tabela.append(...grupo, ...(d.linhasCabecalho > 0 ? [cab] : []), corpo);
 
     const rodape: HTMLElement[] = [];
     const linhaRodape = (prefixo: string, conteudo: readonly InlineDeTitulo[] | undefined) => {

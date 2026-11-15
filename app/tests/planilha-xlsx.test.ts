@@ -26,6 +26,8 @@ import type { Bloco, BlocoTabela, Documento, Inline, Secao } from '../src/domini
 import { formatar } from '../src/dominio/normas';
 import { exportarDocx } from '../src/exportacao/docx';
 import { formatarNumero, formatoGeral, lerEndereco, letrasColuna } from '../src/importacao/xlsx';
+import { largurasColunas } from '../src/exportacao/docx/exportador';
+import { excluirColuna, inserirColuna } from '../src/aplicacao';
 import { abrirDocx } from './apoio/docx-normalizado';
 import { linha, n, s, xlsxSintetico } from './apoio/xlsx-sintetico';
 
@@ -118,6 +120,7 @@ function pasta() {
       {
         // Como "2024": colunas C e E sem nenhum valor no meio do intervalo.
         nome: '2024',
+        colunas: '<col min="1" max="1" width="30" customWidth="1"/><col min="4" max="4" width="15" customWidth="1"/>',
         linhas: [linha(1, s('A1', 10), s('B1', 1), s('D1', 2), s('F1', 0)), linha(2, s('A2', 11), n('B2', 1), n('D2', 2), s('F2', 5)), linha(3, `<c r="C3" s="2"/>`, `<c r="E3" s="2"/>`)].join(''),
       },
       { nome: 'SIGLAS', oculta: true, linhas: linha(1, s('A1', 10)) },
@@ -321,5 +324,41 @@ describe('origem e renumeração da tabela importada', () => {
     expect(xml).toMatch(/Conforme a <\/w:t>[\s\S]*?Tabela 2/);
     // Os valores importados chegam ao DOCX como na planilha.
     for (const v of ['1.500,25', '15/03/2023', 'TOTAL DA PONTUAÇÃO', 'Ação']) expect(xml).toContain(v);
+  });
+});
+
+describe('larguras das colunas da planilha', () => {
+  it('vêm do <col width> (ou da padrão), acompanham as colunas retiradas e vão até a tabela', () => {
+    const [, , a24] = abas();
+    const p = planilhaDoIntervalo(a24!, lerIntervalo('A1:F2')!);
+    // A (30), B (padrão 8,43), D (15), F (padrão): C e E saíram.
+    expect(p.lida.larguras).toEqual([300, 84, 150, 84]);
+    const conv = converterPlanilha(p.lida, 'quadro', opcoesSugeridas(p.lida));
+    expect(conv.larguras).toEqual([300, 84, 150, 84]);
+    const r = { ...aplicarPlanilha(rascunhoNovo('quadro'), conv), titulo: { texto: 'T' } };
+    const v = validarTabela(r);
+    expect(v.ok && v.dados.colunas.map((c) => c.largura)).toEqual([300, 84, 150, 84]);
+    // Inserir e excluir coluna mantêm os pesos alinhados; outra colagem sem larguras as tira.
+    const mais = inserirColuna(r, 1);
+    expect(mais.ok && mais.rascunho.larguras).toEqual([300, 300, 84, 150, 84]);
+    const menos = excluirColuna(r, 0);
+    expect(menos.ok && menos.rascunho.larguras).toEqual([84, 150, 84]);
+    expect(aplicarPlanilha(r, converterPlanilha({ linhas: [[{ texto: 'x' }]], avisos: [] }, 'quadro', { decimal: 'virgula', vazios: '', linhasCabecalho: 0 })).larguras).toBeUndefined();
+  });
+
+  it('no DOCX, as colunas seguem a proporção, com mínimo por coluna, e somam a largura do texto', async () => {
+    expect(largurasColunas({ larguraTw: 9000, colunas: 3 })).toEqual([3000, 3000, 3000]);
+    expect(largurasColunas({ larguraTw: 9000, colunas: 3, pesosColunas: [200, 100, 100] })).toEqual([4500, 2250, 2250]);
+    const w = largurasColunas({ larguraTw: 9000, colunas: 2, pesosColunas: [1000, 1] });
+    expect(w[1]).toBeGreaterThanOrEqual(400);
+    expect(w[0]! + w[1]!).toBe(9000);
+    const [, , a24] = abas();
+    const tab = importada('tab_xl00000000009', a24!, 'A1:F2', 'Larguras', 'F.');
+    const doc = { ...criarTrabalhoVazio({ id: 'prj_abcdefghijklmnop', agora: '2026-11-15T10:00:00.000Z', appVersao: '0.1.0' }).documento, corpo: [sec('sec_xl00000000001', [tab])] };
+    expect(validarDocumentoV1(doc).ok).toBe(true);
+    const xml = abrirDocx(await exportarDocx(formatar(doc, PERFIL)))['word/document.xml']!;
+    const grid = [...xml.matchAll(/<w:gridCol w:w="(\d+)"\/>/g)].map((m) => Number(m[1]));
+    expect(grid[0]! / grid[1]!).toBeCloseTo(300 / 84, 1);
+    expect(grid[2]! / grid[3]!).toBeCloseTo(150 / 84, 1);
   });
 });

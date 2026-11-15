@@ -211,6 +211,11 @@ export type AlinhamentoColuna = 'esquerda' | 'centro' | 'direita';
 /** Coluna da tabela ou do quadro: por enquanto só o alinhamento (P-C4: números à direita, escolha do autor). */
 export interface ColunaTabela {
   alinhamento: AlinhamentoColuna;
+  /**
+   * Peso da largura da coluna (Etapa 4: a planilha importada traz as larguras das colunas). A tabela ocupa a largura do
+   * texto, repartida na proporção dos pesos; sem peso em alguma coluna, todas ficam iguais.
+   */
+  largura?: number;
 }
 
 /**

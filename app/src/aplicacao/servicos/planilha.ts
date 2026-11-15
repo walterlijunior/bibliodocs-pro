@@ -52,6 +52,8 @@ export interface PlanilhaLida {
   linhasNaoLidas?: number;
   /** Campos com texto além do limite de colunas, também não guardados (R-M5-03). */
   camposNaoLidos?: number;
+  /** Peso da largura de cada coluna, da esquerda para a direita (planilha importada: a largura da coluna no Excel × 10). */
+  larguras?: number[];
 }
 
 export type SinalParaVazio = '' | '–' | '..' | '...' | 'X';
@@ -72,6 +74,8 @@ export interface PlanilhaConvertida {
   relatorio: string[];
   /** Nenhuma célula com texto: nada a usar. */
   vazia: boolean;
+  /** Peso da largura de cada coluna, quando a origem informa (planilha importada). */
+  larguras?: number[];
 }
 
 /** Tamanho máximo do CSV (o mesmo teto da importação de bibliografia). */
@@ -450,12 +454,13 @@ export function converterPlanilha(p: PlanilhaLida, especie: 'tabela' | 'quadro',
   if (cont.linhasFora > 0) relatorio.push(`Ficaram de fora ${plural(cont.linhasFora, 'uma linha', '# linhas')}, além do tamanho máximo da tabela.`);
   if (cont.celulasFora > 0) relatorio.push(`Ficaram de fora ${plural(cont.celulasFora, 'uma célula', '# células')} além da ${LIMITES_V1.colunasTabela}.ª coluna (o máximo do Word).`);
   const semTexto = grade.every((linha) => linha.every((x) => x === null || x.campo.texto === ''));
-  return { grade, alinhamentos, linhasCabecalho, relatorio, vazia: grade.length === 0 || semTexto };
+  const larguras = p.larguras && p.larguras.length >= nColunas ? p.larguras.slice(0, nColunas).map((x) => Math.max(1, Math.min(10_000, Math.round(x)))) : undefined;
+  return { grade, alinhamentos, linhasCabecalho, relatorio, vazia: grade.length === 0 || semTexto, ...(larguras ? { larguras } : {}) };
 }
 
 /** Os dados da planilha no lugar da grade do rascunho; título, fonte e notas ficam. */
 export function aplicarPlanilha(r: RascunhoTabela, c: PlanilhaConvertida): RascunhoTabela {
   // Dados de outra colagem: a origem da importação anterior deixa de valer.
-  const { origem: _origem, ...resto } = r;
-  return { ...resto, grade: c.grade, alinhamentos: c.alinhamentos, linhasCabecalho: c.linhasCabecalho };
+  const { origem: _origem, larguras: _larguras, ...resto } = r;
+  return { ...resto, grade: c.grade, alinhamentos: c.alinhamentos, linhasCabecalho: c.linhasCabecalho, ...(c.larguras ? { larguras: c.larguras } : {}) };
 }

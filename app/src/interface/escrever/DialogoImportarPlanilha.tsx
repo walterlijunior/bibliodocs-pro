@@ -292,7 +292,14 @@ function CartaoElemento(p: { aba: AbaXlsx; e: Elemento; n: number; aoMudar: (e: 
             {e.especie === 'quadro' ? 'quadro (fechado, com todas as linhas)' : 'IBGE (aberta nas laterais)'}.
           </p>
           <div className="tabela-edicao__rolagem">
-            <table className={`bd-tabela__grade tabela-planilha__grade${e.especie === 'quadro' ? ' planilha-elemento__grade--quadro' : ''}`}>
+            <table className={`bd-tabela__grade tabela-planilha__grade${e.especie === 'quadro' ? ' planilha-elemento__grade--quadro' : ''}${conv.larguras ? ' bd-tabela__grade--larguras' : ''}`}>
+              {conv.larguras && (
+                <colgroup>
+                  {conv.larguras.map((w, k) => (
+                    <col key={k} style={{ width: `${((w / conv.larguras!.reduce((s, x) => s + x, 0)) * 100).toFixed(2)}%` }} />
+                  ))}
+                </colgroup>
+              )}
               <tbody>
                 {conv.grade.slice(0, LINHAS_NA_PREVIA).map((linha, l) => (
                   <tr key={l}>

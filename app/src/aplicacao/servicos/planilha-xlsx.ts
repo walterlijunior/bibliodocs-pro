@@ -260,7 +260,7 @@ export function planilhaDoIntervalo(aba: AbaXlsx, pedido: IntervaloXlsx, opcoes:
 
   // Cabeçalho sugerido: célula mesclada para baixo na 1.ª linha indica corpo (rótulo de grupo, como "Ambiental"), não
   // cabeçalho; sem isso, vale a sugestão da colagem (1.ª linha sem números).
-  const lida: PlanilhaLida = { linhas: grade, avisos, estiloOrigem: estilo };
+  const lida: PlanilhaLida = { linhas: grade, avisos, estiloOrigem: estilo, larguras: colunas.map((c) => Math.max(1, Math.round((aba.larguras[c] ?? aba.larguraPadrao) * 10))) };
   if ((grade[0] ?? []).some((x) => (x.linhas ?? 1) > 1)) lida.linhasCabecalho = 0;
   return { lida, intervalo: i, colunasRetiradas, linhasRetiradas };
 }

@@ -154,6 +154,8 @@ export interface BlocoTabelaFormatado {
   /** Largura da tabela: a área útil da página. */
   larguraTw: number;
   colunas: number;
+  /** Peso da largura de cada coluna (todas com peso); ausente = colunas iguais. */
+  pesosColunas?: readonly number[];
   linhasCabecalho: number;
   /** As linhas de cabeçalho se repetem em cada página (RN-292). */
   repetirCabecalho: boolean;

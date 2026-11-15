@@ -225,6 +225,22 @@ const traco = (sim: boolean) => (sim ? TRACO : SEM_TRACO);
  * a célula de cima com `vMerge` "restart" e uma célula "continue" em cada linha seguinte (montadas aqui, com o estilo da
  * célula, para a linha não crescer com um parágrafo no corpo padrão).
  */
+/**
+ * Larguras das colunas em twips: iguais, ou na proporção dos pesos (planilha importada), com um mínimo de 5% da tabela
+ * por coluna para nenhuma sumir. A sobra do arredondamento vai para a última, para a soma dar a largura exata.
+ */
+export function largurasColunas(b: Pick<BlocoTabelaFormatado, 'larguraTw' | 'colunas' | 'pesosColunas'>): number[] {
+  const n = Math.max(1, b.colunas);
+  const pesos = b.pesosColunas && b.pesosColunas.length === n ? b.pesosColunas : Array.from({ length: n }, () => 1);
+  const total = pesos.reduce((s, x) => s + x, 0);
+  const minimo = 1 / Math.max(n, 20);
+  const fracoes = pesos.map((x) => Math.max(minimo, x / total));
+  const soma = fracoes.reduce((s, x) => s + x, 0);
+  const tw = fracoes.map((x) => Math.floor((b.larguraTw * x) / soma));
+  tw[n - 1] = b.larguraTw - tw.slice(0, -1).reduce((s, x) => s + x, 0);
+  return tw;
+}
+
 function converterTabela(b: BlocoTabelaFormatado, notas: Notas): Table {
   const t = b.tracos;
   const ultimaDoCabecalho = b.linhasCabecalho - 1;
@@ -235,7 +251,7 @@ function converterTabela(b: BlocoTabelaFormatado, notas: Notas): Table {
   // Linhas [r, r + n) chegam à linha `alvo`?
   const alcanca = (r: number, n: number, alvo: number) => r <= alvo && r + n - 1 >= alvo;
   const tracoAbaixo = (r: number, n: number) => (t.abaixoDoCabecalho && alcanca(r, n, ultimaDoCabecalho)) || (baixoNaCelula && alcanca(r, n, ultima));
-  const largura = Math.floor(b.larguraTw / Math.max(1, b.colunas));
+  const larguras = largurasColunas(b);
   const vazia = () => new Paragraph({ style: b.estilo });
   // Por coluna: quantas linhas ainda estão cobertas por uma célula de cima, e com quantas colunas.
   const cobertas: { resta: number; colunas: number }[] = Array.from({ length: b.colunas }, () => ({ resta: 0, colunas: 1 }));
@@ -270,8 +286,7 @@ function converterTabela(b: BlocoTabelaFormatado, notas: Notas): Table {
   });
   return new Table({
     width: { size: b.larguraTw, type: WidthType.DXA },
-    // Colunas iguais; a sobra da divisão vai para a última, para a soma dar a largura exata.
-    columnWidths: Array.from({ length: b.colunas }, (_, i) => (i === b.colunas - 1 ? b.larguraTw - largura * (b.colunas - 1) : largura)),
+    columnWidths: larguras,
     borders: {
       top: traco(t.superior),
       bottom: traco(t.inferior && !baixoNaCelula),

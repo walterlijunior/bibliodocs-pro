@@ -152,6 +152,7 @@ export function blocosTabela(b: BlocoTabela, c: ContextoVisuais): BlocoFormatado
       estilo: 'celulaTabela',
       larguraTw: c.larguraTw,
       colunas: b.colunas.length,
+      ...(b.colunas.every((x) => x.largura !== undefined) ? { pesosColunas: b.colunas.map((x) => x.largura!) } : {}),
       linhasCabecalho: b.linhasCabecalho,
       repetirCabecalho: repetir,
       tracos: moldura.tracos,

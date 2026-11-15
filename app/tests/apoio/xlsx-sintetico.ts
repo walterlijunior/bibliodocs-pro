@@ -9,6 +9,8 @@ export interface AbaSintetica {
   /** XML de dentro de `<sheetData>`. */
   linhas: string;
   mesclagens?: string[];
+  /** XML de dentro de `<cols>` (larguras). */
+  colunas?: string;
 }
 
 const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
@@ -43,7 +45,7 @@ export function xlsxSintetico(abas: readonly AbaSintetica[], compartilhados: rea
   };
   abas.forEach((a, k) => {
     arquivos[`xl/worksheets/sheet${k + 1}.xml`] = strToU8(
-      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet ${NS}><sheetData>${a.linhas}</sheetData>${
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet ${NS}>${a.colunas ? `<cols>${a.colunas}</cols>` : ''}<sheetData>${a.linhas}</sheetData>${
         a.mesclagens && a.mesclagens.length > 0 ? `<mergeCells count="${a.mesclagens.length}">${a.mesclagens.map((m) => `<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : ''
       }</worksheet>`,
     );

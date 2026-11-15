@@ -72,6 +72,10 @@ export interface AbaXlsx {
   preenchida: IntervaloXlsx | null;
   /** Células com conteúdo além do limite, não lidas. */
   celulasNaoLidas: number;
+  /** Largura de cada coluna com largura própria (`<col width>`, em caracteres), pelo índice da coluna. */
+  larguras: Record<number, number>;
+  /** Largura das demais colunas (`defaultColWidth`, ou a padrão do Excel, 8,43). */
+  larguraPadrao: number;
 }
 
 export interface PastaXlsx {
@@ -426,7 +430,15 @@ function lerAba(xml: string, nome: string, oculta: boolean, compartilhados: read
   const linhasOcultas: number[] = [];
   const colunasOcultas: number[] = [];
   let naoLidas = 0;
+  const larguras: Record<number, number> = {};
+  const padrao = Number(/<sheetFormatPr\s[^>]*defaultColWidth="([\d.]+)"/.exec(xml)?.[1] ?? 8.43);
   for (const m of xml.matchAll(/<col\s([^>]*?)\/?>/g)) {
+    const w = Number(attr(m[1]!, 'width'));
+    if (Number.isFinite(w) && w > 0) {
+      const de = Number(attr(m[1]!, 'min') ?? 0) - 1;
+      const ate = Math.min(Number(attr(m[1]!, 'max') ?? 0) - 1, de + 1000);
+      for (let c = de; c <= ate; c++) larguras[c] = w;
+    }
     if (attr(m[1]!, 'hidden') === '1' || attr(m[1]!, 'hidden') === 'true') {
       const de = Number(attr(m[1]!, 'min') ?? 0) - 1;
       const ate = Math.min(Number(attr(m[1]!, 'max') ?? 0) - 1, de + 1000);
@@ -509,7 +521,18 @@ function lerAba(xml: string, nome: string, oculta: boolean, compartilhados: read
     const i = lerIntervalo(attr(m[1]!, 'ref') ?? '');
     if (i && (i.l2 > i.l1 || i.c2 > i.c1)) mesclagens.push(i);
   }
-  return { nome, oculta, celulas, mesclagens, linhasOcultas, colunasOcultas, preenchida: areaPreenchida(celulas, mesclagens), celulasNaoLidas: naoLidas };
+  return {
+    nome,
+    oculta,
+    celulas,
+    mesclagens,
+    linhasOcultas,
+    colunasOcultas,
+    preenchida: areaPreenchida(celulas, mesclagens),
+    celulasNaoLidas: naoLidas,
+    larguras,
+    larguraPadrao: Number.isFinite(padrao) && padrao > 0 ? padrao : 8.43,
+  };
 }
 
 /** Menor retângulo com as células com valor, crescido para conter as mesclagens que tocam nele. */
